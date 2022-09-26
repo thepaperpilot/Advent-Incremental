@@ -1,0 +1,24 @@
+{
+	"title": "Profectus",
+	"description": "A project made in Profectus",
+	"id": "",
+	"author": "",
+	"discordName": "",
+	"discordLink": "",
+
+	"versionNumber": "0.0",
+	"versionTitle": "Initial Commit",
+
+	"allowGoBack": true,
+	"defaultShowSmall": false,
+	"defaultDecimalsShown": 2,
+	"useHeader": true,
+	"banner": null,
+	"logo": "",
+	"initialTabs": [ "main" ],
+
+	"maxTickLength": 3600,
+	"offlineLimit": 1,
+	"enablePausing": true,
+	"exportEncoding": "base64"
+}

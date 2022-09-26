@@ -1,0 +1,13 @@
+.field {
+	display: flex;
+	position: relative;
+	min-height: 2em;
+	margin: 10px 0;
+	user-select: none;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.field > * {
+	margin: 0;
+}
