@@ -2,62 +2,76 @@ import "@fontsource/material-icons";
 import Spacer from "components/layout/Spacer.vue";
 import Day from "./Day.vue";
 import { CoercableComponent, Component, GatherProps, jsx } from "features/feature";
-import type { BaseLayer, GenericLayer } from "game/layers";
+import { BaseLayer, GenericLayer, layers } from "game/layers";
 import { createLayer } from "game/layers";
 import { persistent } from "game/persistence";
 import type { PlayerData } from "game/player";
 import player from "game/player";
 import { format, formatTime } from "util/bignum";
-import { renderRow, VueFeature } from "util/vue";
+import { render, renderRow, VueFeature } from "util/vue";
 import { computed, ref } from "vue";
 import type { Ref } from "vue";
 import prestige from "./layers/prestige";
 import { createLazyProxy } from "util/proxies";
+import { Computable, convertComputable, ProcessedComputable } from "util/computed";
+import Modal from "components/Modal.vue";
 
 export interface Day extends VueFeature {
     day: number;
     layer: string | null;
     symbol: CoercableComponent;
     story: string;
-    tooltipText: CoercableComponent;
     opened: Ref<boolean>;
-    shouldNotify: Ref<boolean>;
+    unlocked: ProcessedComputable<boolean>;
+    shouldNotify: ProcessedComputable<boolean>;
 }
 
 export const main = createLayer("main", function (this: BaseLayer) {
     const day = persistent<number>(1);
 
+    const openLore = ref<number>(-1);
+
     function createDay(
         optionsFunc: () => {
             day: number;
+            unlocked: Computable<boolean>;
+            shouldNotify: Computable<boolean>;
             layer: string | null;
             symbol: CoercableComponent;
             story: string;
         }
     ): Day {
         const opened = persistent<boolean>(false);
+
         return createLazyProxy(() => {
             const day = optionsFunc();
+
+            const unlocked = convertComputable(day.unlocked);
+            const shouldNotify = convertComputable(day.shouldNotify);
 
             return {
                 ...day,
                 opened,
-                tooltipText: day.layer ?? day.symbol,
-                shouldNotify: ref(false),
+                unlocked,
+                shouldNotify,
                 [Component]: Day,
                 [GatherProps]: function (this: Day) {
-                    const { day, layer, symbol, opened, tooltipText, shouldNotify } = this;
+                    const { day, layer, symbol, opened, unlocked, shouldNotify } = this;
                     return {
                         day,
                         symbol,
                         opened,
-                        tooltipText,
+                        unlocked,
                         shouldNotify,
+                        onOpenLore() {
+                            openLore.value = day;
+                        },
                         onOpenLayer() {
-                            player.tabs.splice(1, 1, layer ?? "prestige");
+                            player.tabs.splice(1, 1, layer ?? "p");
                         },
                         onUnlockLayer() {
                             opened.value = true;
+                            openLore.value = day;
                         }
                     };
                 }
@@ -68,23 +82,40 @@ export const main = createLayer("main", function (this: BaseLayer) {
     const days = [
         createDay(() => ({
             day: 1,
+            unlocked: true,
+            shouldNotify: false,
             layer: null,
             symbol: "🎄",
-            story: "Oh no! Santa forgot about Christmas and it's only 25 days away! He's asked for your help due to your history getting large quantities of things in short amounts of time. Unfortunately you're really starting from scratch here - let's start with getting wood, which you'll need for everything from building workshops to wrapping paper to many of the toys themselves"
+            story: "Oh no! Santa forgot about Christmas and it's only 25 days away! He's asked for your help due to your history getting large quantities of things in short amounts of time. Unfortunately you're really starting from scratch here - let's start with getting wood, which you'll need for everything from building workshops to wrapping paper to many of the toys themselves!"
         })),
         createDay(() => ({
             day: 2,
+            unlocked: false,
+            shouldNotify: false,
             layer: null,
             symbol: "<span class='material-icons'>cabin</span>",
             story: "Santa looked over your tree farm and was impressed with how much you could accomplish in just one day. Today's goal is to get a workshop built up for the elves to work in - and apparently, they need quite a lot of space to work!"
         })),
         createDay(() => ({
             day: 3,
+            unlocked: false,
+            shouldNotify: false,
             layer: null,
             symbol: "🧝",
             story: "With this unbelievably large workshop complete, it's time to get the elves to work! But it appears they've forgotten how to make toys over the last 11 months - guess it's time to setup training sessions!"
         }))
     ];
+
+    const loreModal = jsx(() => (
+        <Modal
+            modelValue={openLore.value !== -1}
+            onUpdate:modelValue={() => (openLore.value = -1)}
+            v-slots={{
+                header: () => <h2>{layers[days[openLore.value - 1]?.layer ?? "p"]?.name}</h2>,
+                body: () => days[openLore.value - 1]?.story ?? ""
+            }}
+        />
+    ));
 
     return {
         name: "Calendar",
@@ -115,6 +146,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
                         )
                         .map(days => renderRow(...days))}
                 </div>
+                {render(loreModal)}
             </>
         ))
     };

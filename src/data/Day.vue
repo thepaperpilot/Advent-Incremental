@@ -14,10 +14,11 @@
         v-else
         class="day feature dontMerge"
         :class="{ can: canOpen, locked: !canOpen, canOpen }"
-        @click="emit('unlockLayer')"
+        @click="tryUnlock"
     >
         <div class="doors"></div>
         <div class="date">Dec<br />{{ day }}</div>
+        <div v-if="!canOpen" class="material-icons lock">lock</div>
         <Notif v-if="canOpen" />
     </div>
 </template>
@@ -28,13 +29,14 @@ import { unref, toRef, computed } from "vue";
 import type { Ref } from "vue";
 import Notif from "components/Notif.vue";
 import { computeComponent } from "util/vue";
+import { ProcessedComputable } from "util/computed";
 
 const props = defineProps<{
     day: number;
     symbol: CoercableComponent;
     opened: Ref<boolean>;
-    tooltipText: CoercableComponent;
-    shouldNotify: Ref<boolean>;
+    unlocked: ProcessedComputable<boolean>;
+    shouldNotify: ProcessedComputable<boolean>;
 }>();
 
 const emit = defineEmits<{
@@ -46,8 +48,14 @@ const emit = defineEmits<{
 const symbolComp = computeComponent(toRef(props, "symbol"));
 
 const canOpen = computed(
-    () => true /*new Date().getMonth() === 12 && new Date().getDate() >= props.day*/
+    () => unref(props.unlocked) && new Date().getMonth() === 12 && new Date().getDate() >= props.day
 );
+
+function tryUnlock() {
+    if (canOpen.value) {
+        emit("unlockLayer");
+    }
+}
 </script>
 
 <style scoped>
@@ -118,6 +126,9 @@ const canOpen = computed(
     height: 100%;
     top: 0;
     left: 0;
+}
+
+.day.opened .doors {
     cursor: pointer;
 }
 
@@ -148,6 +159,7 @@ const canOpen = computed(
     transform: translate(-50%, -50%);
     z-index: 2;
     font-size: x-large;
+    pointer-events: none;
     user-select: none;
     backface-visibility: hidden;
     width: 100%;
@@ -176,5 +188,14 @@ const canOpen = computed(
 
 .lore:hover {
     box-shadow: 0 0 10px var(--points);
+}
+
+.lock {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.2;
+    font-size: 500%;
 }
 </style>
