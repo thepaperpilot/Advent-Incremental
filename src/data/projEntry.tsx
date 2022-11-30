@@ -1,51 +1,84 @@
+import "@fontsource/material-icons";
 import Spacer from "components/layout/Spacer.vue";
-import { jsx } from "features/feature";
-import { createResource, trackBest, trackOOMPS, trackTotal } from "features/resources/resource";
+import Row from "components/layout/Row.vue";
+import Day from "./Day.vue";
+import { CoercableComponent, Component, GatherProps, jsx } from "features/feature";
 import type { GenericTree } from "features/trees/tree";
-import { branchedResetPropagation, createTree } from "features/trees/tree";
-import { globalBus } from "game/events";
+import { createTree } from "features/trees/tree";
 import type { BaseLayer, GenericLayer } from "game/layers";
 import { createLayer } from "game/layers";
+import { persistent } from "game/persistence";
 import type { PlayerData } from "game/player";
 import player from "game/player";
-import type { DecimalSource } from "util/bignum";
-import Decimal, { format, formatTime } from "util/bignum";
-import { render } from "util/vue";
-import { computed, toRaw } from "vue";
+import { format, formatTime } from "util/bignum";
+import { render, renderRow, VueFeature } from "util/vue";
+import { computed, ref } from "vue";
+import type { Ref } from "vue";
 import prestige from "./layers/prestige";
+import { createLazyProxy } from "util/proxies";
 
-/**
- * @hidden
- */
-export const main = createLayer("main", function (this: BaseLayer) {
-    const points = createResource<DecimalSource>(10);
-    const best = trackBest(points);
-    const total = trackTotal(points);
+export interface Day extends VueFeature {
+    day: number;
+    layer: string | null;
+    symbol: CoercableComponent;
+    story: string;
+    tooltipText: CoercableComponent;
+    opened: Ref<boolean>;
+    shouldNotify: Ref<boolean>;
+}
 
-    const pointGain = computed(() => {
-        // eslint-disable-next-line prefer-const
-        let gain = new Decimal(1);
-        return gain;
-    });
-    globalBus.on("update", diff => {
-        points.value = Decimal.add(points.value, Decimal.times(pointGain.value, diff));
-    });
-    const oomps = trackOOMPS(points, pointGain);
+export const main = createLayer("main", function(this: BaseLayer) {
+    const day = persistent<number>(1);
 
-    const tree = createTree(() => ({
-        nodes: [[prestige.treeNode]],
-        branches: [],
-        onReset() {
-            points.value = toRaw(this.resettingNode.value) === toRaw(prestige.treeNode) ? 0 : 10;
-            best.value = points.value;
-            total.value = points.value;
-        },
-        resetPropagation: branchedResetPropagation
-    })) as GenericTree;
+    function createDay(optionsFunc: () => {
+        day: number;
+        layer: string | null;
+        symbol: CoercableComponent;
+        story: string;
+    }): Day {
+        const opened = persistent<boolean>(false);
+        return createLazyProxy(() => {
+            const day = optionsFunc();
+
+            return {
+                ...day,
+                opened,
+                tooltipText: day.layer ?? day.symbol,
+                shouldNotify: ref(false),
+                [Component]: Day,
+                [GatherProps]: function(this: Day) {
+                    const { day, symbol, opened, tooltipText, shouldNotify } = this;
+                    return { day, symbol, opened, tooltipText, shouldNotify };
+                }
+            };
+        })
+    }
+
+    const days = [
+        createDay(() => ({
+            day: 1,
+            layer: null,
+            symbol: "🎄",
+            story: "Oh no! Santa forgot about Christmas and it's only 25 days away! He's asked for your help due to your history getting large quantities of things in short amounts of time. Unfortunately you're really starting from scratch here - let's start with getting wood, which you'll need for everything from building workshops to wrapping paper to many of the toys themselves"
+        })),
+        createDay(() => ({
+            day: 2,
+            layer: null,
+            symbol: "<span class='material-icons'>cabin</span>",
+            story: "Santa looked over your tree farm and was impressed with how much you could accomplish in just one day. Today's goal is to get a workshop built up for the elves to work in - and apparently, they need quite a lot of space to work!"
+        })),
+        createDay(() => ({
+            day: 3,
+            layer: null,
+            symbol: "🧝",
+            story: "With this unbelievably large workshop complete, it's time to get the elves to work! But it appears they've forgotten how to make toys over the last 11 months - guess it's time to setup training sessions!"
+        }))
+    ];
 
     return {
-        name: "Tree",
-        links: tree.links,
+        name: "Calendar",
+        days,
+        day,
         display: jsx(() => (
             <>
                 {player.devSpeed === 0 ? <div>Game Paused</div> : null}
@@ -55,21 +88,18 @@ export const main = createLayer("main", function (this: BaseLayer) {
                 {player.offlineTime ? (
                     <div>Offline Time: {formatTime(player.offlineTime)}</div>
                 ) : null}
-                <div>
-                    {Decimal.lt(points.value, "1e1000") ? <span>You have </span> : null}
-                    <h2>{format(points.value)}</h2>
-                    {Decimal.lt(points.value, "1e1e6") ? <span> points</span> : null}
-                </div>
-                {Decimal.gt(pointGain.value, 0) ? <div>({oomps.value})</div> : null}
                 <Spacer />
-                {render(tree)}
+                <div style="width: 600px">
+                    {days.reduce((acc, curr) => {
+                        if (acc[acc.length - 1].length === 5) {
+                            acc.push([]);
+                        }
+                        acc[acc.length - 1].push(curr);
+                        return acc;
+                    }, [[]] as Day[][]).map(days => renderRow(...days))}
+                </div>
             </>
-        )),
-        points,
-        best,
-        total,
-        oomps,
-        tree
+        ))
     };
 });
 
@@ -99,5 +129,5 @@ export function fixOldSave(
     oldVersion: string | undefined,
     player: Partial<PlayerData>
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-): void {}
+): void { }
 /* eslint-enable @typescript-eslint/no-unused-vars */

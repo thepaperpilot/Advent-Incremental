@@ -1,10 +1,10 @@
 {
 	"$schema": "./projInfo-schema.json",
 
-	"title": "Profectus",
-	"description": "A project made in Profectus",
-	"id": "",
-	"author": "",
+	"title": "Advent Incremental",
+	"description": "An incremental game you play a day at a time, leading up to Christmas!",
+	"id": "advent-incremental",
+	"author": "thepaperpilot",
 	"discordName": "",
 	"discordLink": "",
 
