@@ -1,20 +1,32 @@
 <template>
-    <Tooltip :display="tooltipText">
-        <div class="day feature dontMerge" :class="{ opened: unref(opened) }" @click="openLayer">
-            <div class="doors"></div>
-            <div class="icon" v-if="symbolComp"><component :is="symbolComp" /></div>
-            <div class="lore" @click="emit('openLore')">?</div>
-            <Notif v-if="unref(shouldNotify)" />
-        </div>
-    </Tooltip>
+    <div class="day feature dontMerge opened" v-if="opened.value">
+        <Transition appear name="door">
+            <div class="doors" @click="emit('openLayer')">
+                <div class="date">Dec<br />{{ day }}</div>
+                <div class="date">Dec<br />{{ day }}</div>
+            </div>
+        </Transition>
+        <div class="icon" v-if="symbolComp"><component :is="symbolComp" /></div>
+        <div class="lore" @click="emit('openLore')">?</div>
+        <Notif v-if="unref(shouldNotify)" />
+    </div>
+    <div
+        v-else
+        class="day feature dontMerge"
+        :class="{ can: canOpen, locked: !canOpen, canOpen }"
+        @click="emit('unlockLayer')"
+    >
+        <div class="doors"></div>
+        <div class="date">Dec<br />{{ day }}</div>
+        <Notif v-if="canOpen" />
+    </div>
 </template>
 
 <script setup lang="ts">
 import { CoercableComponent } from "features/feature";
-import { unref, ref, toRef } from "vue";
+import { unref, toRef, computed } from "vue";
 import type { Ref } from "vue";
 import Notif from "components/Notif.vue";
-import Tooltip from "features/tooltips/Tooltip.vue";
 import { computeComponent } from "util/vue";
 
 const props = defineProps<{
@@ -28,27 +40,117 @@ const props = defineProps<{
 const emit = defineEmits<{
     (e: "openLore"): void;
     (e: "openLayer"): void;
+    (e: "unlockLayer"): void;
 }>();
 
 const symbolComp = computeComponent(toRef(props, "symbol"));
+
+const canOpen = computed(
+    () => true /*new Date().getMonth() === 12 && new Date().getDate() >= props.day*/
+);
 </script>
 
 <style scoped>
 .day {
-    width: 100px;
-    height: 100px;
+    width: 90px;
+    height: 90px;
     position: relative;
     display: flex;
     background-color: var(--raised-background);
+    margin: 40px;
+}
+
+.door-enter-from::before,
+.door-enter-from::after,
+.door-leave-to::before,
+.door-leave-to::after {
+    transform: perspective(150px) rotateY(0) !important;
+}
+
+.door-enter-from .date,
+.door-leave-to .date {
+    transform: translate(-50%, -50%) perspective(150px) rotateY(0) !important;
+}
+
+.door-enter-active::before,
+.door-enter-active::after,
+.door-leave-active::before,
+.door-leave-active::after {
+    z-index: 2;
+}
+
+.door-enter-active .date,
+.door-leave-active .date {
+    z-index: 3;
+}
+
+.day.opened .doors::before,
+.day.opened .doors::after,
+.day.opened .doors .date {
+    transition: 1s;
+}
+
+.day.opened .doors::before {
+    transform-origin: left;
+    transform: perspective(150px) rotateY(-135deg);
+}
+
+.day.opened .doors::after {
+    transform-origin: right;
+    transform: perspective(150px) rotateY(135deg);
+}
+
+.day.opened .doors .date:first-child {
+    transform-origin: left;
+    transform: translate(-50%, -50%) perspective(150px) rotateY(-135deg);
+    clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%);
+}
+
+.day.opened .doors .date:last-child {
+    transform-origin: right;
+    transform: translate(-50%, -50%) perspective(150px) rotateY(135deg);
+    clip-path: polygon(100% 0, 50% 0, 50% 100%, 100% 100%);
 }
 
 .doors {
     position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    cursor: pointer;
 }
 
 .doors::before,
 .doors::after {
-    
+    content: "";
+    position: absolute;
+    background-color: var(--locked);
+    width: 50%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.doors::before {
+    top: 0;
+    left: 0;
+}
+
+.doors::after {
+    top: 0;
+    right: 0;
+}
+
+.date {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    font-size: x-large;
+    user-select: none;
+    backface-visibility: hidden;
+    width: 100%;
 }
 
 .icon,
@@ -56,13 +158,23 @@ const symbolComp = computeComponent(toRef(props, "symbol"));
     font-size: xxx-large;
     pointer-events: none;
     display: flex;
+    user-select: none;
 }
 
 .lore {
     position: absolute;
     top: 5px;
     right: 5px;
+    width: 20px;
+    height: 20px;
+    z-index: 1;
     border-radius: 50%;
-    
+    cursor: pointer;
+    background-color: var(--highlighted);
+    user-select: none;
+}
+
+.lore:hover {
+    box-shadow: 0 0 10px var(--points);
 }
 </style>

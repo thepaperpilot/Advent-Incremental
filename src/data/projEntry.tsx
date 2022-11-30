@@ -1,17 +1,14 @@
 import "@fontsource/material-icons";
 import Spacer from "components/layout/Spacer.vue";
-import Row from "components/layout/Row.vue";
 import Day from "./Day.vue";
 import { CoercableComponent, Component, GatherProps, jsx } from "features/feature";
-import type { GenericTree } from "features/trees/tree";
-import { createTree } from "features/trees/tree";
 import type { BaseLayer, GenericLayer } from "game/layers";
 import { createLayer } from "game/layers";
 import { persistent } from "game/persistence";
 import type { PlayerData } from "game/player";
 import player from "game/player";
 import { format, formatTime } from "util/bignum";
-import { render, renderRow, VueFeature } from "util/vue";
+import { renderRow, VueFeature } from "util/vue";
 import { computed, ref } from "vue";
 import type { Ref } from "vue";
 import prestige from "./layers/prestige";
@@ -27,15 +24,17 @@ export interface Day extends VueFeature {
     shouldNotify: Ref<boolean>;
 }
 
-export const main = createLayer("main", function(this: BaseLayer) {
+export const main = createLayer("main", function (this: BaseLayer) {
     const day = persistent<number>(1);
 
-    function createDay(optionsFunc: () => {
-        day: number;
-        layer: string | null;
-        symbol: CoercableComponent;
-        story: string;
-    }): Day {
+    function createDay(
+        optionsFunc: () => {
+            day: number;
+            layer: string | null;
+            symbol: CoercableComponent;
+            story: string;
+        }
+    ): Day {
         const opened = persistent<boolean>(false);
         return createLazyProxy(() => {
             const day = optionsFunc();
@@ -46,12 +45,24 @@ export const main = createLayer("main", function(this: BaseLayer) {
                 tooltipText: day.layer ?? day.symbol,
                 shouldNotify: ref(false),
                 [Component]: Day,
-                [GatherProps]: function(this: Day) {
-                    const { day, symbol, opened, tooltipText, shouldNotify } = this;
-                    return { day, symbol, opened, tooltipText, shouldNotify };
+                [GatherProps]: function (this: Day) {
+                    const { day, layer, symbol, opened, tooltipText, shouldNotify } = this;
+                    return {
+                        day,
+                        symbol,
+                        opened,
+                        tooltipText,
+                        shouldNotify,
+                        onOpenLayer() {
+                            player.tabs.splice(1, 1, layer ?? "prestige");
+                        },
+                        onUnlockLayer() {
+                            opened.value = true;
+                        }
+                    };
                 }
             };
-        })
+        });
     }
 
     const days = [
@@ -79,6 +90,7 @@ export const main = createLayer("main", function(this: BaseLayer) {
         name: "Calendar",
         days,
         day,
+        minWidth: 710,
         display: jsx(() => (
             <>
                 {player.devSpeed === 0 ? <div>Game Paused</div> : null}
@@ -89,14 +101,19 @@ export const main = createLayer("main", function(this: BaseLayer) {
                     <div>Offline Time: {formatTime(player.offlineTime)}</div>
                 ) : null}
                 <Spacer />
-                <div style="width: 600px">
-                    {days.reduce((acc, curr) => {
-                        if (acc[acc.length - 1].length === 5) {
-                            acc.push([]);
-                        }
-                        acc[acc.length - 1].push(curr);
-                        return acc;
-                    }, [[]] as Day[][]).map(days => renderRow(...days))}
+                <div style="width: 700px">
+                    {days
+                        .reduce(
+                            (acc, curr) => {
+                                if (acc[acc.length - 1].length === 4) {
+                                    acc.push([]);
+                                }
+                                acc[acc.length - 1].push(curr);
+                                return acc;
+                            },
+                            [[]] as Day[][]
+                        )
+                        .map(days => renderRow(...days))}
                 </div>
             </>
         ))
@@ -129,5 +146,5 @@ export function fixOldSave(
     oldVersion: string | undefined,
     player: Partial<PlayerData>
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-): void { }
+): void {}
 /* eslint-enable @typescript-eslint/no-unused-vars */
