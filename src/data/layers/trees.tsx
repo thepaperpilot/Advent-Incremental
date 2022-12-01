@@ -46,8 +46,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const manualPlantUpgrade1 = createUpgrade(() => ({
-        resource: saplings,
-        cost: 5,
+        resource: logs,
+        cost: 10,
         display: {
             title: "Leafy Fingers",
             description: "Plant an additional tree per click"
@@ -62,8 +62,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const autoPlantUpgrade1 = createUpgrade(() => ({
-        resource: saplings,
-        cost: 10,
+        resource: logs,
+        cost: 25,
         display: {
             title: "Automated Spade",
             description: "Plant a tree every second"

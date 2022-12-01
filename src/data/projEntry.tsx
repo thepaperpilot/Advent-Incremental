@@ -1,11 +1,17 @@
 import "@fontsource/material-icons";
 import Spacer from "components/layout/Spacer.vue";
-import { CoercableComponent, Component, GatherProps, GenericComponent, jsx } from "features/feature";
+import {
+    CoercableComponent,
+    Component,
+    GatherProps,
+    GenericComponent,
+    jsx
+} from "features/feature";
 import { BaseLayer, createLayer, GenericLayer, layers } from "game/layers";
 import { persistent } from "game/persistence";
-import type { PlayerData } from "game/player";
+import type { LayerData, PlayerData } from "game/player";
 import player from "game/player";
-import { format, formatTime } from "util/bignum";
+import Decimal, { format, formatTime } from "util/bignum";
 import { Computable, convertComputable, ProcessedComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { renderRow, VueFeature } from "util/vue";
@@ -316,5 +322,14 @@ export function fixOldSave(
     oldVersion: string | undefined,
     player: Partial<PlayerData>
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-): void {}
+): void {
+    if (oldVersion === "0.0") {
+        if (player.layers?.trees) {
+            (player.layers.trees as LayerData<typeof trees>).trees = Decimal.sub(
+                10,
+                (player.layers.trees as LayerData<typeof trees>).saplings ?? 0
+            );
+        }
+    }
+}
 /* eslint-enable @typescript-eslint/no-unused-vars */
