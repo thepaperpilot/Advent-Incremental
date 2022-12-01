@@ -75,6 +75,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
                             } else {
                                 player.tabs.push(layer ?? "trees");
                             }
+                            main.minimized.value = true;
                         },
                         onUnlockLayer() {
                             opened.value = true;
