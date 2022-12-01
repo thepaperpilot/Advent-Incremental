@@ -1,6 +1,6 @@
 <template>
     <div class="layer-container" :style="{ '--layer-color': unref(color) }">
-        <button v-if="showGoBack" class="goBack" @click="goBack">←</button>
+        <button v-if="showGoBack" class="goBack" @click="goBack">❌</button>
         <button class="layer-tab minimized" v-if="minimized.value" @click="minimized.value = false">
             <div>{{ unref(name) }}</div>
         </button>
@@ -201,8 +201,8 @@ export default defineComponent({
 
 .goBack {
     position: sticky;
-    top: 6px;
-    left: 20px;
+    top: 10px;
+    left: 10px;
     line-height: 30px;
     margin-top: -50px;
     margin-left: -35px;
@@ -211,7 +211,7 @@ export default defineComponent({
     box-shadow: var(--background) 0 2px 3px 5px;
     border-radius: 50%;
     color: var(--foreground);
-    font-size: 40px;
+    font-size: 30px;
     cursor: pointer;
     z-index: 7;
 }

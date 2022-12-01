@@ -11,7 +11,7 @@ import { format, formatTime } from "util/bignum";
 import { render, renderRow, VueFeature } from "util/vue";
 import { computed, ref } from "vue";
 import type { Ref } from "vue";
-import prestige from "./layers/prestige";
+import trees from "./layers/trees";
 import { createLazyProxy } from "util/proxies";
 import { Computable, convertComputable, ProcessedComputable } from "util/computed";
 import Modal from "components/Modal.vue";
@@ -67,7 +67,12 @@ export const main = createLayer("main", function (this: BaseLayer) {
                             openLore.value = day;
                         },
                         onOpenLayer() {
-                            player.tabs.splice(1, 1, layer ?? "p");
+                            if (player.tabs.includes(layer ?? "trees")) {
+                                const index = player.tabs.lastIndexOf(layer ?? "trees");
+                                player.tabs.splice(index, 1);
+                            } else {
+                                player.tabs.push(layer ?? "trees");
+                            }
                         },
                         onUnlockLayer() {
                             opened.value = true;
@@ -111,7 +116,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
             modelValue={openLore.value !== -1}
             onUpdate:modelValue={() => (openLore.value = -1)}
             v-slots={{
-                header: () => <h2>{layers[days[openLore.value - 1]?.layer ?? "p"]?.name}</h2>,
+                header: () => <h2>{layers[days[openLore.value - 1]?.layer ?? "trees"]?.name}</h2>,
                 body: () => days[openLore.value - 1]?.story ?? ""
             }}
         />
@@ -159,7 +164,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
 export const getInitialLayers = (
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     player: Partial<PlayerData>
-): Array<GenericLayer> => [main, prestige];
+): Array<GenericLayer> => [main, trees];
 
 /**
  * A computed ref whose value is true whenever the game is over.
