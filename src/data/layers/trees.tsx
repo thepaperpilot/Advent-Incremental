@@ -286,7 +286,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Cut trees",
             description: jsx(() => (
                 <>
-                    Cut down up to {format(computedManualCuttingAmount.value, 1)} tree
+                    Cut down up to {formatWhole(Decimal.floor(computedManualCuttingAmount.value))} tree
                     {Decimal.eq(computedManualCuttingAmount.value, 1) ? "" : "s"} at once!
                     <br />
                     {render(manualCutProgressBar)}
@@ -297,13 +297,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
             minHeight: "80px"
         },
         canClick: () =>
-            Decimal.gt(trees.value, 0) &&
+            Decimal.gte(trees.value, 1) &&
             Decimal.gte(manualCutProgress.value, computedManualCuttingCooldown.value),
         onClick() {
             if (Decimal.lt(manualCutProgress.value, computedManualCuttingCooldown.value)) {
                 return;
             }
-            const amount = Decimal.min(
+            const amount = Decimal.floor(Decimal.min(
                 trees.value,
                 Decimal.times(
                     computedManualCuttingAmount.value,
@@ -312,7 +312,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         computedManualCuttingCooldown.value
                     ).floor()
                 )
-            );
+            ));
             trees.value = Decimal.sub(trees.value, amount);
             logs.value = Decimal.add(logs.value, logGain.apply(amount));
             saplings.value = Decimal.add(saplings.value, amount);
@@ -335,7 +335,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Plant trees",
             description: jsx(() => (
                 <>
-                    Plant up to {format(computedManualPlantingAmount.value, 1)} tree
+                    Plant up to {formatWhole(Decimal.floor(computedManualPlantingAmount.value))} tree
                     {Decimal.eq(computedManualPlantingAmount.value, 1) ? "" : "s"} at once!
                     <br />
                     {render(manualPlantProgressBar)}
@@ -346,13 +346,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
             minHeight: "80px"
         },
         canClick: () =>
-            Decimal.gt(saplings.value, 0) &&
+            Decimal.gte(saplings.value, 1) &&
             Decimal.gte(manualPlantProgress.value, computedManualPlantingCooldown.value),
         onClick() {
             if (Decimal.lt(manualPlantProgress.value, computedManualPlantingCooldown.value)) {
                 return;
             }
-            const amount = Decimal.min(
+            const amount = Decimal.floor(Decimal.min(
                 saplings.value,
                 Decimal.times(
                     computedManualPlantingAmount.value,
@@ -361,7 +361,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         computedManualPlantingCooldown.value
                     ).floor()
                 )
-            );
+            ));
             trees.value = Decimal.add(trees.value, amount);
             saplings.value = Decimal.sub(saplings.value, amount);
             manualPlantProgress.value = 0;
