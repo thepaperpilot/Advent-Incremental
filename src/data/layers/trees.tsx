@@ -22,7 +22,7 @@ import {
     createSequentialModifier
 } from "game/modifiers";
 import { persistent } from "game/persistence";
-import Decimal, { DecimalSource, format } from "util/bignum";
+import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { joinJSX, render, renderRow } from "util/vue";
 import { computed, watchEffect } from "vue";
@@ -177,6 +177,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const row1Buyables = [autoCuttingBuyable1, autoPlantingBuyable1, expandingForestBuyable];
+
+    const dayProgress = createBar(() => ({
+        direction: Direction.Right,
+        width: 600,
+        height: 25,
+        fillStyle: `color: ${color}`,
+        progress: () => Decimal.log10(totalLogs.value).div(4)
+    }));
 
     const manualCuttingAmount = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
@@ -451,6 +459,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         minWidth: 700,
         display: jsx(() => (
             <>
+                <div>
+                    {main.day.value === 1
+                        ? `Reach ${formatWhole(1e4)} ${logs.displayName} to complete the day`
+                        : `Day Complete!`}
+                </div>
+                {render(dayProgress)}
+                <Spacer />
                 <Tooltip
                     display={jsx(() => createModifierSection("Log Gain", "", logGain))}
                     direction={Direction.Down}
