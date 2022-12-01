@@ -535,8 +535,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     color="green"
                     style="margin-bottom: 0"
                     effectDisplay={
-                        Decimal.gt(computedAutoPlantingAmount.value, 0)
-                            ? `+${format(computedAutoPlantingAmount.value)}/s`
+                        Decimal.neq(
+                            Decimal.sub(
+                                computedAutoPlantingAmount.value,
+                                computedAutoCuttingAmount.value
+                            ),
+                            0
+                        )
+                            ? `+${format(
+                                  Decimal.sub(
+                                      computedAutoPlantingAmount.value,
+                                      computedAutoCuttingAmount.value
+                                  )
+                              )}/s`
                             : undefined
                     }
                 />
