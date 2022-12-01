@@ -51,7 +51,7 @@ const symbolComp = computeComponent(toRef(props, "symbol"));
 const canOpen = computed(
     () =>
         Decimal.gte(main.day.value, props.day) &&
-        new Date().getMonth() === 12 &&
+        new Date().getMonth() === 11 &&
         new Date().getDate() >= props.day
 );
 
