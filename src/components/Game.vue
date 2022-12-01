@@ -19,16 +19,27 @@
                 <component :is="tab" :index="index" v-else />
             </div>
         </div>
+        <Modal
+            :model-value="main.loreBody.value !== ''"
+            @update:model-value="() => (main.loreBody.value = '')"
+        >
+            <template v-slot:header
+                ><h2>{{ main.loreTitle.value }}</h2></template
+            >
+            <template v-slot:body>{{ main.loreBody.value }}</template>
+        </Modal>
     </div>
 </template>
 
 <script setup lang="ts">
+import { main } from "data/projEntry";
 import projInfo from "data/projInfo.json";
 import type { GenericLayer } from "game/layers";
 import { layers } from "game/layers";
 import player from "game/player";
 import { computed, toRef, unref } from "vue";
 import Layer from "./Layer.vue";
+import Modal from "./Modal.vue";
 import Nav from "./Nav.vue";
 
 const tabs = toRef(player, "tabs");

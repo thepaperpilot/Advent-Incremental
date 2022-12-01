@@ -5,6 +5,7 @@
 import Spacer from "components/layout/Spacer.vue";
 import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
+import { createBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
 import MainDisplay from "features/resources/MainDisplay.vue";
@@ -21,6 +22,7 @@ import {
     createSequentialModifier
 } from "game/modifiers";
 import { persistent } from "game/persistence";
+import player from "game/player";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { joinJSX, render, renderRow } from "util/vue";
@@ -139,6 +141,44 @@ const layer = createLayer(id, function (this: BaseLayer) {
         researchUpgrade2
     ];
 
+    const autoCuttingBuyable1 = createBuyable(() => ({
+        resource: logs,
+        cost() {
+            return Decimal.times(100, this.amount.value).add(200);
+        },
+        display: {
+            title: "Generic Cutters",
+            description: "Each cutter cuts down 1 tree/s"
+        },
+        visibility: () => showIf(researchUpgrade2.bought.value)
+    }));
+    const autoPlantingBuyable1 = createBuyable(() => ({
+        resource: logs,
+        cost() {
+            return Decimal.times(100, this.amount.value).add(200);
+        },
+        display: {
+            title: "Generic Planters",
+            description: "Each planter plants 0.5 trees/s"
+        },
+        visibility: () => showIf(researchUpgrade2.bought.value)
+    }));
+    const expandingForestBuyable = createBuyable(() => ({
+        resource: logs,
+        cost() {
+            return Decimal.pow(Decimal.add(this.amount.value, 1), 1.5).times(500);
+        },
+        display: {
+            title: "Expand Forest",
+            description: "Add 10 trees to the forest"
+        },
+        visibility: () => showIf(researchUpgrade2.bought.value),
+        onPurchase() {
+            trees.value = Decimal.add(trees.value, 10);
+        }
+    }));
+    const row1Buyables = [autoCuttingBuyable1, autoPlantingBuyable1, expandingForestBuyable];
+
     const manualCuttingAmount = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: 1,
@@ -166,6 +206,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             addend: 1,
             description: "Automated Knives",
             enabled: autoCutUpgrade1.bought
+        })),
+        createAdditiveModifier(() => ({
+            addend: autoCuttingBuyable1.amount,
+            description: "Generic Cutters",
+            enabled: researchUpgrade2.bought
         }))
     ]);
     const computedAutoCuttingAmount = computed(() => autoCuttingAmount.apply(0));
@@ -197,6 +242,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             addend: 1,
             description: "Automated Spade",
             enabled: autoPlantUpgrade1.bought
+        })),
+        createAdditiveModifier(() => ({
+            addend: () => Decimal.div(autoPlantingBuyable1.amount.value, 2),
+            description: "Generic Planters",
+            enabled: researchUpgrade2.bought
         }))
     ]);
     const computedAutoPlantingAmount = computed(() => autoPlantingAmount.apply(0));
@@ -229,7 +279,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Cut trees",
             description: jsx(() => (
                 <>
-                    Cut down up to {formatWhole(computedManualCuttingAmount.value)} tree
+                    Cut down up to {format(computedManualCuttingAmount.value, 1)} tree
                     {Decimal.eq(computedManualCuttingAmount.value, 1) ? "" : "s"} at once!
                     <br />
                     {render(manualCutProgressBar)}
@@ -291,7 +341,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Plant trees",
             description: jsx(() => (
                 <>
-                    Plant up to {formatWhole(computedManualPlantingAmount.value)} tree
+                    Plant up to {format(computedManualPlantingAmount.value, 1)} tree
                     {Decimal.eq(computedManualPlantingAmount.value, 1) ? "" : "s"} at once!
                     <br />
                     {render(manualPlantProgressBar)}
@@ -337,15 +387,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: "width: 400px; text-align: left"
     });
 
-    watchEffect(() => {
-        if (main.day.value === 1 && Decimal.gte(totalLogs.value, 1e6)) {
-            main.loreTitle.value = "Day complete!";
-            main.loreBody.value =
-                "Santa looks at all the wood you've gathered and tells you you've done well! He says you should take the rest of the day off so you're refreshed for tomorrow's work. Good Job!";
-            main.day.value = 2;
-        }
-    });
-
     globalBus.on("update", diff => {
         if (Decimal.lt(main.day.value, 1)) {
             return;
@@ -384,6 +425,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
         saplings.value = Decimal.sub(saplings.value, amountPlanted);
     });
 
+    watchEffect(() => {
+        if (main.day.value === 1 && Decimal.gte(totalLogs.value, 1e4)) {
+            main.loreTitle.value = "Day complete!";
+            main.loreBody.value =
+                "Santa looks at all the wood you've gathered and tells you you've done well! He says you should take the rest of the day off so you're refreshed for tomorrow's work. Good Job!";
+            main.day.value = 2;
+            main.minimized.value = false;
+        }
+    });
+
     return {
         name,
         color,
@@ -395,6 +446,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         plantTree,
         row1Upgrades,
         row2Upgrades,
+        row1Buyables,
         manualCutProgress,
         manualPlantProgress,
         minWidth: 700,
@@ -444,6 +496,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {renderRow(...row1Upgrades)}
                 {renderRow(...row2Upgrades)}
+                {renderRow(...row1Buyables)}
             </>
         ))
     };

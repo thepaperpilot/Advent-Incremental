@@ -255,17 +255,6 @@ export const main = createLayer("main", function (this: BaseLayer) {
         }))
     ];
 
-    const loreModal = jsx(() => (
-        <Modal
-            modelValue={loreBody.value !== ""}
-            onUpdate:modelValue={() => (loreBody.value = "")}
-            v-slots={{
-                header: () => <h2>{loreTitle.value}</h2>,
-                body: () => loreBody.value
-            }}
-        />
-    ));
-
     return {
         name: "Calendar",
         days,
@@ -297,7 +286,6 @@ export const main = createLayer("main", function (this: BaseLayer) {
                         )
                         .map(days => renderRow(...days))}
                 </div>
-                {render(loreModal)}
             </>
         ))
     };
