@@ -59,6 +59,7 @@
             <span class="save-version">v{{ save.modVersion }}</span
             ><br />
             <div v-if="currentTime">Last played {{ dateFormat.format(currentTime) }}</div>
+            <div v-if="progressDisplay"><component :is="progressDisplay" /></div>
         </div>
         <div class="details" v-else-if="save.error == undefined && isEditing">
             <Text v-model="newName" class="editname" @submit="changeName" />
@@ -70,9 +71,11 @@
 </template>
 
 <script setup lang="ts">
+import { main } from "data/projEntry";
 import Tooltip from "features/tooltips/Tooltip.vue";
-import player from "game/player";
+import player, { LayerData } from "game/player";
 import { Direction } from "util/common";
+import { computeComponent } from "util/vue";
 import { computed, ref, toRefs, watch } from "vue";
 import DangerButton from "./fields/DangerButton.vue";
 import FeedbackButton from "./fields/FeedbackButton.vue";
@@ -109,6 +112,12 @@ watch(isEditing, () => (newName.value = save.value.name || ""));
 const isActive = computed(() => save.value && save.value.id === player.id);
 const currentTime = computed(() =>
     isActive.value ? player.time : (save.value && save.value.time) || 0
+);
+
+const progressDisplay = computeComponent(
+    computed(() => {
+        return `Day ${(save.value?.layers?.main as LayerData<typeof main> | undefined)?.day ?? 1}`;
+    })
 );
 
 function changeName() {
