@@ -370,7 +370,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
         {
-            title: "Log Gain",
+            title: "Logs per Tree",
             modifier: logGain,
             base: 1,
             visible: researchUpgrade1.bought
@@ -392,12 +392,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         {
             title: `Auto Cutting Amount`,
             modifier: autoCuttingAmount,
+            base: 0,
             visible: autoCutUpgrade1.bought,
             unit: "/s"
         },
         {
             title: `Auto Planting Amount`,
             modifier: autoPlantingAmount,
+            base: 0,
             visible: autoPlantUpgrade1.bought,
             unit: "/s"
         }
