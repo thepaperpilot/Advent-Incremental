@@ -22,8 +22,7 @@ import {
     createSequentialModifier
 } from "game/modifiers";
 import { persistent } from "game/persistence";
-import player from "game/player";
-import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
+import Decimal, { DecimalSource, format } from "util/bignum";
 import { Direction } from "util/common";
 import { joinJSX, render, renderRow } from "util/vue";
 import { computed, watchEffect } from "vue";
@@ -48,7 +47,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const manualPlantUpgrade1 = createUpgrade(() => ({
         resource: saplings,
-        cost: 10,
+        cost: 5,
         display: {
             title: "Leafy Fingers",
             description: "Plant an additional tree per click"
@@ -64,7 +63,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const autoPlantUpgrade1 = createUpgrade(() => ({
         resource: saplings,
-        cost: 25,
+        cost: 10,
         display: {
             title: "Automated Spade",
             description: "Plant a tree every second"
