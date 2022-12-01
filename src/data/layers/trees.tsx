@@ -3,6 +3,8 @@
  * @hidden
  */
 import Spacer from "components/layout/Spacer.vue";
+import Modal from "components/Modal.vue";
+import { createCollapsibleModifierSections } from "data/common";
 import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
 import { createBuyable } from "features/buyable";
@@ -10,8 +12,6 @@ import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource, trackTotal } from "features/resources/resource";
-import { addTooltip } from "features/tooltips/tooltip";
-import Tooltip from "features/tooltips/Tooltip.vue";
 import { createUpgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
@@ -25,7 +25,7 @@ import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { joinJSX, render, renderRow } from "util/vue";
-import { computed, watchEffect } from "vue";
+import { computed, ref, watchEffect } from "vue";
 
 const id = "trees";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -319,19 +319,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
             manualCutProgress.value = 0;
         }
     }));
-    addTooltip(cutTree, {
-        display: jsx(() =>
-            joinJSX(
-                [
-                    createModifierSection("Trees", "", manualCuttingAmount, 1, "/click"),
-                    createModifierSection("Cooldown", "", manualCuttingCooldown, 1, "s")
-                ],
-                <br />
-            )
-        ),
-        direction: Direction.Down,
-        style: "width: 400px; text-align: left"
-    });
 
     const manualPlantProgress = persistent<DecimalSource>(0);
     const manualPlantProgressBar = createBar(() => ({
@@ -380,19 +367,53 @@ const layer = createLayer(id, function (this: BaseLayer) {
             manualPlantProgress.value = 0;
         }
     }));
-    addTooltip(plantTree, {
-        display: jsx(() =>
-            joinJSX(
-                [
-                    createModifierSection("Trees", "", manualPlantingAmount, 1, "/click"),
-                    createModifierSection("Cooldown", "", manualPlantingCooldown, 1, "s")
-                ],
-                <br />
-            )
-        ),
-        direction: Direction.Down,
-        style: "width: 400px; text-align: left"
-    });
+
+    const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
+        {
+            title: "Log Gain",
+            modifier: logGain,
+            base: 1,
+            visible: researchUpgrade1.bought
+        },
+        {
+            title: "Manual Cutting Amount",
+            modifier: manualCuttingAmount,
+            base: 1,
+            visible: manualCutUpgrade1.bought,
+            unit: "/click"
+        },
+        {
+            title: "Manual Planting Amount",
+            modifier: manualPlantingAmount,
+            base: 1,
+            visible: manualPlantUpgrade1.bought,
+            unit: "/click"
+        },
+        {
+            title: `Auto Cutting Amount`,
+            modifier: autoCuttingAmount,
+            visible: autoCutUpgrade1.bought,
+            unit: "/s"
+        },
+        {
+            title: `Auto Planting Amount`,
+            modifier: autoPlantingAmount,
+            visible: autoPlantUpgrade1.bought,
+            unit: "/s"
+        }
+        // TODO show forest size modifier?
+    ]);
+    const showModifiersModal = ref(false);
+    const modifiersModal = jsx(() => (
+        <Modal
+            modelValue={showModifiersModal.value}
+            onUpdate:modelValue={(value: boolean) => (showModifiersModal.value = value)}
+            v-slots={{
+                header: () => <h2>{name} Modifiers</h2>,
+                body: generalTab
+            }}
+        />
+    ));
 
     globalBus.on("update", diff => {
         if (Decimal.lt(main.day.value, 1)) {
@@ -456,54 +477,67 @@ const layer = createLayer(id, function (this: BaseLayer) {
         row1Buyables,
         manualCutProgress,
         manualPlantProgress,
+        generalTabCollapsed,
         minWidth: 700,
         display: jsx(() => (
             <>
                 <div>
                     {main.day.value === 1
                         ? `Reach ${formatWhole(1e4)} ${logs.displayName} to complete the day`
-                        : `Day Complete!`}
+                        : `Day Complete!`}{" "}
+                    -{" "}
+                    <button
+                        class="button"
+                        style="display: inline-block;"
+                        onClick={() => (showModifiersModal.value = true)}
+                    >
+                        Check Modifiers
+                    </button>
                 </div>
                 {render(dayProgress)}
+                {render(modifiersModal)}
                 <Spacer />
-                <Tooltip
-                    display={jsx(() => createModifierSection("Log Gain", "", logGain))}
-                    direction={Direction.Down}
-                    style="width: 400px; text-align: left"
-                >
-                    <MainDisplay resource={logs} color={color} style="margin-bottom: 0" />
-                </Tooltip>
-                <MainDisplay resource={saplings} color="green" style="margin-bottom: 0" />
-                <MainDisplay resource={trees} color="green" style="margin-bottom: 0" />
-                <br />
-                {Decimal.gt(computedAutoCuttingAmount.value, 0) ? (
-                    <>
-                        <Tooltip
-                            display={jsx(() =>
-                                createModifierSection("Trees", "", autoCuttingAmount, 0, "/s")
-                            )}
-                            direction={Direction.Down}
-                            style="width: 400px; text-align: left"
-                        >
-                            You cut down {format(computedAutoCuttingAmount.value)} trees/s
-                        </Tooltip>
-                        <br />
-                    </>
-                ) : null}
-                {Decimal.gt(computedAutoPlantingAmount.value, 0) ? (
-                    <>
-                        <Tooltip
-                            display={jsx(() =>
-                                createModifierSection("Trees", "", autoPlantingAmount, 0, "/s")
-                            )}
-                            direction={Direction.Down}
-                            style="width: 400px; text-align: left"
-                        >
-                            You plant {format(computedAutoPlantingAmount.value)} trees/s
-                        </Tooltip>
-                        <br />
-                    </>
-                ) : null}
+                <MainDisplay
+                    resource={logs}
+                    color={color}
+                    style="margin-bottom: 0"
+                    effectDisplay={
+                        Decimal.gt(computedAutoCuttingAmount.value, 0)
+                            ? `+${format(computedAutoCuttingAmount.value)}/s`
+                            : undefined
+                    }
+                />
+                <MainDisplay
+                    resource={saplings}
+                    color="green"
+                    style="margin-bottom: 0"
+                    effectDisplay={
+                        Decimal.neq(
+                            Decimal.sub(
+                                computedAutoCuttingAmount.value,
+                                computedAutoPlantingAmount.value
+                            ),
+                            0
+                        )
+                            ? `+${format(
+                                  Decimal.sub(
+                                      computedAutoCuttingAmount.value,
+                                      computedAutoPlantingAmount.value
+                                  )
+                              )}/s`
+                            : undefined
+                    }
+                />
+                <MainDisplay
+                    resource={trees}
+                    color="green"
+                    style="margin-bottom: 0"
+                    effectDisplay={
+                        Decimal.gt(computedAutoPlantingAmount.value, 0)
+                            ? `+${format(computedAutoPlantingAmount.value)}/s`
+                            : undefined
+                    }
+                />
                 <Spacer />
                 {renderRow(cutTree, plantTree)}
                 <div>Tip: You can hold down on actions to perform them automatically</div>
