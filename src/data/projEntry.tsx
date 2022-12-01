@@ -1,21 +1,19 @@
 import "@fontsource/material-icons";
 import Spacer from "components/layout/Spacer.vue";
-import Day from "./Day.vue";
-import { CoercableComponent, Component, GatherProps, jsx } from "features/feature";
-import { BaseLayer, GenericLayer, layers } from "game/layers";
-import { createLayer } from "game/layers";
+import { CoercableComponent, Component, GatherProps, GenericComponent, jsx } from "features/feature";
+import { BaseLayer, createLayer, GenericLayer, layers } from "game/layers";
 import { persistent } from "game/persistence";
 import type { PlayerData } from "game/player";
 import player from "game/player";
 import { format, formatTime } from "util/bignum";
-import { render, renderRow, VueFeature } from "util/vue";
-import { computed, ref, unref } from "vue";
-import type { Ref } from "vue";
-import trees from "./layers/trees";
-import { createLazyProxy } from "util/proxies";
 import { Computable, convertComputable, ProcessedComputable } from "util/computed";
-import Modal from "components/Modal.vue";
+import { createLazyProxy } from "util/proxies";
+import { renderRow, VueFeature } from "util/vue";
+import type { Ref } from "vue";
+import { computed, ref, unref } from "vue";
 import "./advent.css";
+import Day from "./Day.vue";
+import trees from "./layers/trees";
 
 export interface Day extends VueFeature {
     day: number;
@@ -23,7 +21,6 @@ export interface Day extends VueFeature {
     symbol: CoercableComponent;
     story: string;
     opened: Ref<boolean>;
-    unlocked: ProcessedComputable<boolean>;
     shouldNotify: ProcessedComputable<boolean>;
 }
 
@@ -53,7 +50,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
                 ...day,
                 opened,
                 shouldNotify,
-                [Component]: Day,
+                [Component]: Day as GenericComponent,
                 [GatherProps]: function (this: Day) {
                     const { day, layer, symbol, opened, shouldNotify, story } = this;
                     return {
