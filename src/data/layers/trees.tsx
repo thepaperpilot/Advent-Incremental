@@ -4,10 +4,11 @@
  */
 import Spacer from "components/layout/Spacer.vue";
 import { main } from "data/projEntry";
+import { createBar } from "features/bars/bar";
 import { createClickable } from "features/clickables/clickable";
-import { jsx } from "features/feature";
+import { jsx, showIf } from "features/feature";
 import MainDisplay from "features/resources/MainDisplay.vue";
-import { createResource } from "features/resources/resource";
+import { createResource, trackTotal } from "features/resources/resource";
 import { addTooltip } from "features/tooltips/tooltip";
 import Tooltip from "features/tooltips/Tooltip.vue";
 import { createUpgrade } from "features/upgrades/upgrade";
@@ -19,9 +20,10 @@ import {
     createMultiplicativeModifier,
     createSequentialModifier
 } from "game/modifiers";
+import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
-import { renderRow } from "util/vue";
+import { joinJSX, render, renderRow } from "util/vue";
 import { computed, watchEffect } from "vue";
 
 const id = "trees";
@@ -30,6 +32,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const color = "#4BDC13";
 
     const logs = createResource<DecimalSource>(0, "logs");
+    const totalLogs = trackTotal(logs);
     const trees = createResource<DecimalSource>(10, "trees");
     const saplings = createResource<DecimalSource>(0, "saplings");
 
@@ -81,11 +84,71 @@ const layer = createLayer(id, function (this: BaseLayer) {
         researchUpgrade1
     ];
 
+    const manualCutUpgrade2 = createUpgrade(() => ({
+        resource: logs,
+        cost: 100,
+        visibility: () => showIf(researchUpgrade1.bought.value),
+        display: {
+            title: "Sharper Fingers",
+            description: "Cut trees twice as fast"
+        }
+    }));
+    const manualPlantUpgrade2 = createUpgrade(() => ({
+        resource: logs,
+        cost: 100,
+        visibility: () => showIf(researchUpgrade1.bought.value),
+        display: {
+            title: "Greener Fingers",
+            description: "Plant trees twice as fast"
+        }
+    }));
+    const manualCutUpgrade3 = createUpgrade(() => ({
+        resource: logs,
+        cost: 300,
+        visibility: () => showIf(researchUpgrade1.bought.value),
+        display: {
+            title: "Smart Knives",
+            description:
+                "Each time you manually chop trees, gain 1s of automatic tree chopping production"
+        }
+    }));
+    const manualPlantUpgrade3 = createUpgrade(() => ({
+        resource: logs,
+        cost: 300,
+        visibility: () => showIf(researchUpgrade1.bought.value),
+        display: {
+            title: "Smart Spades",
+            description:
+                "Each time you manually plant trees, gain 1s of automatic tree planting production"
+        }
+    }));
+    const researchUpgrade2 = createUpgrade(() => ({
+        resource: logs,
+        cost: 1000,
+        visibility: () => showIf(researchUpgrade1.bought.value),
+        display: {
+            title: "Research II",
+            description: "Get 25% more logs from each tree cut down and unlock repeatable purchases"
+        }
+    }));
+    const row2Upgrades = [
+        manualCutUpgrade2,
+        manualPlantUpgrade2,
+        manualCutUpgrade3,
+        manualPlantUpgrade3,
+        researchUpgrade2
+    ];
+
     const manualCuttingAmount = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: 1,
             description: "Wooden Fingers",
             enabled: manualCutUpgrade1.bought
+        })),
+        createAdditiveModifier(() => ({
+            addend: autoComputedCuttingAmount,
+            description: "Smart Knives",
+            enabled: manualCutUpgrade3.bought
         }))
     ]);
     const manualComputedCuttingAmount = computed(() => manualCuttingAmount.apply(1));
@@ -98,15 +161,36 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     ]);
     const autoComputedCuttingAmount = computed(() => autoCuttingAmount.apply(0));
+    const manualCuttingCooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 0.5,
+            description: "Sharper Fingers",
+            enabled: manualCutUpgrade2.bought
+        }))
+    ]);
+    const computedManualCuttingCooldown = computed(() => manualCuttingCooldown.apply(1));
 
     const manualPlantingAmount = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: 1,
             description: "Leafy Fingers",
             enabled: manualPlantUpgrade1.bought
+        })),
+        createAdditiveModifier(() => ({
+            addend: autoComputedPlantingAmount,
+            description: "Smart Spades",
+            enabled: manualPlantUpgrade3.bought
         }))
     ]);
     const manualComputedPlantingAmount = computed(() => manualPlantingAmount.apply(1));
+    const manualPlantingCooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 0.5,
+            description: "Greener Fingers",
+            enabled: manualPlantUpgrade2.bought
+        }))
+    ]);
+    const computedManualPlantingCooldown = computed(() => manualPlantingCooldown.apply(1));
 
     const autoPlantingAmount = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
@@ -122,9 +206,24 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 1.25,
             description: "Research I",
             enabled: researchUpgrade1.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 1.25,
+            description: "Research II",
+            enabled: researchUpgrade2.bought
         }))
     ]);
 
+    const manualCutProgress = persistent<DecimalSource>(0);
+    const manualCutProgressBar = createBar(() => ({
+        direction: Direction.Right,
+        width: 100,
+        height: 10,
+        style: "margin-top: 8px",
+        baseStyle: "margin-top: 0",
+        fillStyle: "margin-top: 0; transition-duration: 0s",
+        progress: () => Decimal.div(manualCutProgress.value, computedManualCuttingCooldown.value)
+    }));
     const cutTree = createClickable(() => ({
         display: {
             title: "Cut trees",
@@ -132,26 +231,49 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <>
                     Cut down up to {formatWhole(manualComputedCuttingAmount.value)} tree
                     {Decimal.eq(manualComputedCuttingAmount.value, 1) ? "" : "s"} at once!
+                    <br />
+                    {render(manualCutProgressBar)}
                 </>
             ))
         },
         style: {
             minHeight: "80px"
         },
-        canClick: () => Decimal.gt(trees.value, 0),
+        canClick: () =>
+            Decimal.gt(trees.value, 0) &&
+            Decimal.gte(manualCutProgress.value, computedManualCuttingCooldown.value),
         onClick() {
             const amount = Decimal.min(trees.value, manualComputedCuttingAmount.value);
             trees.value = Decimal.sub(trees.value, amount);
             logs.value = Decimal.add(logs.value, logGain.apply(amount));
             saplings.value = Decimal.add(saplings.value, amount);
+            manualCutProgress.value = 0;
         }
     }));
     addTooltip(cutTree, {
-        display: jsx(() => createModifierSection("Modifiers", "", manualCuttingAmount, 1)),
+        display: jsx(() =>
+            joinJSX(
+                [
+                    createModifierSection("Trees", "", manualCuttingAmount, 1, "/click"),
+                    createModifierSection("Cooldown", "", manualCuttingCooldown, 1, "s")
+                ],
+                <br />
+            )
+        ),
         direction: Direction.Down,
         style: "width: 400px; text-align: left"
     });
 
+    const manualPlantProgress = persistent<DecimalSource>(0);
+    const manualPlantProgressBar = createBar(() => ({
+        direction: Direction.Right,
+        width: 100,
+        height: 10,
+        style: "margin-top: 8px",
+        baseStyle: "margin-top: 0",
+        fillStyle: "margin-top: 0; transition-duration: 0s",
+        progress: () => Decimal.div(manualPlantProgress.value, computedManualPlantingCooldown.value)
+    }));
     const plantTree = createClickable(() => ({
         display: {
             title: "Plant trees",
@@ -159,27 +281,40 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <>
                     Plant up to {formatWhole(manualComputedPlantingAmount.value)} tree
                     {Decimal.eq(manualComputedPlantingAmount.value, 1) ? "" : "s"} at once!
+                    <br />
+                    {render(manualPlantProgressBar)}
                 </>
             ))
         },
         style: {
             minHeight: "80px"
         },
-        canClick: () => Decimal.gt(saplings.value, 0),
+        canClick: () =>
+            Decimal.gt(saplings.value, 0) &&
+            Decimal.gte(manualPlantProgress.value, computedManualPlantingCooldown.value),
         onClick() {
             const amount = Decimal.min(saplings.value, manualComputedPlantingAmount.value);
             trees.value = Decimal.add(trees.value, amount);
             saplings.value = Decimal.sub(saplings.value, amount);
+            manualPlantProgress.value = 0;
         }
     }));
     addTooltip(plantTree, {
-        display: jsx(() => createModifierSection("Modifiers", "", manualPlantingAmount, 1)),
+        display: jsx(() =>
+            joinJSX(
+                [
+                    createModifierSection("Trees", "", manualPlantingAmount, 1, "/click"),
+                    createModifierSection("Cooldown", "", manualPlantingCooldown, 1, "s")
+                ],
+                <br />
+            )
+        ),
         direction: Direction.Down,
         style: "width: 400px; text-align: left"
     });
 
     watchEffect(() => {
-        if (main.day.value === 1 && false) {
+        if (main.day.value === 1 && Decimal.gte(totalLogs.value, 1e6)) {
             main.loreTitle.value = "Day complete!";
             main.loreBody.value =
                 "Santa looks at all the wood you've gathered and tells you you've done well! He says you should take the rest of the day off so you're refreshed for tomorrow's work. Good Job!";
@@ -190,6 +325,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
     globalBus.on("update", diff => {
         if (Decimal.lt(main.day.value, 1)) {
             return;
+        }
+
+        if (Decimal.gte(manualCutProgress.value, computedManualCuttingCooldown.value)) {
+            manualCutProgress.value = computedManualCuttingCooldown.value;
+        } else {
+            manualCutProgress.value = Decimal.add(manualCutProgress.value, diff);
+        }
+        if (Decimal.gte(manualPlantProgress.value, computedManualPlantingCooldown.value)) {
+            manualPlantProgress.value = computedManualPlantingCooldown.value;
+        } else {
+            manualPlantProgress.value = Decimal.add(manualPlantProgress.value, diff);
         }
 
         const amountCut = Decimal.min(
@@ -212,15 +358,25 @@ const layer = createLayer(id, function (this: BaseLayer) {
         name,
         color,
         logs,
+        totalLogs,
         trees,
         saplings,
         cutTree,
         plantTree,
         row1Upgrades,
+        row2Upgrades,
+        manualCutProgress,
+        manualPlantProgress,
         minWidth: 700,
         display: jsx(() => (
             <>
-                <MainDisplay resource={logs} color={color} style="margin-bottom: 0" />
+                <Tooltip
+                    display={jsx(() => createModifierSection("Log Gain", "", logGain))}
+                    direction={Direction.Down}
+                    style="width: 400px; text-align: left"
+                >
+                    <MainDisplay resource={logs} color={color} style="margin-bottom: 0" />
+                </Tooltip>
                 <MainDisplay resource={saplings} color="green" style="margin-bottom: 0" />
                 <MainDisplay resource={trees} color="green" style="margin-bottom: 0" />
                 <br />
@@ -228,7 +384,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     <>
                         <Tooltip
                             display={jsx(() =>
-                                createModifierSection("Modifiers", "", autoCuttingAmount)
+                                createModifierSection("Trees", "", autoCuttingAmount, 0, "/s")
                             )}
                             direction={Direction.Down}
                             style="width: 400px; text-align: left"
@@ -242,7 +398,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     <>
                         <Tooltip
                             display={jsx(() =>
-                                createModifierSection("Modifiers", "", autoPlantingAmount)
+                                createModifierSection("Trees", "", autoPlantingAmount, 0, "/s")
                             )}
                             direction={Direction.Down}
                             style="width: 400px; text-align: left"
@@ -254,8 +410,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 ) : null}
                 <Spacer />
                 {renderRow(cutTree, plantTree)}
+                <div>Tip: You can hold down on actions to perform them automatically</div>
                 <Spacer />
                 {renderRow(...row1Upgrades)}
+                {renderRow(...row2Upgrades)}
             </>
         ))
     };
