@@ -74,7 +74,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost: 100,
         display: {
             title: "Research I",
-            description: "Get 25% more logs from each tree cut down and unlock more upgrades"
+            description: "Trees give 25% more logs, and unlock more upgrades"
         }
     }));
     const row1Upgrades = [
@@ -91,7 +91,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () => showIf(researchUpgrade1.bought.value),
         display: {
             title: "Sharper Fingers",
-            description: "Cut trees twice as fast"
+            description: "Manually cut trees twice as often"
         }
     }));
     const manualPlantUpgrade2 = createUpgrade(() => ({
@@ -100,7 +100,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () => showIf(researchUpgrade1.bought.value),
         display: {
             title: "Greener Fingers",
-            description: "Plant trees twice as fast"
+            description: "Manually Plant trees twice as often"
         }
     }));
     const manualCutUpgrade3 = createUpgrade(() => ({
@@ -129,7 +129,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () => showIf(researchUpgrade1.bought.value),
         display: {
             title: "Research II",
-            description: "Get 25% more logs from each tree cut down and unlock repeatable purchases"
+            description: "Trees give 25% more logs, and unlock repeatable purchases"
         }
     }));
     const row2Upgrades = [
