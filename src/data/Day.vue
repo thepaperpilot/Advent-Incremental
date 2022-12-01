@@ -64,12 +64,12 @@ function tryUnlock() {
 
 <style scoped>
 .day {
-    width: 90px;
-    height: 90px;
+    flex: 13% 0 0;
     position: relative;
     display: flex;
     background-color: var(--raised-background);
-    margin: 40px;
+    aspect-ratio: 1;
+    margin: 5%;
 }
 
 .door-enter-from::before,
@@ -162,7 +162,7 @@ function tryUnlock() {
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 2;
-    font-size: x-large;
+    font-size: large;
     pointer-events: none;
     user-select: none;
     backface-visibility: hidden;
@@ -171,7 +171,7 @@ function tryUnlock() {
 
 .icon,
 .icon .material-icons {
-    font-size: xxx-large;
+    font-size: xx-large;
     pointer-events: none;
     display: flex;
     user-select: none;
@@ -200,6 +200,6 @@ function tryUnlock() {
     left: 50%;
     transform: translate(-50%, -50%);
     opacity: 0.2;
-    font-size: 500%;
+    font-size: 400%;
 }
 </style>

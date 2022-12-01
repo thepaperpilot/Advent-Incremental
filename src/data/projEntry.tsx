@@ -15,6 +15,7 @@ import trees from "./layers/trees";
 import { createLazyProxy } from "util/proxies";
 import { Computable, convertComputable, ProcessedComputable } from "util/computed";
 import Modal from "components/Modal.vue";
+import "./advent.css";
 
 export interface Day extends VueFeature {
     day: number;
@@ -104,6 +105,153 @@ export const main = createLayer("main", function (this: BaseLayer) {
             layer: null,
             symbol: "🧝",
             story: "With this unbelievably large workshop complete, it's time to get the elves to work! But it appears they've forgotten how to make toys over the last 11 months - guess it's time to setup training sessions!"
+        })),
+        createDay(() => ({
+            day: 4,
+            shouldNotify: false,
+            layer: null,
+            symbol: "",
+            story: ""
+        })),
+        createDay(() => ({
+            day: 5,
+            shouldNotify: false,
+            layer: null,
+            symbol: "",
+            story: ""
+        })),
+        createDay(() => ({
+            day: 6,
+            shouldNotify: false,
+            layer: null,
+            symbol: "",
+            story: ""
+        })),
+        createDay(() => ({
+            day: 7,
+            shouldNotify: false,
+            layer: null,
+            symbol: "",
+            story: ""
+        })),
+        createDay(() => ({
+            day: 8,
+            shouldNotify: false,
+            layer: null,
+            symbol: "",
+            story: ""
+        })),
+        createDay(() => ({
+            day: 9,
+            shouldNotify: false,
+            layer: null,
+            symbol: "",
+            story: ""
+        })),
+        createDay(() => ({
+            day: 10,
+            shouldNotify: false,
+            layer: null,
+            symbol: "",
+            story: ""
+        })),
+        createDay(() => ({
+            day: 11,
+            shouldNotify: false,
+            layer: null,
+            symbol: "",
+            story: ""
+        })),
+        createDay(() => ({
+            day: 12,
+            shouldNotify: false,
+            layer: null,
+            symbol: "",
+            story: ""
+        })),
+        createDay(() => ({
+            day: 13,
+            shouldNotify: false,
+            layer: null,
+            symbol: "",
+            story: ""
+        })),
+        createDay(() => ({
+            day: 14,
+            shouldNotify: false,
+            layer: null,
+            symbol: "",
+            story: ""
+        })),
+        createDay(() => ({
+            day: 15,
+            shouldNotify: false,
+            layer: null,
+            symbol: "",
+            story: ""
+        })),
+        createDay(() => ({
+            day: 16,
+            shouldNotify: false,
+            layer: null,
+            symbol: "",
+            story: ""
+        })),
+        createDay(() => ({
+            day: 17,
+            shouldNotify: false,
+            layer: null,
+            symbol: "",
+            story: ""
+        })),
+        createDay(() => ({
+            day: 18,
+            shouldNotify: false,
+            layer: null,
+            symbol: "",
+            story: ""
+        })),
+        createDay(() => ({
+            day: 19,
+            shouldNotify: false,
+            layer: null,
+            symbol: "",
+            story: ""
+        })),
+        createDay(() => ({
+            day: 20,
+            shouldNotify: false,
+            layer: null,
+            symbol: "",
+            story: ""
+        })),
+        createDay(() => ({
+            day: 21,
+            shouldNotify: false,
+            layer: null,
+            symbol: "",
+            story: ""
+        })),
+        createDay(() => ({
+            day: 22,
+            shouldNotify: false,
+            layer: null,
+            symbol: "",
+            story: ""
+        })),
+        createDay(() => ({
+            day: 23,
+            shouldNotify: false,
+            layer: null,
+            symbol: "",
+            story: ""
+        })),
+        createDay(() => ({
+            day: 24,
+            shouldNotify: false,
+            layer: null,
+            symbol: "",
+            story: ""
         }))
     ];
 
@@ -135,7 +283,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
                     <div>Offline Time: {formatTime(player.offlineTime)}</div>
                 ) : null}
                 <Spacer />
-                <div style="width: 700px">
+                <div class="advent">
                     {days
                         .reduce(
                             (acc, curr) => {

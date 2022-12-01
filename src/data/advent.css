@@ -1,0 +1,23 @@
+.advent {
+    width: 80%;
+    background: url(./adventCalendarGameJamCalandar.png);
+    background-size: contain;
+    display: flex;
+    flex-direction: column;
+    padding-top: 28%;
+    padding-left: 10%;
+    padding-right: 10%;
+    background-repeat: no-repeat;
+    aspect-ratio: 3151 / 4190;
+}
+
+.advent > .table {
+    width: 100%;
+}
+
+.advent > .table > .row {
+    width: 100%;
+    margin: 0;
+    justify-content: space-around;
+    margin-bottom: -5%;
+}
