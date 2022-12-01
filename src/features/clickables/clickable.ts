@@ -11,7 +11,7 @@ import type {
 } from "util/computed";
 import { processComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
-import { computed, unref } from "vue";
+import { computed, Ref, ref, unref } from "vue";
 
 export const ClickableType = Symbol("Clickable");
 
@@ -36,6 +36,7 @@ export interface ClickableOptions {
 export interface BaseClickable {
     id: string;
     type: typeof ClickableType;
+    isHolding: Ref<boolean>;
     [Component]: typeof ClickableComponent;
     [GatherProps]: () => Record<string, unknown>;
 }
@@ -68,6 +69,8 @@ export function createClickable<T extends ClickableOptions>(
         clickable.id = getUniqueID("clickable-");
         clickable.type = ClickableType;
         clickable[Component] = ClickableComponent;
+
+        clickable.isHolding = ref(false);
 
         processComputable(clickable as T, "visibility");
         setDefault(clickable, "visibility", Visibility.Visible);
@@ -103,6 +106,7 @@ export function createClickable<T extends ClickableOptions>(
                 classes,
                 onClick,
                 onHold,
+                isHolding,
                 canClick,
                 small,
                 mark,
@@ -115,6 +119,7 @@ export function createClickable<T extends ClickableOptions>(
                 classes,
                 onClick,
                 onHold,
+                isHolding,
                 canClick,
                 small,
                 mark,

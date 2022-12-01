@@ -112,7 +112,8 @@ export function isCoercableComponent(component: unknown): component is Coercable
 
 export function setupHoldToClick(
     onClick?: Ref<((e?: MouseEvent | TouchEvent) => void) | undefined>,
-    onHold?: Ref<VoidFunction | undefined>
+    onHold?: Ref<VoidFunction | undefined>,
+    isHolding?: Ref<boolean>
 ): {
     start: (e: MouseEvent | TouchEvent) => void;
     stop: VoidFunction;
@@ -126,11 +127,18 @@ export function setupHoldToClick(
             interval.value = setInterval(handleHolding, 250);
         }
         event.value = e;
+        if (isHolding) {
+            isHolding.value = true;
+        }
     }
     function stop() {
         if (interval.value) {
             clearInterval(interval.value);
             interval.value = null;
+        }
+        console.log(isHolding);
+        if (isHolding) {
+            isHolding.value = false;
         }
     }
     function handleHolding() {

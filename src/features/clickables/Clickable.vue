@@ -41,7 +41,7 @@ import {
     setupHoldToClick,
     unwrapRef
 } from "util/vue";
-import type { Component, PropType, UnwrapRef } from "vue";
+import type { Component, PropType, Ref, UnwrapRef } from "vue";
 import { defineComponent, shallowRef, toRefs, unref, watchEffect } from "vue";
 
 export default defineComponent({
@@ -71,7 +71,8 @@ export default defineComponent({
         id: {
             type: String,
             required: true
-        }
+        },
+        isHolding: Object as PropType<Ref<boolean>>
     },
     components: {
         Node,
@@ -108,7 +109,7 @@ export default defineComponent({
             );
         });
 
-        const { start, stop } = setupHoldToClick(onClick, onHold);
+        const { start, stop } = setupHoldToClick(onClick, onHold, props.isHolding);
 
         return {
             start,
