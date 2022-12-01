@@ -3,18 +3,26 @@
  * @hidden
  */
 import Spacer from "components/layout/Spacer.vue";
+import { main } from "data/projEntry";
 import { createClickable } from "features/clickables/clickable";
 import { jsx } from "features/feature";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource } from "features/resources/resource";
-import Resource from "features/resources/Resource.vue";
 import { addTooltip } from "features/tooltips/tooltip";
 import Tooltip from "features/tooltips/Tooltip.vue";
+import { createUpgrade } from "features/upgrades/upgrade";
+import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
-import { createModifierSection, createSequentialModifier } from "game/modifiers";
+import {
+    createAdditiveModifier,
+    createModifierSection,
+    createMultiplicativeModifier,
+    createSequentialModifier
+} from "game/modifiers";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
+import { Direction } from "util/common";
 import { renderRow } from "util/vue";
-import { computed } from "vue";
+import { computed, watchEffect } from "vue";
 
 const id = "trees";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -22,28 +30,100 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const color = "#4BDC13";
 
     const logs = createResource<DecimalSource>(0, "logs");
-    const trees = createResource<DecimalSource>(1e6, "trees");
+    const trees = createResource<DecimalSource>(10, "trees");
     const saplings = createResource<DecimalSource>(0, "saplings");
 
-    const manualCuttingAmount = createSequentialModifier(() => []);
+    const manualCutUpgrade1 = createUpgrade(() => ({
+        resource: logs,
+        cost: 10,
+        display: {
+            title: "Wooden Fingers",
+            description: "Cut down an additional tree per click"
+        }
+    }));
+    const manualPlantUpgrade1 = createUpgrade(() => ({
+        resource: saplings,
+        cost: 10,
+        display: {
+            title: "Leafy Fingers",
+            description: "Plant an additional tree per click"
+        }
+    }));
+    const autoCutUpgrade1 = createUpgrade(() => ({
+        resource: logs,
+        cost: 25,
+        display: {
+            title: "Automated Knives",
+            description: "Cut down a tree every second"
+        }
+    }));
+    const autoPlantUpgrade1 = createUpgrade(() => ({
+        resource: saplings,
+        cost: 25,
+        display: {
+            title: "Automated Spade",
+            description: "Plant a tree every second"
+        }
+    }));
+    const researchUpgrade1 = createUpgrade(() => ({
+        resource: logs,
+        cost: 100,
+        display: {
+            title: "Research I",
+            description: "Get 25% more logs from each tree cut down and unlock more upgrades"
+        }
+    }));
+    const row1Upgrades = [
+        manualCutUpgrade1,
+        manualPlantUpgrade1,
+        autoCutUpgrade1,
+        autoPlantUpgrade1,
+        researchUpgrade1
+    ];
+
+    const manualCuttingAmount = createSequentialModifier(() => [
+        createAdditiveModifier(() => ({
+            addend: 1,
+            description: "Wooden Fingers",
+            enabled: manualCutUpgrade1.bought
+        }))
+    ]);
     const manualComputedCuttingAmount = computed(() => manualCuttingAmount.apply(1));
-    const manualCuttingAmountDisplay = createModifierSection("Modifiers", "", manualCuttingAmount);
 
-    const autoCuttingAmount = createSequentialModifier(() => []);
+    const autoCuttingAmount = createSequentialModifier(() => [
+        createAdditiveModifier(() => ({
+            addend: 1,
+            description: "Automated Knives",
+            enabled: autoCutUpgrade1.bought
+        }))
+    ]);
     const autoComputedCuttingAmount = computed(() => autoCuttingAmount.apply(0));
-    const autoCuttingAmountDisplay = createModifierSection("Modifiers", "", autoCuttingAmount);
 
-    const manualPlantingAmount = createSequentialModifier(() => []);
+    const manualPlantingAmount = createSequentialModifier(() => [
+        createAdditiveModifier(() => ({
+            addend: 1,
+            description: "Leafy Fingers",
+            enabled: manualPlantUpgrade1.bought
+        }))
+    ]);
     const manualComputedPlantingAmount = computed(() => manualPlantingAmount.apply(1));
-    const manualPlantingAmountDisplay = createModifierSection(
-        "Modifiers",
-        "",
-        manualPlantingAmount
-    );
 
-    const autoPlantingAmount = createSequentialModifier(() => []);
+    const autoPlantingAmount = createSequentialModifier(() => [
+        createAdditiveModifier(() => ({
+            addend: 1,
+            description: "Automated Spade",
+            enabled: autoPlantUpgrade1.bought
+        }))
+    ]);
     const autoComputedPlantingAmount = computed(() => autoPlantingAmount.apply(0));
-    const autoPlantingAmountDisplay = createModifierSection("Modifiers", "", autoPlantingAmount);
+
+    const logGain = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 1.25,
+            description: "Research I",
+            enabled: researchUpgrade1.bought
+        }))
+    ]);
 
     const cutTree = createClickable(() => ({
         display: {
@@ -60,13 +140,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         canClick: () => Decimal.gt(trees.value, 0),
         onClick() {
-            trees.value = Decimal.sub(trees.value, 1);
-            logs.value = Decimal.add(logs.value, 1);
-            saplings.value = Decimal.add(saplings.value, 1);
+            const amount = Decimal.min(trees.value, manualComputedCuttingAmount.value);
+            trees.value = Decimal.sub(trees.value, amount);
+            logs.value = Decimal.add(logs.value, logGain.apply(amount));
+            saplings.value = Decimal.add(saplings.value, amount);
         }
     }));
     addTooltip(cutTree, {
-        display: jsx(() => manualCuttingAmountDisplay)
+        display: jsx(() => createModifierSection("Modifiers", "", manualCuttingAmount, 1)),
+        direction: Direction.Down,
+        style: "width: 400px; text-align: left"
     });
 
     const plantTree = createClickable(() => ({
@@ -84,12 +167,45 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         canClick: () => Decimal.gt(saplings.value, 0),
         onClick() {
-            trees.value = Decimal.add(trees.value, 1);
-            saplings.value = Decimal.sub(saplings.value, 1);
+            const amount = Decimal.min(saplings.value, manualComputedPlantingAmount.value);
+            trees.value = Decimal.add(trees.value, amount);
+            saplings.value = Decimal.sub(saplings.value, amount);
         }
     }));
-    addTooltip(cutTree, {
-        display: jsx(() => manualPlantingAmountDisplay)
+    addTooltip(plantTree, {
+        display: jsx(() => createModifierSection("Modifiers", "", manualPlantingAmount, 1)),
+        direction: Direction.Down,
+        style: "width: 400px; text-align: left"
+    });
+
+    watchEffect(() => {
+        if (main.day.value === 1 && false) {
+            main.loreTitle.value = "Day complete!";
+            main.loreBody.value =
+                "Santa looks at all the wood you've gathered and tells you you've done well! He says you should take the rest of the day off so you're refreshed for tomorrow's work. Good Job!";
+            main.day.value = 2;
+        }
+    });
+
+    globalBus.on("update", diff => {
+        if (Decimal.lt(main.day.value, 1)) {
+            return;
+        }
+
+        const amountCut = Decimal.min(
+            trees.value,
+            Decimal.times(autoComputedCuttingAmount.value, diff)
+        );
+        trees.value = Decimal.sub(trees.value, amountCut);
+        logs.value = Decimal.add(logs.value, logGain.apply(amountCut));
+        saplings.value = Decimal.add(saplings.value, amountCut);
+
+        const amountPlanted = Decimal.min(
+            saplings.value,
+            Decimal.times(autoComputedPlantingAmount.value, diff)
+        );
+        trees.value = Decimal.add(trees.value, amountPlanted);
+        saplings.value = Decimal.sub(saplings.value, amountPlanted);
     });
 
     return {
@@ -100,6 +216,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         saplings,
         cutTree,
         plantTree,
+        row1Upgrades,
+        minWidth: 700,
         display: jsx(() => (
             <>
                 <MainDisplay resource={logs} color={color} style="margin-bottom: 0" />
@@ -108,7 +226,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <br />
                 {Decimal.gt(autoComputedCuttingAmount.value, 0) ? (
                     <>
-                        <Tooltip display={jsx(() => autoCuttingAmountDisplay)}>
+                        <Tooltip
+                            display={jsx(() =>
+                                createModifierSection("Modifiers", "", autoCuttingAmount)
+                            )}
+                            direction={Direction.Down}
+                            style="width: 400px; text-align: left"
+                        >
                             You cut down {format(autoComputedCuttingAmount.value)} trees/s
                         </Tooltip>
                         <br />
@@ -116,7 +240,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 ) : null}
                 {Decimal.gt(autoComputedPlantingAmount.value, 0) ? (
                     <>
-                        <Tooltip display={jsx(() => autoPlantingAmountDisplay)}>
+                        <Tooltip
+                            display={jsx(() =>
+                                createModifierSection("Modifiers", "", autoPlantingAmount)
+                            )}
+                            direction={Direction.Down}
+                            style="width: 400px; text-align: left"
+                        >
                             You plant {format(autoComputedPlantingAmount.value)} trees/s
                         </Tooltip>
                         <br />
@@ -124,6 +254,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 ) : null}
                 <Spacer />
                 {renderRow(cutTree, plantTree)}
+                <Spacer />
+                {renderRow(...row1Upgrades)}
             </>
         ))
     };

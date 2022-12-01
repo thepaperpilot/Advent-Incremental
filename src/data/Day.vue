@@ -30,12 +30,13 @@ import type { Ref } from "vue";
 import Notif from "components/Notif.vue";
 import { computeComponent } from "util/vue";
 import { ProcessedComputable } from "util/computed";
+import Decimal from "util/bignum";
+import { main } from "./projEntry";
 
 const props = defineProps<{
     day: number;
     symbol: CoercableComponent;
     opened: Ref<boolean>;
-    unlocked: ProcessedComputable<boolean>;
     shouldNotify: ProcessedComputable<boolean>;
 }>();
 
@@ -48,7 +49,10 @@ const emit = defineEmits<{
 const symbolComp = computeComponent(toRef(props, "symbol"));
 
 const canOpen = computed(
-    () => unref(props.unlocked) && new Date().getMonth() === 12 && new Date().getDate() >= props.day
+    () =>
+        Decimal.gte(main.day.value, props.day) &&
+        new Date().getMonth() === 12 &&
+        new Date().getDate() >= props.day
 );
 
 function tryUnlock() {

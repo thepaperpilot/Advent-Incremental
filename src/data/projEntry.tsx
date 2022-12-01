@@ -9,7 +9,7 @@ import type { PlayerData } from "game/player";
 import player from "game/player";
 import { format, formatTime } from "util/bignum";
 import { render, renderRow, VueFeature } from "util/vue";
-import { computed, ref } from "vue";
+import { computed, ref, unref } from "vue";
 import type { Ref } from "vue";
 import trees from "./layers/trees";
 import { createLazyProxy } from "util/proxies";
@@ -29,12 +29,12 @@ export interface Day extends VueFeature {
 export const main = createLayer("main", function (this: BaseLayer) {
     const day = persistent<number>(1);
 
-    const openLore = ref<number>(-1);
+    const loreTitle = ref<string>("");
+    const loreBody = ref<string>("");
 
     function createDay(
         optionsFunc: () => {
             day: number;
-            unlocked: Computable<boolean>;
             shouldNotify: Computable<boolean>;
             layer: string | null;
             symbol: CoercableComponent;
@@ -46,25 +46,23 @@ export const main = createLayer("main", function (this: BaseLayer) {
         return createLazyProxy(() => {
             const day = optionsFunc();
 
-            const unlocked = convertComputable(day.unlocked);
             const shouldNotify = convertComputable(day.shouldNotify);
 
             return {
                 ...day,
                 opened,
-                unlocked,
                 shouldNotify,
                 [Component]: Day,
                 [GatherProps]: function (this: Day) {
-                    const { day, layer, symbol, opened, unlocked, shouldNotify } = this;
+                    const { day, layer, symbol, opened, shouldNotify, story } = this;
                     return {
                         day,
                         symbol,
                         opened,
-                        unlocked,
                         shouldNotify,
                         onOpenLore() {
-                            openLore.value = day;
+                            loreTitle.value = unref(layers[layer ?? "trees"]?.name ?? "");
+                            loreBody.value = story;
                         },
                         onOpenLayer() {
                             if (player.tabs.includes(layer ?? "trees")) {
@@ -76,7 +74,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
                         },
                         onUnlockLayer() {
                             opened.value = true;
-                            openLore.value = day;
+                            loreTitle.value = unref(layers[layer ?? "trees"]?.name ?? "");
+                            loreBody.value = story;
                         }
                     };
                 }
@@ -87,7 +86,6 @@ export const main = createLayer("main", function (this: BaseLayer) {
     const days = [
         createDay(() => ({
             day: 1,
-            unlocked: true,
             shouldNotify: false,
             layer: null,
             symbol: "🎄",
@@ -95,7 +93,6 @@ export const main = createLayer("main", function (this: BaseLayer) {
         })),
         createDay(() => ({
             day: 2,
-            unlocked: false,
             shouldNotify: false,
             layer: null,
             symbol: "<span class='material-icons'>cabin</span>",
@@ -103,7 +100,6 @@ export const main = createLayer("main", function (this: BaseLayer) {
         })),
         createDay(() => ({
             day: 3,
-            unlocked: false,
             shouldNotify: false,
             layer: null,
             symbol: "🧝",
@@ -113,11 +109,11 @@ export const main = createLayer("main", function (this: BaseLayer) {
 
     const loreModal = jsx(() => (
         <Modal
-            modelValue={openLore.value !== -1}
-            onUpdate:modelValue={() => (openLore.value = -1)}
+            modelValue={loreBody.value !== ""}
+            onUpdate:modelValue={() => (loreBody.value = "")}
             v-slots={{
-                header: () => <h2>{layers[days[openLore.value - 1]?.layer ?? "trees"]?.name}</h2>,
-                body: () => days[openLore.value - 1]?.story ?? ""
+                header: () => <h2>{loreTitle.value}</h2>,
+                body: () => loreBody.value
             }}
         />
     ));
@@ -126,6 +122,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
         name: "Calendar",
         days,
         day,
+        loreTitle,
+        loreBody,
         minWidth: 710,
         display: jsx(() => (
             <>
