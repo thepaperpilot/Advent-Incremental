@@ -72,8 +72,10 @@ export const main = createLayer("main", function (this: BaseLayer) {
                         },
                         onUnlockLayer() {
                             opened.value = true;
-                            loreTitle.value = unref(layers[layer ?? "trees"]?.name ?? "");
-                            loreBody.value = story;
+                            setTimeout(() => {
+                                loreTitle.value = unref(layers[layer ?? "trees"]?.name ?? "");
+                                loreBody.value = story;
+                            }, 1000);
                         }
                     };
                 }
