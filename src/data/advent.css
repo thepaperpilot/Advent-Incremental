@@ -1,5 +1,6 @@
 .advent {
     width: 80%;
+    max-width: 700px;
     background: url(./adventCalendarGameJamCalandar.png);
     background-size: contain;
     display: flex;
