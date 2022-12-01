@@ -243,7 +243,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.gt(trees.value, 0) &&
             Decimal.gte(manualCutProgress.value, computedManualCuttingCooldown.value),
         onClick() {
-            const amount = Decimal.min(trees.value, computedManualCuttingAmount.value);
+            if (Decimal.lt(manualCutProgress.value, computedManualCuttingCooldown.value)) {
+                return;
+            }
+            const amount = Decimal.min(
+                trees.value,
+                Decimal.times(
+                    computedManualCuttingAmount.value,
+                    Decimal.div(
+                        manualCutProgress.value,
+                        computedManualCuttingCooldown.value
+                    ).floor()
+                )
+            );
             trees.value = Decimal.sub(trees.value, amount);
             logs.value = Decimal.add(logs.value, logGain.apply(amount));
             saplings.value = Decimal.add(saplings.value, amount);
@@ -293,7 +305,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.gt(saplings.value, 0) &&
             Decimal.gte(manualPlantProgress.value, computedManualPlantingCooldown.value),
         onClick() {
-            const amount = Decimal.min(saplings.value, computedManualPlantingAmount.value);
+            if (Decimal.lt(manualPlantProgress.value, computedManualPlantingCooldown.value)) {
+                return;
+            }
+            const amount = Decimal.min(
+                saplings.value,
+                Decimal.times(
+                    computedManualPlantingAmount.value,
+                    Decimal.div(
+                        manualPlantProgress.value,
+                        computedManualPlantingCooldown.value
+                    ).floor()
+                )
+            );
             trees.value = Decimal.add(trees.value, amount);
             saplings.value = Decimal.sub(saplings.value, amount);
             manualPlantProgress.value = 0;
@@ -331,11 +355,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
             manualCutProgress.value = computedManualCuttingCooldown.value;
         } else {
             manualCutProgress.value = Decimal.add(manualCutProgress.value, diff);
+            if (cutTree.isHolding.value) {
+                cutTree.onClick();
+            }
         }
         if (Decimal.gte(manualPlantProgress.value, computedManualPlantingCooldown.value)) {
             manualPlantProgress.value = computedManualPlantingCooldown.value;
         } else {
             manualPlantProgress.value = Decimal.add(manualPlantProgress.value, diff);
+            if (plantTree.isHolding.value) {
+                plantTree.onClick();
+            }
         }
 
         const amountCut = Decimal.min(
