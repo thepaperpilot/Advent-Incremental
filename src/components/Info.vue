@@ -81,7 +81,7 @@ function openChangelog() {
 }
 </script>
 
-<style scoped>
+<style>
 .info-modal-header {
     display: flex;
     margin: -20px;

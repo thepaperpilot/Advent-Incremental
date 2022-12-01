@@ -26,7 +26,17 @@
             <template v-slot:header
                 ><h2>{{ main.loreTitle.value }}</h2></template
             >
-            <template v-slot:body>{{ main.loreBody.value }}</template>
+            <template v-slot:body>
+                {{ main.loreBody.value }}
+                <div v-if="!main.days[main.day.value - 1].opened.value">
+                    <br />
+                    You can help continue the <i>advent</i>ure at:
+                    <a href="https://discord.gg/WzejVAx" class="info-modal-discord-link">
+                        <span class="material-icons info-modal-discord">discord</span>
+                        The Paper Pilot Community
+                    </a>
+                </div>
+            </template>
         </Modal>
     </div>
 </template>
