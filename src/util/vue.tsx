@@ -136,7 +136,6 @@ export function setupHoldToClick(
             clearInterval(interval.value);
             interval.value = null;
         }
-        console.log(isHolding);
         if (isHolding) {
             isHolding.value = false;
         }
