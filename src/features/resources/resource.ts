@@ -17,7 +17,7 @@ export function createResource<T extends State>(
     defaultValue: T | Ref<T>,
     displayName = "points",
     precision = 0,
-    small = undefined
+    small: boolean | undefined = undefined
 ): Resource<T> {
     const resource: Partial<Resource<T>> = isRef(defaultValue)
         ? defaultValue

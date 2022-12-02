@@ -27,6 +27,7 @@ import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction, WithRequired } from "util/common";
 import { render, renderRow } from "util/vue";
 import { computed, ref, watchEffect } from "vue";
+import coal from "./coal";
 import workshop from "./workshop";
 
 const id = "trees";
@@ -261,6 +262,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "30% Foundation Completed",
             enabled: workshop.milestones.autoCutMilestone2.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Warmer Cutters",
+            enabled: coal.warmerCutters.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: coal.computedHeatedCutterEffect,
+            description: "Heated Cutters",
+            enabled: () => Decimal.gt(coal.heatedCutters.amount.value, 0)
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAutoCuttingAmount = computed(() => autoCuttingAmount.apply(0));
@@ -307,6 +318,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "40% Foundation Completed",
             enabled: workshop.milestones.autoPlantMilestone2.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Warmer Planters",
+            enabled: coal.warmerPlanters.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: coal.computedHeatedPlanterEffect,
+            description: "Heated Planters",
+            enabled: () => Decimal.gt(coal.heatedPlanters.amount.value, 0)
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAutoPlantingAmount = computed(() => autoPlantingAmount.apply(0));
@@ -331,6 +352,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "50% Foundation Completed",
             enabled: workshop.milestones.logGainMilestone2.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 1.25,
+            description: "Ashy Soil",
+            enabled: coal.basicFertilizer.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: coal.computedFertilizerEffect,
+            description: "Fertilized Soil",
+            enabled: () => Decimal.gt(coal.moreFertilizer.amount.value, 0)
         })),
         createExponentialModifier(() => ({
             exponent: 1.1,
