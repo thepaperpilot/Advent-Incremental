@@ -17,14 +17,13 @@ import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
 import {
     createAdditiveModifier,
-    createModifierSection,
     createMultiplicativeModifier,
     createSequentialModifier
 } from "game/modifiers";
 import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
-import { joinJSX, render, renderRow } from "util/vue";
+import { render, renderRow } from "util/vue";
 import { computed, ref, watchEffect } from "vue";
 
 const id = "trees";
