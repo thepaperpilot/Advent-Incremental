@@ -3,17 +3,19 @@
  * @hidden
  */
 import Spacer from "components/layout/Spacer.vue";
-import Modal from "components/Modal.vue";
-import { createCollapsibleModifierSections } from "data/common";
 import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
-import { jsx } from "features/feature";
-import { globalBus } from "game/events";
+import { createClickable } from "features/clickables/clickable";
+import { createIndependentConversion, createPolynomialScaling } from "features/conversion";
+import { jsx, showIf } from "features/feature";
+import { createMilestone } from "features/milestones/milestone";
+import { createResource, displayResource } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
-import Decimal from "util/bignum";
+import Decimal, { DecimalSource, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
-import { render } from "util/vue";
-import { ref, watchEffect } from "vue";
+import { render, renderCol } from "util/vue";
+import { unref, watchEffect } from "vue";
+import trees from "./trees";
 
 const id = "workshop";
 const day = 2;
@@ -22,37 +24,133 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const color = "#D66B02";
     const colorDark = "#D66B02";
 
+    const foundationProgress = createResource<DecimalSource>(0, "foundation progress");
+
+    const foundationConversion = createIndependentConversion(() => ({
+        scaling: createPolynomialScaling(250, 1.5),
+        baseResource: trees.logs,
+        gainResource: foundationProgress,
+        roundUpCost: true,
+        buyMax: false,
+        spend(gain, spent) {
+            trees.logs.value = Decimal.sub(trees.logs.value, spent);
+        }
+    }));
+
+    const buildFoundation = createClickable(() => ({
+        display: jsx(() => (
+            <>
+                <b style="font-size: x-large">Build part of the foundation</b>
+                <br />
+                <br />
+                <span style="font-size: large">
+                    Req: {displayResource(trees.logs, foundationConversion.currentAt.value)}{" "}
+                    {trees.logs.displayName}
+                </span>
+            </>
+        )),
+        visibility: () => showIf(main.day.value === day),
+        canClick: () => Decimal.gte(foundationConversion.actualGain.value, 1),
+        onClick() {
+            if (!unref(this.canClick)) {
+                return;
+            }
+            foundationConversion.convert();
+        },
+        style: "width: 600px; min-height: unset"
+    }));
+
+    const logGainMilestone1 = createMilestone(() => ({
+        display: {
+            requirement: "1% Foundation Completed",
+            effectDisplay: "Trees give 5% more logs for each % of foundation completed"
+        },
+        shouldEarn: () => Decimal.gte(foundationProgress.value, 1)
+    }));
+    const autoCutMilestone1 = createMilestone(() => ({
+        display: {
+            requirement: "10% Foundation Completed",
+            effectDisplay: "Cut an additional tree per second for each 5% of foundation completed"
+        },
+        shouldEarn: () => Decimal.gte(foundationProgress.value, 10),
+        visibility: () => showIf(logGainMilestone1.earned.value)
+    }));
+    const autoPlantMilestone1 = createMilestone(() => ({
+        display: {
+            requirement: "20% Foundation Completed",
+            effectDisplay:
+                "Plant an additional tree per second for each 10% of foundation completed"
+        },
+        shouldEarn: () => Decimal.gte(foundationProgress.value, 20),
+        visibility: () => showIf(autoCutMilestone1.earned.value)
+    }));
+    const autoCutMilestone2 = createMilestone(() => ({
+        display: {
+            requirement: "30% Foundation Completed",
+            effectDisplay: "All automatic tree cutting is doubled"
+        },
+        shouldEarn: () => Decimal.gte(foundationProgress.value, 30),
+        visibility: () => showIf(autoPlantMilestone1.earned.value)
+    }));
+    const autoPlantMilestone2 = createMilestone(() => ({
+        display: {
+            requirement: "40% Foundation Completed",
+            effectDisplay: "All automatic tree planting is doubled"
+        },
+        shouldEarn: () => Decimal.gte(foundationProgress.value, 40),
+        visibility: () => showIf(autoCutMilestone2.earned.value)
+    }));
+    const logGainMilestone2 = createMilestone(() => ({
+        display: {
+            requirement: "50% Foundation Completed",
+            effectDisplay: "Trees give twice as many logs"
+        },
+        shouldEarn: () => Decimal.gte(foundationProgress.value, 50),
+        visibility: () => showIf(autoPlantMilestone2.earned.value)
+    }));
+    const morePlantsMilestone1 = createMilestone(() => ({
+        display: {
+            requirement: "75% Foundation Completed",
+            effectDisplay: "The forest gains an extra tree for every 2% of foundation completed"
+        },
+        shouldEarn: () => Decimal.gte(foundationProgress.value, 75),
+        visibility: () => showIf(logGainMilestone2.earned.value)
+    }));
+    const logGainMilestone3 = createMilestone(() => ({
+        display: {
+            requirement: "100% Foundation Completed",
+            effectDisplay: "Trees' log gain is now raised to the 1.1th power"
+        },
+        shouldEarn: () => Decimal.gte(foundationProgress.value, 100),
+        visibility: () => showIf(morePlantsMilestone1.earned.value)
+    }));
+    const milestones = {
+        logGainMilestone1,
+        autoCutMilestone1,
+        autoPlantMilestone1,
+        autoCutMilestone2,
+        autoPlantMilestone2,
+        logGainMilestone2,
+        morePlantsMilestone1,
+        logGainMilestone3
+    };
+
     const dayProgress = createBar(() => ({
         direction: Direction.Right,
         width: 600,
         height: 25,
         fillStyle: `backgroundColor: ${colorDark}`,
-        progress: () => 0
+        progress: () => Decimal.div(foundationProgress.value, 100),
+        display: jsx(() =>
+            main.day.value === day ? <>{formatWhole(foundationProgress.value)}%</> : ""
+        )
     }));
 
-    const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => []);
-    const showModifiersModal = ref(false);
-    const modifiersModal = jsx(() => (
-        <Modal
-            modelValue={showModifiersModal.value}
-            onUpdate:modelValue={(value: boolean) => (showModifiersModal.value = value)}
-            v-slots={{
-                header: () => <h2>{name} Modifiers</h2>,
-                body: generalTab
-            }}
-        />
-    ));
-
-    globalBus.on("update", diff => {
-        if (Decimal.lt(main.day.value, day)) {
-            return;
-        }
-    });
-
     watchEffect(() => {
-        if (main.day.value === day && false) {
+        if (main.day.value === day && Decimal.gte(foundationProgress.value, 100)) {
             main.loreTitle.value = "Day complete!";
-            main.loreBody.value = "";
+            main.loreBody.value =
+                "The workshop complete, Santa once again dismisses you for the day. With a strong foundation, this workshop should suffice for supporting future work toward this impossible mission. Good Job!";
             main.day.value = day + 1;
             main.minimized.value = false;
         }
@@ -62,23 +160,22 @@ const layer = createLayer(id, function (this: BaseLayer) {
         name,
         day,
         color,
-        generalTabCollapsed,
+        foundationProgress,
+        foundationConversion,
+        milestones,
         minWidth: 700,
         display: jsx(() => (
             <>
                 <div>
-                    {main.day.value === day ? `Reach ??? to complete the day` : `Day Complete!`} -{" "}
-                    <button
-                        class="button"
-                        style="display: inline-block;"
-                        onClick={() => (showModifiersModal.value = true)}
-                    >
-                        Check Modifiers
-                    </button>
+                    {main.day.value === day
+                        ? `Complete the foundation to complete the day`
+                        : `Day Complete!`}
                 </div>
                 {render(dayProgress)}
-                {render(modifiersModal)}
                 <Spacer />
+                {render(buildFoundation)}
+                <Spacer />
+                {renderCol(...Object.values(milestones))}
             </>
         ))
     };

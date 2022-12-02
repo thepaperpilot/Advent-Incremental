@@ -17,14 +17,17 @@ import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
 import {
     createAdditiveModifier,
+    createExponentialModifier,
     createMultiplicativeModifier,
-    createSequentialModifier
+    createSequentialModifier,
+    Modifier
 } from "game/modifiers";
 import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
-import { Direction } from "util/common";
+import { Direction, WithRequired } from "util/common";
 import { render, renderRow } from "util/vue";
 import { computed, ref, watchEffect } from "vue";
+import workshop from "./workshop";
 
 const id = "trees";
 const day = 1;
@@ -35,10 +38,27 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const logs = createResource<DecimalSource>(0, "logs");
     const totalLogs = trackTotal(logs);
-    const trees = createResource<DecimalSource>(10, "trees");
+    // Think of saplings as spent trees
     const saplings = createResource<DecimalSource>(0, "saplings");
 
     const totalLogGoal = 1e4;
+
+    const totalTrees = createSequentialModifier(() => [
+        createAdditiveModifier(() => ({
+            addend: () => Decimal.times(expandingForestBuyable.amount.value, 10),
+            description: "Expand Forest",
+            enabled: researchUpgrade2.bought
+        })),
+        createAdditiveModifier(() => ({
+            addend: () => Decimal.div(workshop.foundationProgress.value, 2),
+            description: "75% Foundation Completed",
+            enabled: workshop.milestones.morePlantsMilestone1.earned
+        }))
+    ]) as WithRequired<Modifier, "description" | "revert">;
+    const trees = createResource(
+        computed(() => Decimal.sub(totalTrees.apply(10), saplings.value)),
+        "trees"
+    );
 
     const manualCutUpgrade1 = createUpgrade(() => ({
         resource: logs,
@@ -174,10 +194,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Expand Forest",
             description: "Add 10 trees to the forest"
         },
-        visibility: () => showIf(researchUpgrade2.bought.value),
-        onPurchase() {
-            trees.value = Decimal.add(trees.value, 10);
-        }
+        visibility: () => showIf(researchUpgrade2.bought.value)
     }));
     const row1Buyables = [autoCuttingBuyable1, autoPlantingBuyable1, expandingForestBuyable];
 
@@ -187,7 +204,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         height: 25,
         fillStyle: `backgroundColor: ${colorDark}`,
         progress: () => Decimal.log10(totalLogs.value).div(Math.log10(totalLogGoal)),
-        display: jsx(() => <>{formatWhole(totalLogs.value)}/{formatWhole(totalLogGoal)}</>)
+        display: jsx(() =>
+            main.day.value === day ? (
+                <>
+                    {formatWhole(totalLogs.value)}/{formatWhole(totalLogGoal)}
+                </>
+            ) : (
+                ""
+            )
+        )
     }));
 
     const manualCuttingAmount = createSequentialModifier(() => [
@@ -222,8 +247,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
             addend: autoCuttingBuyable1.amount,
             description: "Generic Cutters",
             enabled: researchUpgrade2.bought
+        })),
+        createAdditiveModifier(() => ({
+            addend: () => Decimal.div(workshop.foundationProgress.value, 5).floor(),
+            description: "10% Foundation Completed",
+            enabled: workshop.milestones.autoCutMilestone1.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "30% Foundation Completed",
+            enabled: workshop.milestones.autoCutMilestone2.earned
         }))
-    ]);
+    ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAutoCuttingAmount = computed(() => autoCuttingAmount.apply(0));
 
     const manualPlantingAmount = createSequentialModifier(() => [
@@ -258,8 +293,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
             addend: () => Decimal.div(autoPlantingBuyable1.amount.value, 2),
             description: "Generic Planters",
             enabled: researchUpgrade2.bought
+        })),
+        createAdditiveModifier(() => ({
+            addend: () => Decimal.div(workshop.foundationProgress.value, 10).floor(),
+            description: "20% Foundation Completed",
+            enabled: workshop.milestones.autoPlantMilestone1.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "40% Foundation Completed",
+            enabled: workshop.milestones.autoPlantMilestone2.earned
         }))
-    ]);
+    ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAutoPlantingAmount = computed(() => autoPlantingAmount.apply(0));
 
     const logGain = createSequentialModifier(() => [
@@ -272,6 +317,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 1.25,
             description: "Research II",
             enabled: researchUpgrade2.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.div(workshop.foundationProgress.value, 20).add(1),
+            description: "1% Foundation Completed",
+            enabled: workshop.milestones.logGainMilestone1.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "50% Foundation Completed",
+            enabled: workshop.milestones.logGainMilestone2.earned
+        })),
+        createExponentialModifier(() => ({
+            exponent: 1.1,
+            description: "100% Foundation Completed",
+            enabled: workshop.milestones.logGainMilestone3.earned
         }))
     ]);
 
@@ -290,7 +350,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Cut trees",
             description: jsx(() => (
                 <>
-                    Cut down up to {formatWhole(Decimal.floor(computedManualCuttingAmount.value))} tree
+                    Cut down up to {formatWhole(Decimal.floor(computedManualCuttingAmount.value))}{" "}
+                    tree
                     {Decimal.eq(computedManualCuttingAmount.value, 1) ? "" : "s"} at once!
                     <br />
                     {render(manualCutProgressBar)}
@@ -307,17 +368,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.lt(manualCutProgress.value, computedManualCuttingCooldown.value)) {
                 return;
             }
-            const amount = Decimal.floor(Decimal.min(
-                trees.value,
-                Decimal.times(
-                    computedManualCuttingAmount.value,
-                    Decimal.div(
-                        manualCutProgress.value,
-                        computedManualCuttingCooldown.value
-                    ).floor()
+            const amount = Decimal.floor(
+                Decimal.min(
+                    trees.value,
+                    Decimal.times(
+                        computedManualCuttingAmount.value,
+                        Decimal.div(
+                            manualCutProgress.value,
+                            computedManualCuttingCooldown.value
+                        ).floor()
+                    )
                 )
-            ));
-            trees.value = Decimal.sub(trees.value, amount);
+            );
             logs.value = Decimal.add(logs.value, logGain.apply(amount));
             saplings.value = Decimal.add(saplings.value, amount);
             manualCutProgress.value = 0;
@@ -339,7 +401,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Plant trees",
             description: jsx(() => (
                 <>
-                    Plant up to {formatWhole(Decimal.floor(computedManualPlantingAmount.value))} tree
+                    Plant up to {formatWhole(Decimal.floor(computedManualPlantingAmount.value))}{" "}
+                    tree
                     {Decimal.eq(computedManualPlantingAmount.value, 1) ? "" : "s"} at once!
                     <br />
                     {render(manualPlantProgressBar)}
@@ -356,17 +419,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.lt(manualPlantProgress.value, computedManualPlantingCooldown.value)) {
                 return;
             }
-            const amount = Decimal.floor(Decimal.min(
-                saplings.value,
-                Decimal.times(
-                    computedManualPlantingAmount.value,
-                    Decimal.div(
-                        manualPlantProgress.value,
-                        computedManualPlantingCooldown.value
-                    ).floor()
+            const amount = Decimal.floor(
+                Decimal.min(
+                    saplings.value,
+                    Decimal.times(
+                        computedManualPlantingAmount.value,
+                        Decimal.div(
+                            manualPlantProgress.value,
+                            computedManualPlantingCooldown.value
+                        ).floor()
+                    )
                 )
-            ));
-            trees.value = Decimal.add(trees.value, amount);
+            );
             saplings.value = Decimal.sub(saplings.value, amount);
             manualPlantProgress.value = 0;
         }
@@ -406,8 +470,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
             base: 0,
             visible: autoPlantUpgrade1.bought,
             unit: "/s"
+        },
+        {
+            title: `Forest Size`,
+            modifier: totalTrees,
+            base: 10,
+            visible: researchUpgrade2.bought
         }
-        // TODO show forest size modifier?
     ]);
     const showModifiersModal = ref(false);
     const modifiersModal = jsx(() => (
@@ -447,7 +516,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
             trees.value,
             Decimal.times(computedAutoCuttingAmount.value, diff)
         );
-        trees.value = Decimal.sub(trees.value, amountCut);
         logs.value = Decimal.add(logs.value, logGain.apply(amountCut));
         saplings.value = Decimal.add(saplings.value, amountCut);
 
@@ -455,7 +523,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
             saplings.value,
             Decimal.times(computedAutoPlantingAmount.value, diff)
         );
-        trees.value = Decimal.add(trees.value, amountPlanted);
         saplings.value = Decimal.sub(saplings.value, amountPlanted);
     });
 
@@ -469,14 +536,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     });
 
-    const netSaplingGain = computed(() => Decimal.sub(
-        computedAutoCuttingAmount.value,
-        computedAutoPlantingAmount.value
-    ));
-    const netTreeGain = computed(() => Decimal.sub(
-        computedAutoPlantingAmount.value,
-        computedAutoCuttingAmount.value
-    ));
+    const netSaplingGain = computed(() =>
+        Decimal.sub(computedAutoCuttingAmount.value, computedAutoPlantingAmount.value)
+    );
+    const netTreeGain = computed(() =>
+        Decimal.sub(computedAutoPlantingAmount.value, computedAutoCuttingAmount.value)
+    );
 
     return {
         name,
@@ -518,7 +583,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     style="margin-bottom: 0"
                     effectDisplay={
                         Decimal.gt(computedAutoCuttingAmount.value, 0)
-                            ? `+${format(computedAutoCuttingAmount.value)}/s`
+                            ? `+${format(logGain.apply(computedAutoCuttingAmount.value))}/s`
                             : undefined
                     }
                 />

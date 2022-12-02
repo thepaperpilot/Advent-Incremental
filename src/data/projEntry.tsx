@@ -9,9 +9,9 @@ import {
 } from "features/feature";
 import { BaseLayer, createLayer, GenericLayer, layers } from "game/layers";
 import { persistent } from "game/persistence";
-import type { LayerData, PlayerData } from "game/player";
+import type { PlayerData } from "game/player";
 import player from "game/player";
-import Decimal, { format, formatTime } from "util/bignum";
+import { format, formatTime } from "util/bignum";
 import { Computable, convertComputable, ProcessedComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { renderRow, VueFeature } from "util/vue";
@@ -324,21 +324,5 @@ export function fixOldSave(
     oldVersion: string | undefined,
     player: Partial<PlayerData>
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-): void {
-    if (oldVersion === "0.0") {
-        if (player.layers?.trees) {
-            (player.layers.trees as LayerData<typeof trees>).trees = Decimal.sub(
-                10,
-                (player.layers.trees as LayerData<typeof trees>).saplings ?? 0
-            );
-        }
-    } else if (oldVersion === "0.1") {
-        if (player.layers?.trees) {
-            const t = player.layers.trees as LayerData<typeof trees>;
-            t.trees = Decimal.add(1, t.row1Buyables?.[2]?.amount ?? 0)
-                .times(10)
-                .sub(t.saplings ?? 0);
-        }
-    }
-}
+): void {}
 /* eslint-enable @typescript-eslint/no-unused-vars */

@@ -69,7 +69,7 @@ export default defineComponent({
         );
 
         function goBack() {
-            player.tabs.splice(unref(props.index), Infinity);
+            player.tabs.splice(unref(props.index), 1);
         }
 
         nextTick(() => updateTab(minimized.value, unref(minWidth.value)));
