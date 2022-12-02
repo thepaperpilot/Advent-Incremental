@@ -20,7 +20,7 @@
 	"initialTabs": [ "main" ],
 
 	"maxTickLength": 3600,
-	"offlineLimit": 1,
+	"offlineLimit": 0,
 	"enablePausing": true,
 	"exportEncoding": "base64"
 }
