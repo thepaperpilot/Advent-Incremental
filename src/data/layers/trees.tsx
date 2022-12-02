@@ -464,6 +464,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     });
 
+    const netSaplingGain = computed(() => Decimal.sub(
+        computedAutoCuttingAmount.value,
+        computedAutoPlantingAmount.value
+    ));
+    const netTreeGain = computed(() => Decimal.sub(
+        computedAutoPlantingAmount.value,
+        computedAutoCuttingAmount.value
+    ));
+
     return {
         name,
         color,
@@ -513,20 +522,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     color="green"
                     style="margin-bottom: 0"
                     effectDisplay={
-                        Decimal.neq(
-                            Decimal.sub(
-                                computedAutoCuttingAmount.value,
-                                computedAutoPlantingAmount.value
-                            ),
-                            0
-                        )
-                            ? `+${format(
-                                  Decimal.sub(
-                                      computedAutoCuttingAmount.value,
-                                      computedAutoPlantingAmount.value
-                                  )
-                              )}/s`
-                            : undefined
+                        {
+                            [-1]: `${format(netSaplingGain.value)}/s`,
+                            0: undefined,
+                            1: `+${format(netSaplingGain.value)}/s`
+                        }[Decimal.compare(netSaplingGain.value, 0)]
                     }
                 />
                 <MainDisplay
@@ -534,20 +534,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     color="green"
                     style="margin-bottom: 0"
                     effectDisplay={
-                        Decimal.neq(
-                            Decimal.sub(
-                                computedAutoPlantingAmount.value,
-                                computedAutoCuttingAmount.value
-                            ),
-                            0
-                        )
-                            ? `+${format(
-                                  Decimal.sub(
-                                      computedAutoPlantingAmount.value,
-                                      computedAutoCuttingAmount.value
-                                  )
-                              )}/s`
-                            : undefined
+                        {
+                            [-1]: `${format(netTreeGain.value)}/s`,
+                            0: undefined,
+                            1: `+${format(netTreeGain.value)}/s`
+                        }[Decimal.compare(netTreeGain.value, 0)]
                     }
                 />
                 <Spacer />
