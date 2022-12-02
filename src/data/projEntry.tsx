@@ -332,6 +332,13 @@ export function fixOldSave(
                 (player.layers.trees as LayerData<typeof trees>).saplings ?? 0
             );
         }
+    } else if (oldVersion === "0.1") {
+        if (player.layers?.trees) {
+            const t = player.layers.trees as LayerData<typeof trees>;
+            t.trees = Decimal.add(1, t.row1Buyables?.[2]?.amount ?? 0)
+                .times(10)
+                .sub(t.saplings ?? 0);
+        }
     }
 }
 /* eslint-enable @typescript-eslint/no-unused-vars */
