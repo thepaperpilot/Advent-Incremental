@@ -44,7 +44,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <br />
                 <br />
                 <span style="font-size: large">
-                    Cost: {displayResource(trees.logs, Decimal.gte(foundationConversion.actualGain.value, 1) ? foundationConversion.currentAt.value : foundationConversion.nextAt.value)}{" "}
+                    Cost:{" "}
+                    {displayResource(
+                        trees.logs,
+                        Decimal.gte(foundationConversion.actualGain.value, 1)
+                            ? foundationConversion.currentAt.value
+                            : foundationConversion.nextAt.value
+                    )}{" "}
                     {trees.logs.displayName}
                 </span>
             </>

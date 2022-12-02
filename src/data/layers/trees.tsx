@@ -597,9 +597,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     style="margin-bottom: 0"
                     effectDisplay={
                         {
-                            [-1]: `${format(netSaplingGain.value)}/s`,
+                            [-1]: `${formatWhole(netSaplingGain.value)}/s`,
                             0: undefined,
-                            1: `+${format(netSaplingGain.value)}/s`
+                            1: `+${formatWhole(netSaplingGain.value)}/s`
                         }[Decimal.compare(netSaplingGain.value, 0)]
                     }
                 />
@@ -609,9 +609,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     style="margin-bottom: 0"
                     effectDisplay={
                         {
-                            [-1]: `${format(netTreeGain.value)}/s`,
+                            [-1]: `${formatWhole(netTreeGain.value)}/s`,
                             0: undefined,
-                            1: `+${format(netTreeGain.value)}/s`
+                            1: `+${formatWhole(netTreeGain.value)}/s`
                         }[Decimal.compare(netTreeGain.value, 0)]
                     }
                 />
