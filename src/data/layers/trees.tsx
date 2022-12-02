@@ -70,7 +70,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const researchUpgrade1 = createUpgrade(() => ({
         resource: logs,
-        cost: 100,
+        cost: 40,
         display: {
             title: "Research I",
             description: "Trees give 25% more logs, and unlock more upgrades"
@@ -86,7 +86,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const manualCutUpgrade2 = createUpgrade(() => ({
         resource: logs,
-        cost: 100,
+        cost: 50,
         visibility: () => showIf(researchUpgrade1.bought.value),
         display: {
             title: "Sharper Fingers",
@@ -95,7 +95,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const manualPlantUpgrade2 = createUpgrade(() => ({
         resource: logs,
-        cost: 100,
+        cost: 50,
         visibility: () => showIf(researchUpgrade1.bought.value),
         display: {
             title: "Greener Fingers",
@@ -104,7 +104,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const manualCutUpgrade3 = createUpgrade(() => ({
         resource: logs,
-        cost: 300,
+        cost: 150,
         visibility: () => showIf(researchUpgrade1.bought.value),
         display: {
             title: "Smart Knives",
@@ -114,7 +114,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const manualPlantUpgrade3 = createUpgrade(() => ({
         resource: logs,
-        cost: 300,
+        cost: 150,
         visibility: () => showIf(researchUpgrade1.bought.value),
         display: {
             title: "Smart Spades",
@@ -124,7 +124,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const researchUpgrade2 = createUpgrade(() => ({
         resource: logs,
-        cost: 1000,
+        cost: 300,
         visibility: () => showIf(researchUpgrade1.bought.value),
         display: {
             title: "Research II",
