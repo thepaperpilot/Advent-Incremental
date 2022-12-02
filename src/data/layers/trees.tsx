@@ -27,6 +27,7 @@ import { render, renderRow } from "util/vue";
 import { computed, ref, watchEffect } from "vue";
 
 const id = "trees";
+const day = 1;
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Trees";
     const colorBright = "#4BDC13";
@@ -421,7 +422,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     ));
 
     globalBus.on("update", diff => {
-        if (Decimal.lt(main.day.value, 1)) {
+        if (Decimal.lt(main.day.value, day)) {
             return;
         }
 
@@ -459,11 +460,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
 
     watchEffect(() => {
-        if (main.day.value === 1 && Decimal.gte(totalLogs.value, totalLogGoal)) {
+        if (main.day.value === day && Decimal.gte(totalLogs.value, totalLogGoal)) {
             main.loreTitle.value = "Day complete!";
             main.loreBody.value =
                 "Santa looks at all the wood you've gathered and tells you you've done well! He says you should take the rest of the day off so you're refreshed for tomorrow's work. Good Job!";
-            main.day.value = 2;
+            main.day.value = day + 1;
             main.minimized.value = false;
         }
     });
@@ -496,7 +497,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         display: jsx(() => (
             <>
                 <div>
-                    {main.day.value === 1
+                    {main.day.value === day
                         ? `Reach ${formatWhole(1e4)} ${logs.displayName} to complete the day`
                         : `Day Complete!`}{" "}
                     -{" "}
