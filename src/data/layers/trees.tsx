@@ -166,7 +166,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const autoCuttingBuyable1 = createBuyable(() => ({
         resource: logs,
         cost() {
-            return Decimal.times(100, this.amount.value).add(200);
+            let v = this.amount.value;
+            if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
+            return Decimal.times(100, v).add(200);
         },
         display: {
             title: "Generic Cutters",
@@ -177,7 +179,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const autoPlantingBuyable1 = createBuyable(() => ({
         resource: logs,
         cost() {
-            return Decimal.times(100, this.amount.value).add(200);
+            let v = this.amount.value;
+            if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
+            return Decimal.times(100, v).add(200);
         },
         display: {
             title: "Generic Planters",
