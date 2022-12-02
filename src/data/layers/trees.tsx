@@ -29,12 +29,15 @@ import { computed, ref, watchEffect } from "vue";
 const id = "trees";
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Trees";
-    const color = "#4BDC13";
+    const colorBright = "#4BDC13";
+    const colorDark = "green";
 
     const logs = createResource<DecimalSource>(0, "logs");
     const totalLogs = trackTotal(logs);
     const trees = createResource<DecimalSource>(10, "trees");
     const saplings = createResource<DecimalSource>(0, "saplings");
+
+    const totalLogGoal = 1e4;
 
     const manualCutUpgrade1 = createUpgrade(() => ({
         resource: logs,
@@ -181,8 +184,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         direction: Direction.Right,
         width: 600,
         height: 25,
-        fillStyle: `color: ${color}`,
-        progress: () => Decimal.log10(totalLogs.value).div(4)
+        fillStyle: `backgroundColor: ${colorDark}`,
+        progress: () => Decimal.log10(totalLogs.value).div(Math.log10(totalLogGoal)),
+        display: jsx(() => <>{formatWhole(totalLogs.value)}/{formatWhole(totalLogGoal)}</>)
     }));
 
     const manualCuttingAmount = createSequentialModifier(() => [
@@ -455,7 +459,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
 
     watchEffect(() => {
-        if (main.day.value === 1 && Decimal.gte(totalLogs.value, 1e4)) {
+        if (main.day.value === 1 && Decimal.gte(totalLogs.value, totalLogGoal)) {
             main.loreTitle.value = "Day complete!";
             main.loreBody.value =
                 "Santa looks at all the wood you've gathered and tells you you've done well! He says you should take the rest of the day off so you're refreshed for tomorrow's work. Good Job!";
@@ -475,7 +479,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     return {
         name,
-        color,
+        color: colorBright,
         logs,
         totalLogs,
         trees,
@@ -509,7 +513,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 <MainDisplay
                     resource={logs}
-                    color={color}
+                    color={colorBright}
                     style="margin-bottom: 0"
                     effectDisplay={
                         Decimal.gt(computedAutoCuttingAmount.value, 0)
@@ -519,7 +523,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 />
                 <MainDisplay
                     resource={saplings}
-                    color="green"
+                    color={colorDark}
                     style="margin-bottom: 0"
                     effectDisplay={
                         {
@@ -531,7 +535,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 />
                 <MainDisplay
                     resource={trees}
-                    color="green"
+                    color={colorDark}
                     style="margin-bottom: 0"
                     effectDisplay={
                         {
