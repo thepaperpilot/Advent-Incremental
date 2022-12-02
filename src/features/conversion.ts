@@ -66,7 +66,7 @@ export interface ConversionOptions {
      * The function that spends the {@link baseResource} as part of the conversion.
      * Defaults to setting the {@link baseResource} amount to 0.
      */
-    spend?: (amountGained: DecimalSource) => void;
+    spend?: (amountGained: DecimalSource, amountSpent: DecimalSource) => void;
     /**
      * A callback that happens after a conversion has been completed.
      * Receives the amount gained via conversion.
@@ -108,7 +108,9 @@ export type Conversion<T extends ConversionOptions> = Replace<
         currentAt: GetComputableTypeWithDefault<T["currentAt"], Ref<DecimalSource>>;
         nextAt: GetComputableTypeWithDefault<T["nextAt"], Ref<DecimalSource>>;
         buyMax: GetComputableTypeWithDefault<T["buyMax"], true>;
-        spend: undefined extends T["spend"] ? (amountGained: DecimalSource) => void : T["spend"];
+        spend: undefined extends T["spend"]
+            ? (amountGained: DecimalSource, amountSpent: DecimalSource) => void
+            : T["spend"];
         roundUpCost: GetComputableTypeWithDefault<T["roundUpCost"], true>;
     }
 >;
@@ -122,7 +124,7 @@ export type GenericConversion = Replace<
         currentAt: ProcessedComputable<DecimalSource>;
         nextAt: ProcessedComputable<DecimalSource>;
         buyMax: ProcessedComputable<boolean>;
-        spend: (amountGained: DecimalSource) => void;
+        spend: (amountGained: DecimalSource, amountSpent: DecimalSource) => void;
         roundUpCost: ProcessedComputable<boolean>;
     }
 >;
@@ -176,11 +178,12 @@ export function createConversion<T extends ConversionOptions>(
         if (conversion.convert == null) {
             conversion.convert = function () {
                 const amountGained = unref((conversion as GenericConversion).currentGain);
+                const amountSpent = unref((conversion as GenericConversion).currentAt);
                 conversion.gainResource.value = Decimal.add(
                     conversion.gainResource.value,
                     amountGained
                 );
-                (conversion as GenericConversion).spend(amountGained);
+                (conversion as GenericConversion).spend(amountGained, amountSpent);
                 conversion.onConvert?.(amountGained);
             };
         }
@@ -423,12 +426,13 @@ export function createIndependentConversion<S extends ConversionOptions>(
         }
         setDefault(conversion, "convert", function () {
             const amountGained = unref((conversion as GenericConversion).actualGain);
+            const amountSpent = unref((conversion as GenericConversion).currentAt);
             conversion.gainResource.value = conversion.gainModifier
                 ? conversion.gainModifier.apply(
                       unref((conversion as GenericConversion).currentGain)
                   )
                 : unref((conversion as GenericConversion).currentGain);
-            (conversion as GenericConversion).spend(amountGained);
+            (conversion as GenericConversion).spend(amountGained, amountSpent);
             conversion.onConvert?.(amountGained);
         });
 
