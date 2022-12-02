@@ -20,6 +20,7 @@ import { computed, ref, unref } from "vue";
 import "./advent.css";
 import Day from "./Day.vue";
 import trees from "./layers/trees";
+import workshop from "./layers/workshop";
 
 export interface Day extends VueFeature {
     day: number;
@@ -94,14 +95,14 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 1,
             shouldNotify: false,
-            layer: null,
+            layer: "trees",
             symbol: "🎄",
             story: "Oh no! Santa forgot about Christmas and it's only 25 days away! He's asked for your help due to your history getting large quantities of things in short amounts of time. Unfortunately you're really starting from scratch here - let's start with getting wood, which you'll need for everything from building workshops to wrapping paper to many of the toys themselves!"
         })),
         createDay(() => ({
             day: 2,
             shouldNotify: false,
-            layer: null,
+            layer: "workshop",
             symbol: "<span class='material-icons'>cabin</span>",
             story: "Santa looked over your tree farm and was impressed with how much you could accomplish in just one day. Today's goal is to get a workshop built up for the elves to work in - and apparently, they need quite a lot of space to work!"
         })),
@@ -304,7 +305,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
 export const getInitialLayers = (
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     player: Partial<PlayerData>
-): Array<GenericLayer> => [main, trees];
+): Array<GenericLayer> => [main, trees, workshop];
 
 /**
  * A computed ref whose value is true whenever the game is over.
