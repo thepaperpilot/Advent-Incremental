@@ -6,7 +6,7 @@
                 <div class="date">Dec<br />{{ day }}</div>
             </div>
         </Transition>
-        <div class="icon" v-if="symbolComp"><component :is="symbolComp" /></div>
+        <div class="icon" :style="{ backgroundImage: `url(${symbol})` }"></div>
         <div class="lore" @click="emit('openLore')">?</div>
         <Notif v-if="unref(shouldNotify)" />
     </div>
@@ -24,18 +24,16 @@
 </template>
 
 <script setup lang="ts">
-import { CoercableComponent } from "features/feature";
-import { unref, toRef, computed } from "vue";
-import type { Ref } from "vue";
 import Notif from "components/Notif.vue";
-import { computeComponent } from "util/vue";
-import { ProcessedComputable } from "util/computed";
 import Decimal from "util/bignum";
+import { ProcessedComputable } from "util/computed";
+import type { Ref } from "vue";
+import { computed, unref } from "vue";
 import { main } from "./projEntry";
 
 const props = defineProps<{
     day: number;
-    symbol: CoercableComponent;
+    symbol: string;
     opened: Ref<boolean>;
     shouldNotify: ProcessedComputable<boolean>;
 }>();
@@ -45,8 +43,6 @@ const emit = defineEmits<{
     (e: "openLayer"): void;
     (e: "unlockLayer"): void;
 }>();
-
-const symbolComp = computeComponent(toRef(props, "symbol"));
 
 const canOpen = computed(
     () =>
@@ -169,12 +165,11 @@ function tryUnlock() {
     width: 100%;
 }
 
-.icon,
-.icon .material-icons {
-    font-size: xx-large;
+.icon {
     pointer-events: none;
-    display: flex;
-    user-select: none;
+    background-size: contain;
+    width: 100%;
+    height: 100%;
 }
 
 .lore {

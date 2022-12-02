@@ -1,12 +1,5 @@
-import "@fontsource/material-icons";
 import Spacer from "components/layout/Spacer.vue";
-import {
-    CoercableComponent,
-    Component,
-    GatherProps,
-    GenericComponent,
-    jsx
-} from "features/feature";
+import { Component, GatherProps, GenericComponent, jsx } from "features/feature";
 import { BaseLayer, createLayer, GenericLayer, layers } from "game/layers";
 import { persistent } from "game/persistence";
 import type { PlayerData } from "game/player";
@@ -21,11 +14,13 @@ import "./advent.css";
 import Day from "./Day.vue";
 import trees from "./layers/trees";
 import workshop from "./layers/workshop";
+import treeSymbol from "./symbols/tree.png";
+import workshopSymbol from "./symbols/sws.png";
 
 export interface Day extends VueFeature {
     day: number;
     layer: string | null;
-    symbol: CoercableComponent;
+    symbol: string;
     story: string;
     opened: Ref<boolean>;
     shouldNotify: ProcessedComputable<boolean>;
@@ -42,7 +37,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
             day: number;
             shouldNotify: Computable<boolean>;
             layer: string | null;
-            symbol: CoercableComponent;
+            symbol: string;
             story: string;
         }
     ): Day {
@@ -75,8 +70,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
                                 player.tabs.splice(index, 1);
                             } else {
                                 player.tabs.push(layer ?? "trees");
+                                main.minimized.value = true;
                             }
-                            main.minimized.value = true;
                         },
                         onUnlockLayer() {
                             opened.value = true;
@@ -96,14 +91,14 @@ export const main = createLayer("main", function (this: BaseLayer) {
             day: 1,
             shouldNotify: false,
             layer: "trees",
-            symbol: "🎄",
+            symbol: treeSymbol,
             story: "Oh no! Santa forgot about Christmas and it's only 25 days away! He's asked for your help due to your history getting large quantities of things in short amounts of time. Unfortunately you're really starting from scratch here - let's start with getting wood, which you'll need for everything from building workshops to wrapping paper to many of the toys themselves!"
         })),
         createDay(() => ({
             day: 2,
             shouldNotify: false,
             layer: "workshop",
-            symbol: "<span class='material-icons'>cabin</span>",
+            symbol: workshopSymbol,
             story: "Santa looked over your tree farm and was impressed with how much you could accomplish in just one day. Today's goal is to get a workshop built up for the elves to work in - and apparently, they need quite a lot of space to work!"
         })),
         createDay(() => ({
