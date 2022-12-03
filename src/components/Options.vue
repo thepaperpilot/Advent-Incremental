@@ -10,8 +10,6 @@
             <component :is="settingFieldsComponent" />
             <Toggle title="Show TPS" v-model="showTPS" />
             <hr />
-            <Toggle title="Unthrottled" v-model="unthrottled" />
-            <Toggle :title="offlineProdTitle" v-model="offlineProd" />
             <Toggle :title="autosaveTitle" v-model="autosave" />
             <Toggle v-if="projInfo.enablePausing" :title="isPausedTitle" v-model="isPaused" />
         </template>
