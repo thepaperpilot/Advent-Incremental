@@ -173,8 +173,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <br/>
             Cost: {formatWhole(unref(buildKiln.cost!))} {buildKiln.resource!.displayName}
         </>),
-        onPurchase(cost) {
-            activeFires.value = Decimal.sub(activeFires.value, cost!).max(0);
+        onPurchase() {
             activeKilns.value = Decimal.add(activeKilns.value, 1);
         },
         style: {
