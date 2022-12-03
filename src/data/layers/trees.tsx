@@ -10,6 +10,7 @@ import { createBar } from "features/bars/bar";
 import { createBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
+import { createHotkey } from "features/hotkey";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource, trackTotal } from "features/resources/resource";
 import { createUpgrade } from "features/upgrades/upgrade";
@@ -412,6 +413,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         fillStyle: "margin-top: 0; transition-duration: 0s",
         progress: () => Decimal.div(manualCutProgress.value, computedManualCuttingCooldown.value)
     }));
+
     const cutTree = createClickable(() => ({
         display: {
             title: "Cut trees",
@@ -625,6 +627,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
         Decimal.sub(computedAutoPlantingAmount.value, computedAutoCuttingAmount.value)
     );
 
+    const cutTreeHK = createHotkey(() => ({
+        key: "c",
+        description: "Press the \"Cut trees\" button.",
+        onPress: () => {
+            if (cutTree.canClick.value) cutTree.onClick();
+        }
+    }));
+    const plantTreeHK = createHotkey(() => ({
+        key: "p",
+        description: "Press the \"Plant trees\" button.",
+        onPress: () => {
+            if (plantTree.canClick.value) plantTree.onClick();
+        }
+    }));
+
     return {
         name,
         color: colorBright,
@@ -634,6 +651,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         saplings,
         cutTree,
         plantTree,
+        cutTreeHK,
+        plantTreeHK,
         row1Upgrades,
         row2Upgrades,
         row1Buyables,
