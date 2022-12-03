@@ -56,8 +56,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 </span>
             </>
         )),
-        visibility: () => showIf(main.day.value === day),
-        canClick: () => Decimal.gte(foundationConversion.actualGain.value, 1),
+        visibility: () => showIf(Decimal.lt(foundationProgress.value, 100)),
+        canClick: () =>
+            Decimal.gte(foundationConversion.actualGain.value, 1) &&
+            Decimal.lt(foundationProgress.value, 100),
         onClick() {
             if (!unref(this.canClick)) {
                 return;
@@ -147,7 +149,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         width: 600,
         height: 25,
         fillStyle: `backgroundColor: ${colorDark}`,
-        progress: () => Decimal.div(foundationProgress.value, 100),
+        progress: () => (main.day.value === day ? Decimal.div(foundationProgress.value, 100) : 1),
         display: jsx(() =>
             main.day.value === day ? <>{formatWhole(foundationProgress.value)}%</> : ""
         )
@@ -182,6 +184,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {render(dayProgress)}
                 <Spacer />
                 {render(buildFoundation)}
+                <div>You have {formatWhole(foundationProgress.value)}% completed</div>
                 <Spacer />
                 {renderCol(...Object.values(milestones))}
             </>

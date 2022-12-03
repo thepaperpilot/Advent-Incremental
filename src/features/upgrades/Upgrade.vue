@@ -107,7 +107,7 @@ export default defineComponent({
                                 Currently: <EffectDisplay />
                             </div>
                         ) : null}
-                        {props.resource != null ? (
+                        {props.resource != null && currDisplay.showCost !== false ? (
                             <>
                                 <br />
                                 Cost: {props.resource &&

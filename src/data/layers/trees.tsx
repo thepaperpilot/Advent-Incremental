@@ -29,6 +29,7 @@ import { Direction, WithRequired } from "util/common";
 import { render, renderRow } from "util/vue";
 import { computed, ref, watchEffect } from "vue";
 import coal from "./coal";
+import elves from "./elves";
 import workshop from "./workshop";
 
 const id = "trees";
@@ -55,6 +56,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             addend: () => Decimal.div(workshop.foundationProgress.value, 2),
             description: "75% Foundation Completed",
             enabled: workshop.milestones.morePlantsMilestone1.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "5 Elves Trained",
+            enabled: elves.milestones[4].earned
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const trees = createResource(
@@ -170,8 +176,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost() {
             let v = this.amount.value;
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
-            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
-            if (Decimal.gte(v, 1000)) v = Decimal.pow(v, 2).div(1000);
+            if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
+            if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
             return Decimal.times(100, v).add(200);
         },
         display: {
@@ -185,8 +191,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost() {
             let v = this.amount.value;
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
-            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
-            if (Decimal.gte(v, 1000)) v = Decimal.pow(v, 2).div(1000);
+            if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
+            if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
             return Decimal.times(100, v).add(200);
         },
         display: {
@@ -198,7 +204,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const expandingForestBuyable = createBuyable(() => ({
         resource: logs,
         cost() {
-            return Decimal.pow(Decimal.add(this.amount.value, 1), 1.5).times(500);
+            let v = this.amount.value;
+            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
+            if (Decimal.gte(v, 1e5)) v = Decimal.pow(v, 2).div(1e5);
+            return Decimal.pow(Decimal.add(v, 1), 1.5).times(500);
         },
         display: {
             title: "Expand Forest",
@@ -213,7 +222,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         width: 600,
         height: 25,
         fillStyle: `backgroundColor: ${colorDark}`,
-        progress: () => Decimal.log10(totalLogs.value).div(Math.log10(totalLogGoal)),
+        progress: () =>
+            main.day.value === day
+                ? Decimal.log10(totalLogs.value).div(Math.log10(totalLogGoal))
+                : 1,
         display: jsx(() =>
             main.day.value === day ? (
                 <>
@@ -243,6 +255,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 0.5,
             description: "Sharper Fingers",
             enabled: manualCutUpgrade2.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.pow(0.5, elves.totalElves.value),
+            description: "1 Elf Trained",
+            enabled: elves.milestones[0].earned
         }))
     ]);
     const computedManualCuttingCooldown = computed(() => manualCuttingCooldown.apply(1));
@@ -299,6 +316,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 0.5,
             description: "Greener Fingers",
             enabled: manualPlantUpgrade2.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.pow(0.5, elves.totalElves.value),
+            description: "1 Elf Trained",
+            enabled: elves.milestones[0].earned
         }))
     ]);
     const computedManualPlantingCooldown = computed(() => manualPlantingCooldown.apply(1));
@@ -367,6 +389,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: coal.computedFertilizerEffect,
             description: "Fertilized Soil",
             enabled: () => Decimal.gt(coal.moreFertilizer.amount.value, 0)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "4 Elves Trained",
+            enabled: elves.milestones[3].earned
         })),
         createExponentialModifier(() => ({
             exponent: 1.1,
@@ -491,11 +518,25 @@ const layer = createLayer(id, function (this: BaseLayer) {
             unit: "/click"
         },
         {
+            title: "Manual Cutting Cooldown",
+            modifier: manualCuttingCooldown,
+            base: 1,
+            visible: manualCutUpgrade1.bought,
+            unit: "s"
+        },
+        {
             title: "Manual Planting Amount",
             modifier: manualPlantingAmount,
             base: 1,
             visible: manualPlantUpgrade1.bought,
             unit: "/click"
+        },
+        {
+            title: "Manual Planting Cooldown",
+            modifier: manualPlantingCooldown,
+            base: 1,
+            visible: manualPlantUpgrade1.bought,
+            unit: "s"
         },
         {
             title: `Auto Cutting Amount`,

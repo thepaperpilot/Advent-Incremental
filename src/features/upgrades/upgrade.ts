@@ -38,6 +38,7 @@ export interface UpgradeOptions {
               title?: CoercableComponent;
               description: CoercableComponent;
               effectDisplay?: CoercableComponent;
+              showCost?: boolean;
           }
     >;
     mark?: Computable<boolean | string>;

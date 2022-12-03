@@ -22,9 +22,10 @@ import { Direction } from "util/common";
 import { render, renderRow } from "util/vue";
 import { computed, ref, unref, watch, watchEffect } from "vue";
 import trees from "./trees";
-import { createAdditiveModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
+import { createAdditiveModifier, createExponentialModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import { createUpgrade } from "features/upgrades/upgrade";
 import player from "game/player";
+import elves from "./elves";
 
 const id = "coal";
 const day = 3;
@@ -45,8 +46,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
         width: 600,
         height: 25,
         fillStyle: `backgroundColor: ${colorCoal}`,
-        progress: () => Decimal.log10(totalCoal.value).div(Math.log10(totalCoalGoal)),
-        display: jsx(() => <>{formatWhole(totalCoal.value)}/{formatWhole(totalCoalGoal)}</>)
+        progress: () =>
+            main.day.value === day
+                ? Decimal.log10(totalCoal.value).div(Math.log10(totalCoalGoal))
+                : 1,
+        display: jsx(() =>
+            main.day.value === day ? (
+                <>
+                    {formatWhole(totalCoal.value)}/{formatWhole(totalCoalGoal)}
+                </>
+            ) : (
+                ""
+            )
+        )
     }));
 
     const activeFires = persistent<DecimalSource>(0);
@@ -311,8 +323,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost() {
             let v = this.amount.value;
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
-            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
-            if (Decimal.gte(v, 1000)) v = Decimal.pow(v, 2).div(1000);
+            if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
+            if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
             return Decimal.add(v, 1).pow(2.5).times(10);
         },
         display: {
@@ -330,8 +342,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost() {
             let v = this.amount.value;
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
-            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
-            if (Decimal.gte(v, 1000)) v = Decimal.pow(v, 2).div(1000);
+            if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
+            if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
             return Decimal.add(v, 1).pow(2.5).times(10);
         },
         display: {
@@ -349,8 +361,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost() {
             let v = this.amount.value;
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
-            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
-            if (Decimal.gte(v, 1000)) v = Decimal.pow(v, 2).div(1000);
+            if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
+            if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
             return Decimal.add(v, 1).pow(1.5).times(50000);
         },
         display: {
@@ -426,6 +438,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             addend() { return kilnCoal.value; },
             description: "Charcoal Kilns",
             enabled() { return Decimal.gt(activeKilns.value, 0); }
+        })),
+        createExponentialModifier(() => ({
+            exponent: 1.25,
+            description: "3 Elves Trained",
+            enabled: elves.milestones[2].earned
         }))
     ]);
     const computedCoalGain = computed(() => coalGain.apply(0));
