@@ -23,6 +23,7 @@ import {
     Modifier
 } from "game/modifiers";
 import { persistent } from "game/persistence";
+import player from "game/player";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction, WithRequired } from "util/common";
 import { render, renderRow } from "util/vue";
@@ -568,6 +569,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 "Santa looks at all the wood you've gathered and tells you you've done well! He says you should take the rest of the day off so you're refreshed for tomorrow's work. Good Job!";
             main.day.value = day + 1;
             main.minimized.value = false;
+            player.devSpeed = 0;
         }
     });
 

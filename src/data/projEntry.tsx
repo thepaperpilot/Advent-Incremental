@@ -80,6 +80,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
                             setTimeout(() => {
                                 loreTitle.value = unref(layers[layer ?? "trees"]?.name ?? "");
                                 loreBody.value = story;
+                                player.devSpeed = null;
                             }, 1000);
                         }
                     };
@@ -108,14 +109,14 @@ export const main = createLayer("main", function (this: BaseLayer) {
             shouldNotify: false,
             layer: "coal",
             symbol: coalSymbol,
-            story: "Santa tells you that unfortunately there are quite a few naughty children out there this year, and he's going to need you to gather as coal as you can for him to give out."
+            story: "Santa tells you that unfortunately there are quite a few naughty children out there this year, and he's going to need you to gather as much coal as you can for him to give out."
         })),
         createDay(() => ({
             day: 4,
             shouldNotify: false,
             layer: null,
             symbol: "",
-            story: "With this unbelievably large workshop complete, it's time to get the elves to work! But it appears they've forgotten how to make toys over the last 11 months - guess it's time to setup training sessions!"
+            story: "Alright, it seems you finally have enough things setup to start bringing in the elves! Unfortunately, it seems they'll need to be retrained on how to help, since they're out of practice by 11 months!"
         })),
         createDay(() => ({
             day: 5,

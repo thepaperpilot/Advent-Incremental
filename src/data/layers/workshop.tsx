@@ -11,6 +11,7 @@ import { jsx, showIf } from "features/feature";
 import { createMilestone } from "features/milestones/milestone";
 import { createResource, displayResource } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
+import player from "game/player";
 import Decimal, { DecimalSource, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render, renderCol } from "util/vue";
@@ -159,6 +160,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 "The workshop complete, Santa once again dismisses you for the day. With a strong foundation, this workshop should suffice for supporting future work toward this impossible mission. Good Job!";
             main.day.value = day + 1;
             main.minimized.value = false;
+            player.devSpeed = 0;
         }
     });
 

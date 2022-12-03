@@ -24,6 +24,7 @@ import { computed, ref, unref, watch, watchEffect } from "vue";
 import trees from "./trees";
 import { createAdditiveModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import { createUpgrade } from "features/upgrades/upgrade";
+import player from "game/player";
 
 const id = "coal";
 const day = 3;
@@ -508,6 +509,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 "Santa looks at all the coal you've gathered and tells you you've done well! He says you should take the rest of the day off so you're refreshed for tomorrow's work. Good Job!";
             main.day.value = day + 1;
             main.minimized.value = false;
+            player.devSpeed = 0;
         }
     });
 
