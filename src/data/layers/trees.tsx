@@ -170,6 +170,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost() {
             let v = this.amount.value;
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
+            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
+            if (Decimal.gte(v, 1000)) v = Decimal.pow(v, 2).div(1000);
             return Decimal.times(100, v).add(200);
         },
         display: {
@@ -183,6 +185,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost() {
             let v = this.amount.value;
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
+            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
+            if (Decimal.gte(v, 1000)) v = Decimal.pow(v, 2).div(1000);
             return Decimal.times(100, v).add(200);
         },
         display: {

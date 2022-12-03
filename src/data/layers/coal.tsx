@@ -38,7 +38,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const totalCoal = trackTotal(coal);
     const ash = createResource<DecimalSource>(0, "ash");
 
-    const totalCoalGoal = 1e6;
+    const totalCoalGoal = 1e7;
 
     const dayProgress = createBar(() => ({
         direction: Direction.Right,
@@ -309,7 +309,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const heatedCutters = createBuyable(() => ({
         resource: coal,
         cost() {
-            return Decimal.add(this.amount.value, 1).pow(2.5).times(10);
+            let v = this.amount.value;
+            if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
+            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
+            if (Decimal.gte(v, 1000)) v = Decimal.pow(v, 2).div(1000);
+            return Decimal.add(v, 1).pow(2.5).times(10);
         },
         display: {
             title: "Heated Cutters",
@@ -324,7 +328,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const heatedPlanters = createBuyable(() => ({
         resource: coal,
         cost() {
-            return Decimal.add(this.amount.value, 1).pow(2.5).times(10);
+            let v = this.amount.value;
+            if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
+            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
+            if (Decimal.gte(v, 1000)) v = Decimal.pow(v, 2).div(1000);
+            return Decimal.add(v, 1).pow(2.5).times(10);
         },
         display: {
             title: "Heated Planters",
@@ -339,7 +347,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const moreFertilizer = createBuyable(() => ({
         resource: ash,
         cost() {
-            return Decimal.add(this.amount.value, 1).pow(1.5).times(50000);
+            let v = this.amount.value;
+            if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
+            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
+            if (Decimal.gte(v, 1000)) v = Decimal.pow(v, 2).div(1000);
+            return Decimal.add(v, 1).pow(1.5).times(50000);
         },
         display: {
             title: "Fertilized Soil",
