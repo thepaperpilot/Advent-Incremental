@@ -16,6 +16,7 @@ import trees from "./layers/trees";
 import workshop from "./layers/workshop";
 import treeSymbol from "./symbols/tree.png";
 import workshopSymbol from "./symbols/sws.png";
+import coalSymbol from "./symbols/coal.png";
 import coal from "./layers/coal";
 
 export interface Day extends VueFeature {
@@ -106,15 +107,15 @@ export const main = createLayer("main", function (this: BaseLayer) {
             day: 3,
             shouldNotify: false,
             layer: "coal",
-            symbol: "🧝",
-            story: "With this unbelievably large workshop complete, it's time to get the elves to work! But it appears they've forgotten how to make toys over the last 11 months - guess it's time to setup training sessions!"
+            symbol: coalSymbol,
+            story: "Santa tells you that unfortunately there are quite a few naughty children out there this year, and he's going to need you to gather as coal as you can for him to give out."
         })),
         createDay(() => ({
             day: 4,
             shouldNotify: false,
             layer: null,
             symbol: "",
-            story: ""
+            story: "With this unbelievably large workshop complete, it's time to get the elves to work! But it appears they've forgotten how to make toys over the last 11 months - guess it's time to setup training sessions!"
         })),
         createDay(() => ({
             day: 5,
