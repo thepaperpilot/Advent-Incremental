@@ -179,12 +179,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <div>
                     {main.day.value === day
                         ? `Complete the foundation to complete the day`
-                        : `Day Complete!`}
+                        : `${name} Complete!`}
                 </div>
                 {render(dayProgress)}
                 <Spacer />
                 {render(buildFoundation)}
-                <div>You have {formatWhole(foundationProgress.value)}% completed</div>
+                {Decimal.lt(foundationProgress.value, 100) ? (
+                    <div>You have {formatWhole(foundationProgress.value)}% completed</div>
+                ) : null}
                 <Spacer />
                 {renderCol(...Object.values(milestones))}
             </>

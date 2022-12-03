@@ -574,7 +574,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <div>
                     {main.day.value === day
                         ? `Reach ${formatWhole(totalCoalGoal)} ${coal.displayName} to complete the day`
-                        : `Day Complete!`}{" "}
+                        : `${name} Complete!`}{" "}
                     -{" "}
                     <button
                         class="button"
