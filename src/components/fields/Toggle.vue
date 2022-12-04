@@ -34,6 +34,7 @@ const value = computed({
 <style scoped>
 .field {
     cursor: pointer;
+    pointer-events: all;
 }
 
 input {
@@ -58,6 +59,7 @@ input + span::before {
     opacity: 0.38;
     vertical-align: top;
     transition: background-color 0.2s, opacity 0.2s;
+    border: solid 1px var(--feature-foreground);
 }
 
 /* thumb */
@@ -73,6 +75,7 @@ input + span::after {
     box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14),
         0 1px 5px 0 rgba(0, 0, 0, 0.12);
     transition: background-color 0.2s, transform 0.2s;
+    border: solid 1px var(--feature-foreground);
 }
 
 input:checked + span::before {
