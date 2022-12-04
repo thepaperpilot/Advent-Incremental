@@ -227,7 +227,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 while (Decimal.gte(buyProgress.value, cooldown)) {
                     if (unref(options.buyable.canPurchase)) {
                         options.buyable.amount.value = Decimal.add(options.buyable.amount.value, 1);
-                        buyProgress.value = cooldown.sub(0.1);
+                        buyProgress.value = cooldown.sub(cooldown);
                     } else {
                         buyProgress.value = cooldown;
                         break;
