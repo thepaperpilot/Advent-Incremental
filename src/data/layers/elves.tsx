@@ -16,7 +16,6 @@ import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import { persistent } from "game/persistence";
-import player from "game/player";
 import Decimal, { DecimalSource, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render, renderCol, renderRow } from "util/vue";

@@ -692,7 +692,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         Decimal.gt(computedAutoCuttingAmount.value, 0)
                             ? `expected: +${format(
                                   logGain.apply(computedAutoCuttingAmount.value)
-                              )}/s, average: +${format(ema.value)}/s`
+                              )}/s, average: +${format(ema.value)}/s (${format(
+                                  Decimal.div(
+                                      ema.value,
+                                      logGain.apply(computedAutoCuttingAmount.value)
+                                  ).mul(100)
+                              )}% efficent)`
                             : undefined
                     }
                 />
