@@ -31,6 +31,7 @@ import {
 import { createUpgrade, Upgrade } from "features/upgrades/upgrade";
 import elves from "./elves";
 import paper from "./paper";
+import boxes from "./boxes";
 
 interface BetterFertilizerUpgOptions {
     canAfford: () => boolean;
@@ -91,10 +92,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const buildFire = createBuyable(() => ({
         resource: trees.logs,
         cost() {
-            return Decimal.times(buildBonfire.amount.value, 10)
-                .plus(this.amount.value)
-                .pow(1.5)
-                .times(1e4);
+            let v = this.amount.value;
+            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
+            if (Decimal.gte(v, 10000)) v = Decimal.pow(v, 2).div(10000);
+            v = Decimal.pow(0.95, paper.books.smallFireBook.amount.value).times(v);
+            return Decimal.times(v, 10).plus(v).pow(1.5).times(1e4);
         },
         display: jsx(() => (
             <>
@@ -119,7 +121,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             color: colorText,
             width: "160px"
         }
-    })) as GenericBuyable;
+    })) as GenericBuyable & { resource: Resource };
     const minFire = createClickable(() => ({
         display: "0",
         style: { minHeight: "20px", width: "40px", color: colorText },
@@ -168,7 +170,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const bonfireAsh = computed(() => Decimal.times(activeBonfires.value, 1000));
     const buildBonfire = createBuyable(() => ({
         resource: fireResource,
-        cost: 10,
+        cost() {
+            return Decimal.times(10, Decimal.pow(0.95, paper.books.bonfireBook.amount.value));
+        },
         display: jsx(() => (
             <>
                 <h3>Bonfire</h3>
@@ -193,7 +197,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             color: colorText,
             width: "160px"
         }
-    })) as GenericBuyable;
+    })) as GenericBuyable & { resource: Resource };
     const minBonfire = createClickable(() => ({
         display: "0",
         style: { minHeight: "20px", width: "40px", color: colorText },
@@ -242,7 +246,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const buildKiln = createBuyable(() => ({
         resource: trees.logs,
         cost() {
-            return Decimal.pow(1.1, this.amount.value).times(1e7);
+            let v = this.amount.value;
+            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
+            if (Decimal.gte(v, 10000)) v = Decimal.pow(v, 2).div(10000);
+            v = Decimal.pow(0.95, paper.books.kilnBook.amount.value).times(v);
+            return Decimal.pow(1.1, v).times(1e7);
         },
         display: jsx(() => (
             <>
@@ -267,7 +275,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             color: colorText,
             width: "160px"
         }
-    })) as GenericBuyable;
+    })) as GenericBuyable & { resource: Resource };
     const minKiln = createClickable(() => ({
         display: "0",
         style: { minHeight: "20px", width: "40px", color: colorText },
@@ -425,7 +433,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: { color: colorText },
         visibility: () => showIf(warmerCutters.bought.value)
-    })) as GenericBuyable & { display: { title: string } };
+    })) as GenericBuyable & { display: { title: string }; resource: Resource };
     const heatedPlanters = createBuyable(() => ({
         resource: coal,
         cost() {
@@ -445,7 +453,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: { color: colorText },
         visibility: () => showIf(warmerPlanters.bought.value)
-    })) as GenericBuyable & { display: { title: string } };
+    })) as GenericBuyable & { display: { title: string }; resource: Resource };
     const moreFertilizer = createBuyable(() => ({
         resource: ash,
         cost() {
@@ -465,7 +473,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: { color: colorText },
         visibility: () => showIf(basicFertilizer.bought.value)
-    })) as GenericBuyable & { display: { title: string } };
+    })) as GenericBuyable & { display: { title: string }; resource: Resource };
     const row3buyables = [heatedCutters, heatedPlanters, moreFertilizer];
 
     const heatedCutterEffect = createSequentialModifier(() => [
@@ -550,6 +558,31 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 return Decimal.gt(activeKilns.value, 0);
             }
         })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Carry coal in boxes",
+            enabled: boxes.upgrades.coalUpgrade.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.div(boxes.buyables.coalBoxesBuyable.amount.value, 2).add(1),
+            description: "Carry more coal",
+            enabled: boxes.upgrades.coalUpgrade.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.div(buildFire.amount.value, 10000).add(1),
+            description: "Small Fires Synergy",
+            enabled: elves.elves.smallFireElf.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.div(buildBonfire.amount.value, 1000).add(1),
+            description: "Bonfires Synergy",
+            enabled: elves.elves.bonfireElf.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.div(buildKiln.amount.value, 100).add(1),
+            description: "Kiln Synergy",
+            enabled: elves.elves.kilnElf.bought
+        })),
         createExponentialModifier(() => ({
             exponent: 1.25,
             description: "3 Elves Trained",
@@ -585,6 +618,31 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled() {
                 return Decimal.gt(activeKilns.value, 0);
             }
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Carry ash in boxes",
+            enabled: boxes.upgrades.ashUpgrade.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.div(boxes.buyables.ashBoxesBuyable.amount.value, 2).add(1),
+            description: "Carry more ash",
+            enabled: boxes.upgrades.ashUpgrade.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.div(buildFire.amount.value, 10000).add(1),
+            description: "Small Fires Synergy",
+            enabled: elves.elves.smallFireElf.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.div(buildBonfire.amount.value, 1000).add(1),
+            description: "Bonfires Synergy",
+            enabled: elves.elves.bonfireElf.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.div(buildKiln.amount.value, 100).add(1),
+            description: "Kiln Synergy",
+            enabled: elves.elves.kilnElf.bought
         }))
     ]);
     const computedAshGain = computed(() => ashGain.apply(0));

@@ -25,9 +25,11 @@ import workshopSymbol from "./symbols/sws.png";
 import coalSymbol from "./symbols/coal.png";
 import elfSymbol from "./symbols/elf.png";
 import paperSymbol from "./symbols/paperStacks.png";
+import boxesSymbol from "./symbols/cardboardBox.png";
 import coal from "./layers/coal";
 import elves from "./layers/elves";
 import paper from "./layers/paper";
+import boxes from "./layers/boxes";
 
 export interface Day extends VueFeature {
     day: number;
@@ -169,10 +171,11 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 6,
             shouldNotify: false,
-            layer: null,
-            symbol: "",
-            story: "",
-            completedStory: ""
+            layer: "boxes",
+            symbol: boxesSymbol,
+            story: "You watch all these elves carrying incredibly large loads just in their open elf-sized hands, and realize there's probably a better way. You need to put the toys in boxes anyways, so why don't we get started working on those so the workers can take advantage as well?",
+            completedStory:
+                "Wow, those boxes are really convenient! The workshop feels more and more proper with every day. You tick another requirement of your list and start looking towards tomorrow. Good Job!"
         })),
         createDay(() => ({
             day: 7,
@@ -376,7 +379,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
 export const getInitialLayers = (
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     player: Partial<PlayerData>
-): Array<GenericLayer> => [main, trees, workshop, coal, elves, paper];
+): Array<GenericLayer> => [main, trees, workshop, coal, elves, paper, boxes];
 
 /**
  * A computed ref whose value is true whenever the game is over.

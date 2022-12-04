@@ -12,7 +12,7 @@ import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
 import { createHotkey } from "features/hotkey";
 import MainDisplay from "features/resources/MainDisplay.vue";
-import { createResource, trackTotal } from "features/resources/resource";
+import { createResource, Resource, trackTotal } from "features/resources/resource";
 import { createUpgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
@@ -28,6 +28,7 @@ import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction, WithRequired } from "util/common";
 import { render, renderRow } from "util/vue";
 import { computed, ref, watchEffect } from "vue";
+import boxes from "./boxes";
 import coal from "./coal";
 import elves from "./elves";
 import paper from "./paper";
@@ -67,6 +68,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "5 Elves Trained",
             enabled: elves.milestones[4].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "8 Elves Trained",
+            enabled: elves.milestones[7].earned
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const trees = createResource(
@@ -192,7 +198,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Each cutter cuts down 1 tree/s"
         },
         visibility: () => showIf(researchUpgrade2.bought.value)
-    })) as GenericBuyable & { display: { title: string } };
+    })) as GenericBuyable & { display: { title: string }; resource: Resource };
     const autoPlantingBuyable1 = createBuyable(() => ({
         resource: logs,
         cost() {
@@ -208,7 +214,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Each planter plants 0.5 trees/s"
         },
         visibility: () => showIf(researchUpgrade2.bought.value)
-    })) as GenericBuyable & { display: { title: string } };
+    })) as GenericBuyable & { display: { title: string }; resource: Resource };
     const expandingForestBuyable = createBuyable(() => ({
         resource: logs,
         cost() {
@@ -223,7 +229,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Add 10 trees to the forest"
         },
         visibility: () => showIf(researchUpgrade2.bought.value)
-    })) as GenericBuyable & { display: { title: string } };
+    })) as GenericBuyable & { display: { title: string }; resource: Resource };
     const row1Buyables = [autoCuttingBuyable1, autoPlantingBuyable1, expandingForestBuyable];
 
     const dayProgress = createBar(() => ({
@@ -403,6 +409,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "4 Elves Trained",
             enabled: elves.milestones[3].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Carry logs in boxes",
+            enabled: boxes.upgrades.logsUpgrade.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.div(boxes.buyables.logBoxesBuyable.amount.value, 2).add(1),
+            description: "Carry more logs",
+            enabled: boxes.upgrades.logsUpgrade.bought
         })),
         createExponentialModifier(() => ({
             exponent: 1.1,

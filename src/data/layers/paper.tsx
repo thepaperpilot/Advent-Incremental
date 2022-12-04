@@ -5,10 +5,10 @@
 import Spacer from "components/layout/Spacer.vue";
 import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
-import { createBuyable, GenericBuyable } from "features/buyable";
+import { BuyableOptions, createBuyable, GenericBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
 import { createCumulativeConversion, createPolynomialScaling } from "features/conversion";
-import { jsx } from "features/feature";
+import { jsx, showIf } from "features/feature";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource, displayResource, trackTotal } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
@@ -17,6 +17,7 @@ import { Direction } from "util/common";
 import { render, renderCol } from "util/vue";
 import { computed, unref, watchEffect } from "vue";
 import coal from "./coal";
+import elves from "./elves";
 import trees from "./trees";
 
 const id = "paper";
@@ -78,8 +79,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: "width: 600px; min-height: unset"
     }));
 
-    function createBook(options: { name: string; elfName: string; buyableName: string }) {
+    function createBook(
+        options: { name: string; elfName: string; buyableName: string } & Partial<BuyableOptions>
+    ) {
         const buyable = createBuyable(() => ({
+            ...options,
             display: {
                 title: options.name,
                 description: `Print a copy of "${options.name}", which ${options.elfName} will use to improve their skills! Each copy printed will reduce the "${options.buyableName}" price scaling by 0.95x and make ${options.elfName} purchase +10% faster!`,
@@ -128,13 +132,34 @@ const layer = createLayer(id, function (this: BaseLayer) {
         elfName: "Noel",
         buyableName: "Fertilized Soil"
     });
+    const smallFireBook = createBook({
+        name: "Firestarter",
+        elfName: "Joy",
+        buyableName: "Small Fire",
+        visibility: () => showIf(elves.elves.smallFireElf.bought.value)
+    });
+    const bonfireBook = createBook({
+        name: "An Arsonist's Guide to Writer's Homes in New England",
+        elfName: "Faith",
+        buyableName: "Bonfire",
+        visibility: () => showIf(elves.elves.bonfireElf.bought.value)
+    });
+    const kilnBook = createBook({
+        name: "Little Fires Everywhere",
+        elfName: "Snowball",
+        buyableName: "Kiln",
+        visibility: () => showIf(elves.elves.kilnElf.bought.value)
+    });
     const books = {
         cuttersBook,
         plantersBook,
         expandersBook,
         heatedCuttersBook,
         heatedPlantersBook,
-        fertilizerBook
+        fertilizerBook,
+        smallFireBook,
+        bonfireBook,
+        kilnBook
     };
 
     const dayProgress = createBar(() => ({

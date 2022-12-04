@@ -2,15 +2,18 @@
  * @module
  * @hidden
  */
+import Toggle from "components/fields/Toggle.vue";
 import Spacer from "components/layout/Spacer.vue";
 import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections } from "data/common";
 import { main } from "data/projEntry";
 import { createBar, GenericBar } from "features/bars/bar";
 import { GenericBuyable } from "features/buyable";
+import { ClickableOptions } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
 import { createMilestone } from "features/milestones/milestone";
 import { createReset } from "features/reset";
+import { Resource } from "features/resources/resource";
 import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
@@ -20,6 +23,7 @@ import Decimal, { DecimalSource, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render, renderCol, renderRow } from "util/vue";
 import { computed, ref, Ref, unref, watchEffect } from "vue";
+import boxes from "./boxes";
 import coal from "./coal";
 import paper from "./paper";
 import trees from "./trees";
@@ -71,9 +75,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         thingsToReset: [trees, workshop, coal],
         onReset() {
             setTimeout(() => {
-                if (researchMilestone.earned.value) {
+                if (treeUpgradesMilestone.earned.value) {
+                    trees.row1Upgrades.forEach(upg => (upg.bought.value = true));
+                    trees.row2Upgrades.forEach(upg => (upg.bought.value = true));
+                } else if (researchMilestone.earned.value) {
                     trees.row1Upgrades[4].bought.value = true;
                     trees.row2Upgrades[4].bought.value = true;
+                }
+                if (foundationMilestone.earned.value) {
+                    workshop.foundationProgress.value = 100;
                 }
             });
         }
@@ -152,6 +162,42 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: () => Decimal.gt(paper.books.fertilizerBook.amount.value, 0)
         }))
     ]);
+    const smallFireCooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "6 Elves Trained",
+            enabled: elvesMilestone.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.times(paper.books.smallFireBook.amount.value, 0.1).add(1),
+            description: "Firestarter",
+            enabled: () => Decimal.gt(paper.books.smallFireBook.amount.value, 0)
+        }))
+    ]);
+    const bonfireCooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "6 Elves Trained",
+            enabled: elvesMilestone.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.times(paper.books.bonfireBook.amount.value, 0.1).add(1),
+            description: "An Arsonist's Guide to Writer's Homes in New England",
+            enabled: () => Decimal.gt(paper.books.bonfireBook.amount.value, 0)
+        }))
+    ]);
+    const kilnCooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "6 Elves Trained",
+            enabled: elvesMilestone.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.times(paper.books.kilnBook.amount.value, 0.1).add(1),
+            description: "Little Fires Everywhere",
+            enabled: () => Decimal.gt(paper.books.kilnBook.amount.value, 0)
+        }))
+    ]);
 
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
         {
@@ -195,6 +241,27 @@ const layer = createLayer(id, function (this: BaseLayer) {
             base: 10,
             unit: "/s",
             visible: elves.fertilizerElf.bought
+        },
+        {
+            title: "Joy Auto-Buy Frequency",
+            modifier: smallFireCooldown,
+            base: 10,
+            unit: "/s",
+            visible: elves.smallFireElf.bought
+        },
+        {
+            title: "Faith Auto-Buy Frequency",
+            modifier: bonfireCooldown,
+            base: 10,
+            unit: "/s",
+            visible: elves.bonfireElf.bought
+        },
+        {
+            title: "Snowball Auto-Buy Frequency",
+            modifier: kilnCooldown,
+            base: 10,
+            unit: "/s",
+            visible: elves.kilnElf.bought
         }
     ]);
     const showModifiersModal = ref(false);
@@ -209,14 +276,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
         />
     ));
 
-    function createElf(options: {
-        name: string;
-        description: string;
-        buyable: GenericBuyable;
-        cooldownModifier: Modifier;
-    }) {
+    function createElf(
+        options: {
+            name: string;
+            description: string;
+            buyable: GenericBuyable & { resource: Resource };
+            cooldownModifier: Modifier;
+            customCost?: (amount: DecimalSource) => DecimalSource;
+            hasToggle?: boolean;
+            toggleDesc?: string;
+            onAutoPurchase?: VoidFunction;
+        } & Partial<ClickableOptions>
+    ) {
         const trainingCost = computed(() => Decimal.pow(4, totalElves.value).times(1e6));
         const buyProgress = persistent<DecimalSource>(0);
+        const toggle = options.hasToggle ? persistent<boolean>(false) : ref(true);
 
         const computedAutoBuyCooldown = computed(() => options.cooldownModifier.apply(10));
 
@@ -225,9 +299,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 buyProgress.value = Decimal.add(buyProgress.value, diff);
                 const cooldown = Decimal.recip(computedAutoBuyCooldown.value);
                 while (Decimal.gte(buyProgress.value, cooldown)) {
-                    if (unref(options.buyable.canPurchase)) {
+                    if (
+                        options.customCost == undefined
+                            ? unref(options.buyable.canPurchase)
+                            : Decimal.gte(
+                                  options.buyable.resource.value,
+                                  options.customCost(options.buyable.amount.value)
+                              )
+                    ) {
                         options.buyable.amount.value = Decimal.add(options.buyable.amount.value, 1);
                         buyProgress.value = Decimal.sub(buyProgress.value, cooldown);
+                        options.onAutoPurchase?.();
                     } else {
                         buyProgress.value = cooldown;
                         break;
@@ -239,6 +321,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const upgrade = createUpgrade(() => {
             return {
                 ...options,
+                toggle,
                 buyProgress,
                 update,
                 resource: coal.coal,
@@ -256,6 +339,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
                                     days 1-3.
                                 </>
                             )}
+                            {upgrade.bought.value && options.hasToggle === true ? (
+                                <>
+                                    <Toggle
+                                        title={options.toggleDesc}
+                                        onUpdate:modelValue={value => (toggle.value = value)}
+                                        modelValue={toggle.value}
+                                    />
+                                </>
+                            ) : null}
                         </>
                     )),
                     showCost: !upgrade.bought.value
@@ -263,7 +355,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 style: "width: 190px",
                 onPurchase: elfReset.reset
             };
-        }) as GenericUpgrade & { buyProgress: Ref<number>; update: (diff: number) => void };
+        }) as GenericUpgrade & {
+            buyProgress: Ref<number>;
+            update: (diff: number) => void;
+            toggle: Ref<boolean>;
+        };
         return upgrade;
     }
 
@@ -311,13 +407,66 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cooldownModifier: fertilizerCooldown
     });
     const coalElves = [heatedCuttersElf, heatedPlantersElf, fertilizerElf];
+    const smallFireElf = createElf({
+        name: "Joy",
+        description:
+            "Joy will automatically purchase small fires you can afford, without actually spending any logs. You can toggle whether or not to enable the purchased small fires automatically. Small fires will start giving a boost to ash and coal gain.",
+        buyable: coal.buildFire,
+        cooldownModifier: smallFireCooldown,
+        visibility: () => showIf(boxes.upgrades.logsUpgrade.bought.value),
+        hasToggle: true,
+        toggleDesc: "Activate auto-purchased small fires",
+        onAutoPurchase() {
+            if (smallFireElf.toggle.value) {
+                coal.activeFires.value = Decimal.add(coal.activeFires.value, 1);
+            }
+        }
+    });
+    const bonfireElf = createElf({
+        name: "Faith",
+        description:
+            "Faith will automatically purchase bonfires you can afford, without actually spending any small fires. You can toggle whether or not to enable the purchased bonfires automatically. Bonfires will start giving a boost to ash and coal gain.",
+        buyable: coal.buildBonfire,
+        cooldownModifier: bonfireCooldown,
+        visibility: () => showIf(boxes.upgrades.ashUpgrade.bought.value),
+        customCost: amount =>
+            Decimal.times(amount, 10)
+                .plus(10)
+                .times(Decimal.pow(0.95, paper.books.bonfireBook.amount.value)),
+        hasToggle: true,
+        toggleDesc: "Activate auto-purchased bonfires",
+        onAutoPurchase() {
+            if (bonfireElf.toggle.value) {
+                coal.activeBonfires.value = Decimal.add(coal.activeBonfires.value, 1);
+            }
+        }
+    });
+    const kilnElf = createElf({
+        name: "Snowball",
+        description:
+            "Snowball will automatically purchase kilns you can afford, without actually spending any logs. You can toggle whether or not to enable the purchased kilns automatically. Kilns will start giving a boost to ash and coal gain.",
+        buyable: coal.buildKiln,
+        cooldownModifier: kilnCooldown,
+        visibility: () => showIf(boxes.upgrades.coalUpgrade.bought.value),
+        hasToggle: true,
+        toggleDesc: "Activate auto-purchased kilns",
+        onAutoPurchase() {
+            if (kilnElf.toggle.value) {
+                coal.activeKilns.value = Decimal.add(coal.activeKilns.value, 1);
+            }
+        }
+    });
+    const fireElves = [smallFireElf, bonfireElf, kilnElf];
     const elves = {
         cuttersElf,
         plantersElf,
         expandersElf,
         heatedCuttersElf,
         heatedPlantersElf,
-        fertilizerElf
+        fertilizerElf,
+        smallFireElf,
+        bonfireElf,
+        kilnElf
     };
     const totalElves = computed(() => Object.values(elves).filter(elf => elf.bought.value).length);
 
@@ -332,7 +481,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const researchMilestone = createMilestone(() => ({
         display: {
             requirement: "2 Elves Trained",
-            effectDisplay: "Research I & II are't reset after training"
+            effectDisplay: "Research I & II aren't reset after training"
         },
         shouldEarn: () => Decimal.gte(totalElves.value, 2),
         visibility: () => showIf(manualMilestone.earned.value)
@@ -369,13 +518,40 @@ const layer = createLayer(id, function (this: BaseLayer) {
         shouldEarn: () => Decimal.gte(totalElves.value, 6),
         visibility: () => showIf(forestMilestone.earned.value)
     }));
+    const foundationMilestone = createMilestone(() => ({
+        display: {
+            requirement: "7 Elves Trained",
+            effectDisplay: "Workshop Foundation starts at 100% complete after training"
+        },
+        shouldEarn: () => Decimal.gte(totalElves.value, 7),
+        visibility: () => showIf(elvesMilestone.earned.value && main.day.value > 5)
+    }));
+    const forestMilestone2 = createMilestone(() => ({
+        display: {
+            requirement: "8 Elves Trained",
+            effectDisplay: "Forest is twice as large (again)"
+        },
+        shouldEarn: () => Decimal.gte(totalElves.value, 8),
+        visibility: () => showIf(foundationMilestone.earned.value)
+    }));
+    const treeUpgradesMilestone = createMilestone(() => ({
+        display: {
+            requirement: "9 Elves Trained",
+            effectDisplay: "Trees upgrades aren't reset after training"
+        },
+        shouldEarn: () => Decimal.gte(totalElves.value, 9),
+        visibility: () => showIf(forestMilestone2.earned.value)
+    }));
     const milestones = [
         manualMilestone,
         researchMilestone,
         coalGainMilestone,
         logGainMilestone,
         forestMilestone,
-        elvesMilestone
+        elvesMilestone,
+        foundationMilestone,
+        forestMilestone2,
+        treeUpgradesMilestone
     ];
 
     globalBus.on("update", diff => {
@@ -427,6 +603,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <div style="width: 600px">
                     {renderRow(...treesElves)}
                     {renderRow(...coalElves)}
+                    {renderRow(...fireElves)}
                 </div>
                 {renderCol(...milestones)}
             </>

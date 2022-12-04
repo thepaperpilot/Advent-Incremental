@@ -11,6 +11,7 @@
         <img v-if="day >= 3" :src="elves" class="scene-item" style="left: 52%; bottom: 12%" />
         <div v-if="day >= 4" class="scene-bubble" style="left: 50%; bottom: 38%">
             <img v-if="day >= 4" :src="paper" class="scene-item" />
+            <img v-if="day >= 5" :src="boxes" class="scene-item" />
         </div>
     </div>
 </template>
@@ -21,6 +22,7 @@ import workshop from "./symbols/sws.png";
 import coal from "./symbols/coal.png";
 import elves from "./symbols/elf.png";
 import paper from "./symbols/paperStacks.png";
+import boxes from "./symbols/cardboardBox.png";
 
 defineProps<{
     day: number;
