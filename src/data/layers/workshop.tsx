@@ -10,6 +10,7 @@ import { Conversion, ConversionOptions, createIndependentConversion, createPolyn
 import { jsx, showIf } from "features/feature";
 import { createMilestone } from "features/milestones/milestone";
 import { createResource, displayResource, Resource } from "features/resources/resource";
+import { createHotkey } from "features/hotkey";
 import { BaseLayer, createLayer } from "game/layers";
 import player from "game/player";
 import Decimal, { DecimalSource, formatWhole } from "util/bignum";
@@ -76,6 +77,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             foundationConversion.convert();
         },
         style: "width: 600px; min-height: unset"
+    }));
+
+    const buildFoundationHK = createHotkey(() => ({
+        key: "w",
+        description: 'Build part of the foundation.',
+        onPress: () => {
+            if (buildFoundation.canClick.value) buildFoundation.onClick();
+        }
     }));
 
     const logGainMilestone1 = createMilestone(() => ({
@@ -178,6 +187,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         foundationConversion,
         milestones,
         minWidth: 700,
+        buildFoundationHK,
         display: jsx(() => (
             <>
                 <div>
