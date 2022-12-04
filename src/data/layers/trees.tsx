@@ -35,6 +35,10 @@ import workshop from "./workshop";
 
 const id = "trees";
 const day = 1;
+
+// how much to prioritize this' income
+// vs the previous ones
+const SMOOTHING_FACTOR = 0.5;
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Trees";
     const colorBright = "#4BDC13";
@@ -46,6 +50,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const saplings = createResource<DecimalSource>(0, "saplings");
 
     const totalLogGoal = 1e4;
+    const ema = ref<DecimalSource>(0);
 
     const totalTrees = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
@@ -599,7 +604,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             trees.value,
             Decimal.times(computedAutoCuttingAmount.value, diff)
         );
-        logs.value = Decimal.add(logs.value, logGain.apply(amountCut));
+        const logsGained = logGain.apply(amountCut);
+
+        const effectiveLogsGained = Decimal.div(logsGained, diff);
+        ema.value = Decimal.mul(effectiveLogsGained, SMOOTHING_FACTOR).add(
+            Decimal.mul(ema.value, Decimal.dOne.sub(SMOOTHING_FACTOR))
+        );
+
+        logs.value = Decimal.add(logs.value, logsGained);
         saplings.value = Decimal.add(saplings.value, amountCut);
 
         const amountPlanted = Decimal.min(
@@ -629,14 +641,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const cutTreeHK = createHotkey(() => ({
         key: "c",
-        description: "Press the \"Cut trees\" button.",
+        description: 'Press the "Cut trees" button.',
         onPress: () => {
             if (cutTree.canClick.value) cutTree.onClick();
         }
     }));
     const plantTreeHK = createHotkey(() => ({
         key: "p",
-        description: "Press the \"Plant trees\" button.",
+        description: 'Press the "Plant trees" button.',
         onPress: () => {
             if (plantTree.canClick.value) plantTree.onClick();
         }
@@ -678,16 +690,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {render(dayProgress)}
                 {render(modifiersModal)}
                 <Spacer />
-                <MainDisplay
-                    resource={logs}
-                    color={colorBright}
-                    style="margin-bottom: 0"
-                    effectDisplay={
-                        Decimal.gt(computedAutoCuttingAmount.value, 0)
-                            ? `+${format(logGain.apply(computedAutoCuttingAmount.value))}/s`
-                            : undefined
-                    }
-                />
+                <MainDisplay resource={logs} color={colorBright} style="margin-bottom: 0" />
+                {Decimal.gt(computedAutoCuttingAmount.value, 0)
+                    ? `expected: +${format(
+                          logGain.apply(computedAutoCuttingAmount.value)
+                      )}/s, average: +${format(ema.value)}/s`
+                    : undefined}
                 <MainDisplay
                     resource={saplings}
                     color={colorDark}
@@ -715,6 +723,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {renderRow(cutTree, plantTree)}
                 <div>Tip: You can hold down on actions to perform them automatically</div>
+                <div>
+                    Note: your average log gain will be equal to your expected log gain if you have
+                    enough trees to support your chopping
+                </div>
                 <Spacer />
                 {renderRow(...row1Upgrades)}
                 {renderRow(...row2Upgrades)}
