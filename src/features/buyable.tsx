@@ -203,7 +203,6 @@ export function createBuyable<T extends BuyableOptions>(
                         ) : null}
                         {genericBuyable.cost && !genericBuyable.maxed.value ? (
                             <div>
-                                <br />
                                 Cost: {format(unref(genericBuyable.cost) || 0)}{" "}
                                 {buyable.resource.displayName}
                             </div>

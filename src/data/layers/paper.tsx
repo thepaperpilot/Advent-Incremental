@@ -12,7 +12,7 @@ import { jsx } from "features/feature";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource, displayResource, trackTotal } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
-import Decimal, { DecimalSource, formatWhole } from "util/bignum";
+import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render, renderCol } from "util/vue";
 import { computed, unref, watchEffect } from "vue";
@@ -82,7 +82,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const buyable = createBuyable(() => ({
             display: {
                 title: options.name,
-                description: `Print a copy of "${options.name}", which ${options.elfName} will use to improve their skills! Each copy printed will reduce the "${options.buyableName}" price scaling by 0.95x and make ${options.elfName} purchase +10% faster!`
+                description: `Print a copy of "${options.name}", which ${options.elfName} will use to improve their skills! Each copy printed will reduce the "${options.buyableName}" price scaling by 0.95x and make ${options.elfName} purchase +10% faster!`,
+                effectDisplay: jsx(() => (
+                    <>
+                        {format(Decimal.pow(0.95, buyable.amount.value))}x price scaling,{" "}
+                        {format(Decimal.div(buyable.amount.value, 10).add(1))}x auto-purchase speed
+                    </>
+                )),
+                showAmount: false
             },
             resource: paper,
             cost: () => Decimal.pow(5, buyable.amount.value).times(10),
