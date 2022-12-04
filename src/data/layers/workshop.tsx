@@ -6,10 +6,10 @@ import Spacer from "components/layout/Spacer.vue";
 import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
 import { createClickable } from "features/clickables/clickable";
-import { createIndependentConversion, createPolynomialScaling } from "features/conversion";
+import { Conversion, ConversionOptions, createIndependentConversion, createPolynomialScaling, ScalingFunction } from "features/conversion";
 import { jsx, showIf } from "features/feature";
 import { createMilestone } from "features/milestones/milestone";
-import { createResource, displayResource } from "features/resources/resource";
+import { createResource, displayResource, Resource } from "features/resources/resource";
 import { createHotkey } from "features/hotkey";
 import { BaseLayer, createLayer } from "game/layers";
 import player from "game/player";
@@ -18,6 +18,15 @@ import { Direction } from "util/common";
 import { render, renderCol } from "util/vue";
 import { unref, watchEffect } from "vue";
 import trees from "./trees";
+
+interface FoundationConversionOptions {
+    scaling: ScalingFunction,
+    baseResource: Resource,
+    gainResource: Resource,
+    roundUpCost: boolean,
+    buyMax: boolean,
+    spend: (gain: DecimalSource, spent: DecimalSource) => void
+}
 
 const id = "workshop";
 const day = 2;
@@ -28,7 +37,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const foundationProgress = createResource<DecimalSource>(0, "foundation progress");
 
-    const foundationConversion = createIndependentConversion(() => ({
+    const foundationConversion: Conversion<FoundationConversionOptions> = createIndependentConversion(() => ({
         scaling: createPolynomialScaling(250, 1.5),
         baseResource: trees.logs,
         gainResource: foundationProgress,

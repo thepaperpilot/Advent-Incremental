@@ -12,8 +12,8 @@ import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
 import { createBuyable, GenericBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
-import { jsx, showIf } from "features/feature";
-import { createResource, trackTotal } from "features/resources/resource";
+import { jsx, JSXFunction, showIf, StyleValue, Visibility } from "features/feature";
+import { createResource, Resource, trackTotal } from "features/resources/resource";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
 import { persistent } from "game/persistence";
@@ -23,9 +23,27 @@ import { render, renderRow } from "util/vue";
 import { computed, ref, unref, watch, watchEffect } from "vue";
 import trees from "./trees";
 import { createAdditiveModifier, createExponentialModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
-import { createUpgrade } from "features/upgrades/upgrade";
+import { createUpgrade, Upgrade, UpgradeOptions } from "features/upgrades/upgrade";
 import player from "game/player";
 import elves from "./elves";
+
+interface BetterFertilizerUpgOptions {
+    canAfford: () => boolean,
+    onPurchase: VoidFunction,
+    display: JSXFunction,
+    style: StyleValue,
+    visibility: () => Visibility
+}
+interface UnlockKilnUpgOptions {
+    resource: Resource,
+    cost: DecimalSource,
+    display: {
+        title: string,
+        description: string
+    },
+    style: StyleValue,
+    visibility: () => Visibility
+}
 
 const id = "coal";
 const day = 3;
@@ -282,7 +300,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: { color: colorText },
         visibility: () => showIf(unlockBonfire.bought.value)
     }));
-    const betterFertilizer = createUpgrade(() => ({
+    const betterFertilizer: Upgrade<BetterFertilizerUpgOptions> = createUpgrade(() => ({
         canAfford() {
             return Decimal.gte(trees.logs.value, 1e5)
                 && Decimal.gte(ash.value, 1e5);
@@ -301,7 +319,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: { color: colorText },
         visibility: () => showIf(unlockBonfire.bought.value)
     }));
-    const unlockKiln = createUpgrade(() => ({
+
+    const unlockKiln: Upgrade<UnlockKilnUpgOptions> = createUpgrade(() => ({
         resource: trees.logs,
         cost: 1e7,
         display: {
@@ -587,7 +606,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     color={colorCoal}
                     style="margin-bottom: 0"
                     effectDisplay={
-                        undefined
+                        Decimal.gt(computedCoalGain.value, 0)
+                            ? `+${format(computedCoalGain.value)}/s`
+                            : undefined
                     }
                 />
                 <Spacer />
@@ -596,7 +617,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     color={colorAsh}
                     style="margin-bottom: 0"
                     effectDisplay={
-                        undefined
+                        Decimal.gt(computedAshGain.value, 0)
+                            ? `+${format(computedAshGain.value)}/s`
+                            : undefined
                     }
                 />
                 <Spacer />
