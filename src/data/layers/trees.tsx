@@ -7,7 +7,7 @@ import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections } from "data/common";
 import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
-import { createBuyable } from "features/buyable";
+import { createBuyable, GenericBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
 import { createHotkey } from "features/hotkey";
@@ -30,6 +30,7 @@ import { render, renderRow } from "util/vue";
 import { computed, ref, watchEffect } from "vue";
 import coal from "./coal";
 import elves from "./elves";
+import paper from "./paper";
 import workshop from "./workshop";
 
 const id = "trees";
@@ -183,6 +184,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
             if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
             if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
+            v = Decimal.pow(0.95, paper.books.cuttersBook.amount.value).times(v);
             return Decimal.times(100, v).add(200);
         },
         display: {
@@ -190,7 +192,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Each cutter cuts down 1 tree/s"
         },
         visibility: () => showIf(researchUpgrade2.bought.value)
-    }));
+    })) as GenericBuyable & { display: { title: string } };
     const autoPlantingBuyable1 = createBuyable(() => ({
         resource: logs,
         cost() {
@@ -198,6 +200,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
             if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
             if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
+            v = Decimal.pow(0.95, paper.books.plantersBook.amount.value).times(v);
             return Decimal.times(100, v).add(200);
         },
         display: {
@@ -205,13 +208,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Each planter plants 0.5 trees/s"
         },
         visibility: () => showIf(researchUpgrade2.bought.value)
-    }));
+    })) as GenericBuyable & { display: { title: string } };
     const expandingForestBuyable = createBuyable(() => ({
         resource: logs,
         cost() {
             let v = this.amount.value;
             if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
             if (Decimal.gte(v, 1e5)) v = Decimal.pow(v, 2).div(1e5);
+            v = Decimal.pow(0.95, paper.books.expandersBook.amount.value).times(v);
             return Decimal.pow(Decimal.add(v, 1), 1.5).times(500);
         },
         display: {
@@ -219,7 +223,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Add 10 trees to the forest"
         },
         visibility: () => showIf(researchUpgrade2.bought.value)
-    }));
+    })) as GenericBuyable & { display: { title: string } };
     const row1Buyables = [autoCuttingBuyable1, autoPlantingBuyable1, expandingForestBuyable];
 
     const dayProgress = createBar(() => ({
@@ -229,7 +233,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         fillStyle: `backgroundColor: ${colorDark}`,
         progress: () =>
             main.day.value === day
-                ? Decimal.log10(totalLogs.value).div(Math.log10(totalLogGoal))
+                ? Decimal.log10(Decimal.add(totalLogs.value, 1)).div(Math.log10(totalLogGoal))
                 : 1,
         display: jsx(() =>
             main.day.value === day ? (

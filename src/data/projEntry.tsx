@@ -1,5 +1,11 @@
 import Spacer from "components/layout/Spacer.vue";
-import { CoercableComponent, Component, GatherProps, GenericComponent, jsx } from "features/feature";
+import {
+    CoercableComponent,
+    Component,
+    GatherProps,
+    GenericComponent,
+    jsx
+} from "features/feature";
 import { BaseLayer, createLayer, GenericLayer, layers } from "game/layers";
 import { persistent } from "game/persistence";
 import type { PlayerData } from "game/player";
@@ -18,8 +24,10 @@ import treeSymbol from "./symbols/tree.png";
 import workshopSymbol from "./symbols/sws.png";
 import coalSymbol from "./symbols/coal.png";
 import elfSymbol from "./symbols/elf.png";
+import paperSymbol from "./symbols/paperStacks.png";
 import coal from "./layers/coal";
 import elves from "./layers/elves";
+import paper from "./layers/paper";
 
 export interface Day extends VueFeature {
     day: number;
@@ -152,10 +160,11 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 5,
             shouldNotify: false,
-            layer: null,
-            symbol: "",
-            story: "",
-            completedStory: ""
+            layer: "paper",
+            symbol: paperSymbol,
+            story: "With the elves trained, we're almost ready to start working on these presents! Just a couple more pre-reqs first, starting with turning all this wood into wood pulp and finally into paper, which will be required for wrapping paper later on but in the meantime can be used to help write guides to help these elves continue their education!",
+            completedStory:
+                "You look upon your rivers of book pulp as you hand out stacks of papers to elves to read through. You've continued getting closer and closer to preparing for Christmas, and can go to bed satisfied with your progress. Good Job!"
         })),
         createDay(() => ({
             day: 6,
@@ -367,7 +376,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
 export const getInitialLayers = (
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     player: Partial<PlayerData>
-): Array<GenericLayer> => [main, trees, workshop, coal, elves];
+): Array<GenericLayer> => [main, trees, workshop, coal, elves, paper];
 
 /**
  * A computed ref whose value is true whenever the game is over.

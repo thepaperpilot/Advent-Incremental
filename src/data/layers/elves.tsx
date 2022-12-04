@@ -14,13 +14,14 @@ import { createReset } from "features/reset";
 import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
-import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
+import { createMultiplicativeModifier, createSequentialModifier, Modifier } from "game/modifiers";
 import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render, renderCol, renderRow } from "util/vue";
 import { computed, ref, Ref, unref, watchEffect } from "vue";
 import coal from "./coal";
+import paper from "./paper";
 import trees from "./trees";
 import workshop from "./workshop";
 
@@ -78,9 +79,146 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
 
-    function createElf(options: { name: string; description: string; buyable: GenericBuyable }) {
+    const cutterCooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "6 Elves Trained",
+            enabled: elvesMilestone.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.times(paper.books.cuttersBook.amount.value, 0.1).add(1),
+            description: "Now You're Logging!",
+            enabled: () => Decimal.gt(paper.books.cuttersBook.amount.value, 0)
+        }))
+    ]);
+    const planterCooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "6 Elves Trained",
+            enabled: elvesMilestone.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.times(paper.books.plantersBook.amount.value, 0.1).add(1),
+            description: "The Man Who Planted Trees",
+            enabled: () => Decimal.gt(paper.books.plantersBook.amount.value, 0)
+        }))
+    ]);
+    const expanderCooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "6 Elves Trained",
+            enabled: elvesMilestone.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.times(paper.books.expandersBook.amount.value, 0.1).add(1),
+            description: "Logjam",
+            enabled: () => Decimal.gt(paper.books.expandersBook.amount.value, 0)
+        }))
+    ]);
+    const heatedCutterCooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "6 Elves Trained",
+            enabled: elvesMilestone.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.times(paper.books.heatedCuttersBook.amount.value, 0.1).add(1),
+            description: "Fahrenheit 451",
+            enabled: () => Decimal.gt(paper.books.heatedCuttersBook.amount.value, 0)
+        }))
+    ]);
+    const heatedPlanterCooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "6 Elves Trained",
+            enabled: elvesMilestone.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () =>
+                Decimal.times(paper.books.heatedPlantersBook.amount.value, 0.1).add(1),
+            description: "Tillamook Burn Country",
+            enabled: () => Decimal.gt(paper.books.heatedPlantersBook.amount.value, 0)
+        }))
+    ]);
+    const fertilizerCooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "6 Elves Trained",
+            enabled: elvesMilestone.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.times(paper.books.fertilizerBook.amount.value, 0.1).add(1),
+            description: "The Garden Tree's Handbook",
+            enabled: () => Decimal.gt(paper.books.fertilizerBook.amount.value, 0)
+        }))
+    ]);
+
+    const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
+        {
+            title: "Holly Auto-Buy Frequency",
+            modifier: cutterCooldown,
+            base: 10,
+            unit: "/s",
+            visible: elves.cuttersElf.bought
+        },
+        {
+            title: "Ivy Auto-Buy Frequency",
+            modifier: planterCooldown,
+            base: 10,
+            unit: "/s",
+            visible: elves.plantersElf.bought
+        },
+        {
+            title: "Hope Auto-Buy Frequency",
+            modifier: expanderCooldown,
+            base: 10,
+            unit: "/s",
+            visible: elves.expandersElf.bought
+        },
+        {
+            title: "Jack Auto-Buy Frequency",
+            modifier: heatedCutterCooldown,
+            base: 10,
+            unit: "/s",
+            visible: elves.heatedCuttersElf.bought
+        },
+        {
+            title: "Mary Auto-Buy Frequency",
+            modifier: heatedPlanterCooldown,
+            base: 10,
+            unit: "/s",
+            visible: elves.heatedPlantersElf.bought
+        },
+        {
+            title: "Noel Auto-Buy Frequency",
+            modifier: fertilizerCooldown,
+            base: 10,
+            unit: "/s",
+            visible: elves.fertilizerElf.bought
+        }
+    ]);
+    const showModifiersModal = ref(false);
+    const modifiersModal = jsx(() => (
+        <Modal
+            modelValue={showModifiersModal.value}
+            onUpdate:modelValue={(value: boolean) => (showModifiersModal.value = value)}
+            v-slots={{
+                header: () => <h2>{name} Modifiers</h2>,
+                body: generalTab
+            }}
+        />
+    ));
+
+    function createElf(options: {
+        name: string;
+        description: string;
+        buyable: GenericBuyable;
+        cooldownModifier: Modifier;
+    }) {
         const trainingCost = computed(() => Decimal.pow(4, totalElves.value).times(1e6));
         const buyProgress = persistent<DecimalSource>(0);
+
+        const computedAutoBuyCooldown = computed(() => options.cooldownModifier.apply(10));
 
         function update(diff: number) {
             if (upgrade.bought.value) {
@@ -100,10 +238,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
         const upgrade = createUpgrade(() => {
             return {
+                ...options,
                 buyProgress,
                 update,
                 resource: coal.coal,
                 cost: trainingCost,
+                computedAutoBuyCooldown,
                 display: () => ({
                     title: options.name,
                     description: jsx(() => (
@@ -131,38 +271,44 @@ const layer = createLayer(id, function (this: BaseLayer) {
         name: "Holly",
         description:
             "Holly will automatically purchase cutters you can afford, without actually spending any logs.",
-        buyable: trees.row1Buyables[0]
+        buyable: trees.row1Buyables[0],
+        cooldownModifier: cutterCooldown
     });
     const plantersElf = createElf({
         name: "Ivy",
         description:
             "Ivy will automatically purchase planters you can afford, without actually spending any logs.",
-        buyable: trees.row1Buyables[1]
+        buyable: trees.row1Buyables[1],
+        cooldownModifier: planterCooldown
     });
     const expandersElf = createElf({
         name: "Hope",
         description:
             "Hope will automatically purchase forest expanders you can afford, without actually spending any logs.",
-        buyable: trees.row1Buyables[2]
+        buyable: trees.row1Buyables[2],
+        cooldownModifier: expanderCooldown
     });
     const treesElves = [cuttersElf, plantersElf, expandersElf];
     const heatedCuttersElf = createElf({
         name: "Jack",
         description:
             "Jack will automatically purchase heated cutters you can afford, without actually spending any coal.",
-        buyable: coal.heatedCutters
+        buyable: coal.heatedCutters,
+        cooldownModifier: heatedCutterCooldown
     });
     const heatedPlantersElf = createElf({
         name: "Mary",
         description:
             "Mary will automatically purchase heated planters you can afford, without actually spending any coal.",
-        buyable: coal.heatedPlanters
+        buyable: coal.heatedPlanters,
+        cooldownModifier: heatedPlanterCooldown
     });
     const fertilizerElf = createElf({
         name: "Noel",
         description:
             "Noel will automatically purchase fertilized soil you can afford, without actually spending any ash.",
-        buyable: coal.moreFertilizer
+        buyable: coal.moreFertilizer,
+        cooldownModifier: fertilizerCooldown
     });
     const coalElves = [heatedCuttersElf, heatedPlantersElf, fertilizerElf];
     const elves = {
@@ -231,35 +377,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         forestMilestone,
         elvesMilestone
     ];
-
-    const autoBuyCooldown = createSequentialModifier(() => [
-        createMultiplicativeModifier(() => ({
-            multiplier: 2,
-            description: "6 Elves Trained",
-            enabled: elvesMilestone.earned
-        }))
-    ]);
-    const computedAutoBuyCooldown = computed(() => autoBuyCooldown.apply(0.1));
-
-    const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
-        {
-            title: "Elf Auto-Buy Frequency",
-            modifier: autoBuyCooldown,
-            base: 10,
-            unit: "/s"
-        }
-    ]);
-    const showModifiersModal = ref(false);
-    const modifiersModal = jsx(() => (
-        <Modal
-            modelValue={showModifiersModal.value}
-            onUpdate:modelValue={(value: boolean) => (showModifiersModal.value = value)}
-            v-slots={{
-                header: () => <h2>{name} Modifiers</h2>,
-                body: generalTab
-            }}
-        />
-    ));
 
     globalBus.on("update", diff => {
         if (Decimal.lt(main.day.value, day)) {

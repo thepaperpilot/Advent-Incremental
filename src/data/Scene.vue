@@ -9,6 +9,9 @@
             style="left: 65%; bottom: 12%; width: 40px; height: 40px"
         />
         <img v-if="day >= 3" :src="elves" class="scene-item" style="left: 52%; bottom: 12%" />
+        <div v-if="day >= 4" class="scene-bubble" style="left: 50%; bottom: 38%">
+            <img v-if="day >= 4" :src="paper" class="scene-item" />
+        </div>
     </div>
 </template>
 
@@ -17,6 +20,7 @@ import tree from "./symbols/tree.png";
 import workshop from "./symbols/sws.png";
 import coal from "./symbols/coal.png";
 import elves from "./symbols/elf.png";
+import paper from "./symbols/paperStacks.png";
 
 defineProps<{
     day: number;
@@ -47,5 +51,31 @@ defineProps<{
     height: 80px;
     position: absolute;
     z-index: 1;
+}
+
+.scene-bubble {
+    position: absolute;
+    background: white;
+    height: 60px;
+    padding: 5px;
+    border-radius: 10px;
+}
+
+.scene-bubble::after {
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 0;
+    top: 100%;
+    left: 20px;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 15px solid white;
+}
+
+.scene-bubble .scene-item {
+    height: 60px;
+    width: 60px;
+    position: static;
 }
 </style>

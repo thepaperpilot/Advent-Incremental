@@ -30,6 +30,7 @@ import {
 } from "game/modifiers";
 import { createUpgrade, Upgrade } from "features/upgrades/upgrade";
 import elves from "./elves";
+import paper from "./paper";
 
 interface BetterFertilizerUpgOptions {
     canAfford: () => boolean;
@@ -70,7 +71,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         fillStyle: `backgroundColor: ${colorCoal}`,
         progress: () =>
             main.day.value === day
-                ? Decimal.log10(totalCoal.value).div(Math.log10(totalCoalGoal))
+                ? Decimal.log10(Decimal.add(totalCoal.value, 1)).div(Math.log10(totalCoalGoal))
                 : 1,
         display: jsx(() =>
             main.day.value === day ? (
@@ -412,6 +413,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
             if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
             if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
+            v = Decimal.pow(0.95, paper.books.heatedCuttersBook.amount.value).times(v);
             return Decimal.add(v, 1).pow(2.5).times(10);
         },
         display: {
@@ -423,7 +425,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: { color: colorText },
         visibility: () => showIf(warmerCutters.bought.value)
-    })) as GenericBuyable;
+    })) as GenericBuyable & { display: { title: string } };
     const heatedPlanters = createBuyable(() => ({
         resource: coal,
         cost() {
@@ -431,6 +433,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
             if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
             if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
+            v = Decimal.pow(0.95, paper.books.heatedPlantersBook.amount.value).times(v);
             return Decimal.add(v, 1).pow(2.5).times(10);
         },
         display: {
@@ -442,7 +445,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: { color: colorText },
         visibility: () => showIf(warmerPlanters.bought.value)
-    })) as GenericBuyable;
+    })) as GenericBuyable & { display: { title: string } };
     const moreFertilizer = createBuyable(() => ({
         resource: ash,
         cost() {
@@ -450,6 +453,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
             if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
             if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
+            v = Decimal.pow(0.95, paper.books.fertilizerBook.amount.value).times(v);
             return Decimal.add(v, 1).pow(1.5).times(50000);
         },
         display: {
@@ -461,7 +465,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: { color: colorText },
         visibility: () => showIf(basicFertilizer.bought.value)
-    })) as GenericBuyable;
+    })) as GenericBuyable & { display: { title: string } };
     const row3buyables = [heatedCutters, heatedPlanters, moreFertilizer];
 
     const heatedCutterEffect = createSequentialModifier(() => [
