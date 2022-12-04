@@ -70,7 +70,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
                         opened,
                         shouldNotify,
                         onOpenLore() {
-                            const completed = main.day.value > day - 1;
+                            const completed = main.day.value > day;
                             loreScene.value = completed ? day - 1 : -1;
                             const title = unref(layers[layer ?? "trees"]?.name ?? "");
                             loreTitle.value = completed ? `${title} - Completed!` : title;
