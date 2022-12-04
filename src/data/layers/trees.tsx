@@ -24,7 +24,6 @@ import {
     Modifier
 } from "game/modifiers";
 import { persistent } from "game/persistence";
-import player from "game/player";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction, WithRequired } from "util/common";
 import { render, renderRow } from "util/vue";
@@ -685,12 +684,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {render(dayProgress)}
                 {render(modifiersModal)}
                 <Spacer />
-                <MainDisplay resource={logs} color={colorBright} style="margin-bottom: 0" />
-                {Decimal.gt(computedAutoCuttingAmount.value, 0)
-                    ? `expected: +${format(
-                          logGain.apply(computedAutoCuttingAmount.value)
-                      )}/s, average: +${format(ema.value)}/s`
-                    : undefined}
+                <MainDisplay
+                    resource={logs}
+                    color={colorBright}
+                    style="margin-bottom: 0"
+                    effectDisplay={
+                        Decimal.gt(computedAutoCuttingAmount.value, 0)
+                            ? `expected: +${format(
+                                  logGain.apply(computedAutoCuttingAmount.value)
+                              )}/s, average: +${format(ema.value)}/s`
+                            : undefined
+                    }
+                />
                 <MainDisplay
                     resource={saplings}
                     color={colorDark}
