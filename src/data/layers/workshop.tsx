@@ -157,12 +157,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     watchEffect(() => {
         if (main.day.value === day && Decimal.gte(foundationProgress.value, 100)) {
-            main.loreTitle.value = "Day complete!";
-            main.loreBody.value =
-                "The workshop complete, Santa once again dismisses you for the day. With a strong foundation, this workshop should suffice for supporting future work toward this impossible mission. Good Job!";
-            main.day.value = day + 1;
-            main.minimized.value = false;
-            player.devSpeed = 0;
+            main.completeDay();
         }
     });
 
