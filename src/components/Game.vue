@@ -20,15 +20,16 @@
             </div>
         </div>
         <Modal
-            :model-value="main.loreBody.value !== ''"
-            @update:model-value="() => (main.loreBody.value = '')"
+            :modelValue="main.showLoreModal.value"
+            @update:model-value="value => (main.showLoreModal.value = value)"
         >
             <template v-slot:header
                 ><h2>{{ main.loreTitle.value }}</h2></template
             >
             <template v-slot:body>
-                {{ main.loreBody.value }}
-                <div v-if="!main.days[main.day.value - 1].opened.value">
+                <component v-if="loreBody" :is="loreBody" />
+                <div v-if="main.loreScene.value !== -1">
+                    <Scene :day="main.loreScene.value" />
                     <br />
                     You can help continue the <i>advent</i>ure at:
                     <a href="https://discord.gg/WzejVAx" class="info-modal-discord-link">
@@ -44,9 +45,11 @@
 <script setup lang="ts">
 import { main } from "data/projEntry";
 import projInfo from "data/projInfo.json";
+import Scene from "data/Scene.vue";
 import type { GenericLayer } from "game/layers";
 import { layers } from "game/layers";
 import player from "game/player";
+import { computeOptionalComponent } from "util/vue";
 import { computed, toRef, unref } from "vue";
 import Layer from "./Layer.vue";
 import Modal from "./Modal.vue";
@@ -55,6 +58,8 @@ import Nav from "./Nav.vue";
 const tabs = toRef(player, "tabs");
 const layerKeys = computed(() => Object.keys(layers));
 const useHeader = projInfo.useHeader;
+
+const loreBody = computeOptionalComponent(main.loreBody);
 
 function gatherLayerProps(layer: GenericLayer) {
     const { display, minimized, minWidth, name, color, minimizable, nodes } = layer;

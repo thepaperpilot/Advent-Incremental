@@ -276,12 +276,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.gte(totalElves.value, 6) &&
             Decimal.gte(coal.coal.value, coalGoal)
         ) {
-            main.loreTitle.value = "Day complete!";
-            main.loreBody.value =
-                "The workshop now hums with the bustling elves working everything. They can take it from here - you deserve a break after such a long day! Good Job!";
-            main.day.value = day + 1;
-            main.minimized.value = false;
-            player.devSpeed = 0;
+            main.completeDay();
         }
     });
 

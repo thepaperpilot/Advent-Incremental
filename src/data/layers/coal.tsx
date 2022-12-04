@@ -532,12 +532,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     watchEffect(() => {
         if (main.day.value === day && Decimal.gte(totalCoal.value, totalCoalGoal)) {
-            main.loreTitle.value = "Day complete!";
-            main.loreBody.value =
-                "Santa looks at all the coal you've gathered and tells you you've done well! He says you should take the rest of the day off so you're refreshed for tomorrow's work. Good Job!";
-            main.day.value = day + 1;
-            main.minimized.value = false;
-            player.devSpeed = 0;
+            main.completeDay();
         }
     });
 
