@@ -396,8 +396,6 @@ export function fixOldSave(
     player: Partial<PlayerData>
     // eslint-disable-next-line @typescript-eslint/no-empty-function
 ): void {
-    if (["0.0", "0.1", "0.2"].includes(oldVersion ?? "")) {
-        player.offlineProd = false;
-    }
+    player.offlineProd = false;
 }
 /* eslint-enable @typescript-eslint/no-unused-vars */
