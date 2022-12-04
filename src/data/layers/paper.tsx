@@ -43,9 +43,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         baseResource: pulp,
         gainResource: paper,
         roundUpCost: true,
-        spend() {
-            trees.logs.value = 0;
-            coal.ash.value = 0;
+        spend(gain, cost) {
+            trees.logs.value = Decimal.sub(trees.logs.value, Decimal.times(cost, 1e9));
+            coal.ash.value = Decimal.sub(coal.ash.value, Decimal.times(cost, 1e6));
         }
     }));
 
