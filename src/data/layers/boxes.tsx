@@ -112,7 +112,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const ashBoxesBuyable = createBuyable(() => ({
         display: {
             title: "Carry more ash",
-            description: "Use boxes to carry even more ash, boosting their gain",
+            description: "Use boxes to carry even more ash, boosting its gain",
             effectDisplay: jsx(() => (
                 <>{format(Decimal.div(ashBoxesBuyable.amount.value, 2).add(1))}x</>
             ))
@@ -126,7 +126,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const coalBoxesBuyable = createBuyable(() => ({
         display: {
             title: "Carry more coal",
-            description: "Use boxes to carry even more coal, boosting their gain",
+            description: "Use boxes to carry even more coal, boosting its gain",
             effectDisplay: jsx(() => (
                 <>{format(Decimal.div(coalBoxesBuyable.amount.value, 2).add(1))}x</>
             ))
