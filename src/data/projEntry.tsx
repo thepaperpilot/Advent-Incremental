@@ -11,7 +11,7 @@ import { persistent } from "game/persistence";
 import type { PlayerData } from "game/player";
 import player from "game/player";
 import { format, formatTime } from "util/bignum";
-import { Computable, convertComputable, ProcessedComputable } from "util/computed";
+import { Computable, convertComputable, processComputable, ProcessedComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { renderRow, VueFeature } from "util/vue";
 import type { Ref } from "vue";
@@ -38,6 +38,7 @@ export interface Day extends VueFeature {
     story: string;
     completedStory: string;
     opened: Ref<boolean>;
+    recentlyUpdated: Ref<boolean>; // Has the tab recieved an update since the player last opened it?
     shouldNotify: ProcessedComputable<boolean>;
 }
 
@@ -60,24 +61,29 @@ export const main = createLayer("main", function (this: BaseLayer) {
         }
     ): Day {
         const opened = persistent<boolean>(false);
+        const recentlyUpdated = persistent<boolean>(false);
 
         return createLazyProxy(() => {
             const day = optionsFunc();
 
-            const shouldNotify = convertComputable(day.shouldNotify);
+            // There's got to be a better way to do this
+            const shouldNotify = convertComputable(() => unref(convertComputable(day.shouldNotify)) || unref(recentlyUpdated))
 
             return {
                 ...day,
                 opened,
                 shouldNotify,
+                recentlyUpdated,
                 [Component]: Day as GenericComponent,
                 [GatherProps]: function (this: Day) {
-                    const { day, layer, symbol, opened, shouldNotify, story, completedStory } =
+                    const { day, layer, symbol, opened, shouldNotify, story, completedStory, recentlyUpdated } =
                         this;
+                        
                     return {
                         day,
                         symbol,
                         opened,
+                        recentlyUpdated,
                         shouldNotify,
                         onOpenLore() {
                             const completed = main.day.value > day;
@@ -91,6 +97,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
                             showLoreModal.value = true;
                         },
                         onOpenLayer() {
+                            recentlyUpdated.value = false;
                             // 1468 is because two tabs with minWidth of 700px plus the minimized calendar of 60px plus 2 dividers of 4px each
                             if (window.matchMedia("(min-width: 1468px)").matches) {
                                 // Desktop, allow multiple tabs to be open

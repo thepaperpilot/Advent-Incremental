@@ -74,6 +74,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Carry logs in boxes",
             description: "Double log gain and unlock a new elf for training"
         },
+        onPurchase () {
+            main.days[3].recentlyUpdated.value = true;
+        },
         resource: boxes,
         cost: 100
     }));
@@ -82,6 +85,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Carry ash in boxes",
             description: "Double ash gain and unlock a new elf for training"
         },
+        onPurchase () {
+            main.days[3].recentlyUpdated.value = true;
+        },
         resource: boxes,
         cost: 1000
     }));
@@ -89,6 +95,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         display: {
             title: "Carry coal in boxes",
             description: "Double coal gain and unlock a new elf for training"
+        },
+        onPurchase () {
+            main.days[3].recentlyUpdated.value = true;
         },
         resource: boxes,
         cost: 4000
