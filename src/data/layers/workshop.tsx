@@ -6,7 +6,13 @@ import Spacer from "components/layout/Spacer.vue";
 import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
 import { createClickable } from "features/clickables/clickable";
-import { Conversion, ConversionOptions, createIndependentConversion, createPolynomialScaling, ScalingFunction } from "features/conversion";
+import {
+    Conversion,
+    ConversionOptions,
+    createIndependentConversion,
+    createPolynomialScaling,
+    ScalingFunction
+} from "features/conversion";
 import { jsx, showIf } from "features/feature";
 import { createMilestone } from "features/milestones/milestone";
 import { createResource, displayResource, Resource } from "features/resources/resource";
@@ -16,16 +22,17 @@ import player from "game/player";
 import Decimal, { DecimalSource, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render, renderCol } from "util/vue";
-import { unref, watchEffect } from "vue";
+import { computed, unref, watchEffect } from "vue";
 import trees from "./trees";
+import elves from "./elves";
 
 interface FoundationConversionOptions {
-    scaling: ScalingFunction,
-    baseResource: Resource,
-    gainResource: Resource,
-    roundUpCost: boolean,
-    buyMax: boolean,
-    spend: (gain: DecimalSource, spent: DecimalSource) => void
+    scaling: ScalingFunction;
+    baseResource: Resource;
+    gainResource: Resource;
+    roundUpCost: boolean;
+    buyMax: boolean;
+    spend: (gain: DecimalSource, spent: DecimalSource) => void;
 }
 
 const id = "workshop";
@@ -37,16 +44,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const foundationProgress = createResource<DecimalSource>(0, "foundation progress");
 
-    const foundationConversion: Conversion<FoundationConversionOptions> = createIndependentConversion(() => ({
-        scaling: createPolynomialScaling(250, 1.5),
-        baseResource: trees.logs,
-        gainResource: foundationProgress,
-        roundUpCost: true,
-        buyMax: false,
-        spend(gain, spent) {
-            trees.logs.value = Decimal.sub(trees.logs.value, spent);
-        }
-    }));
+    const foundationConversion: Conversion<FoundationConversionOptions> =
+        createIndependentConversion(() => ({
+            scaling: createPolynomialScaling(250, 1.5),
+            baseResource: trees.logs,
+            gainResource: foundationProgress,
+            roundUpCost: true,
+            buyMax: false,
+            spend(gain, spent) {
+                trees.logs.value = Decimal.sub(trees.logs.value, spent);
+            }
+        }));
 
     const buildFoundation = createClickable(() => ({
         display: jsx(() => (
@@ -81,18 +89,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const buildFoundationHK = createHotkey(() => ({
         key: "w",
-        description: 'Build part of the foundation.',
+        description: "Build part of the foundation.",
         onPress: () => {
             if (buildFoundation.canClick.value) buildFoundation.onClick();
         }
     }));
 
+    const shouldShowPopups = computed(() => !elves.milestones[6].earned.value);
     const logGainMilestone1 = createMilestone(() => ({
         display: {
             requirement: "1% Foundation Completed",
             effectDisplay: "Trees give 5% more logs for each % of foundation completed"
         },
-        shouldEarn: () => Decimal.gte(foundationProgress.value, 1)
+        shouldEarn: () => Decimal.gte(foundationProgress.value, 1),
+        showPopups: shouldShowPopups
     }));
     const autoCutMilestone1 = createMilestone(() => ({
         display: {
@@ -100,7 +110,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effectDisplay: "Cut an additional tree per second for each 5% of foundation completed"
         },
         shouldEarn: () => Decimal.gte(foundationProgress.value, 10),
-        visibility: () => showIf(logGainMilestone1.earned.value)
+        visibility: () => showIf(logGainMilestone1.earned.value),
+        showPopups: shouldShowPopups
     }));
     const autoPlantMilestone1 = createMilestone(() => ({
         display: {
@@ -109,7 +120,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 "Plant an additional tree per second for each 10% of foundation completed"
         },
         shouldEarn: () => Decimal.gte(foundationProgress.value, 20),
-        visibility: () => showIf(autoCutMilestone1.earned.value)
+        visibility: () => showIf(autoCutMilestone1.earned.value),
+        showPopups: shouldShowPopups
     }));
     const autoCutMilestone2 = createMilestone(() => ({
         display: {
@@ -117,7 +129,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effectDisplay: "All automatic tree cutting is doubled"
         },
         shouldEarn: () => Decimal.gte(foundationProgress.value, 30),
-        visibility: () => showIf(autoPlantMilestone1.earned.value)
+        visibility: () => showIf(autoPlantMilestone1.earned.value),
+        showPopups: shouldShowPopups
     }));
     const autoPlantMilestone2 = createMilestone(() => ({
         display: {
@@ -125,7 +138,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effectDisplay: "All automatic tree planting is doubled"
         },
         shouldEarn: () => Decimal.gte(foundationProgress.value, 40),
-        visibility: () => showIf(autoCutMilestone2.earned.value)
+        visibility: () => showIf(autoCutMilestone2.earned.value),
+        showPopups: shouldShowPopups
     }));
     const logGainMilestone2 = createMilestone(() => ({
         display: {
@@ -133,7 +147,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effectDisplay: "Trees give twice as many logs"
         },
         shouldEarn: () => Decimal.gte(foundationProgress.value, 50),
-        visibility: () => showIf(autoPlantMilestone2.earned.value)
+        visibility: () => showIf(autoPlantMilestone2.earned.value),
+        showPopups: shouldShowPopups
     }));
     const morePlantsMilestone1 = createMilestone(() => ({
         display: {
@@ -141,7 +156,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effectDisplay: "The forest gains an extra tree for every 2% of foundation completed"
         },
         shouldEarn: () => Decimal.gte(foundationProgress.value, 75),
-        visibility: () => showIf(logGainMilestone2.earned.value)
+        visibility: () => showIf(logGainMilestone2.earned.value),
+        showPopups: shouldShowPopups
     }));
     const logGainMilestone3 = createMilestone(() => ({
         display: {
@@ -149,7 +165,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effectDisplay: "Trees' log gain is now raised to the 1.1th power"
         },
         shouldEarn: () => Decimal.gte(foundationProgress.value, 100),
-        visibility: () => showIf(morePlantsMilestone1.earned.value)
+        visibility: () => showIf(morePlantsMilestone1.earned.value),
+        showPopups: shouldShowPopups
     }));
     const milestones = {
         logGainMilestone1,
