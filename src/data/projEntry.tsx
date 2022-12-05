@@ -11,7 +11,12 @@ import { persistent } from "game/persistence";
 import type { PlayerData } from "game/player";
 import player from "game/player";
 import { format, formatTime } from "util/bignum";
-import { Computable, convertComputable, processComputable, ProcessedComputable } from "util/computed";
+import {
+    Computable,
+    convertComputable,
+    processComputable,
+    ProcessedComputable
+} from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { renderRow, VueFeature } from "util/vue";
 import type { Ref } from "vue";
@@ -66,8 +71,10 @@ export const main = createLayer("main", function (this: BaseLayer) {
         return createLazyProxy(() => {
             const day = optionsFunc();
 
-            // There's got to be a better way to do this
-            const shouldNotify = convertComputable(() => unref(convertComputable(day.shouldNotify)) || unref(recentlyUpdated))
+            const optionsShouldNotify = convertComputable(day.shouldNotify);
+            const shouldNotify = convertComputable(
+                () => unref(optionsShouldNotify) || unref(recentlyUpdated)
+            );
 
             return {
                 ...day,
@@ -76,9 +83,17 @@ export const main = createLayer("main", function (this: BaseLayer) {
                 recentlyUpdated,
                 [Component]: Day as GenericComponent,
                 [GatherProps]: function (this: Day) {
-                    const { day, layer, symbol, opened, shouldNotify, story, completedStory, recentlyUpdated } =
-                        this;
-                        
+                    const {
+                        day,
+                        layer,
+                        symbol,
+                        opened,
+                        shouldNotify,
+                        story,
+                        completedStory,
+                        recentlyUpdated
+                    } = this;
+
                     return {
                         day,
                         symbol,
