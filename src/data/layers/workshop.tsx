@@ -3,28 +3,27 @@
  * @hidden
  */
 import Spacer from "components/layout/Spacer.vue";
+import { createCollapsibleMilestones } from "data/common";
 import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
 import { createClickable } from "features/clickables/clickable";
 import {
     Conversion,
-    ConversionOptions,
     createIndependentConversion,
     createPolynomialScaling,
     ScalingFunction
 } from "features/conversion";
 import { jsx, showIf } from "features/feature";
+import { createHotkey } from "features/hotkey";
 import { createMilestone } from "features/milestones/milestone";
 import { createResource, displayResource, Resource } from "features/resources/resource";
-import { createHotkey } from "features/hotkey";
 import { BaseLayer, createLayer } from "game/layers";
-import player from "game/player";
 import Decimal, { DecimalSource, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
-import { render, renderCol } from "util/vue";
+import { render } from "util/vue";
 import { computed, unref, watchEffect } from "vue";
-import trees from "./trees";
 import elves from "./elves";
+import trees from "./trees";
 
 interface FoundationConversionOptions {
     scaling: ScalingFunction;
@@ -178,6 +177,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         morePlantsMilestone1,
         logGainMilestone3
     };
+    const { collapseMilestones, display: milestonesDisplay } =
+        createCollapsibleMilestones(milestones);
 
     const dayProgress = createBar(() => ({
         direction: Direction.Right,
@@ -203,6 +204,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         foundationProgress,
         foundationConversion,
         milestones,
+        collapseMilestones,
         minWidth: 700,
         buildFoundationHK,
         display: jsx(() => (
@@ -219,7 +221,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     <div>You have {formatWhole(foundationProgress.value)}% completed</div>
                 ) : null}
                 <Spacer />
-                {renderCol(...Object.values(milestones))}
+                {milestonesDisplay()}
             </>
         ))
     };

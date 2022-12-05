@@ -5,7 +5,7 @@
 import Toggle from "components/fields/Toggle.vue";
 import Spacer from "components/layout/Spacer.vue";
 import Modal from "components/Modal.vue";
-import { createCollapsibleModifierSections } from "data/common";
+import { createCollapsibleMilestones, createCollapsibleModifierSections } from "data/common";
 import { main } from "data/projEntry";
 import { createBar, GenericBar } from "features/bars/bar";
 import { GenericBuyable } from "features/buyable";
@@ -542,6 +542,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         shouldEarn: () => Decimal.gte(totalElves.value, 9),
         visibility: () => showIf(forestMilestone2.earned.value)
     }));
+    // Gosh why did I make these as an array at first
     const milestones = [
         manualMilestone,
         researchMilestone,
@@ -553,6 +554,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
         forestMilestone2,
         treeUpgradesMilestone
     ];
+    const milestonesDict = {
+        manualMilestone,
+        researchMilestone,
+        coalGainMilestone,
+        logGainMilestone,
+        forestMilestone,
+        elvesMilestone,
+        foundationMilestone,
+        forestMilestone2,
+        treeUpgradesMilestone
+    };
+    const { collapseMilestones, display: milestonesDisplay } =
+        createCollapsibleMilestones(milestonesDict);
 
     globalBus.on("update", diff => {
         if (Decimal.lt(main.day.value, day)) {
@@ -578,6 +592,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         elves,
         totalElves,
         milestones,
+        collapseMilestones,
         generalTabCollapsed,
         minWidth: 700,
         display: jsx(() => (
@@ -605,7 +620,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     {renderRow(...coalElves)}
                     {renderRow(...fireElves)}
                 </div>
-                {renderCol(...milestones)}
+                {milestonesDisplay()}
             </>
         ))
     };
