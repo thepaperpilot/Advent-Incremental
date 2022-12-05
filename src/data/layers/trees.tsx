@@ -624,7 +624,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             trees.value,
             Decimal.times(computedAutoCuttingAmount.value, diff)
         );
-        const logsGained = logGain.apply(1).mul(amountCut);
+        const logsGained = Decimal.mul(logGain.apply(1), amountCut);
 
         const effectiveLogsGained = Decimal.div(logsGained, diff);
         ema.value = Decimal.mul(effectiveLogsGained, SMOOTHING_FACTOR).add(
@@ -712,9 +712,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     productionDisplay={
                         Decimal.gt(computedAutoCuttingAmount.value, 0)
                             ? `+${format(ema.value)}/s average<br/>equilibrium: +${formatLimit([
-                                      [logGain.apply(1).mul(computedAutoCuttingAmount.value), "cutting speed"],
-                                      [logGain.apply(1).mul(computedAutoPlantingAmount.value), "planting speed"],
-                                      [logGain.apply(1).mul(Decimal.mul(computedTotalTrees.value, 20)), "forest cap"]
+                                      [Decimal.mul(logGain.apply(1), computedAutoCuttingAmount.value), "cutting speed"],
+                                      [Decimal.mul(logGain.apply(1), computedAutoPlantingAmount.value), "planting speed"],
+                                      [Decimal.mul(logGain.apply(1), Decimal.mul(computedTotalTrees.value, 20)), "forest cap"]
                             ], "/s")}`
                             : undefined
                     }

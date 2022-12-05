@@ -16,7 +16,7 @@ import {
 import { jsx, showIf } from "features/feature";
 import { createHotkey } from "features/hotkey";
 import { createMilestone } from "features/milestones/milestone";
-import { createResource, displayResource, } from "features/resources/resource";
+import { createResource, displayResource, Resource } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
