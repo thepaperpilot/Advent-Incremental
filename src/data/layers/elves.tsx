@@ -429,15 +429,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buyable: coal.buildBonfire,
         cooldownModifier: bonfireCooldown,
         visibility: () => showIf(boxes.upgrades.ashUpgrade.bought.value),
-        customCost: amount =>
-            Decimal.times(amount, 10)
-                .plus(10)
-                .times(Decimal.pow(0.95, paper.books.bonfireBook.amount.value)),
         hasToggle: true,
         toggleDesc: "Activate auto-purchased bonfires",
         onAutoPurchase() {
             if (bonfireElf.toggle.value) {
                 coal.activeBonfires.value = Decimal.add(coal.activeBonfires.value, 1);
+                coal.buildFire.amount.value = Decimal.sub(coal.buildFire.amount.value, unref(this.buyable.cost!));
+                coal.activeFires.value = Decimal.sub(coal.activeFires.value, unref(this.buyable.cost!));
             }
         }
     });

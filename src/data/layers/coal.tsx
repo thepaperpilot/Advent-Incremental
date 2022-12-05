@@ -821,7 +821,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     <Column>
                         {render(buildFire)}
                         <div>
-                            {formatWhole(activeFires.value)}/{formatWhole(buildFire.amount.value)}
+                            {formatWhole(Decimal.floor(activeFires.value))}/
+                            {formatWhole(Decimal.floor(buildFire.amount.value))}
                         </div>
                         {renderRow(minFire, removeFire, addFire, maxFire)}
                     </Column>
