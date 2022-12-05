@@ -194,3 +194,15 @@ export function invertOOM(x: DecimalSource): Decimal {
 
     return x;
 }
+
+export function formatLimit(list: [DecimalSource, string][], unit: string): string {
+    let num = list[0][0];
+    let str = list[0][1];
+    for (let i = 1; i < list.length; i++) {
+        if (Decimal.lt(list[i][0], num)) {
+            num = list[i][0];
+            str = list[i][1];
+        }
+    }
+    return format(num) + unit + ", limited by " + str;
+}

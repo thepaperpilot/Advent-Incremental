@@ -35,6 +35,7 @@ const props = defineProps<{
     day: number;
     symbol: string;
     opened: Ref<boolean>;
+    recentlyUpdated: Ref<boolean>;
     shouldNotify: ProcessedComputable<boolean>;
 }>();
 

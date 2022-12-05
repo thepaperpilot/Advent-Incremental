@@ -286,6 +286,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             hasToggle?: boolean;
             toggleDesc?: string;
             onAutoPurchase?: VoidFunction;
+            onPurchase?: VoidFunction; // Will get overriden by the custom onpurchase, but that's fine
         } & Partial<ClickableOptions>
     ) {
         const trainingCost = computed(() => Decimal.pow(4, totalElves.value).times(1e6));
@@ -353,7 +354,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     showCost: !upgrade.bought.value
                 }),
                 style: "width: 190px",
-                onPurchase: elfReset.reset
+                onPurchase () {
+                    options.onPurchase?.();
+                    elfReset.reset();
+                }
             };
         }) as GenericUpgrade & {
             buyProgress: Ref<number>;
@@ -420,6 +424,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (smallFireElf.toggle.value) {
                 coal.activeFires.value = Decimal.add(coal.activeFires.value, 1);
             }
+        },
+        onPurchase () {
+            main.days[4].recentlyUpdated.value = true;
         }
     });
     const bonfireElf = createElf({
@@ -437,6 +444,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 coal.buildFire.amount.value = Decimal.sub(coal.buildFire.amount.value, unref(this.buyable.cost!));
                 coal.activeFires.value = Decimal.sub(coal.activeFires.value, unref(this.buyable.cost!));
             }
+        },
+        onPurchase () {
+            main.days[4].recentlyUpdated.value = true;
         }
     });
     const kilnElf = createElf({
@@ -452,6 +462,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (kilnElf.toggle.value) {
                 coal.activeKilns.value = Decimal.add(coal.activeKilns.value, 1);
             }
+        },
+        onPurchase () {
+            main.days[4].recentlyUpdated.value = true;
         }
     });
     const fireElves = [smallFireElf, bonfireElf, kilnElf];
