@@ -586,7 +586,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createExponentialModifier(() => ({
             exponent: 1.25,
             description: "3 Elves Trained",
-            enabled: elves.milestones[2].earned
+            enabled () {
+                return elves.milestones[2].earned.value && Decimal.gte(coal.value, 1)
+            }
         }))
     ]);
     const computedCoalGain = computed(() => coalGain.apply(0));
