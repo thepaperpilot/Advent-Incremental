@@ -92,11 +92,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const buildFire = createBuyable(() => ({
         resource: trees.logs,
         cost() {
-            let v = this.amount.value;
+            let v = Decimal.times(buildBonfire.amount.value, unref(buildBonfire.cost!)).plus(this.amount.value);
             if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
             if (Decimal.gte(v, 10000)) v = Decimal.pow(v, 2).div(10000);
             v = Decimal.pow(0.95, paper.books.smallFireBook.amount.value).times(v);
-            return Decimal.times(v, 10).plus(v).pow(1.5).times(1e4);
+            return v.pow(1.5).times(1e4);
         },
         display: jsx(() => (
             <>
@@ -171,7 +171,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const buildBonfire = createBuyable(() => ({
         resource: fireResource,
         cost() {
-            return Decimal.times(10, Decimal.pow(0.95, paper.books.bonfireBook.amount.value));
+            return Decimal.pow(0.95, paper.books.bonfireBook.amount.value).times(10);
         },
         display: jsx(() => (
             <>
