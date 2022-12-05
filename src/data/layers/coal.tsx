@@ -92,7 +92,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const buildFire = createBuyable(() => ({
         resource: trees.logs,
         cost() {
-            let v = Decimal.times(buildBonfire.amount.value, unref(buildBonfire.cost!)).plus(this.amount.value);
+            let v = Decimal.times(buildBonfire.amount.value, unref(buildBonfire.cost!)).plus(
+                this.amount.value
+            );
             if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
             if (Decimal.gte(v, 10000)) v = Decimal.pow(v, 2).div(10000);
             v = Decimal.pow(0.95, paper.books.smallFireBook.amount.value).times(v);
@@ -586,7 +588,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createExponentialModifier(() => ({
             exponent: 1.25,
             description: "3 Elves Trained",
-            enabled: elves.milestones[2].earned
+            enabled: elves.milestones[2].earned,
+            supportLowNumbers: true
         }))
     ]);
     const computedCoalGain = computed(() => coalGain.apply(0));
