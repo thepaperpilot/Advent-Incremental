@@ -11,6 +11,7 @@ import { jsx, showIf } from "features/feature";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource, displayResource } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
+import { noPersist } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { render, renderCol } from "util/vue";
 import { computed, unref } from "vue";
@@ -36,7 +37,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const paperConversion = createCumulativeConversion(() => ({
         scaling: createPolynomialScaling(1, 1.2),
         baseResource: pulp,
-        gainResource: paper,
+        gainResource: noPersist(paper),
         roundUpCost: true,
         spend(gain, cost) {
             trees.logs.value = Decimal.sub(trees.logs.value, Decimal.times(cost, 1e9));
@@ -89,7 +90,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 )),
                 showAmount: false
             },
-            resource: paper,
+            resource: noPersist(paper),
             cost: () => Decimal.pow(5, buyable.amount.value).times(10),
             style: "width: 600px"
         })) as GenericBuyable;

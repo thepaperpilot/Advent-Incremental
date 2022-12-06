@@ -325,6 +325,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const upgrade = createUpgrade(() => {
             return {
                 ...options,
+                // Don't duplicate buyable data
+                buyable: undefined,
                 toggle,
                 buyProgress,
                 update,

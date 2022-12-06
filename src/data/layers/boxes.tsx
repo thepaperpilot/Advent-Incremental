@@ -13,6 +13,7 @@ import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource, displayResource } from "features/resources/resource";
 import { createUpgrade } from "features/upgrades/upgrade";
 import { BaseLayer, createLayer } from "game/layers";
+import { noPersist } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { render, renderRow } from "util/vue";
 import { unref } from "vue";
@@ -29,7 +30,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const boxesConversion = createCumulativeConversion(() => ({
         scaling: createPolynomialScaling(1e10, 1),
         baseResource: trees.logs,
-        gainResource: boxes,
+        gainResource: noPersist(boxes),
         roundUpCost: true
     }));
 
@@ -72,7 +73,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         onPurchase() {
             main.days[3].recentlyUpdated.value = true;
         },
-        resource: boxes,
+        resource: noPersist(boxes),
         cost: 100
     }));
     const ashUpgrade = createUpgrade(() => ({
@@ -83,7 +84,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         onPurchase() {
             main.days[3].recentlyUpdated.value = true;
         },
-        resource: boxes,
+        resource: noPersist(boxes),
         cost: 1000
     }));
     const coalUpgrade = createUpgrade(() => ({
@@ -94,7 +95,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         onPurchase() {
             main.days[3].recentlyUpdated.value = true;
         },
-        resource: boxes,
+        resource: noPersist(boxes),
         cost: 4000
     }));
     const upgrades = { logsUpgrade, ashUpgrade, coalUpgrade };
@@ -107,7 +108,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <>{format(Decimal.div(logBoxesBuyable.amount.value, 2).add(1))}x</>
             ))
         },
-        resource: boxes,
+        resource: noPersist(boxes),
         cost() {
             return Decimal.pow(3, logBoxesBuyable.amount.value).times(100);
         },
@@ -121,7 +122,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <>{format(Decimal.div(ashBoxesBuyable.amount.value, 2).add(1))}x</>
             ))
         },
-        resource: boxes,
+        resource: noPersist(boxes),
         cost() {
             return Decimal.pow(5, ashBoxesBuyable.amount.value).times(1000);
         },
@@ -135,7 +136,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <>{format(Decimal.div(coalBoxesBuyable.amount.value, 2).add(1))}x</>
             ))
         },
-        resource: boxes,
+        resource: noPersist(boxes),
         cost() {
             return Decimal.pow(7, coalBoxesBuyable.amount.value).times(1000);
         },

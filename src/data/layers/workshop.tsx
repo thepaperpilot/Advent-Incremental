@@ -18,6 +18,7 @@ import { createHotkey } from "features/hotkey";
 import { createMilestone } from "features/milestones/milestone";
 import { createResource, displayResource, Resource } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
+import { noPersist } from "game/persistence";
 import Decimal, { DecimalSource, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render } from "util/vue";
@@ -47,7 +48,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createIndependentConversion(() => ({
             scaling: createPolynomialScaling(250, 1.5),
             baseResource: trees.logs,
-            gainResource: foundationProgress,
+            gainResource: noPersist(foundationProgress),
             roundUpCost: true,
             buyMax: false,
             spend(gain, spent) {

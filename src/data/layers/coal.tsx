@@ -15,7 +15,7 @@ import { jsx, JSXFunction, showIf, StyleValue, Visibility } from "features/featu
 import { createResource, Resource } from "features/resources/resource";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
-import { persistent } from "game/persistence";
+import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { render, renderRow } from "util/vue";
 import { computed, ref, unref } from "vue";
@@ -295,7 +295,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
 
     const warmerCutters = createUpgrade(() => ({
-        resource: coal,
+        resource: noPersist(coal),
         cost: 5,
         display: {
             title: "Warmer Cutters",
@@ -304,7 +304,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: { color: colorText }
     }));
     const warmerPlanters = createUpgrade(() => ({
-        resource: coal,
+        resource: noPersist(coal),
         cost: 5,
         display: {
             title: "Warmer Planters",
@@ -313,7 +313,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: { color: colorText }
     }));
     const basicFertilizer = createUpgrade(() => ({
-        resource: ash,
+        resource: noPersist(ash),
         cost: 5000,
         display: {
             title: "Ashy Soil",
@@ -336,7 +336,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const row1upgrades = [warmerCutters, warmerPlanters, basicFertilizer, unlockBonfire];
 
     const dedicatedCutters = createUpgrade(() => ({
-        resource: coal,
+        resource: noPersist(coal),
         cost: 250,
         display: {
             title: "Dedicated Cutter Heaters",
@@ -346,7 +346,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () => showIf(unlockBonfire.bought.value)
     }));
     const dedicatedPlanters = createUpgrade(() => ({
-        resource: coal,
+        resource: noPersist(coal),
         cost: 250,
         display: {
             title: "Dedicated Planter Heaters",
@@ -392,7 +392,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const row2upgrades = [dedicatedCutters, dedicatedPlanters, betterFertilizer, unlockKiln];
 
     const heatedCutters = createBuyable(() => ({
-        resource: coal,
+        resource: noPersist(coal),
         cost() {
             let v = this.amount.value;
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
@@ -412,7 +412,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () => showIf(warmerCutters.bought.value)
     })) as GenericBuyable & { display: { title: string }; resource: Resource };
     const heatedPlanters = createBuyable(() => ({
-        resource: coal,
+        resource: noPersist(coal),
         cost() {
             let v = this.amount.value;
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
@@ -432,7 +432,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () => showIf(warmerPlanters.bought.value)
     })) as GenericBuyable & { display: { title: string }; resource: Resource };
     const moreFertilizer = createBuyable(() => ({
-        resource: ash,
+        resource: noPersist(ash),
         cost() {
             let v = this.amount.value;
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);

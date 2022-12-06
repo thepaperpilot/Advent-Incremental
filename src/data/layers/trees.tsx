@@ -23,7 +23,7 @@ import {
     createSequentialModifier,
     Modifier
 } from "game/modifiers";
-import { persistent } from "game/persistence";
+import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole, formatLimit } from "util/bignum";
 import { Direction, WithRequired } from "util/common";
 import { render, renderRow } from "util/vue";
@@ -79,7 +79,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const computedTotalTrees = computed(() => totalTrees.apply(10));
 
     const manualCutUpgrade1 = createUpgrade(() => ({
-        resource: logs,
+        resource: noPersist(logs),
         cost: 10,
         display: {
             title: "Wooden Fingers",
@@ -87,7 +87,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const manualPlantUpgrade1 = createUpgrade(() => ({
-        resource: logs,
+        resource: noPersist(logs),
         cost: 10,
         display: {
             title: "Leafy Fingers",
@@ -95,7 +95,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const autoCutUpgrade1 = createUpgrade(() => ({
-        resource: logs,
+        resource: noPersist(logs),
         cost: 25,
         display: {
             title: "Automated Knives",
@@ -103,7 +103,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const autoPlantUpgrade1 = createUpgrade(() => ({
-        resource: logs,
+        resource: noPersist(logs),
         cost: 25,
         display: {
             title: "Automated Spade",
@@ -111,7 +111,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const researchUpgrade1 = createUpgrade(() => ({
-        resource: logs,
+        resource: noPersist(logs),
         cost: 40,
         display: {
             title: "Research I",
@@ -127,7 +127,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     ];
 
     const manualCutUpgrade2 = createUpgrade(() => ({
-        resource: logs,
+        resource: noPersist(logs),
         cost: 50,
         visibility: () => showIf(researchUpgrade1.bought.value),
         display: {
@@ -136,7 +136,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const manualPlantUpgrade2 = createUpgrade(() => ({
-        resource: logs,
+        resource: noPersist(logs),
         cost: 50,
         visibility: () => showIf(researchUpgrade1.bought.value),
         display: {
@@ -145,7 +145,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const manualCutUpgrade3 = createUpgrade(() => ({
-        resource: logs,
+        resource: noPersist(logs),
         cost: 150,
         visibility: () => showIf(researchUpgrade1.bought.value),
         display: {
@@ -155,7 +155,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const manualPlantUpgrade3 = createUpgrade(() => ({
-        resource: logs,
+        resource: noPersist(logs),
         cost: 150,
         visibility: () => showIf(researchUpgrade1.bought.value),
         display: {
@@ -165,7 +165,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const researchUpgrade2 = createUpgrade(() => ({
-        resource: logs,
+        resource: noPersist(logs),
         cost: 300,
         visibility: () => showIf(researchUpgrade1.bought.value),
         display: {
@@ -182,7 +182,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     ];
 
     const autoCuttingBuyable1 = createBuyable(() => ({
-        resource: logs,
+        resource: noPersist(logs),
         cost() {
             let v = this.amount.value;
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
@@ -198,7 +198,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () => showIf(researchUpgrade2.bought.value)
     })) as GenericBuyable & { display: { title: string }; resource: Resource };
     const autoPlantingBuyable1 = createBuyable(() => ({
-        resource: logs,
+        resource: noPersist(logs),
         cost() {
             let v = this.amount.value;
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
@@ -214,7 +214,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () => showIf(researchUpgrade2.bought.value)
     })) as GenericBuyable & { display: { title: string }; resource: Resource };
     const expandingForestBuyable = createBuyable(() => ({
-        resource: logs,
+        resource: noPersist(logs),
         cost() {
             let v = this.amount.value;
             if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
