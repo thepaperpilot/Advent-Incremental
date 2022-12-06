@@ -232,7 +232,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const oreDrill = createBuyable(() => ({
         resource: noPersist(metal),
-        cost() { return Decimal.pow(this.amount.value, 1.15).plus(10)},
+        cost() { return Decimal.pow(1.15, this.amount.value).times(10)},
         display: {
             title: "Mining Drill",
             description: "An automated machine to help you mine more ore, faster",
@@ -243,7 +243,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     })) as GenericBuyable
     const industrialCrucible = createBuyable(() => ({
         resource: noPersist(metal),
-        cost() { return Decimal.pow(Decimal.times(this.amount.value, 10), 1.15).plus(10)},
+        cost() { return Decimal.pow(1.15, Decimal.times(this.amount.value, 10)).times(10)},
         display: {
             title: "Industrial Crucible",
             description: "A giant automated crucible furnace, letting you smelt ore better and faster",
@@ -270,7 +270,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         oreProgress.value = Decimal.times(diff, computedOreSpeed.value).plus(oreProgress.value);
         const oreGain = oreProgress.value.div(maxOreProgress).trunc();
         oreProgress.value = oreProgress.value.minus(oreGain.times(maxOreProgress));
-        ore.value = Decimal.add(ore.value, oreGain);
+        ore.value = Decimal.add(ore.value, Decimal.times(oreGain, computedOreAmount.value));
 
         if (autoSmeltEnabled.value && Decimal.gte(smeltableOre.value, Decimal.times(industrialCrucible.amount.value, 10).times(diff))) {
             smeltOre(Decimal.min(
@@ -356,11 +356,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 <MainDisplay resource={metal} color={color} style="margin-bottom: 0" sticky={false}
                     productionDisplay={
-                        <>{{
+                        <>
+                        {{
                             [-1]: <>{format(computedMetalGain.value)}/s</>,
                             0: undefined,
                             1: <>+{format(computedMetalGain.value)}/s</>
-                        }[Decimal.compare(computedMetalGain.value, 0)]}</>
+                        }[Decimal.compare(computedMetalGain.value, 0)]}
+                        </>
                     }
                 />
                 <Spacer />

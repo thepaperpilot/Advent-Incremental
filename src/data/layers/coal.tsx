@@ -306,7 +306,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
             if (Decimal.gte(v, 10000)) v = Decimal.pow(v, 2).div(10000);
             // v = Decimal.pow(0.95, paper.books.drillBook.amount.value).times(v);
-            return Decimal.pow(v, 1.15).plus(10);
+            return Decimal.pow(1.15, v).times(10);
         },
         display: jsx(() => (
             <>
