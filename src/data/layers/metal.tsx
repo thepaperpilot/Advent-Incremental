@@ -362,6 +362,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
                             0: undefined,
                             1: <>+{format(computedMetalGain.value)}/s</>
                         }[Decimal.compare(computedMetalGain.value, 0)]}
+                        {Decimal.lt(computedOreGain.value, computedAutoSmeltSpeed.value)
+                            ? <> (Limited by {ore.displayName})</>
+                            : Decimal.lt(smeltableOre.value, Decimal.floor(ore.value))
+                                ? <> (Limited by {coal.coal.displayName})</>
+                                : undefined
+                        }
                         </>
                     }
                 />
