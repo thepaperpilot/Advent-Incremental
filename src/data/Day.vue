@@ -19,6 +19,7 @@
         <div class="doors"></div>
         <div class="date">Dec<br />{{ day }}</div>
         <div v-if="!canOpen" class="material-icons lock">lock</div>
+        <div v-if="main.day.value === day && !canOpen" class="timer">{{ formatTime(main.timeUntilNewDay.value, 0) }}</div> 
         <Notif v-if="canOpen" />
     </div>
 </template>
@@ -26,6 +27,7 @@
 <script setup lang="ts">
 import Notif from "components/Notif.vue";
 import Decimal from "util/bignum";
+import { formatTime } from "util/break_eternity";
 import { ProcessedComputable } from "util/computed";
 import type { Ref } from "vue";
 import { computed, unref } from "vue";
@@ -164,6 +166,22 @@ function tryUnlock() {
     user-select: none;
     backface-visibility: hidden;
     width: 100%;
+}
+
+.timer {
+    position: absolute;
+    bottom: -12px;
+    left: 50%;
+    padding: 0 3px;
+    transform: translateX(-50%);
+    z-index: 3;
+    pointer-events: none;
+    user-select: none;
+    white-space: nowrap;
+    font-size: small;
+    border: 2px solid rgba(0, 0, 0, 0.125);
+    border-radius: var(--border-radius);
+    background: var(--locked);
 }
 
 .icon {

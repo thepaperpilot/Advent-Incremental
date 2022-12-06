@@ -44,6 +44,7 @@ export interface Day extends VueFeature {
 
 export const main = createLayer("main", function (this: BaseLayer) {
     const day = persistent<number>(1);
+    const timeUntilNewDay = computed(() => (+new Date(new Date().getFullYear(), 11, day.value) - player.time) / 1000);
 
     const showLoreModal = ref<boolean>(false);
     const loreScene = ref<number>(-1);
@@ -354,6 +355,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         name: "Calendar",
         days,
         day,
+        timeUntilNewDay,
         loreScene,
         loreTitle,
         loreBody,
@@ -382,7 +384,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
                             },
                             [[]] as Day[][]
                         )
-                        .map(days => renderRow(...days))}
+                        .map((days: Day[]) => renderRow(...days))}
                 </div>
             </>
         ))

@@ -127,9 +127,10 @@ export function formatWhole(num: DecimalSource): string {
     return format(num, 0);
 }
 
-export function formatTime(seconds: DecimalSource): string {
+export function formatTime(seconds: DecimalSource, precision?: number): string {
+    if (precision == null) precision = projInfo.defaultDecimalsShown;
     if (Decimal.lt(seconds, 0)) {
-        return "-" + formatTime(Decimal.neg(seconds));
+        return "-" + formatTime(Decimal.neg(seconds), precision);
     }
     if (Decimal.gt(seconds, 2 ** 51)) {
         // integer precision limit
@@ -139,7 +140,7 @@ export function formatTime(seconds: DecimalSource): string {
     if (seconds < 60) {
         return format(seconds) + "s";
     } else if (seconds < 3600) {
-        return formatWhole(Math.floor(seconds / 60)) + "m " + format(seconds % 60) + "s";
+        return formatWhole(Math.floor(seconds / 60)) + "m " + format(seconds % 60, precision) + "s";
     } else if (seconds < 86400) {
         return (
             formatWhole(Math.floor(seconds / 3600)) +
