@@ -1,5 +1,5 @@
 <template>
-    <Sticky>
+    <Sticky v-if="sticky">
         <div
             class="main-display-container"
             :class="classes ?? {}"
@@ -20,6 +20,25 @@
             </div>
         </div>
     </Sticky>
+    <div v-else
+        class="main-display-container"
+        :class="classes ?? {}"
+        :style="[{ height: '50px' }, style ?? {}]"
+    >
+        <div class="main-display">
+            <span v-if="showPrefix">You have </span>
+            <ResourceVue :resource="resource" :color="color || 'white'" />
+            {{ resource.displayName
+            }}<!-- remove whitespace -->
+            <span v-if="effectComponent"
+                >, <component :is="effectComponent" ref="effectRef"
+            /></span>
+            <span v-if="productionComponent">
+                <br />
+                <component :is="productionComponent" ref="effectRef"
+            /></span>
+        </div>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -32,14 +51,15 @@ import { computeOptionalComponent } from "util/vue";
 import { ComponentPublicInstance, ref, Ref, StyleValue } from "vue";
 import { computed, toRefs } from "vue";
 
-const _props = defineProps<{
+const _props = withDefaults(defineProps<{
     resource: Resource;
     color?: string;
     classes?: Record<string, boolean>;
     style?: StyleValue;
     effectDisplay?: CoercableComponent;
     productionDisplay?: CoercableComponent;
-}>();
+    sticky?: boolean
+}>(), {sticky: true});
 const props = toRefs(_props);
 
 const effectRef = ref<ComponentPublicInstance | null>(null);

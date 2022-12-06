@@ -30,6 +30,7 @@ import { createUpgrade, Upgrade } from "features/upgrades/upgrade";
 import elves from "./elves";
 import paper from "./paper";
 import boxes from "./boxes";
+import metal from "./metal";
 
 interface BetterFertilizerUpgOptions {
     canAfford: () => boolean;
@@ -294,6 +295,80 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
 
+    const activeDrills = persistent<DecimalSource>(0);
+    const drillCoal = computed(() => Decimal.times(activeDrills.value, 5e7));
+    const buildDrill = createBuyable(() => ({
+        resource: metal.metal,
+        cost() {
+            let v = this.amount.value;
+            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
+            if (Decimal.gte(v, 10000)) v = Decimal.pow(v, 2).div(10000);
+            // v = Decimal.pow(0.95, paper.books.drillBook.amount.value).times(v);
+            return Decimal.pow(v, 1.15).plus(10);
+        },
+        display: jsx(() => (
+            <>
+                <h3>Mining Drill</h3>
+                <br />
+                Dig through the ground to find 50,000,000 coal
+                <br />
+                <br />
+                Currently:
+                <br />+{format(drillCoal.value)} coal/sec
+                <br />
+                <br />
+                Cost: {formatWhole(unref(buildDrill.cost!))} {buildDrill.resource.displayName}
+            </>
+        )),
+        onPurchase() {
+            activeDrills.value = Decimal.add(activeDrills.value, 1);
+        },
+        style: {
+            color: colorText,
+            width: "160px"
+        }
+    })) as GenericBuyable & { resource: Resource };
+    const minDrill = createClickable(() => ({
+        display: "0",
+        style: { minHeight: "20px", width: "40px", color: colorText },
+        canClick() {
+            return Decimal.gt(activeDrills.value, 0);
+        },
+        onClick() {
+            activeDrills.value = 0;
+        }
+    }));
+    const removeDrill = createClickable(() => ({
+        display: "-",
+        style: { minHeight: "20px", width: "40px", color: colorText },
+        canClick() {
+            return Decimal.gt(activeDrills.value, 0);
+        },
+        onClick() {
+            activeDrills.value = Decimal.sub(activeDrills.value, 1);
+        }
+    }));
+    const addDrill = createClickable(() => ({
+        display: "+",
+        style: { minHeight: "20px", width: "40px", color: colorText },
+        canClick() {
+            return Decimal.lt(activeDrills.value, buildDrill.amount.value);
+        },
+        onClick() {
+            activeDrills.value = Decimal.add(activeDrills.value, 1);
+        }
+    }));
+    const maxDrill = createClickable(() => ({
+        display: "Max",
+        style: { minHeight: "20px", width: "40px", color: colorText },
+        canClick() {
+            return Decimal.lt(activeDrills.value, buildDrill.amount.value);
+        },
+        onClick() {
+            activeDrills.value = buildDrill.amount.value;
+        }
+    }));
+
     const warmerCutters = createUpgrade(() => ({
         resource: noPersist(coal),
         cost: 5,
@@ -535,6 +610,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 return Decimal.gt(activeKilns.value, 0);
             }
         })),
+        createAdditiveModifier(() => ({
+            addend() {
+                return drillCoal.value;
+            },
+            description: "Mining Drills",
+            enabled() {
+                return Decimal.gt(activeDrills.value, 0);
+            }
+        })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
             description: "Carry coal in boxes",
@@ -736,6 +820,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         color: colorCoal,
         coal,
         totalCoal,
+        computedCoalGain,
         ash,
         activeFires,
         buildFire,
@@ -743,6 +828,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buildBonfire,
         activeKilns,
         buildKiln,
+        activeDrills,
+        buildDrill,
         warmerCutters,
         warmerPlanters,
         basicFertilizer,
@@ -817,6 +904,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
                                     {formatWhole(buildKiln.amount.value)}
                                 </div>
                                 {renderRow(minKiln, removeKiln, addKiln, maxKiln)}
+                            </Column>
+                        </>
+                    ) : undefined}
+                    {metal.coalDrill.bought.value ? (
+                        <>
+                            <Spacer />
+                            <Column>
+                                {render(buildDrill)}
+                                <div>
+                                    {formatWhole(activeDrills.value)}/
+                                    {formatWhole(buildDrill.amount.value)}
+                                </div>
+                                {renderRow(minDrill, removeDrill, addDrill, maxDrill)}
                             </Column>
                         </>
                     ) : undefined}

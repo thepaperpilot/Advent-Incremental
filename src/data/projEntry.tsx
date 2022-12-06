@@ -26,10 +26,12 @@ import coalSymbol from "./symbols/coal.png";
 import elfSymbol from "./symbols/elf.png";
 import paperSymbol from "./symbols/paperStacks.png";
 import boxesSymbol from "./symbols/cardboardBox.png";
+import metalSymbol from "./symbols/metal.png";
 import coal from "./layers/coal";
 import elves from "./layers/elves";
 import paper from "./layers/paper";
 import boxes from "./layers/boxes";
+import metal from "./layers/metal";
 
 export interface Day extends VueFeature {
     day: number;
@@ -198,15 +200,15 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 7,
             shouldNotify: false,
-            layer: null,
-            symbol: "",
+            layer: "metal",
+            symbol: metalSymbol,
             story: "",
             completedStory: ""
         })),
         createDay(() => ({
             day: 8,
             shouldNotify: false,
-            layer: null,
+            layer: null, // "cloth"
             symbol: "",
             story: "",
             completedStory: ""
@@ -214,7 +216,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 9,
             shouldNotify: false,
-            layer: null,
+            layer: null, // "oil"
             symbol: "",
             story: "",
             completedStory: ""
@@ -222,7 +224,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 10,
             shouldNotify: false,
-            layer: null,
+            layer: null, // "plastic"
             symbol: "",
             story: "",
             completedStory: ""
@@ -230,7 +232,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 11,
             shouldNotify: false,
-            layer: null,
+            layer: null, // "dyes"
             symbol: "",
             story: "",
             completedStory: ""
@@ -238,7 +240,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 12,
             shouldNotify: false,
-            layer: null,
+            layer: null, // "management"
             symbol: "",
             story: "",
             completedStory: ""
@@ -246,7 +248,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 13,
             shouldNotify: false,
-            layer: null,
+            layer: null, // ""
             symbol: "",
             story: "",
             completedStory: ""
@@ -254,7 +256,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 14,
             shouldNotify: false,
-            layer: null,
+            layer: null, // ""
             symbol: "",
             story: "",
             completedStory: ""
@@ -262,7 +264,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 15,
             shouldNotify: false,
-            layer: null,
+            layer: null, // "wrapping paper"
             symbol: "",
             story: "",
             completedStory: ""
@@ -270,7 +272,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 16,
             shouldNotify: false,
-            layer: null,
+            layer: null, // "ribbons"
             symbol: "",
             story: "",
             completedStory: ""
@@ -278,7 +280,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 17,
             shouldNotify: false,
-            layer: null,
+            layer: null, // "toys 1"
             symbol: "",
             story: "",
             completedStory: ""
@@ -286,7 +288,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 18,
             shouldNotify: false,
-            layer: null,
+            layer: null, // "toys 2"
             symbol: "",
             story: "",
             completedStory: ""
@@ -294,7 +296,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 19,
             shouldNotify: false,
-            layer: null,
+            layer: null, // "toys 3"
             symbol: "",
             story: "",
             completedStory: ""
@@ -302,7 +304,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 20,
             shouldNotify: false,
-            layer: null,
+            layer: null, // "presents"
             symbol: "",
             story: "",
             completedStory: ""
@@ -310,7 +312,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 21,
             shouldNotify: false,
-            layer: null,
+            layer: null, // "reindeer"
             symbol: "",
             story: "",
             completedStory: ""
@@ -318,7 +320,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 22,
             shouldNotify: false,
-            layer: null,
+            layer: null, // "sleigh"
             symbol: "",
             story: "",
             completedStory: ""
@@ -326,7 +328,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 23,
             shouldNotify: false,
-            layer: null,
+            layer: null, // "distribution route planning"
             symbol: "",
             story: "",
             completedStory: ""
@@ -334,7 +336,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 24,
             shouldNotify: false,
-            layer: null,
+            layer: null, // "packing the presents"
             symbol: "",
             story: "",
             completedStory: ""
@@ -398,7 +400,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
 export const getInitialLayers = (
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     player: Partial<PlayerData>
-): Array<GenericLayer> => [main, trees, workshop, coal, elves, paper, boxes];
+): Array<GenericLayer> => [main, trees, workshop, coal, elves, paper, boxes, metal];
 
 /**
  * A computed ref whose value is true whenever the game is over.
