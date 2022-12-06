@@ -297,9 +297,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
         const computedAutoBuyCooldown = computed(() => options.cooldownModifier.apply(10));
 
+        const isActive = convertComputable(options.canBuy ?? true);
+
         function update(diff: number) {
-            const isActive = options.canBuy ? unref(convertComputable(options.canBuy)) : true;
-            if (upgrade.bought.value && isActive) {
+            if (upgrade.bought.value && unref(isActive)) {
                 buyProgress.value = Decimal.add(buyProgress.value, diff);
                 const cooldown = Decimal.recip(computedAutoBuyCooldown.value);
                 while (Decimal.gte(buyProgress.value, cooldown)) {
