@@ -651,7 +651,3 @@ const layer = createLayer(id, function (this: BaseLayer) {
 });
 
 export default layer;
-
-function processComputable(canBuy: boolean | Ref<boolean> | (() => boolean) | undefined) {
-    throw new Error("Function not implemented.");
-}
