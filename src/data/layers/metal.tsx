@@ -20,6 +20,7 @@ import coal from "./coal"
 import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
 import { noPersist } from "game/persistence"
 import { createBuyable, GenericBuyable } from "features/buyable";
+import { main } from "../projEntry";
 
 const id = "metal";
 const day = 7;
@@ -211,7 +212,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         visibility: () => showIf(Decimal.gte(oreDrill.amount.value, 1) && (
             coalDrill.bought.value ||
-            Decimal.lt(coal.computedCoalGain.value, Decimal.times(computedOreAmount.value, computedOreSpeed.value).div(maxOreProgress).times(coalCost))))
+            Decimal.lt(coal.computedCoalGain.value, Decimal.times(computedOreAmount.value, computedOreSpeed.value).div(maxOreProgress).times(coalCost)))),
+        onPurchase() {
+            main.days[2].recentlyUpdated.value = true;
+        }
     })) as GenericUpgrade;
     const industrialFurnace = createUpgrade(() => ({
         canAfford() {
