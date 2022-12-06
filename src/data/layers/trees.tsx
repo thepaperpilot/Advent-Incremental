@@ -4,7 +4,7 @@
  */
 import Spacer from "components/layout/Spacer.vue";
 import Modal from "components/Modal.vue";
-import { createCollapsibleModifierSections } from "data/common";
+import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
 import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
 import { createBuyable, GenericBuyable } from "features/buyable";
@@ -12,7 +12,7 @@ import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
 import { createHotkey } from "features/hotkey";
 import MainDisplay from "features/resources/MainDisplay.vue";
-import { createResource, Resource, trackTotal } from "features/resources/resource";
+import { createResource, Resource } from "features/resources/resource";
 import { createUpgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
@@ -46,11 +46,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const colorDark = "green";
 
     const logs = createResource<DecimalSource>(0, "logs");
-    const totalLogs = trackTotal(logs);
     // Think of saplings as spent trees
     const saplings = createResource<DecimalSource>(0, "saplings");
 
-    const totalLogGoal = 1e4;
     const ema = ref<DecimalSource>(0);
 
     const totalTrees = createSequentialModifier(() => [
@@ -232,26 +230,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () => showIf(researchUpgrade2.bought.value)
     })) as GenericBuyable & { display: { title: string }; resource: Resource };
     const row1Buyables = [autoCuttingBuyable1, autoPlantingBuyable1, expandingForestBuyable];
-
-    const dayProgress = createBar(() => ({
-        direction: Direction.Right,
-        width: 600,
-        height: 25,
-        fillStyle: `backgroundColor: ${colorDark}`,
-        progress: () =>
-            main.day.value === day
-                ? Decimal.log10(Decimal.add(totalLogs.value, 1)).div(Math.log10(totalLogGoal))
-                : 1,
-        display: jsx(() =>
-            main.day.value === day ? (
-                <>
-                    {formatWhole(totalLogs.value)}/{formatWhole(totalLogGoal)}
-                </>
-            ) : (
-                ""
-            )
-        )
-    }));
 
     const manualCuttingAmount = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
@@ -641,12 +619,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         saplings.value = Decimal.sub(saplings.value, amountPlanted);
     });
 
-    watchEffect(() => {
-        if (main.day.value === day && Decimal.gte(totalLogs.value, totalLogGoal)) {
-            main.completeDay();
-        }
-    });
-
     const netSaplingGain = computed(() =>
         Decimal.sub(computedAutoCuttingAmount.value, computedAutoPlantingAmount.value)
     );
@@ -669,6 +641,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
 
+    const { total: totalLogs, trackerDisplay } = setUpDailyProgressTracker({
+        resource: logs,
+        goal: 1e4,
+        name,
+        day,
+        color: colorDark,
+        modal: {
+            show: showModifiersModal,
+            display: modifiersModal
+        }
+    });
+
     return {
         name,
         color: colorBright,
@@ -689,21 +673,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         minWidth: 700,
         display: jsx(() => (
             <>
-                <div>
-                    {main.day.value === day
-                        ? `Reach ${formatWhole(1e4)} ${logs.displayName} to complete the day`
-                        : `${name} Complete!`}{" "}
-                    -{" "}
-                    <button
-                        class="button"
-                        style="display: inline-block;"
-                        onClick={() => (showModifiersModal.value = true)}
-                    >
-                        Check Modifiers
-                    </button>
-                </div>
-                {render(dayProgress)}
-                {render(modifiersModal)}
+                {render(trackerDisplay)}
                 <Spacer />
                 <MainDisplay
                     resource={logs}

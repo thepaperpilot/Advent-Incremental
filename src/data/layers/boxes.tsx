@@ -3,6 +3,7 @@
  * @hidden
  */
 import Spacer from "components/layout/Spacer.vue";
+import { setUpDailyProgressTracker } from "data/common";
 import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
 import { createBuyable, GenericBuyable } from "features/buyable";
@@ -24,12 +25,8 @@ const day = 6;
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Boxes";
     const color = "#964B00";
-    const colorDark = "#964B00";
-
-    const totalBoxesGoal = 5e4;
 
     const boxes = createResource<DecimalSource>(0, "boxes");
-    const totalBoxes = trackTotal(boxes);
 
     const boxesConversion = createCumulativeConversion(() => ({
         scaling: createPolynomialScaling(1e10, 1),
@@ -148,35 +145,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
     })) as GenericBuyable;
     const buyables = { logBoxesBuyable, ashBoxesBuyable, coalBoxesBuyable };
 
-    const dayProgress = createBar(() => ({
-        direction: Direction.Right,
-        width: 600,
-        height: 25,
-        fillStyle: `backgroundColor: ${colorDark}`,
-        textStyle: "color: var(--feature-foreground)",
-        progress: () =>
-            main.day.value === day
-                ? Decimal.div(
-                      Decimal.log10(Decimal.add(totalBoxes.value, 1)),
-                      Decimal.log10(totalBoxesGoal)
-                  )
-                : 1,
-        display: jsx(() =>
-            main.day.value === day ? (
-                <>
-                    {formatWhole(totalBoxes.value)}/{formatWhole(totalBoxesGoal)}
-                </>
-            ) : (
-                ""
-            )
-        )
-    }));
-
-    watchEffect(() => {
-        if (main.day.value === day && Decimal.gte(totalBoxes.value, totalBoxesGoal)) {
-            main.completeDay();
-        }
-    });
+    const { total: totalBoxes, trackerDisplay } = setUpDailyProgressTracker({
+        resource: boxes,
+        goal: 5e4,
+        name,
+        day,
+        color
+    })
 
     return {
         name,
@@ -190,14 +165,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         minWidth: 700,
         display: jsx(() => (
             <>
-                <div>
-                    {main.day.value === day
-                        ? `Reach ${formatWhole(totalBoxesGoal)} total ${
-                              boxes.displayName
-                          } to complete the day`
-                        : `${name} Complete!`}
-                </div>
-                {render(dayProgress)}
+                {render(trackerDisplay)}
                 <Spacer />
                 <MainDisplay resource={boxes} color={color} style="margin-bottom: 0" />
                 <Spacer />

@@ -1,11 +1,12 @@
 import Collapsible from "components/layout/Collapsible.vue";
+import { createBar } from "features/bars/bar";
 import type { Clickable, ClickableOptions, GenericClickable } from "features/clickables/clickable";
 import { createClickable } from "features/clickables/clickable";
 import type { GenericConversion } from "features/conversion";
 import type { CoercableComponent, JSXFunction, OptionsFunc, Replace } from "features/feature";
 import { jsx, setDefault } from "features/feature";
 import { GenericMilestone } from "features/milestones/milestone";
-import { displayResource } from "features/resources/resource";
+import { displayResource, Resource, trackTotal } from "features/resources/resource";
 import type { GenericTree, GenericTreeNode, TreeNode, TreeNodeOptions } from "features/trees/tree";
 import { createTreeNode } from "features/trees/tree";
 import type { Modifier } from "game/modifiers";
@@ -14,7 +15,8 @@ import { DefaultValue, persistent } from "game/persistence";
 import player from "game/player";
 import type { DecimalSource } from "util/bignum";
 import Decimal, { format } from "util/bignum";
-import type { WithRequired } from "util/common";
+import { formatWhole } from "util/break_eternity";
+import { Direction, WithRequired } from "util/common";
 import type {
     Computable,
     GetComputableType,
@@ -22,10 +24,13 @@ import type {
     ProcessedComputable
 } from "util/computed";
 import { convertComputable, processComputable } from "util/computed";
-import { getFirstFeature, renderColJSX, renderJSX } from "util/vue";
-import type { Ref } from "vue";
+import { getFirstFeature, render, renderColJSX, renderJSX, VueFeature } from "util/vue";
+import { Ref, watch, watchEffect } from "vue";
 import { computed, unref } from "vue";
 import "./common.css";
+import { main } from "./projEntry";
+import Spacer from "components/layout/Spacer.vue";
+import Modal from "components/Modal.vue";
 
 /** An object that configures a {@link ResetButton} */
 export interface ResetButtonOptions extends ClickableOptions {
@@ -388,4 +393,75 @@ export function createCollapsibleMilestones(milestones: Record<string, GenericMi
         collapseMilestones,
         display
     };
+}
+
+export function setUpDailyProgressTracker(options: {
+    resource: Resource,
+    goal: DecimalSource,
+    name: string,
+    day: number,
+    color: string,
+    modal?: {
+        show: Ref<boolean>,
+        display: VueFeature | CoercableComponent
+    }
+}) {
+    const total = trackTotal(options.resource);
+    
+    const dayProgress = createBar(() => ({
+        direction: Direction.Right,
+        width: 600,
+        height: 25,
+        fillStyle: { backgroundColor: options.color },
+        textStyle: { color: 'var(--feature-foreground)' },
+        progress: () =>
+            main.day.value === options.day
+                ? Decimal.div(
+                    Decimal.add(total.value, 1).log10(),
+                    Decimal.log10(options.goal)
+                )
+                : 1,
+        display: jsx(() =>
+            main.day.value === options.day ? (
+                <>
+                    {formatWhole(total.value)}/{formatWhole(options.goal)}
+                </>
+            ) : (
+                ""
+            )
+        )
+    }));
+
+    const trackerDisplay = jsx(() => <>
+        <div>
+            {main.day.value === options.day
+                ? <>Reach {formatWhole(options.goal)} total {options.resource.displayName} to complete the day</>
+                : <>{options.name} Complete!</>
+            }
+            {
+                options.modal
+                    ? <> - <button
+                            class="button"
+                            style="display: inline-block;"
+                            onClick={() => options.modal!.show.value = true}>
+                        Check Modifiers
+                      </button></>
+                    : undefined
+            }
+        </div>
+        {render(dayProgress)}
+        {options.modal ? render(options.modal.display) : undefined}
+    </>);
+
+    
+    watchEffect(() => {
+        if (main.day.value === options.day && Decimal.gte(total.value, options.goal)) {
+            main.completeDay();
+        }
+    });
+
+    return {
+        total,
+        trackerDisplay
+    }
 }
