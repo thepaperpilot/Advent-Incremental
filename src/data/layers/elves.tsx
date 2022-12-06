@@ -426,7 +426,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         hasToggle: true,
         toggleDesc: "Activate auto-purchased small fires",
         onAutoPurchase() {
-            if (smallFireElf.toggle.value) {
+            if (smallFireElf.toggle.value && this.buyable.canPurchase) {
                 coal.activeFires.value = Decimal.add(coal.activeFires.value, 1);
             }
         },
@@ -444,7 +444,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         hasToggle: true,
         toggleDesc: "Activate auto-purchased bonfires",
         onAutoPurchase() {
-            if (bonfireElf.toggle.value) {
+            if (bonfireElf.toggle.value && this.buyable.canPurchase) {
                 coal.activeBonfires.value = Decimal.add(coal.activeBonfires.value, 1);
                 coal.buildFire.amount.value = Decimal.sub(
                     coal.buildFire.amount.value,
@@ -471,7 +471,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         hasToggle: true,
         toggleDesc: "Activate auto-purchased kilns",
         onAutoPurchase() {
-            if (kilnElf.toggle.value) {
+            if (kilnElf.toggle.value && this.buyable.canPurchase) {
                 coal.activeKilns.value = Decimal.add(coal.activeKilns.value, 1);
             }
         },
