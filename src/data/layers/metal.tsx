@@ -348,6 +348,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         industrialCrucible,
         autoSmeltEnabled,
         hotterForge,
+        generalTabCollapsed,
         minWidth: 700,
         display: jsx(() => (
             <>
