@@ -12,6 +12,7 @@
             <hr />
             <Toggle :title="autosaveTitle" v-model="autosave" />
             <Toggle v-if="projInfo.enablePausing" :title="isPausedTitle" v-model="isPaused" />
+            <Toggle :title="progressMethodTitle" v-model="usingLog" />
         </template>
     </Modal>
 </template>
@@ -47,8 +48,8 @@ const settingFieldsComponent = computed(() => {
     return coerceComponent(jsx(() => <>{settingFields.map(render)}</>));
 });
 
-const { showTPS, theme, unthrottled } = toRefs(settings);
-const { autosave, offlineProd } = toRefs(player);
+const { showTPS, theme } = toRefs(settings);
+const { autosave, usingLog } = toRefs(player);
 const isPaused = computed({
     get() {
         return player.devSpeed === 0;
@@ -58,11 +59,6 @@ const isPaused = computed({
     }
 });
 
-const offlineProdTitle = jsx(() => (
-    <span>
-        Offline Production<Tooltip display="Save-specific">*</Tooltip>
-    </span>
-));
 const autosaveTitle = jsx(() => (
     <span>
         Autosave<Tooltip display="Save-specific">*</Tooltip>
@@ -71,6 +67,11 @@ const autosaveTitle = jsx(() => (
 const isPausedTitle = jsx(() => (
     <span>
         Pause game<Tooltip display="Save-specific">*</Tooltip>
+    </span>
+));
+const progressMethodTitle = jsx(() => (
+    <span>
+        Use log for progress bar<Tooltip display="Save-specific">*</Tooltip>
     </span>
 ));
 </script>

@@ -3,20 +3,19 @@
  * @hidden
  */
 import Spacer from "components/layout/Spacer.vue";
+import { setUpDailyProgressTracker } from "data/common";
 import { main } from "data/projEntry";
-import { createBar } from "features/bars/bar";
 import { createBuyable, GenericBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
 import { createCumulativeConversion, createPolynomialScaling } from "features/conversion";
 import { jsx, showIf } from "features/feature";
 import MainDisplay from "features/resources/MainDisplay.vue";
-import { createResource, displayResource, trackTotal } from "features/resources/resource";
+import { createResource, displayResource } from "features/resources/resource";
 import { createUpgrade } from "features/upgrades/upgrade";
 import { BaseLayer, createLayer } from "game/layers";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
-import { Direction } from "util/common";
 import { render, renderRow } from "util/vue";
-import { unref, watchEffect } from "vue";
+import { unref } from "vue";
 import trees from "./trees";
 
 const id = "boxes";
@@ -24,12 +23,8 @@ const day = 6;
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Boxes";
     const color = "#964B00";
-    const colorDark = "#964B00";
-
-    const totalBoxesGoal = 5e4;
 
     const boxes = createResource<DecimalSource>(0, "boxes");
-    const totalBoxes = trackTotal(boxes);
 
     const boxesConversion = createCumulativeConversion(() => ({
         scaling: createPolynomialScaling(1e10, 1),
@@ -74,7 +69,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Carry logs in boxes",
             description: "Double log gain and unlock a new elf for training"
         },
-        onPurchase () {
+        onPurchase() {
             main.days[3].recentlyUpdated.value = true;
         },
         resource: boxes,
@@ -85,7 +80,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Carry ash in boxes",
             description: "Double ash gain and unlock a new elf for training"
         },
-        onPurchase () {
+        onPurchase() {
             main.days[3].recentlyUpdated.value = true;
         },
         resource: boxes,
@@ -96,7 +91,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Carry coal in boxes",
             description: "Double coal gain and unlock a new elf for training"
         },
-        onPurchase () {
+        onPurchase() {
             main.days[3].recentlyUpdated.value = true;
         },
         resource: boxes,
@@ -148,34 +143,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
     })) as GenericBuyable;
     const buyables = { logBoxesBuyable, ashBoxesBuyable, coalBoxesBuyable };
 
-    const dayProgress = createBar(() => ({
-        direction: Direction.Right,
-        width: 600,
-        height: 25,
-        fillStyle: `backgroundColor: ${colorDark}`,
-        textStyle: "color: var(--feature-foreground)",
-        progress: () =>
-            main.day.value === day
-                ? Decimal.div(
-                      Decimal.log10(Decimal.add(totalBoxes.value, 1)),
-                      Decimal.log10(totalBoxesGoal)
-                  )
-                : 1,
-        display: jsx(() =>
-            main.day.value === day ? (
-                <>
-                    {formatWhole(totalBoxes.value)}/{formatWhole(totalBoxesGoal)}
-                </>
-            ) : (
-                ""
-            )
-        )
-    }));
-
-    watchEffect(() => {
-        if (main.day.value === day && Decimal.gte(totalBoxes.value, totalBoxesGoal)) {
-            main.completeDay();
-        }
+    const { total: totalBoxes, trackerDisplay } = setUpDailyProgressTracker({
+        resource: boxes,
+        goal: 5e4,
+        name,
+        day,
+        color
     });
 
     return {
@@ -190,14 +163,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         minWidth: 700,
         display: jsx(() => (
             <>
-                <div>
-                    {main.day.value === day
-                        ? `Reach ${formatWhole(totalBoxesGoal)} total ${
-                              boxes.displayName
-                          } to complete the day`
-                        : `${name} Complete!`}
-                </div>
-                {render(dayProgress)}
+                {render(trackerDisplay)}
                 <Spacer />
                 <MainDisplay resource={boxes} color={color} style="margin-bottom: 0" />
                 <Spacer />

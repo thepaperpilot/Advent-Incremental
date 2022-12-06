@@ -12,6 +12,7 @@ export const {
     formatTime,
     toPlaces,
     formatSmall,
+    formatLimit,
     invertOOM
 } = numberUtils;
 
@@ -29,6 +30,7 @@ declare global {
         formatTime: (s: number) => string;
         toPlaces: (x: DecimalSource, precision: number, maxAccepted: DecimalSource) => string;
         formatSmall: (x: DecimalSource, precision?: number) => string;
+        formatLimit: (list: [DecimalSource, string][], unit: string) => string;
         invertOOM: (x: DecimalSource) => Decimal;
     }
 }
@@ -41,6 +43,7 @@ window.formatWhole = formatWhole;
 window.formatTime = formatTime;
 window.toPlaces = toPlaces;
 window.formatSmall = formatSmall;
+window.formatLimit = formatLimit;
 window.invertOOM = invertOOM;
 
 export default Decimal;

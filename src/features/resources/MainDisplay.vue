@@ -13,6 +13,10 @@
                 <span v-if="effectComponent"
                     >, <component :is="effectComponent" ref="effectRef"
                 /></span>
+                <span v-if="productionComponent">
+                    <br />
+                    <component :is="productionComponent" ref="effectRef"
+                /></span>
             </div>
         </div>
     </Sticky>
@@ -34,6 +38,7 @@ const _props = defineProps<{
     classes?: Record<string, boolean>;
     style?: StyleValue;
     effectDisplay?: CoercableComponent;
+    productionDisplay?: CoercableComponent;
 }>();
 const props = toRefs(_props);
 
@@ -41,6 +46,10 @@ const effectRef = ref<ComponentPublicInstance | null>(null);
 
 const effectComponent = computeOptionalComponent(
     props.effectDisplay as Ref<CoercableComponent | undefined>
+);
+
+const productionComponent = computeOptionalComponent(
+    props.productionDisplay as Ref<CoercableComponent | undefined>
 );
 
 const showPrefix = computed(() => {

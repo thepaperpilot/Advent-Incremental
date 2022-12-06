@@ -4,7 +4,7 @@
  */
 import Spacer from "components/layout/Spacer.vue";
 import Modal from "components/Modal.vue";
-import { createCollapsibleModifierSections } from "data/common";
+import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
 import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
 import { createBuyable, GenericBuyable } from "features/buyable";
@@ -12,7 +12,7 @@ import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
 import { createHotkey } from "features/hotkey";
 import MainDisplay from "features/resources/MainDisplay.vue";
-import { createResource, Resource, trackTotal } from "features/resources/resource";
+import { createResource, Resource } from "features/resources/resource";
 import { createUpgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
@@ -24,33 +24,30 @@ import {
     Modifier
 } from "game/modifiers";
 import { persistent } from "game/persistence";
-import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
+import Decimal, { DecimalSource, format, formatWhole, formatLimit } from "util/bignum";
 import { Direction, WithRequired } from "util/common";
 import { render, renderRow } from "util/vue";
-import { computed, ref, watchEffect } from "vue";
+import { computed, ref } from "vue";
 import boxes from "./boxes";
 import coal from "./coal";
 import elves from "./elves";
 import paper from "./paper";
 import workshop from "./workshop";
-
 const id = "trees";
 const day = 1;
 
 // how much to prioritize this' income
 // vs the previous ones
-const SMOOTHING_FACTOR = 0.5;
+const SMOOTHING_FACTOR = 0.1;
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Trees";
     const colorBright = "#4BDC13";
     const colorDark = "green";
 
     const logs = createResource<DecimalSource>(0, "logs");
-    const totalLogs = trackTotal(logs);
     // Think of saplings as spent trees
     const saplings = createResource<DecimalSource>(0, "saplings");
 
-    const totalLogGoal = 1e4;
     const ema = ref<DecimalSource>(0);
 
     const totalTrees = createSequentialModifier(() => [
@@ -79,6 +76,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         computed(() => Decimal.sub(totalTrees.apply(10), saplings.value)),
         "trees"
     );
+    const computedTotalTrees = computed(() => totalTrees.apply(10));
 
     const manualCutUpgrade1 = createUpgrade(() => ({
         resource: logs,
@@ -231,26 +229,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () => showIf(researchUpgrade2.bought.value)
     })) as GenericBuyable & { display: { title: string }; resource: Resource };
     const row1Buyables = [autoCuttingBuyable1, autoPlantingBuyable1, expandingForestBuyable];
-
-    const dayProgress = createBar(() => ({
-        direction: Direction.Right,
-        width: 600,
-        height: 25,
-        fillStyle: `backgroundColor: ${colorDark}`,
-        progress: () =>
-            main.day.value === day
-                ? Decimal.log10(Decimal.add(totalLogs.value, 1)).div(Math.log10(totalLogGoal))
-                : 1,
-        display: jsx(() =>
-            main.day.value === day ? (
-                <>
-                    {formatWhole(totalLogs.value)}/{formatWhole(totalLogGoal)}
-                </>
-            ) : (
-                ""
-            )
-        )
-    }));
 
     const manualCuttingAmount = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
@@ -421,7 +399,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: boxes.upgrades.logsUpgrade.bought
         })),
         createExponentialModifier(() => ({
-            exponent: 1.1,
+            exponent: 1.2,
             description: "100% Foundation Completed",
             enabled: workshop.milestones.logGainMilestone3.earned
         }))
@@ -623,7 +601,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             trees.value,
             Decimal.times(computedAutoCuttingAmount.value, diff)
         );
-        const logsGained = logGain.apply(amountCut);
+        const logsGained = Decimal.mul(logGain.apply(1), amountCut);
 
         const effectiveLogsGained = Decimal.div(logsGained, diff);
         ema.value = Decimal.mul(effectiveLogsGained, SMOOTHING_FACTOR).add(
@@ -638,12 +616,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.times(computedAutoPlantingAmount.value, diff)
         );
         saplings.value = Decimal.sub(saplings.value, amountPlanted);
-    });
-
-    watchEffect(() => {
-        if (main.day.value === day && Decimal.gte(totalLogs.value, totalLogGoal)) {
-            main.completeDay();
-        }
     });
 
     const netSaplingGain = computed(() =>
@@ -668,6 +640,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
 
+    const { total: totalLogs, trackerDisplay } = setUpDailyProgressTracker({
+        resource: logs,
+        goal: 1e4,
+        name,
+        day,
+        color: colorDark,
+        modal: {
+            show: showModifiersModal,
+            display: modifiersModal
+        }
+    });
+
     return {
         name,
         color: colorBright,
@@ -688,36 +672,40 @@ const layer = createLayer(id, function (this: BaseLayer) {
         minWidth: 700,
         display: jsx(() => (
             <>
-                <div>
-                    {main.day.value === day
-                        ? `Reach ${formatWhole(1e4)} ${logs.displayName} to complete the day`
-                        : `${name} Complete!`}{" "}
-                    -{" "}
-                    <button
-                        class="button"
-                        style="display: inline-block;"
-                        onClick={() => (showModifiersModal.value = true)}
-                    >
-                        Check Modifiers
-                    </button>
-                </div>
-                {render(dayProgress)}
-                {render(modifiersModal)}
+                {render(trackerDisplay)}
                 <Spacer />
                 <MainDisplay
                     resource={logs}
                     color={colorBright}
                     style="margin-bottom: 0"
-                    effectDisplay={
+                    productionDisplay={
                         Decimal.gt(computedAutoCuttingAmount.value, 0)
-                            ? `expected: +${format(
-                                  logGain.apply(computedAutoCuttingAmount.value)
-                              )}/s, average: +${format(ema.value)}/s (${format(
-                                  Decimal.div(
-                                      ema.value,
-                                      logGain.apply(computedAutoCuttingAmount.value)
-                                  ).mul(100)
-                              )}% efficent)`
+                            ? `+${format(ema.value)}/s average<br/>equilibrium: +${formatLimit(
+                                  [
+                                      [
+                                          Decimal.mul(
+                                              logGain.apply(1),
+                                              computedAutoCuttingAmount.value
+                                          ),
+                                          "cutting speed"
+                                      ],
+                                      [
+                                          Decimal.mul(
+                                              logGain.apply(1),
+                                              computedAutoPlantingAmount.value
+                                          ),
+                                          "planting speed"
+                                      ],
+                                      [
+                                          Decimal.mul(
+                                              logGain.apply(1),
+                                              Decimal.mul(computedTotalTrees.value, 20)
+                                          ),
+                                          "forest cap"
+                                      ]
+                                  ],
+                                  "/s"
+                              )}`
                             : undefined
                     }
                 />
@@ -725,7 +713,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     resource={saplings}
                     color={colorDark}
                     style="margin-bottom: 0"
-                    effectDisplay={
+                    productionDisplay={
                         {
                             [-1]: `${formatWhole(netSaplingGain.value)}/s`,
                             0: undefined,
@@ -737,7 +725,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     resource={trees}
                     color={colorDark}
                     style="margin-bottom: 0"
-                    effectDisplay={
+                    productionDisplay={
                         {
                             [-1]: `${formatWhole(netTreeGain.value)}/s`,
                             0: undefined,
@@ -748,10 +736,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {renderRow(cutTree, plantTree)}
                 <div>Tip: You can hold down on actions to perform them automatically</div>
-                <div>
-                    Note: your average log gain will be equal to your expected log gain if you have
-                    enough trees to support your chopping
-                </div>
                 <Spacer />
                 {renderRow(...row1Upgrades)}
                 {renderRow(...row2Upgrades)}

@@ -32,7 +32,11 @@
                     <Scene :day="main.loreScene.value" />
                     <br />
                     You can help continue the <i>advent</i>ure at:
-                    <a href="https://discord.gg/WzejVAx" class="info-modal-discord-link" target="_blank">
+                    <a
+                        href="https://discord.gg/WzejVAx"
+                        class="info-modal-discord-link"
+                        target="_blank"
+                    >
                         <span class="material-icons info-modal-discord">discord</span>
                         The Paper Pilot Community
                     </a>

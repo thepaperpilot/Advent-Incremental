@@ -7,20 +7,18 @@ import Modal from "components/Modal.vue";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import Row from "components/layout/Row.vue";
 import Column from "components/layout/Column.vue";
-import { createCollapsibleModifierSections } from "data/common";
+import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
 import { main } from "data/projEntry";
-import { createBar } from "features/bars/bar";
 import { createBuyable, GenericBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
 import { jsx, JSXFunction, showIf, StyleValue, Visibility } from "features/feature";
-import { createResource, Resource, trackTotal } from "features/resources/resource";
+import { createResource, Resource } from "features/resources/resource";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
 import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
-import { Direction } from "util/common";
 import { render, renderRow } from "util/vue";
-import { computed, ref, unref, watchEffect } from "vue";
+import { computed, ref, unref } from "vue";
 import trees from "./trees";
 import {
     createAdditiveModifier,
@@ -60,30 +58,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const colorText = "var(--foreground)";
 
     const coal = createResource<DecimalSource>(0, "coal");
-    const totalCoal = trackTotal(coal);
     const ash = createResource<DecimalSource>(0, "ash");
-
-    const totalCoalGoal = 1e7;
-
-    const dayProgress = createBar(() => ({
-        direction: Direction.Right,
-        width: 600,
-        height: 25,
-        fillStyle: `backgroundColor: ${colorCoal}`,
-        progress: () =>
-            main.day.value === day
-                ? Decimal.log10(Decimal.add(totalCoal.value, 1)).div(Math.log10(totalCoalGoal))
-                : 1,
-        display: jsx(() =>
-            main.day.value === day ? (
-                <>
-                    {formatWhole(totalCoal.value)}/{formatWhole(totalCoalGoal)}
-                </>
-            ) : (
-                ""
-            )
-        )
-    }));
 
     const activeFires = persistent<DecimalSource>(0);
     const fireLogs = computed(() => Decimal.times(activeFires.value, 1000));
@@ -92,7 +67,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const buildFire = createBuyable(() => ({
         resource: trees.logs,
         cost() {
-            let v = Decimal.times(buildBonfire.amount.value, unref(buildBonfire.cost!)).plus(this.amount.value);
+            let v = Decimal.times(buildBonfire.amount.value, unref(buildBonfire.cost!)).plus(
+                this.amount.value
+            );
             if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
             if (Decimal.gte(v, 10000)) v = Decimal.pow(v, 2).div(10000);
             v = Decimal.pow(0.95, paper.books.smallFireBook.amount.value).times(v);
@@ -586,9 +563,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createExponentialModifier(() => ({
             exponent: 1.25,
             description: "3 Elves Trained",
-            enabled () {
-                return elves.milestones[2].earned.value && Decimal.gte(coal.value, 1)
-            }
+            enabled: elves.milestones[2].earned,
+            supportLowNumbers: true
         }))
     ]);
     const computedCoalGain = computed(() => coalGain.apply(0));
@@ -743,9 +719,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         ash.value = Decimal.times(diff, computedAshGain.value).plus(ash.value);
     });
 
-    watchEffect(() => {
-        if (main.day.value === day && Decimal.gte(totalCoal.value, totalCoalGoal)) {
-            main.completeDay();
+    const { total: totalCoal, trackerDisplay } = setUpDailyProgressTracker({
+        resource: coal,
+        goal: 1e7,
+        name,
+        day,
+        color: colorCoal,
+        modal: {
+            show: showModifiersModal,
+            display: modifiersModal
         }
     });
 
@@ -779,23 +761,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         minWidth: 700,
         display: jsx(() => (
             <>
-                <div>
-                    {main.day.value === day
-                        ? `Reach ${formatWhole(totalCoalGoal)} ${
-                              coal.displayName
-                          } to complete the day`
-                        : `${name} Complete!`}{" "}
-                    -{" "}
-                    <button
-                        class="button"
-                        style="display: inline-block;"
-                        onClick={() => (showModifiersModal.value = true)}
-                    >
-                        Check Modifiers
-                    </button>
-                </div>
-                {render(dayProgress)}
-                {render(modifiersModal)}
+                {render(trackerDisplay)}
                 <Spacer />
                 <MainDisplay
                     resource={coal}
@@ -823,7 +789,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     <Column>
                         {render(buildFire)}
                         <div>
-                            {formatWhole(activeFires.value)}/{formatWhole(buildFire.amount.value)}
+                            {formatWhole(Decimal.floor(activeFires.value))}/
+                            {formatWhole(Decimal.floor(buildFire.amount.value))}
                         </div>
                         {renderRow(minFire, removeFire, addFire, maxFire)}
                     </Column>

@@ -161,7 +161,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const logGainMilestone3 = createMilestone(() => ({
         display: {
             requirement: "100% Foundation Completed",
-            effectDisplay: "Trees' log gain is now raised to the 1.1th power"
+            effectDisplay: "Log per tree is raised to the 1.2th power"
         },
         shouldEarn: () => Decimal.gte(foundationProgress.value, 100),
         visibility: () => showIf(morePlantsMilestone1.earned.value),
@@ -216,10 +216,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 </div>
                 {render(dayProgress)}
                 <Spacer />
+                <div>
+                    <span>The foundation is </span>
+                    <h2 style={`color: ${color}; text-shadow: 0 0 10px ${color}`}>
+                        {formatWhole(foundationProgress.value)}
+                    </h2>
+                    % completed
+                </div>
+                {Decimal.lt(foundationProgress.value, 100) ? <Spacer /> : null}
                 {render(buildFoundation)}
-                {Decimal.lt(foundationProgress.value, 100) ? (
-                    <div>You have {formatWhole(foundationProgress.value)}% completed</div>
-                ) : null}
                 <Spacer />
                 {milestonesDisplay()}
             </>

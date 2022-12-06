@@ -11,7 +11,7 @@ import { persistent } from "game/persistence";
 import type { PlayerData } from "game/player";
 import player from "game/player";
 import { format, formatTime } from "util/bignum";
-import { Computable, convertComputable, processComputable, ProcessedComputable } from "util/computed";
+import { Computable, convertComputable, ProcessedComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { renderRow, VueFeature } from "util/vue";
 import type { Ref } from "vue";
@@ -66,8 +66,10 @@ export const main = createLayer("main", function (this: BaseLayer) {
         return createLazyProxy(() => {
             const day = optionsFunc();
 
-            // There's got to be a better way to do this
-            const shouldNotify = convertComputable(() => unref(convertComputable(day.shouldNotify)) || unref(recentlyUpdated))
+            const optionsShouldNotify = convertComputable(day.shouldNotify);
+            const shouldNotify = convertComputable(
+                () => unref(optionsShouldNotify) || unref(recentlyUpdated)
+            );
 
             return {
                 ...day,
@@ -76,9 +78,17 @@ export const main = createLayer("main", function (this: BaseLayer) {
                 recentlyUpdated,
                 [Component]: Day as GenericComponent,
                 [GatherProps]: function (this: Day) {
-                    const { day, layer, symbol, opened, shouldNotify, story, completedStory, recentlyUpdated } =
-                        this;
-                        
+                    const {
+                        day,
+                        layer,
+                        symbol,
+                        opened,
+                        shouldNotify,
+                        story,
+                        completedStory,
+                        recentlyUpdated
+                    } = this;
+
                     return {
                         day,
                         symbol,
@@ -162,16 +172,16 @@ export const main = createLayer("main", function (this: BaseLayer) {
             shouldNotify: false,
             layer: "elves",
             symbol: elfSymbol,
-            story: "Alright, it seems you finally have enough things setup to start bringing in the elves! Unfortunately, it seems they'll need to be retrained on how to help, since they're out of practice by 11 months!",
+            story: "Alright, it seems you finally have enough things set up to start bringing in the elves! Unfortunately, it seems they'll need to be retrained on how to help, since they've stopped practicing for 11 months!",
             completedStory:
-                "The workshop now hums with the bustling elves working everything. They can take it from here - you deserve a break after such a long day! Good Job!"
+                "The workshop now hums with the bustling elves working on everything. They can take it from here - you deserve a break after such a long day! Good Job!"
         })),
         createDay(() => ({
             day: 5,
             shouldNotify: false,
             layer: "paper",
             symbol: paperSymbol,
-            story: "With the elves trained, we're almost ready to start working on these presents! Just a couple more pre-reqs first, starting with turning all this wood into wood pulp and finally into paper, which will be required for wrapping paper later on but in the meantime can be used to help write guides to help these elves continue their education!",
+            story: "With the elves trained, we're almost ready to start working on these presents! Just a couple more pre-reqs first, starting with turning all this wood into wood pulp and finally into paper, which will be required for wrapping paper later on but in the meantime can be used to help write guides which will help these elves continue their education!",
             completedStory:
                 "You look upon your rivers of book pulp as you hand out stacks of papers to elves to read through. You've continued getting closer and closer to preparing for Christmas, and can go to bed satisfied with your progress. Good Job!"
         })),
@@ -182,7 +192,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
             symbol: boxesSymbol,
             story: "You watch all these elves carrying incredibly large loads just in their open elf-sized hands, and realize there's probably a better way. You need to put the toys in boxes anyways, so why don't we get started working on those so the workers can take advantage as well?",
             completedStory:
-                "Wow, those boxes are really convenient! The workshop feels more and more proper with every day. You tick another requirement of your list and start looking towards tomorrow. Good Job!"
+                "Wow, those boxes are really convenient! The workshop feels more and more proper with every day. You tick another requirement on your list and start looking towards tomorrow. Good Job!"
         })),
         createDay(() => ({
             day: 7,
