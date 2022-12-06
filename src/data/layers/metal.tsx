@@ -319,7 +319,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const { total: totalMetal, trackerDisplay } = setUpDailyProgressTracker({
         resource: metal,
-        goal: 5000,
+        goal: 50000,
         name,
         day,
         color,
