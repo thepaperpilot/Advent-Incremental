@@ -411,7 +411,7 @@ export function setUpDailyProgressTracker(options: {
         if (main.day.value !== options.day) return 1;
         let progress = Decimal.add(total.value, 1);
         let requirement = options.goal;
-        if (options.usingLog ?? player.usingLog) {
+        if (options.usingLog?.value ?? player.usingLog) {
             progress = progress.log10();
             requirement = Decimal.log10(requirement);
         }
