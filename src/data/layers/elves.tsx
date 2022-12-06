@@ -288,7 +288,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             toggleDesc?: string;
             onAutoPurchase?: VoidFunction;
             onPurchase?: VoidFunction; // Will get overriden by the custom onpurchase, but that's fine
-            canBuy?: Computable<boolean>; 
+            canBuy?: Computable<boolean>;
         } & Partial<ClickableOptions>
     ) {
         const trainingCost = computed(() => Decimal.pow(4, totalElves.value).times(1e6));
@@ -298,7 +298,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const computedAutoBuyCooldown = computed(() => options.cooldownModifier.apply(10));
 
         function update(diff: number) {
-            let isActive = options.canBuy ? unref(convertComputable(options.canBuy)) : true;
+            const isActive = options.canBuy ? unref(convertComputable(options.canBuy)) : true;
             if (upgrade.bought.value && isActive) {
                 buyProgress.value = Decimal.add(buyProgress.value, diff);
                 const cooldown = Decimal.recip(computedAutoBuyCooldown.value);
@@ -437,7 +437,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const bonfireElf = createElf({
         name: "Faith",
         description:
-            "Faith will automatically purchase bonfires you can afford, without actually spending any small fires. You can toggle whether or not to enable the purchased bonfires automatically. Bonfires will start giving a boost to ash and coal gain.",
+            "Faith will automatically purchase bonfires you can afford. You can toggle whether or not to enable the purchased bonfires automatically. Bonfires will start giving a boost to ash and coal gain.",
         buyable: coal.buildBonfire,
         cooldownModifier: bonfireCooldown,
         visibility: () => showIf(boxes.upgrades.ashUpgrade.bought.value),
@@ -653,5 +653,5 @@ const layer = createLayer(id, function (this: BaseLayer) {
 export default layer;
 
 function processComputable(canBuy: boolean | Ref<boolean> | (() => boolean) | undefined) {
-throw new Error("Function not implemented.");
+    throw new Error("Function not implemented.");
 }
