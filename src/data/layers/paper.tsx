@@ -164,7 +164,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         goal: 5e3,
         name,
         day,
-        color
+        color,
+        textColor: 'var(--feature-foreground)'
     });
 
     return {

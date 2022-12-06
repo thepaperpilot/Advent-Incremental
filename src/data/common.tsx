@@ -401,6 +401,7 @@ export function setUpDailyProgressTracker(options: {
     name: string,
     day: number,
     color: string,
+    textColor?: string,
     modal?: {
         show: Ref<boolean>,
         display: VueFeature | CoercableComponent
@@ -413,7 +414,7 @@ export function setUpDailyProgressTracker(options: {
         width: 600,
         height: 25,
         fillStyle: { backgroundColor: options.color },
-        textStyle: { color: 'var(--feature-foreground)' },
+        textStyle: options.textColor ? { color: options.textColor } : undefined,
         progress: () =>
             main.day.value === options.day
                 ? Decimal.div(
