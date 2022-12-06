@@ -14,7 +14,7 @@
                     >, <component :is="effectComponent" ref="effectRef"
                 /></span>
                 <span v-if="productionComponent">
-                    <br/>
+                    <br />
                     <component :is="productionComponent" ref="effectRef"
                 /></span>
             </div>

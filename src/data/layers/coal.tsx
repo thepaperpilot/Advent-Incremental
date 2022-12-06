@@ -729,7 +729,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             show: showModifiersModal,
             display: modifiersModal
         }
-    })
+    });
 
     return {
         name,

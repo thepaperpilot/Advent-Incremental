@@ -34,6 +34,8 @@ export interface PlayerData {
     modVersion: string;
     /** A dictionary of layer save data. */
     layers: Record<string, LayerData<unknown>>;
+    /** Whether to use log for progress toward finishing the day, or use linear. */
+    usingLog: boolean;
 }
 
 /** The proxied player that is used to track NaN values. */
@@ -65,7 +67,8 @@ const state = reactive<PlayerData>({
     keepGoing: false,
     modID: "",
     modVersion: "",
-    layers: {}
+    layers: {},
+    usingLog: false
 });
 
 /** Convert a player save data object into a JSON string. Unwraps refs. */

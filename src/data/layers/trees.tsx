@@ -27,13 +27,12 @@ import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole, formatLimit } from "util/bignum";
 import { Direction, WithRequired } from "util/common";
 import { render, renderRow } from "util/vue";
-import { computed, ref, watchEffect } from "vue";
+import { computed, ref } from "vue";
 import boxes from "./boxes";
 import coal from "./coal";
 import elves from "./elves";
 import paper from "./paper";
 import workshop from "./workshop";
-
 const id = "trees";
 const day = 1;
 
@@ -681,11 +680,32 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     style="margin-bottom: 0"
                     productionDisplay={
                         Decimal.gt(computedAutoCuttingAmount.value, 0)
-                            ? `+${format(ema.value)}/s average<br/>equilibrium: +${formatLimit([
-                                      [Decimal.mul(logGain.apply(1), computedAutoCuttingAmount.value), "cutting speed"],
-                                      [Decimal.mul(logGain.apply(1), computedAutoPlantingAmount.value), "planting speed"],
-                                      [Decimal.mul(logGain.apply(1), Decimal.mul(computedTotalTrees.value, 20)), "forest cap"]
-                            ], "/s")}`
+                            ? `+${format(ema.value)}/s average<br/>equilibrium: +${formatLimit(
+                                  [
+                                      [
+                                          Decimal.mul(
+                                              logGain.apply(1),
+                                              computedAutoCuttingAmount.value
+                                          ),
+                                          "cutting speed"
+                                      ],
+                                      [
+                                          Decimal.mul(
+                                              logGain.apply(1),
+                                              computedAutoPlantingAmount.value
+                                          ),
+                                          "planting speed"
+                                      ],
+                                      [
+                                          Decimal.mul(
+                                              logGain.apply(1),
+                                              Decimal.mul(computedTotalTrees.value, 20)
+                                          ),
+                                          "forest cap"
+                                      ]
+                                  ],
+                                  "/s"
+                              )}`
                             : undefined
                     }
                 />

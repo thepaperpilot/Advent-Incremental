@@ -7,6 +7,8 @@
     "dev": "vite --host",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
+    "typecheck": "vue-tsc --noEmit",
+    "lint": "eslint --ext .ts,.tsx,.vue --ignore-path .gitignore --fix src",
     "test": "vitest run",
     "testw": "vitest",
     "serve": "vite preview --host"

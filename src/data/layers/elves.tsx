@@ -21,7 +21,7 @@ import { createMultiplicativeModifier, createSequentialModifier, Modifier } from
 import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
-import { render, renderCol, renderRow } from "util/vue";
+import { render, renderRow } from "util/vue";
 import { computed, ref, Ref, unref, watchEffect } from "vue";
 import boxes from "./boxes";
 import coal from "./coal";
@@ -354,7 +354,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     showCost: !upgrade.bought.value
                 }),
                 style: "width: 190px",
-                onPurchase () {
+                onPurchase() {
                     options.onPurchase?.();
                     elfReset.reset();
                 }
@@ -425,7 +425,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 coal.activeFires.value = Decimal.add(coal.activeFires.value, 1);
             }
         },
-        onPurchase () {
+        onPurchase() {
             main.days[4].recentlyUpdated.value = true;
         }
     });
@@ -441,11 +441,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
         onAutoPurchase() {
             if (bonfireElf.toggle.value) {
                 coal.activeBonfires.value = Decimal.add(coal.activeBonfires.value, 1);
-                coal.buildFire.amount.value = Decimal.sub(coal.buildFire.amount.value, unref(this.buyable.cost!));
-                coal.activeFires.value = Decimal.sub(coal.activeFires.value, unref(this.buyable.cost!));
+                coal.buildFire.amount.value = Decimal.sub(
+                    coal.buildFire.amount.value,
+                    unref(this.buyable.cost!)
+                );
+                coal.activeFires.value = Decimal.sub(
+                    coal.activeFires.value,
+                    unref(this.buyable.cost!)
+                );
             }
         },
-        onPurchase () {
+        onPurchase() {
             main.days[4].recentlyUpdated.value = true;
         }
     });
@@ -463,7 +469,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 coal.activeKilns.value = Decimal.add(coal.activeKilns.value, 1);
             }
         },
-        onPurchase () {
+        onPurchase() {
             main.days[4].recentlyUpdated.value = true;
         }
     });

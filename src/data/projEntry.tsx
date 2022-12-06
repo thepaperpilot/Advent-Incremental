@@ -11,12 +11,7 @@ import { persistent } from "game/persistence";
 import type { PlayerData } from "game/player";
 import player from "game/player";
 import { format, formatTime } from "util/bignum";
-import {
-    Computable,
-    convertComputable,
-    processComputable,
-    ProcessedComputable
-} from "util/computed";
+import { Computable, convertComputable, ProcessedComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { renderRow, VueFeature } from "util/vue";
 import type { Ref } from "vue";

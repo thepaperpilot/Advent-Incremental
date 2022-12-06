@@ -18,7 +18,7 @@ import { createHotkey } from "features/hotkey";
 import { createMilestone } from "features/milestones/milestone";
 import { createResource, displayResource, Resource } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
-import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
+import Decimal, { DecimalSource, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render } from "util/vue";
 import { computed, unref, watchEffect } from "vue";
@@ -219,13 +219,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <div>
                     <span>The foundation is </span>
                     <h2 style={`color: ${color}; text-shadow: 0 0 10px ${color}`}>
-                        { formatWhole( foundationProgress.value ) }
+                        {formatWhole(foundationProgress.value)}
                     </h2>
                     % completed
                 </div>
-                {Decimal.lt(foundationProgress.value, 100) ? (
-                    <Spacer />
-                ) : null}
+                {Decimal.lt(foundationProgress.value, 100) ? <Spacer /> : null}
                 {render(buildFoundation)}
                 <Spacer />
                 {milestonesDisplay()}

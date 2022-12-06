@@ -30,7 +30,7 @@ declare global {
         formatTime: (s: number) => string;
         toPlaces: (x: DecimalSource, precision: number, maxAccepted: DecimalSource) => string;
         formatSmall: (x: DecimalSource, precision?: number) => string;
-        formatLimit: (list: [DecimalSource, string][], unit: string) => string ;
+        formatLimit: (list: [DecimalSource, string][], unit: string) => string;
         invertOOM: (x: DecimalSource) => Decimal;
     }
 }

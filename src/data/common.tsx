@@ -25,12 +25,10 @@ import type {
 } from "util/computed";
 import { convertComputable, processComputable } from "util/computed";
 import { getFirstFeature, render, renderColJSX, renderJSX, VueFeature } from "util/vue";
-import { Ref, watch, watchEffect } from "vue";
+import { Ref, watchEffect } from "vue";
 import { computed, unref } from "vue";
 import "./common.css";
 import { main } from "./projEntry";
-import Spacer from "components/layout/Spacer.vue";
-import Modal from "components/Modal.vue";
 
 /** An object that configures a {@link ResetButton} */
 export interface ResetButtonOptions extends ClickableOptions {
@@ -396,32 +394,36 @@ export function createCollapsibleMilestones(milestones: Record<string, GenericMi
 }
 
 export function setUpDailyProgressTracker(options: {
-    resource: Resource,
-    goal: DecimalSource,
-    name: string,
-    day: number,
-    color: string,
-    textColor?: string,
+    resource: Resource;
+    goal: DecimalSource;
+    name: string;
+    day: number;
+    color: string;
+    textColor?: string;
     modal?: {
-        show: Ref<boolean>,
-        display: VueFeature | CoercableComponent
-    }
+        show: Ref<boolean>;
+        display: VueFeature | CoercableComponent;
+    };
+    usingLog?: Ref<boolean>;
 }) {
     const total = trackTotal(options.resource);
-    
+    const progressFunc = () => {
+        if (main.day.value !== options.day) return 1;
+        let progress = Decimal.add(total.value, 1);
+        let requirement = options.goal;
+        if (options.usingLog ?? player.usingLog) {
+            progress = progress.log10();
+            requirement = Decimal.log10(requirement);
+        }
+        return Decimal.div(progress, requirement);
+    };
     const dayProgress = createBar(() => ({
         direction: Direction.Right,
         width: 600,
         height: 25,
         fillStyle: { backgroundColor: options.color },
         textStyle: options.textColor ? { color: options.textColor } : undefined,
-        progress: () =>
-            main.day.value === options.day
-                ? Decimal.div(
-                    Decimal.add(total.value, 1).log10(),
-                    Decimal.log10(options.goal)
-                )
-                : 1,
+        progress: progressFunc,
         display: jsx(() =>
             main.day.value === options.day ? (
                 <>
@@ -433,28 +435,36 @@ export function setUpDailyProgressTracker(options: {
         )
     }));
 
-    const trackerDisplay = jsx(() => <>
-        <div>
-            {main.day.value === options.day
-                ? <>Reach {formatWhole(options.goal)} total {options.resource.displayName} to complete the day</>
-                : <>{options.name} Complete!</>
-            }
-            {
-                options.modal
-                    ? <> - <button
+    const trackerDisplay = jsx(() => (
+        <>
+            <div>
+                {main.day.value === options.day ? (
+                    <>
+                        Reach {formatWhole(options.goal)} total {options.resource.displayName} to
+                        complete the day
+                    </>
+                ) : (
+                    <>{options.name} Complete!</>
+                )}
+                {options.modal ? (
+                    <>
+                        {" "}
+                        -{" "}
+                        <button
                             class="button"
                             style="display: inline-block;"
-                            onClick={() => options.modal!.show.value = true}>
-                        Check Modifiers
-                      </button></>
-                    : undefined
-            }
-        </div>
-        {render(dayProgress)}
-        {options.modal ? render(options.modal.display) : undefined}
-    </>);
+                            onClick={() => (options.modal!.show.value = true)}
+                        >
+                            Check Modifiers
+                        </button>
+                    </>
+                ) : undefined}
+            </div>
+            {render(dayProgress)}
+            {options.modal ? render(options.modal.display) : undefined}
+        </>
+    ));
 
-    
     watchEffect(() => {
         if (main.day.value === options.day && Decimal.gte(total.value, options.goal)) {
             main.completeDay();
@@ -464,5 +474,5 @@ export function setUpDailyProgressTracker(options: {
     return {
         total,
         trackerDisplay
-    }
+    };
 }

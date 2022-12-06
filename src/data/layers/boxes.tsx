@@ -5,19 +5,17 @@
 import Spacer from "components/layout/Spacer.vue";
 import { setUpDailyProgressTracker } from "data/common";
 import { main } from "data/projEntry";
-import { createBar } from "features/bars/bar";
 import { createBuyable, GenericBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
 import { createCumulativeConversion, createPolynomialScaling } from "features/conversion";
 import { jsx, showIf } from "features/feature";
 import MainDisplay from "features/resources/MainDisplay.vue";
-import { createResource, displayResource, trackTotal } from "features/resources/resource";
+import { createResource, displayResource } from "features/resources/resource";
 import { createUpgrade } from "features/upgrades/upgrade";
 import { BaseLayer, createLayer } from "game/layers";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
-import { Direction } from "util/common";
 import { render, renderRow } from "util/vue";
-import { unref, watchEffect } from "vue";
+import { unref } from "vue";
 import trees from "./trees";
 
 const id = "boxes";
@@ -71,7 +69,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Carry logs in boxes",
             description: "Double log gain and unlock a new elf for training"
         },
-        onPurchase () {
+        onPurchase() {
             main.days[3].recentlyUpdated.value = true;
         },
         resource: boxes,
@@ -82,7 +80,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Carry ash in boxes",
             description: "Double ash gain and unlock a new elf for training"
         },
-        onPurchase () {
+        onPurchase() {
             main.days[3].recentlyUpdated.value = true;
         },
         resource: boxes,
@@ -93,7 +91,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Carry coal in boxes",
             description: "Double coal gain and unlock a new elf for training"
         },
-        onPurchase () {
+        onPurchase() {
             main.days[3].recentlyUpdated.value = true;
         },
         resource: boxes,
@@ -151,7 +149,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         name,
         day,
         color
-    })
+    });
 
     return {
         name,
