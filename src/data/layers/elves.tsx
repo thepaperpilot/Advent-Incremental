@@ -21,6 +21,7 @@ import { createMultiplicativeModifier, createSequentialModifier, Modifier } from
 import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
+import { Computable, convertComputable } from "util/computed";
 import { render, renderCol, renderRow } from "util/vue";
 import { computed, ref, Ref, unref, watchEffect } from "vue";
 import boxes from "./boxes";
@@ -287,6 +288,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             toggleDesc?: string;
             onAutoPurchase?: VoidFunction;
             onPurchase?: VoidFunction; // Will get overriden by the custom onpurchase, but that's fine
+            canBuy?: Computable<boolean>; 
         } & Partial<ClickableOptions>
     ) {
         const trainingCost = computed(() => Decimal.pow(4, totalElves.value).times(1e6));
@@ -296,7 +298,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const computedAutoBuyCooldown = computed(() => options.cooldownModifier.apply(10));
 
         function update(diff: number) {
-            if (upgrade.bought.value) {
+            let isActive = options.canBuy ? unref(convertComputable(options.canBuy)) : true;
+            if (upgrade.bought.value && isActive) {
                 buyProgress.value = Decimal.add(buyProgress.value, diff);
                 const cooldown = Decimal.recip(computedAutoBuyCooldown.value);
                 while (Decimal.gte(buyProgress.value, cooldown)) {
@@ -449,7 +452,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         onPurchase () {
             main.days[4].recentlyUpdated.value = true;
-        }
+        },
+        canBuy: coal.unlockBonfire.bought
     });
     const kilnElf = createElf({
         name: "Snowball",
@@ -467,7 +471,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         onPurchase () {
             main.days[4].recentlyUpdated.value = true;
-        }
+        },
+        canBuy: coal.unlockKiln.bought
     });
     const fireElves = [smallFireElf, bonfireElf, kilnElf];
     const elves = {
@@ -640,3 +645,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 });
 
 export default layer;
+
+function processComputable(canBuy: boolean | Ref<boolean> | (() => boolean) | undefined) {
+throw new Error("Function not implemented.");
+}
