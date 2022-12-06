@@ -98,7 +98,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: {
             color: colorText,
             width: "160px"
-        }
+        },
+        visibility: () => showIf(unlockBonfire.bought.value)
     })) as GenericBuyable & { resource: Resource };
     const minFire = createClickable(() => ({
         display: "0",
@@ -252,7 +253,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: {
             color: colorText,
             width: "160px"
-        }
+        },
+        visibility: () => showIf(unlockKiln.bought.value)
     })) as GenericBuyable & { resource: Resource };
     const minKiln = createClickable(() => ({
         display: "0",
@@ -326,7 +328,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: {
             color: colorText,
             width: "160px"
-        }
+        },
+        visibility: () => showIf(metal.coalDrill.bought.value)
     })) as GenericBuyable & { resource: Resource };
     const minDrill = createClickable(() => ({
         display: "0",
