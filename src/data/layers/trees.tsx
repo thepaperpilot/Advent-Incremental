@@ -451,7 +451,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     )
                 )
             );
-            logs.value = Decimal.add(logs.value, logGain.apply(amount));
+            logs.value = Decimal.add(logs.value, Decimal.times(logGain.apply(1), amount));
             saplings.value = Decimal.add(saplings.value, amount);
             manualCutProgress.value = 0;
         }
