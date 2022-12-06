@@ -356,7 +356,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 <MainDisplay resource={metal} color={color} style="margin-bottom: 0" sticky={false}
                     productionDisplay={
-                        <>
+                        jsx(()=><>
                         {{
                             [-1]: <>{format(computedMetalGain.value)}/s</>,
                             0: undefined,
@@ -368,7 +368,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                                 ? <> (Limited by {coal.coal.displayName})</>
                                 : undefined
                         }
-                        </>
+                        </>)
                     }
                 />
                 <Spacer />
@@ -381,11 +381,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 <MainDisplay resource={ore} color={color} style="margin-bottom: 0" sticky={false}
                     productionDisplay={
-                        <>{{
+                        jsx(()=><>{{
                             [-1]: <>{format(computedNetOreGain.value)}/s</>,
                             0: undefined,
                             1: <>+{format(computedNetOreGain.value)}/s</>
-                        }[Decimal.compare(computedNetOreGain.value, 0)]}</>
+                        }[Decimal.compare(computedNetOreGain.value, 0)]}</>)
                     }
                 />
                 <Spacer />
