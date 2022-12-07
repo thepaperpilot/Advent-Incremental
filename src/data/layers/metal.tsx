@@ -45,6 +45,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: crucible.bought
         })),
         createMultiplicativeModifier(() => ({
+            multiplier: 1.5,
+            description: "Industrial Crucible",
+            enabled: () => Decimal.gte(industrialCrucible.amount.value, 1)
+        })),
+        createMultiplicativeModifier(() => ({
             multiplier: 2,
             description: "Industrial Furnace",
             enabled: industrialFurnace.bought
@@ -379,7 +384,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const { total: totalMetal, trackerDisplay } = setUpDailyProgressTracker({
         resource: metal,
-        goal: 50000,
+        goal: 25000,
         name,
         day,
         color,
