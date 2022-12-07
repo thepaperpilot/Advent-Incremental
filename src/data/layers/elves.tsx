@@ -450,11 +450,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 coal.buildFire.amount.value = Decimal.sub(
                     coal.buildFire.amount.value,
                     unref(this.buyable.cost!)
-                );
+                ).max(0);
                 coal.activeFires.value = Decimal.sub(
                     coal.activeFires.value,
                     unref(this.buyable.cost!)
-                );
+                ).max(0);
             }
         },
         onPurchase() {
