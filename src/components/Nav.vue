@@ -168,7 +168,8 @@ function openDiscord() {
 }
 
 .title {
-    font-size: 36px;
+    font-family: "Great Vibes", cursive;
+    font-size: 46px;
     text-align: left;
     margin-left: 12px;
     cursor: unset;
@@ -177,6 +178,7 @@ function openDiscord() {
 .nav > .title {
     width: unset;
     flex-shrink: 1;
+    padding-right: 8px;
     overflow: hidden;
     white-space: nowrap;
 }

@@ -88,9 +88,10 @@ defineExpose({ isOpen, nodes });
 .modal-container {
     width: 640px;
     max-width: 95vw;
-    max-height: 95vh;
+    max-height: calc(95vh - 20px);
     background-color: var(--background);
     padding: 20px;
+    margin-top: 20px;
     border-radius: 5px;
     transition: all 0.3s ease;
     text-align: left;
@@ -102,6 +103,13 @@ defineExpose({ isOpen, nodes });
 
 .modal-header {
     width: 100%;
+    margin-top: -50px;
+    text-align: center;
+}
+.modal-header > h2 {
+    font-family: "Great Vibes", cursive;
+    font-weight: normal;
+    font-size: 64px;
 }
 
 .modal-body {

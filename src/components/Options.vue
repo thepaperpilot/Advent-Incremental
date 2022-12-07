@@ -1,9 +1,7 @@
 <template>
     <Modal v-model="isOpen">
         <template v-slot:header>
-            <div class="header">
-                <h2>Options</h2>
-            </div>
+            <h2>Options</h2>
         </template>
         <template v-slot:body>
             <Select title="Theme" :options="themes" v-model="theme" />
@@ -77,9 +75,6 @@ const progressMethodTitle = jsx(() => (
 </script>
 
 <style scoped>
-.header {
-    margin-bottom: -10px;
-}
 
 *:deep() .tooltip-container {
     display: inline;

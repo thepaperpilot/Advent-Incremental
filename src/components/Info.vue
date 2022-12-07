@@ -1,12 +1,12 @@
 <template>
-    <Modal v-model="isOpen">
+    <Modal class="info-modal" v-model="isOpen">
         <template v-slot:header>
             <div class="info-modal-header">
                 <img class="info-modal-logo" v-if="logo" :src="logo" :alt="title" />
                 <div class="info-modal-title">
-                    <h2>{{ title }}</h2>
+                    <h2>- {{ title }} -</h2>
                     <h4>
-                        v{{ versionNumber }}<span v-if="versionTitle">: {{ versionTitle }}</span>
+                        - v{{ versionNumber }}<span v-if="versionTitle">: {{ versionTitle }}</span> -
                     </h4>
                 </div>
             </div>
@@ -95,6 +95,12 @@ function openChangelog() {
 </script>
 
 <style>
+.info-modal .modal-header {
+    font-family: unset;
+    font-weight: unset;
+    font-size: unset;
+    margin-top: unset;
+}
 .info-modal-header {
     display: flex;
     margin: -20px;
@@ -114,9 +120,17 @@ function openChangelog() {
 
 .info-modal-title {
     display: flex;
+    flex-grow: 1;
     flex-direction: column;
     padding: 10px 0;
-    margin-left: 10px;
+    text-align: center;
+}
+
+.info-modal-title h2 {
+    font-family: "Great Vibes", cursive;
+    font-weight: normal;
+    font-size: 64px;
+    margin-top: -40px;
 }
 
 .info-modal-discord-link {

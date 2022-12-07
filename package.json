@@ -14,6 +14,7 @@
     "serve": "vite preview --host"
   },
   "dependencies": {
+    "@fontsource/great-vibes": "^4.5.10",
     "@fontsource/material-icons": "^4.5.4",
     "@fontsource/roboto-mono": "^4.5.8",
     "@pixi/app": "~6.3.2",
