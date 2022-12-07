@@ -2,6 +2,7 @@
  * @module
  * @hidden
  */
+import Row from "components/layout/Row.vue";
 import Spacer from "components/layout/Spacer.vue";
 import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
@@ -20,7 +21,7 @@ import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource } from "util/bignum";
 import { formatWhole } from "util/break_eternity";
 import { Direction } from "util/common";
-import { render, renderRow } from "util/vue";
+import { render, renderCol, renderRow } from "util/vue";
 import { computed, ref } from "vue";
 import metal from "./metal";
 import paper from "./paper";
@@ -207,7 +208,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Quadruple trees planted"
         }
     }));
-    const treesUpgrades = { treesUpgrade1, treesUpgrade2, treesUpgrade3 };
+    const treesUpgrades = { treesUpgrade3, treesUpgrade2, treesUpgrade1 };
 
     const metalUpgrade1 = createUpgrade(() => ({
         resource: noPersist(cloth),
@@ -235,7 +236,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Triple coal gain"
         }
     }));
-    const metalUpgrades = { metalUpgrade1, metalUpgrade2, metalUpgrade3 };
+    const metalUpgrades = { metalUpgrade3, metalUpgrade2, metalUpgrade1 };
 
     const paperUpgrade1 = createUpgrade(() => ({
         resource: noPersist(cloth),
@@ -263,7 +264,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Double paper gain"
         }
     }));
-    const paperUpgrades = { paperUpgrade1, paperUpgrade2, paperUpgrade3 };
+    const paperUpgrades = { paperUpgrade3, paperUpgrade2, paperUpgrade1 };
 
     const sheepGain = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
@@ -419,9 +420,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {renderRow(breeding, shearing, spinning)}
                 {renderRow(buildPens, betterShears, fasterSpinning)}
                 <Spacer />
-                {renderRow(...Object.values(treesUpgrades))}
-                {renderRow(...Object.values(metalUpgrades))}
-                {renderRow(...Object.values(paperUpgrades))}
+                <Row>
+                    {renderCol(...Object.values(treesUpgrades))}
+                    {renderCol(...Object.values(metalUpgrades))}
+                    {renderCol(...Object.values(paperUpgrades))}
+                </Row>
             </>
         ))
     };
