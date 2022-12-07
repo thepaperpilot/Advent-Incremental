@@ -207,3 +207,11 @@ export function formatLimit(list: [DecimalSource, string][], unit: string): stri
     }
     return format(num) + unit + ", limited by " + str;
 }
+
+export function formatGain(gain: DecimalSource) {
+    return {
+        [-1]: `${format(gain)}/s`,
+        0: "",
+        1: `+${format(gain)}/s`
+    }[Decimal.compare(gain, 0)];
+}

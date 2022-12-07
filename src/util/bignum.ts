@@ -13,7 +13,8 @@ export const {
     toPlaces,
     formatSmall,
     formatLimit,
-    invertOOM
+    invertOOM,
+    formatGain
 } = numberUtils;
 
 export type DecimalSource = RawDecimalSource;
@@ -32,6 +33,7 @@ declare global {
         formatSmall: (x: DecimalSource, precision?: number) => string;
         formatLimit: (list: [DecimalSource, string][], unit: string) => string;
         invertOOM: (x: DecimalSource) => Decimal;
+        formatGain: (x: DecimalSource) => string
     }
 }
 window.Decimal = Decimal;
@@ -45,5 +47,6 @@ window.toPlaces = toPlaces;
 window.formatSmall = formatSmall;
 window.formatLimit = formatLimit;
 window.invertOOM = invertOOM;
+window.formatGain = formatGain
 
 export default Decimal;

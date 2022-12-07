@@ -24,7 +24,7 @@ import {
     Modifier
 } from "game/modifiers";
 import { noPersist, persistent } from "game/persistence";
-import Decimal, { DecimalSource, format, formatWhole, formatLimit } from "util/bignum";
+import Decimal, { DecimalSource, format, formatWhole, formatLimit, formatGain } from "util/bignum";
 import { Direction, WithRequired } from "util/common";
 import { render, renderRow } from "util/vue";
 import { computed, ref } from "vue";
@@ -713,25 +713,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     resource={saplings}
                     color={colorDark}
                     style="margin-bottom: 0"
-                    productionDisplay={
-                        {
-                            [-1]: `${formatWhole(netSaplingGain.value)}/s`,
-                            0: undefined,
-                            1: `+${formatWhole(netSaplingGain.value)}/s`
-                        }[Decimal.compare(netSaplingGain.value, 0)]
-                    }
+                    productionDisplay={formatGain(netSaplingGain.value)}
                 />
                 <MainDisplay
                     resource={trees}
                     color={colorDark}
                     style="margin-bottom: 0"
-                    productionDisplay={
-                        {
-                            [-1]: `${formatWhole(netTreeGain.value)}/s`,
-                            0: undefined,
-                            1: `+${formatWhole(netTreeGain.value)}/s`
-                        }[Decimal.compare(netTreeGain.value, 0)]
-                    }
+                    productionDisplay={formatGain(netTreeGain.value)}
                 />
                 <Spacer />
                 {renderRow(cutTree, plantTree)}

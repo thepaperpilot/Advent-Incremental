@@ -1,6 +1,6 @@
 import Spacer from "components/layout/Spacer.vue";
 import MainDisplay from "features/resources/MainDisplay.vue";
-import Toggle from "components/fields/Toggle.vue"
+import Toggle from "components/fields/Toggle.vue";
 import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
 import { jsx, showIf } from "features/feature";
@@ -10,15 +10,19 @@ import Decimal, { DecimalSource } from "lib/break_eternity";
 import { render, renderRow } from "util/vue";
 import { persistent } from "game/persistence";
 import { globalBus } from "game/events";
-import { createAdditiveModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
+import {
+    createAdditiveModifier,
+    createMultiplicativeModifier,
+    createSequentialModifier
+} from "game/modifiers";
 import { computed, ref, unref } from "vue";
 import { createBar } from "features/bars/bar";
 import { Direction } from "util/common";
-import { format, formatWhole } from "util/break_eternity";
+import { format, formatGain, formatLimit, formatWhole } from "util/break_eternity";
 import { createClickable } from "features/clickables/clickable";
-import coal from "./coal"
+import coal from "./coal";
 import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
-import { noPersist } from "game/persistence"
+import { noPersist } from "game/persistence";
 import { createBuyable, GenericBuyable } from "features/buyable";
 import { main } from "../projEntry";
 
@@ -52,7 +56,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     ]);
     const computedOrePurity = computed(() => orePurity.apply(0.1));
-    
+
     const autoSmeltSpeed = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: () => Decimal.times(industrialCrucible.amount.value, 10),
@@ -63,13 +67,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const computedAutoSmeltSpeed = computed(() => autoSmeltSpeed.apply(0));
 
     const coalCost = 1e10;
-    const smeltableOre = computed(() => 
-        Decimal.min(
-            ore.value,
-            Decimal.div(coal.coal.value, coalCost)
-        ).floor().max(0)
+    const smeltableOre = computed(() =>
+        Decimal.min(ore.value, Decimal.div(coal.coal.value, coalCost)).floor().max(0)
     );
-    
+
     const smeltOreButton = createClickable(() => ({
         display: jsx(() => {
             const cost = Decimal.gte(smeltableOre.value, 1)
@@ -78,13 +79,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             return (
                 <>
                     <span style="font-size: large">
-                        Smelt {format(Decimal.times(smeltableOre.value, computedOrePurity.value))} {metal.displayName}
-                    </span><br />
+                        Smelt {format(Decimal.times(smeltableOre.value, computedOrePurity.value))}{" "}
+                        {metal.displayName}
+                    </span>
+                    <br />
                     <span style="font-size: large">
-                        Cost: {formatWhole(cost)} {ore.displayName}; {formatWhole(Decimal.times(cost, coalCost))} {coal.coal.displayName}
+                        Cost: {formatWhole(cost)} {ore.displayName};{" "}
+                        {formatWhole(Decimal.times(cost, coalCost))} {coal.coal.displayName}
                     </span>
                 </>
-            )
+            );
         }),
         canClick: () => Decimal.gte(smeltableOre.value, 1),
         onClick() {
@@ -98,7 +102,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     function smeltOre(amount: DecimalSource) {
-        let [metalGain, oreConsumption, coalConsumption] = [
+        const [metalGain, oreConsumption, coalConsumption] = [
             Decimal.times(amount, computedOrePurity.value),
             amount,
             Decimal.times(amount, coalCost)
@@ -164,7 +168,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: Decimal.reciprocate(maxOreProgress)
         }))
-    ])
+    ]);
     const computedOreGain = computed(() => oreGain.apply(0));
     const netOreGain = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
@@ -174,7 +178,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             addend: () => Decimal.negate(computedAutoSmeltSpeed.value),
             enabled: autoSmeltEnabled
         }))
-    ])
+    ]);
     const computedNetOreGain = computed(() => netOreGain.apply(0));
 
     const simplePickaxe = createUpgrade(() => ({
@@ -182,7 +186,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost: 0.1,
         display: {
             title: "A Simple Pickaxe",
-            description: "Make a simple pickaxe to help mine faster.<br/><br/>Halve the time to mine more ore"
+            description:
+                "Make a simple pickaxe to help mine faster.<br/><br/>Halve the time to mine more ore"
         }
     }));
     const doublePickaxe = createUpgrade(() => ({
@@ -190,7 +195,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost: 0.1,
         display: {
             title: "Double Pickaxe",
-            description: "This is too slow. What if you swung two pickaxes at once?<br/><br/>Halve the time to mine ore, again"
+            description:
+                "This is too slow. What if you swung two pickaxes at once?<br/><br/>Halve the time to mine ore, again"
         },
         visibility: () => showIf(doublePickaxe.bought.value)
     })) as GenericUpgrade;
@@ -199,27 +205,41 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost: 1,
         display: {
             title: "Crucible",
-            description: "Smelting this all by hand is rather painful, and a lot of the metal is left in the slag. A small crucible should help a lot!<br/><br/>Increase the metal extracted per ore by 5x"
+            description:
+                "Smelting this all by hand is rather painful, and a lot of the metal is left in the slag. A small crucible should help a lot!<br/><br/>Increase the metal extracted per ore by 5x"
         },
-        visibility: () => showIf(crucible.bought.value || Decimal.div(bestOre.value, computedOrePurity.value).plus(bestMetal.value).gte(1))
+        visibility: () =>
+            showIf(
+                crucible.bought.value ||
+                    Decimal.div(bestOre.value, computedOrePurity.value).plus(bestMetal.value).gte(1)
+            )
     })) as GenericUpgrade;
     const coalDrill = createUpgrade(() => ({
         resource: noPersist(metal),
         cost: 0,
         display: {
             title: "Coal Drilling",
-            description: "These mining drills are pretty powerful, mining more ore than you can actually smelt. Could be worth making some to mine coal instead"
+            description:
+                "These mining drills are pretty powerful, mining more ore than you can actually smelt. Could be worth making some to mine coal instead"
         },
-        visibility: () => showIf(Decimal.gte(oreDrill.amount.value, 1) && (
-            coalDrill.bought.value ||
-            Decimal.lt(coal.computedCoalGain.value, Decimal.times(computedOreAmount.value, computedOreSpeed.value).div(maxOreProgress).times(coalCost)))),
+        visibility: () =>
+            showIf(
+                Decimal.gte(oreDrill.amount.value, 1) &&
+                    (coalDrill.bought.value ||
+                        Decimal.lt(
+                            coal.computedCoalGain.value,
+                            Decimal.times(computedOreAmount.value, computedOreSpeed.value)
+                                .div(maxOreProgress)
+                                .times(coalCost)
+                        ))
+            ),
         onPurchase() {
             main.days[2].recentlyUpdated.value = true;
         }
     })) as GenericUpgrade;
     const industrialFurnace = createUpgrade(() => ({
         canAfford() {
-            return Decimal.gte(metal.value, 50) && Decimal.gte(coal.coal.value, 1e11)
+            return Decimal.gte(metal.value, 50) && Decimal.gte(coal.coal.value, 1e11);
         },
         onPurchase() {
             metal.value = Decimal.sub(metal.value, 50);
@@ -236,37 +256,71 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const oreDrill = createBuyable(() => ({
         resource: noPersist(metal),
-        cost() { return Decimal.pow(1.15, this.amount.value).times(10)},
+        cost() {
+            return Decimal.pow(1.15, this.amount.value).times(10);
+        },
         display: {
             title: "Mining Drill",
             description: "An automated machine to help you mine more ore, faster",
-            effectDisplay: jsx(() => <>Mine 2.5x faster. Increase ore mining amount by {formatWhole(oreDrill.amount.value)} ore per operation</>)
+            effectDisplay: jsx(() => (
+                <>
+                    Mine 2.5x faster. Increase ore mining amount by{" "}
+                    {formatWhole(oreDrill.amount.value)} ore per operation
+                </>
+            ))
         },
-        visibility: () => showIf(Decimal.gte(oreDrill.amount.value, 1) || Decimal.div(bestOre.value, computedOrePurity.value).plus(bestMetal.value).gte(10)),
-        style: { width: '200px' }
-    })) as GenericBuyable
+        visibility: () =>
+            showIf(
+                Decimal.gte(oreDrill.amount.value, 1) ||
+                    Decimal.div(bestOre.value, computedOrePurity.value)
+                        .plus(bestMetal.value)
+                        .gte(10)
+            ),
+        style: { width: "200px" }
+    })) as GenericBuyable;
     const industrialCrucible = createBuyable(() => ({
         resource: noPersist(metal),
-        cost() { return Decimal.pow(1.15, Decimal.times(this.amount.value, 10)).times(10)},
+        cost() {
+            return Decimal.pow(1.15, Decimal.times(this.amount.value, 10)).times(10);
+        },
         display: {
             title: "Industrial Crucible",
-            description: "A giant automated crucible furnace, letting you smelt ore better and faster",
-            effectDisplay: jsx(() => <>Get 50% more metal per ore, and smelt {formatWhole(Decimal.times(industrialCrucible.amount.value, 10))} ore per second</>)
+            description: "A giant automated crucible furnace, letting you smelt ore faster",
+            effectDisplay: jsx(() => (
+                <>
+                    Automatically smelts{" "}
+                    {formatWhole(Decimal.times(industrialCrucible.amount.value, 10))} ore per second
+                </>
+            ))
         },
-        visibility: () => showIf(Decimal.gte(industrialCrucible.amount.value, 1) || Decimal.gte(oreDrill.amount.value, 4) || Decimal.gte(bestOre.value, 50)),
-        style: { width: '200px' }
-    })) as GenericBuyable
+        visibility: () =>
+            showIf(
+                Decimal.gte(industrialCrucible.amount.value, 1) ||
+                    Decimal.gte(oreDrill.amount.value, 4) ||
+                    Decimal.gte(bestOre.value, 50)
+            ),
+        style: { width: "200px" }
+    })) as GenericBuyable;
     const autoSmeltEnabled = persistent<boolean>(true);
     const hotterForge = createBuyable(() => ({
         resource: coal.coal,
-        cost() { return Decimal.pow(10, this.amount.value).times(1e12)},
+        cost() {
+            return Decimal.pow(10, this.amount.value).times(1e12);
+        },
         display: {
             title: "Hotter Forges",
-            description: "More coal makes the fires burn hotter, getting just a little more metal out of each bit of ore",
-            effectDisplay: jsx(() => <>Gain {formatWhole(Decimal.times(hotterForgeEffect.value, 100))}% more metal per ore</>)
+            description:
+                "More coal makes the fires burn hotter, getting just a little more metal out of each bit of ore",
+            effectDisplay: jsx(() => (
+                <>
+                    Gain {formatWhole(Decimal.times(hotterForgeEffect.value, 100))}% more metal per
+                    ore
+                </>
+            ))
         },
-        visibility: () => showIf(Decimal.gte(hotterForge.amount.value, 1) || industrialFurnace.bought.value),
-        style: { width: '200px' }
+        visibility: () =>
+            showIf(Decimal.gte(hotterForge.amount.value, 1) || industrialFurnace.bought.value),
+        style: { width: "200px" }
     })) as GenericBuyable;
     const hotterForgeEffect = computed(() => Decimal.times(hotterForge.amount.value, 0.25));
 
@@ -276,11 +330,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         oreProgress.value = oreProgress.value.minus(oreGain.times(maxOreProgress));
         ore.value = Decimal.add(ore.value, Decimal.times(oreGain, computedOreAmount.value));
 
-        if (autoSmeltEnabled.value && Decimal.gte(smeltableOre.value, Decimal.times(industrialCrucible.amount.value, 10).times(diff))) {
-            smeltOre(Decimal.min(
-                smeltableOre.value,
-                Decimal.times(industrialCrucible.amount.value, 10).times(diff)
-            ));
+        if (autoSmeltEnabled.value) {
+            smeltOre(
+                Decimal.min(
+                    smeltableOre.value,
+                    Decimal.times(industrialCrucible.amount.value, 10).times(diff)
+                )
+            );
         }
     });
 
@@ -358,43 +414,54 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 {render(trackerDisplay)}
                 <Spacer />
-                <MainDisplay resource={metal} color={color} style="margin-bottom: 0" sticky={false}
-                    productionDisplay={
-                        jsx(()=><>
-                        {{
-                            [-1]: <>{format(computedMetalGain.value)}/s</>,
-                            0: undefined,
-                            1: <>+{format(computedMetalGain.value)}/s</>
-                        }[Decimal.compare(computedMetalGain.value, 0)]}
-                        {Decimal.lt(computedOreGain.value, computedAutoSmeltSpeed.value)
-                            ? <> (Limited by {ore.displayName})</>
-                            : Decimal.lt(smeltableOre.value, Decimal.floor(ore.value))
-                                ? <> (Limited by {coal.coal.displayName})</>
-                                : undefined
-                        }
-                        </>)
-                    }
+                <MainDisplay
+                    resource={metal}
+                    color={color}
+                    style="margin-bottom: 0"
+                    sticky={false}
+                    productionDisplay={jsx(() => (
+                        <>
+                            {autoSmeltEnabled.value
+                                ? `+${formatLimit(
+                                      [
+                                          [computedMetalGain.value, "smelting speed"],
+                                          [computedOreGain.value, "ore gain"],
+                                          [
+                                              Decimal.div(coal.computedCoalGain.value, coalCost),
+                                              "coal gain"
+                                          ]
+                                      ],
+                                      "/s"
+                                  )}`
+                                : undefined}
+                        </>
+                    ))}
                 />
                 <Spacer />
                 {render(smeltOreButton)}
-                {Decimal.gte(industrialCrucible.amount.value, 1)
-                    ? <div style={{width: '150px'}}>
-                        <Toggle title="Auto Smelt" modelValue={autoSmeltEnabled.value} onUpdate:modelValue={value => (autoSmeltEnabled.value = value)}/>
-                      </div>
-                    : undefined}
+                {Decimal.gte(industrialCrucible.amount.value, 1) ? (
+                    <div style={{ width: "150px" }}>
+                        <Toggle
+                            title="Auto Smelt"
+                            modelValue={autoSmeltEnabled.value}
+                            onUpdate:modelValue={value => (autoSmeltEnabled.value = value)}
+                        />
+                    </div>
+                ) : undefined}
                 <Spacer />
-                <MainDisplay resource={ore} color={color} style="margin-bottom: 0" sticky={false}
-                    productionDisplay={
-                        jsx(()=><>{{
-                            [-1]: <>{format(computedNetOreGain.value)}/s</>,
-                            0: undefined,
-                            1: <>+{format(computedNetOreGain.value)}/s</>
-                        }[Decimal.compare(computedNetOreGain.value, 0)]}</>)
-                    }
+                <MainDisplay
+                    resource={ore}
+                    color={color}
+                    style="margin-bottom: 0"
+                    sticky={false}
+                    productionDisplay={jsx(() => (
+                        <>{formatGain(computedNetOreGain.value)}</>
+                    ))}
                 />
                 <Spacer />
                 <div>
-                    Currently mining {format(computedOreAmount.value)} ore every {format(Decimal.div(maxOreProgress, computedOreSpeed.value))} seconds
+                    Currently mining {format(computedOreAmount.value)} ore every{" "}
+                    {format(Decimal.div(maxOreProgress, computedOreSpeed.value))} seconds
                 </div>
                 {render(oreBar)}
                 <Spacer />
@@ -402,7 +469,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {renderRow(oreDrill, industrialCrucible, hotterForge)}
             </>
         ))
-    }
+    };
 });
 
 export default layer;
