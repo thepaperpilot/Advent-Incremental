@@ -153,16 +153,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         progress: () => Decimal.div(oreProgress.value, maxOreProgress)
     }));
 
-    const metalGain = createSequentialModifier(() => [
-        createAdditiveModifier(() => ({
-            addend: computedAutoSmeltSpeed,
-            enabled: autoSmeltEnabled
-        })),
-        createMultiplicativeModifier(() => ({
-            multiplier: computedOrePurity
-        }))
-    ]);
-    const computedMetalGain = computed(() => metalGain.apply(0));
     const oreGain = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: computedOreAmount
@@ -429,14 +419,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
                             {autoSmeltEnabled.value && Decimal.gte(industrialCrucible.amount.value, 1)
                                 ? `+${formatLimit(
                                       [
-                                          [computedMetalGain.value, "smelting speed"],
-                                          [Decimal.times(computedOreGain.value, computedOrePurity.value), "ore gain"],
-                                          [
-                                              Decimal.div(coal.computedCoalGain.value, coalCost).times(computedOrePurity.value),
-                                              "coal gain"
-                                          ]
+                                          [computedAutoSmeltSpeed.value, "smelting speed"],
+                                          [computedOreGain.value, "ore gain"],
+                                          [Decimal.div(coal.computedCoalGain.value, coalCost), "coal gain"]
                                       ],
-                                      "/s"
+                                      "/s",
+                                      computedOrePurity.value
                                   )}`
                                 : undefined}
                         </>

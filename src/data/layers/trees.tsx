@@ -698,29 +698,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         Decimal.gt(computedAutoCuttingAmount.value, 0)
                             ? `+${format(ema.value)}/s average<br/>equilibrium: +${formatLimit(
                                   [
-                                      [
-                                          Decimal.mul(
-                                              logGain.apply(1),
-                                              computedAutoCuttingAmount.value
-                                          ),
-                                          "cutting speed"
-                                      ],
-                                      [
-                                          Decimal.mul(
-                                              logGain.apply(1),
-                                              computedAutoPlantingAmount.value
-                                          ),
-                                          "planting speed"
-                                      ],
-                                      [
-                                          Decimal.mul(
-                                              logGain.apply(1),
-                                              Decimal.mul(computedTotalTrees.value, 20)
-                                          ),
-                                          "forest cap"
-                                      ]
+                                      [computedAutoCuttingAmount.value, "cutting speed"],
+                                      [computedAutoPlantingAmount.value, "planting speed"],
+                                      [Decimal.mul(computedTotalTrees.value, 20), "forest cap"]
                                   ],
-                                  "/s"
+                                  "/s",
+                                  logGain.apply(1)
                               )}`
                             : undefined
                     }
