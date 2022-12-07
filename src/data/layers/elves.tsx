@@ -445,16 +445,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         hasToggle: true,
         toggleDesc: "Activate auto-purchased bonfires",
         onAutoPurchase() {
+            const spent = unref(this.buyable.cost!);
+            coal.activeFires.value = Decimal.sub(coal.activeFires.value, spent).max(0);
+            coal.buildFire.amount.value = Decimal.sub(coal.buildFire.amount.value, spent).max(0);
             if (bonfireElf.toggle.value) {
                 coal.activeBonfires.value = Decimal.add(coal.activeBonfires.value, 1);
-                coal.buildFire.amount.value = Decimal.sub(
-                    coal.buildFire.amount.value,
-                    unref(this.buyable.cost!)
-                ).max(0);
-                coal.activeFires.value = Decimal.sub(
-                    coal.activeFires.value,
-                    unref(this.buyable.cost!)
-                ).max(0);
             }
         },
         onPurchase() {
