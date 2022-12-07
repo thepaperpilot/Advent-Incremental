@@ -426,7 +426,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     sticky={false}
                     productionDisplay={jsx(() => (
                         <>
-                            {autoSmeltEnabled.value
+                            {autoSmeltEnabled.value && Decimal.gte(industrialCrucible.amount.value, 1)
                                 ? `+${formatLimit(
                                       [
                                           [computedMetalGain.value, "smelting speed"],
