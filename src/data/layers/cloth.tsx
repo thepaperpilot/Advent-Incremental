@@ -11,6 +11,7 @@ import { createBar } from "features/bars/bar";
 import { createBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
+import { createHotkey } from "features/hotkey";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource } from "features/resources/resource";
 import { createUpgrade } from "features/upgrades/upgrade";
@@ -140,6 +141,30 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cloth.value = Decimal.add(cloth.value, amount);
             wool.value = Decimal.sub(wool.value, amount);
             spinningProgress.value = 0;
+        }
+    }));
+
+    const breedSheepHK = createHotkey(() => ({
+        key: "b",
+        description: 'Press the "Breed Sheep" button',
+        onPress: () => {
+            if (breeding.canClick.value) breeding.onClick();
+        }
+    }));
+
+    const shearSheepHK = createHotkey(() => ({
+        key: "h", // For some reason, "shift+s" doesn't work properly
+        description: 'Press the "Shear Sheep" button',
+        onPress: () => {
+            if (shearing.canClick.value) shearing.onClick();
+        }
+    }));
+
+    const spinWoolHK = createHotkey(() => ({
+        key: "s",
+        description: 'Press the "Spin Wool" button',
+        onPress: () => {
+            if (spinning.canClick.value) spinning.onClick();
         }
     }));
 
@@ -409,6 +434,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         breedingProgress,
         shearingProgress,
         spinningProgress,
+        breedSheepHK,
+        shearSheepHK,
+        spinWoolHK,
         minWidth: 700,
         display: jsx(() => (
             <>
