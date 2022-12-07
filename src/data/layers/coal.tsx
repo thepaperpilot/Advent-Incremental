@@ -804,7 +804,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         trees.logs.value = Decimal.times(diff, computedLogConsumption.value).plus(trees.logs.value);
         coal.value = Decimal.times(diff, computedCoalGain.value).plus(coal.value);
         ash.value = Decimal.times(diff, computedAshGain.value).plus(ash.value);
-        activeFires.value = activeFires.value.max(0)
+        activeFires.value = Decimal.max(activeFires.value, 0)
     });
 
     const { total: totalCoal, trackerDisplay } = setUpDailyProgressTracker({
