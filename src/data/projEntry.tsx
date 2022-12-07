@@ -202,8 +202,9 @@ export const main = createLayer("main", function (this: BaseLayer) {
             shouldNotify: false,
             layer: "metal",
             symbol: metalSymbol,
-            story: "",
-            completedStory: ""
+            story: "You woke up ready to make some toys, before realizing most toys these days are made out of more than just wood! You're sure you're close to really getting to work, but there's a few more materials you're going to need - like metal! Lots of things need metal!",
+            completedStory:
+                "The sounds of drills and metal clanging join the already loud din as yet another piece of the puzzle fits into place. You're making solid progress, Good Job!"
         })),
         createDay(() => ({
             day: 8,
