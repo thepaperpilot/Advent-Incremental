@@ -8,6 +8,12 @@
             class="scene-item"
             style="left: 65%; bottom: 12%; width: 40px; height: 40px"
         />
+        <img
+            v-if="day >= 6"
+            :src="metal"
+            class="scene-item"
+            style="left: 72%; bottom: 8%; width: 40px; height: 40px"
+        />
         <img v-if="day >= 3" :src="elves" class="scene-item" style="left: 52%; bottom: 12%" />
         <div v-if="day >= 4" class="scene-bubble" style="left: 50%; bottom: 38%">
             <img v-if="day >= 4" :src="paper" class="scene-item" />
@@ -23,6 +29,7 @@ import coal from "./symbols/coal.png";
 import elves from "./symbols/elf.png";
 import paper from "./symbols/paperStacks.png";
 import boxes from "./symbols/cardboardBox.png";
+import metal from "./symbols/metal.png";
 
 defineProps<{
     day: number;
