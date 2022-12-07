@@ -3,7 +3,8 @@
  * @hidden
  */
 import Spacer from "components/layout/Spacer.vue";
-import { setUpDailyProgressTracker } from "data/common";
+import Modal from "components/Modal.vue";
+import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
 import { BuyableOptions, createBuyable, GenericBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
 import { createCumulativeConversion, createPolynomialScaling } from "features/conversion";
@@ -11,10 +12,13 @@ import { jsx, showIf } from "features/feature";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource, displayResource } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
+import { createMultiplicativeModifier, createSequentialModifier, Modifier } from "game/modifiers";
 import { noPersist } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
+import { WithRequired } from "util/common";
 import { render, renderCol } from "util/vue";
-import { computed, unref } from "vue";
+import { computed, ref, unref } from "vue";
+import cloth from "./cloth";
 import coal from "./coal";
 import elves from "./elves";
 import trees from "./trees";
@@ -42,7 +46,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         spend(gain, cost) {
             trees.logs.value = Decimal.sub(trees.logs.value, Decimal.times(cost, 1e9));
             coal.ash.value = Decimal.sub(coal.ash.value, Decimal.times(cost, 1e6));
-        }
+        },
+        gainModifier: paperGain
     }));
 
     const makePaper = createClickable(() => ({
@@ -157,13 +162,54 @@ const layer = createLayer(id, function (this: BaseLayer) {
         kilnBook
     };
 
+    const paperGain = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Scholar's shoes",
+            enabled: cloth.paperUpgrades.paperUpgrade1.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Scholar's slacks",
+            enabled: cloth.paperUpgrades.paperUpgrade2.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Scholar's jacket",
+            enabled: cloth.paperUpgrades.paperUpgrade3.bought
+        }))
+    ]) as WithRequired<Modifier, "description" | "revert">;
+
+    const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
+        {
+            title: "Paper Gain",
+            modifier: paperGain,
+            base: 1
+        }
+    ]);
+    const showModifiersModal = ref(false);
+    const modifiersModal = jsx(() => (
+        <Modal
+            modelValue={showModifiersModal.value}
+            onUpdate:modelValue={(value: boolean) => (showModifiersModal.value = value)}
+            v-slots={{
+                header: () => <h2>{name} Modifiers</h2>,
+                body: generalTab
+            }}
+        />
+    ));
+
     const { total: totalPaper, trackerDisplay } = setUpDailyProgressTracker({
         resource: paper,
         goal: 5e3,
         name,
         day,
         color,
-        textColor: "var(--feature-foreground)"
+        textColor: "var(--feature-foreground)",
+        modal: {
+            show: showModifiersModal,
+            display: modifiersModal
+        }
     });
 
     return {
@@ -174,6 +220,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         totalPaper,
         paperConversion,
         books,
+        generalTabCollapsed,
         minWidth: 700,
         display: jsx(() => (
             <>

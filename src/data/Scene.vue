@@ -1,5 +1,11 @@
 <template>
     <div class="scene">
+        <img
+            v-if="day >= 7"
+            :src="cloth"
+            class="scene-item"
+            style="left: 4%; bottom: 3%; width: 40px; height: 40px"
+        />
         <img v-if="day >= 0" :src="tree" class="scene-item" style="left: 10%; bottom: 10%" />
         <img v-if="day >= 1" :src="workshop" class="scene-item" style="left: 40%; bottom: 12%" />
         <img
@@ -30,6 +36,7 @@ import elves from "./symbols/elf.png";
 import paper from "./symbols/paperStacks.png";
 import boxes from "./symbols/cardboardBox.png";
 import metal from "./symbols/metal.png";
+import cloth from "./symbols/cloth.png";
 
 defineProps<{
     day: number;

@@ -24,13 +24,17 @@ import {
     createAdditiveModifier,
     createExponentialModifier,
     createMultiplicativeModifier,
-    createSequentialModifier
+    createSequentialModifier,
+    Modifier
 } from "game/modifiers";
 import { createUpgrade, Upgrade } from "features/upgrades/upgrade";
 import elves from "./elves";
 import paper from "./paper";
 import boxes from "./boxes";
 import metal from "./metal";
+import { cloneWithoutLoc } from "@babel/types";
+import cloth from "./cloth";
+import { WithRequired } from "util/common";
 
 interface BetterFertilizerUpgOptions {
     canAfford: () => boolean;
@@ -647,13 +651,23 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Kiln Synergy",
             enabled: elves.elves.kilnElf.bought
         })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Mining overalls",
+            enabled: cloth.metalUpgrades.metalUpgrade2.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 3,
+            description: "Mining helmet",
+            enabled: cloth.metalUpgrades.metalUpgrade3.bought
+        })),
         createExponentialModifier(() => ({
             exponent: 1.25,
             description: "3 Elves Trained",
             enabled: elves.milestones[2].earned,
             supportLowNumbers: true
         }))
-    ]);
+    ]) as WithRequired<Modifier, "description" | "revert">;
     const computedCoalGain = computed(() => coalGain.apply(0));
 
     const ashGain = createSequentialModifier(() => [
@@ -708,6 +722,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.div(buildKiln.amount.value, 100).add(1),
             description: "Kiln Synergy",
             enabled: elves.elves.kilnElf.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 4,
+            description: "Mining boots",
+            enabled: cloth.metalUpgrades.metalUpgrade1.bought
         }))
     ]);
     const computedAshGain = computed(() => ashGain.apply(0));
@@ -804,7 +823,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         trees.logs.value = Decimal.times(diff, computedLogConsumption.value).plus(trees.logs.value);
         coal.value = Decimal.times(diff, computedCoalGain.value).plus(coal.value);
         ash.value = Decimal.times(diff, computedAshGain.value).plus(ash.value);
-        activeFires.value = Decimal.max(activeFires.value, 0)
+        activeFires.value = Decimal.max(activeFires.value, 0);
     });
 
     const { total: totalCoal, trackerDisplay } = setUpDailyProgressTracker({

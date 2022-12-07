@@ -27,11 +27,13 @@ import elfSymbol from "./symbols/elf.png";
 import paperSymbol from "./symbols/paperStacks.png";
 import boxesSymbol from "./symbols/cardboardBox.png";
 import metalSymbol from "./symbols/metal.png";
+import clothSymbol from "./symbols/cloth.png";
 import coal from "./layers/coal";
 import elves from "./layers/elves";
 import paper from "./layers/paper";
 import boxes from "./layers/boxes";
 import metal from "./layers/metal";
+import cloth from "./layers/cloth";
 
 export interface Day extends VueFeature {
     day: number;
@@ -46,7 +48,9 @@ export interface Day extends VueFeature {
 
 export const main = createLayer("main", function (this: BaseLayer) {
     const day = persistent<number>(1);
-    const timeUntilNewDay = computed(() => (+new Date(new Date().getFullYear(), 11, day.value) - player.time) / 1000);
+    const timeUntilNewDay = computed(
+        () => (+new Date(new Date().getFullYear(), 11, day.value) - player.time) / 1000
+    );
 
     const showLoreModal = ref<boolean>(false);
     const loreScene = ref<number>(-1);
@@ -209,10 +213,11 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 8,
             shouldNotify: false,
-            layer: null, // "cloth"
-            symbol: "",
-            story: "",
-            completedStory: ""
+            layer: "cloth",
+            symbol: clothSymbol,
+            story: "Another resource you're going to need for gifts is cloth! Fortunately you think this should be pretty easy to prepare using a sheep farm - and as you've already proven with the tree farm, that's something you can handle!",
+            completedStory:
+                "You fall into a pile of wool, sighing contentedly as you look at all the progress you've made today. Good Job!"
         })),
         createDay(() => ({
             day: 9,
@@ -401,7 +406,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
 export const getInitialLayers = (
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     player: Partial<PlayerData>
-): Array<GenericLayer> => [main, trees, workshop, coal, elves, paper, boxes, metal];
+): Array<GenericLayer> => [main, trees, workshop, coal, elves, paper, boxes, metal, cloth];
 
 /**
  * A computed ref whose value is true whenever the game is over.

@@ -29,6 +29,7 @@ import { Direction, WithRequired } from "util/common";
 import { render, renderRow } from "util/vue";
 import { computed, ref } from "vue";
 import boxes from "./boxes";
+import cloth from "./cloth";
 import coal from "./coal";
 import elves from "./elves";
 import paper from "./paper";
@@ -70,6 +71,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "8 Elves Trained",
             enabled: elves.milestones[7].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 4,
+            description: "Lumberjack Boots",
+            enabled: cloth.treesUpgrades.treesUpgrade1.bought
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const trees = createResource(
@@ -287,6 +293,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: coal.computedHeatedCutterEffect,
             description: "Heated Cutters",
             enabled: () => Decimal.gt(coal.heatedCutters.amount.value, 0)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 4,
+            description: "Lumberjack Jeans",
+            enabled: cloth.treesUpgrades.treesUpgrade2.bought
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAutoCuttingAmount = computed(() => autoCuttingAmount.apply(0));
@@ -348,6 +359,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: coal.computedHeatedPlanterEffect,
             description: "Heated Planters",
             enabled: () => Decimal.gt(coal.heatedPlanters.amount.value, 0)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 4,
+            description: "Lumberjack Plaid",
+            enabled: cloth.treesUpgrades.treesUpgrade3.bought
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAutoPlantingAmount = computed(() => autoPlantingAmount.apply(0));
