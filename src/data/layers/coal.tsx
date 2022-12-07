@@ -709,7 +709,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: boxes.upgrades.ashUpgrade.bought
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.div(buildFire.amount.value, 10000).add(1),
+            multiplier: () => Decimal.div(buildFire.amount.value, 1000).add(1),
             description: "Small Fires Synergy",
             enabled: elves.elves.smallFireElf.bought
         })),
