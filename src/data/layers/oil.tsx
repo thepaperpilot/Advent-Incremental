@@ -278,7 +278,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     
     const activePump = persistent<DecimalSource>(0);
-    const pumpCoal = computed(() => Decimal.pow(row2Upgrades[3].bought ? 4 : 5, activePump.value));
+    const pumpCoal = computed(() => Decimal.pow(row2Upgrades[3].bought.value ? 4 : 5, activePump.value));
     const pumpOil = computed(() => Decimal.pow(activePump.value, 2).mul(activeHeavy.value).mul(Decimal.add(activeHeavy2.value, 1)).mul(activeExtractor.value).mul(depth.value).div(1e5));
     const buildPump = createBuyable(() => ({
         resource: metal.metal,
@@ -293,7 +293,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <h3>Oil Pump</h3>
                 <br />
                 Pump those oil from the ground.
-                <br />Gain oil based on the number of Heavy stuff active and well depth, but with 5× more coal usage.
+                <br />Gain oil based on the number of Heavy stuff active and well depth, but coal usage increases by {row2Upgrades[3].bought.value ? 4 : 5}×.
                 <br />
                 <br />
                 Currently:
@@ -703,7 +703,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 25000,
             display: {
                 title: "Oil Integration",
-                description: "Reduce Oil Well's oil consumption multipler from 5 to 4",
+                description: "Reduce Oil Well's coal consumption multipler from 5 to 4",
             },
             style: { color: colorText }
         })),
