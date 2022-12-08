@@ -34,6 +34,7 @@ import paper from "./layers/paper";
 import boxes from "./layers/boxes";
 import metal from "./layers/metal";
 import cloth from "./layers/cloth";
+import oil from "./layers/oil";
 
 export interface Day extends VueFeature {
     day: number;
@@ -225,10 +226,10 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 9,
             shouldNotify: false,
-            layer: null, // "oil"
+            layer: "oil",
             symbol: "",
-            story: "",
-            completedStory: ""
+            story: "Looks like you just need one more thing before the toy factory can get running: plastic! Every toy nowadays is made with plastic! But wait, how are you going to get plastic? What can make plastic? Wait that's right, oil! You figured out you might as well repurpose your coal and ore drills into something that can get you oil, unfortunately you'll need to mine much deeper that you're currently doing before, so let's get to work!",
+            completedStory: "It took a while, but you finally got enough oil for the next step! You deserve a good rest after all these digging work - tomorrow will be a busy day! Good Job!"
         })),
         createDay(() => ({
             day: 10,
@@ -409,7 +410,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
 export const getInitialLayers = (
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     player: Partial<PlayerData>
-): Array<GenericLayer> => [main, trees, workshop, coal, elves, paper, boxes, metal, cloth];
+): Array<GenericLayer> => [main, trees, workshop, coal, elves, paper, boxes, metal, cloth, oil];
 
 /**
  * A computed ref whose value is true whenever the game is over.

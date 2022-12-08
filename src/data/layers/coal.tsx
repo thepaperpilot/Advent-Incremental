@@ -27,7 +27,7 @@ import {
     createSequentialModifier,
     Modifier
 } from "game/modifiers";
-import { createUpgrade, Upgrade } from "features/upgrades/upgrade";
+import { createUpgrade, Upgrade, UpgradeOptions } from "features/upgrades/upgrade";
 import elves from "./elves";
 import paper from "./paper";
 import boxes from "./boxes";
@@ -35,6 +35,7 @@ import metal from "./metal";
 import { cloneWithoutLoc } from "@babel/types";
 import cloth from "./cloth";
 import { WithRequired } from "util/common";
+import oil from "./oil";
 
 interface BetterFertilizerUpgOptions {
     canAfford: () => boolean;
@@ -44,6 +45,16 @@ interface BetterFertilizerUpgOptions {
     visibility: () => Visibility;
 }
 interface UnlockKilnUpgOptions {
+    resource: Resource;
+    cost: DecimalSource;
+    display: {
+        title: string;
+        description: string;
+    };
+    style: StyleValue;
+    visibility: () => Visibility;
+}
+interface EfficientSmeltherUpgOptions {
     resource: Resource;
     cost: DecimalSource;
     display: {
@@ -144,8 +155,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             activeFires.value = buildFire.amount.value;
         }
     }));
-
     const fireResource = createResource(buildFire.amount, "small fires");
+    
     const activeBonfires = persistent<DecimalSource>(0);
     const bonfireLogs = computed(() => Decimal.times(activeBonfires.value, 10000));
     const bonfireCoal = computed(() => Decimal.times(activeBonfires.value, 10));
@@ -302,7 +313,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
 
     const activeDrills = persistent<DecimalSource>(0);
-    const drillCoal = computed(() => Decimal.times(activeDrills.value, 5e7));
+    const drillCoal = computed(() => Decimal.times(Decimal.pow(activeDrills.value, oil.row2Upgrades[1].bought.value ? 2 : 1), 5e7).times(metal.efficientDrill.bought.value ? 2 : 1));
     const buildDrill = createBuyable(() => ({
         resource: metal.metal,
         cost() {
@@ -472,6 +483,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () => showIf(unlockBonfire.bought.value)
     }));
     const row2upgrades = [dedicatedCutters, dedicatedPlanters, betterFertilizer, unlockKiln];
+    
+    const efficientSmelther: Upgrade<EfficientSmeltherUpgOptions> = createUpgrade(() => ({
+        resource: coal,
+        cost: 1e19,
+        display: {
+            title: "Efficient Crucibles",
+            description: "Double auto smelting speed and triple metal gain from auto smelting"
+        },
+        style: { color: colorText },
+        visibility: () => showIf(oil.depthMilestones[4].earned.value)
+    }));
+    const row3upgrades = [efficientSmelther];
 
     const heatedCutters = createBuyable(() => ({
         resource: noPersist(coal),
@@ -666,7 +689,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "3 Elves Trained",
             enabled: elves.milestones[2].earned,
             supportLowNumbers: true
-        }))
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.mul(oil.depth.value, 0.25).add(1),
+            description: "5m Well Depth",
+            enabled: oil.depthMilestones[0].earned,
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: oil.extractorCoal,
+            description: "Heavy Extractor",
+            enabled: () => Decimal.gt(oil.activeExtractor.value, 0)
+        })),
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedCoalGain = computed(() => coalGain.apply(0));
 
@@ -861,6 +894,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         dedicatedPlanters,
         betterFertilizer,
         unlockKiln,
+        efficientSmelther,
         heatedCutters,
         heatedPlanters,
         moreFertilizer,
@@ -947,6 +981,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {renderRow(...row1upgrades)}
                 {renderRow(...row2upgrades)}
+                {renderRow(...row3upgrades)}
                 {renderRow(...row3buyables)}
             </>
         ))

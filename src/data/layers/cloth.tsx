@@ -44,8 +44,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         width: 100,
         height: 10,
         style: "margin-top: 8px",
+        borderStyle: "border-color: black",
         baseStyle: "margin-top: 0",
-        fillStyle: "margin-top: 0; transition-duration: 0s",
+        fillStyle: "margin-top: 0; transition-duration: 0s; background: black",
         progress: () => Decimal.div(breedingProgress.value, computedBreedingCooldown.value)
     }));
     const breeding = createClickable(() => ({
@@ -79,8 +80,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         width: 100,
         height: 10,
         style: "margin-top: 8px",
+        borderStyle: "border-color: black",
         baseStyle: "margin-top: 0",
-        fillStyle: "margin-top: 0; transition-duration: 0s",
+        fillStyle: "margin-top: 0; transition-duration: 0s; background: black",
         progress: () => Decimal.div(shearingProgress.value, computedShearingCooldown.value)
     }));
     const shearing = createClickable(() => ({
@@ -114,8 +116,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         width: 100,
         height: 10,
         style: "margin-top: 8px",
+        borderStyle: "border-color: black",
         baseStyle: "margin-top: 0",
-        fillStyle: "margin-top: 0; transition-duration: 0s",
+        fillStyle: "margin-top: 0; transition-duration: 0s; background: black",
         progress: () => Decimal.div(spinningProgress.value, computedSpinningCooldown.value)
     }));
     const spinning = createClickable(() => ({
