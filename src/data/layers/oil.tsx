@@ -993,10 +993,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     sticky={true}
                     productionDisplay={jsx(() => (
                         <>
-                            {Decimal.lt(depth.value, 1000) ? "Reach 1000m to start gaining oil" : formatGain(Decimal.add(computedOilSpeed.value, computedOilConsumption.value))}
+                            {Decimal.lt(depth.value, 1000) ? "Reach 1000m to start gaining oil" : 
+                                <>{formatGain(Decimal.add(computedOilSpeed.value, computedOilConsumption.value))}
+                                </>
+                            }
                         </>
                     ))}
                 />
+                {Decimal.eq(computedOilSpeed.value, 0) ? <>
+                    (Need at least 1 Oil Pump, 1 Heavy Drill and 1 Heavy Extractor active to gain oil)
+                <br/></> : ""}
                 <Row>
                     {
                         depthMilestones[6].earned.value ?

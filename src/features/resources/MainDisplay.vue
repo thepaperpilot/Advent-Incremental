@@ -15,7 +15,7 @@
                 /></span>
                 <span v-if="productionComponent">
                     <br />
-                    <component :is="productionComponent" ref="effectRef"
+                    <component :is="productionComponent" ref="productionRef"
                 /></span>
             </div>
         </div>
@@ -35,7 +35,7 @@
             /></span>
             <span v-if="productionComponent">
                 <br />
-                <component :is="productionComponent" ref="effectRef"
+                <component :is="productionComponent" ref="productionRef"
             /></span>
         </div>
     </div>
@@ -67,6 +67,8 @@ const effectRef = ref<ComponentPublicInstance | null>(null);
 const effectComponent = computeOptionalComponent(
     props.effectDisplay as Ref<CoercableComponent | undefined>
 );
+
+const productionRef = ref<ComponentPublicInstance | null>(null);
 
 const productionComponent = computeOptionalComponent(
     props.productionDisplay as Ref<CoercableComponent | undefined>
