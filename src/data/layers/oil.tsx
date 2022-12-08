@@ -979,7 +979,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {
                     Decimal.lt(coalEffectiveness.value, 1) ?
-                        "Your drills are working at " + format(Decimal.mul(coalEffectiveness.value, 100)) + "% effectiveness due to lack of coal."
+                        "Coal efficiency: " + format(Decimal.mul(coalEffectiveness.value, 100)) + "%"
+                    : null
+                }
+                {
+                    Decimal.lt(oilEffectiveness.value, 1) ?
+                        "Oil efficiency: " + format(Decimal.mul(oilEffectiveness.value, 100)) + "%"
                     : null
                 }
                 <MainDisplay
