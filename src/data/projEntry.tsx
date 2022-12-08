@@ -99,6 +99,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
                     return {
                         day,
                         symbol,
+                        layer,
                         opened,
                         recentlyUpdated,
                         shouldNotify,
@@ -131,14 +132,16 @@ export const main = createLayer("main", function (this: BaseLayer) {
                             }
                         },
                         onUnlockLayer() {
-                            opened.value = true;
-                            setTimeout(() => {
-                                loreScene.value = -1;
-                                loreTitle.value = unref(layers[layer ?? "trees"]?.name ?? "");
-                                loreBody.value = story;
-                                player.devSpeed = null;
-                                showLoreModal.value = true;
-                            }, 1000);
+                            if (layer) {
+                                opened.value = true;
+                                setTimeout(() => {
+                                    loreScene.value = -1;
+                                    loreTitle.value = unref(layers[layer ?? "trees"]?.name ?? "");
+                                    loreBody.value = story;
+                                    player.devSpeed = null;
+                                    showLoreModal.value = true;
+                                }, 1000);
+                            }
                         }
                     };
                 }

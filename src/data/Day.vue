@@ -19,7 +19,10 @@
         <div class="doors"></div>
         <div class="date">Dec<br />{{ day }}</div>
         <div v-if="!canOpen" class="material-icons lock">lock</div>
-        <div v-if="main.day.value === day && !canOpen" class="timer">{{ formatTime(main.timeUntilNewDay.value, 0) }}</div> 
+        <div v-if="main.day.value === day && !canOpen" class="timer">
+            {{ formatTime(main.timeUntilNewDay.value, 0) }}
+        </div>
+        <div v-else-if="main.day.value === day && layer == null" class="timer">NYI</div>
         <Notif v-if="canOpen" />
     </div>
 </template>
@@ -36,6 +39,7 @@ import { main } from "./projEntry";
 const props = defineProps<{
     day: number;
     symbol: string;
+    layer: string | null;
     opened: Ref<boolean>;
     recentlyUpdated: Ref<boolean>;
     shouldNotify: ProcessedComputable<boolean>;
@@ -49,6 +53,7 @@ const emit = defineEmits<{
 
 const canOpen = computed(
     () =>
+        props.layer &&
         Decimal.gte(main.day.value, props.day) &&
         new Date().getMonth() === 11 &&
         new Date().getDate() >= props.day
