@@ -485,7 +485,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const row2upgrades = [dedicatedCutters, dedicatedPlanters, betterFertilizer, unlockKiln];
     
     const efficientSmelther: Upgrade<EfficientSmeltherUpgOptions> = createUpgrade(() => ({
-        resource: coal,
+        resource: noPersist(coal),
         cost: 1e19,
         display: {
             title: "Efficient Crucibles",

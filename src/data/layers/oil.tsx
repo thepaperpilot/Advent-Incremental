@@ -972,6 +972,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
         minWidth: 700,
 
+        oilMilestones,
+        collapsedOilMilestones,
+
         generalTabCollapsed,
         display: jsx(() => (
             <>
