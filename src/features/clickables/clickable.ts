@@ -1,5 +1,5 @@
 import ClickableComponent from "features/clickables/Clickable.vue";
-import type { CoercableComponent, OptionsFunc, Replace, StyleValue } from "features/feature";
+import type { CoercableComponent, GenericComponent, OptionsFunc, Replace, StyleValue } from "features/feature";
 import { Component, GatherProps, getUniqueID, setDefault, Visibility } from "features/feature";
 import type { BaseLayer } from "game/layers";
 import type { Unsubscribe } from "nanoevents";
@@ -37,7 +37,7 @@ export interface BaseClickable {
     id: string;
     type: typeof ClickableType;
     isHolding: Ref<boolean>;
-    [Component]: typeof ClickableComponent;
+    [Component]: GenericComponent;
     [GatherProps]: () => Record<string, unknown>;
 }
 
@@ -68,7 +68,7 @@ export function createClickable<T extends ClickableOptions>(
         const clickable = optionsFunc?.() ?? ({} as ReturnType<NonNullable<typeof optionsFunc>>);
         clickable.id = getUniqueID("clickable-");
         clickable.type = ClickableType;
-        clickable[Component] = ClickableComponent;
+        clickable[Component] = ClickableComponent as GenericComponent;
 
         clickable.isHolding = ref(false);
 

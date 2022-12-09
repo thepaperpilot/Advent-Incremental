@@ -1,4 +1,4 @@
-import type { CoercableComponent, OptionsFunc, Replace, StyleValue } from "features/feature";
+import type { CoercableComponent, GenericComponent, OptionsFunc, Replace, StyleValue } from "features/feature";
 import {
     Component,
     findFeatures,
@@ -54,7 +54,7 @@ export interface BaseUpgrade {
     canPurchase: Ref<boolean>;
     purchase: VoidFunction;
     type: typeof UpgradeType;
-    [Component]: typeof UpgradeComponent;
+    [Component]: GenericComponent;
     [GatherProps]: () => Record<string, unknown>;
 }
 
@@ -87,7 +87,7 @@ export function createUpgrade<T extends UpgradeOptions>(
         const upgrade = optionsFunc();
         upgrade.id = getUniqueID("upgrade-");
         upgrade.type = UpgradeType;
-        upgrade[Component] = UpgradeComponent;
+        upgrade[Component] = UpgradeComponent as GenericComponent;
 
         if (upgrade.canAfford == null && (upgrade.resource == null || upgrade.cost == null)) {
             console.warn(
