@@ -1,5 +1,5 @@
 import BarComponent from "features/bars/Bar.vue";
-import type { CoercableComponent, OptionsFunc, Replace, StyleValue } from "features/feature";
+import type { CoercableComponent, GenericComponent, OptionsFunc, Replace, StyleValue } from "features/feature";
 import { Component, GatherProps, getUniqueID, setDefault, Visibility } from "features/feature";
 import type { DecimalSource } from "util/bignum";
 import { Direction } from "util/common";
@@ -34,7 +34,7 @@ export interface BarOptions {
 export interface BaseBar {
     id: string;
     type: typeof BarType;
-    [Component]: typeof BarComponent;
+    [Component]: GenericComponent;
     [GatherProps]: () => Record<string, unknown>;
 }
 
@@ -71,7 +71,7 @@ export function createBar<T extends BarOptions>(
         const bar = optionsFunc();
         bar.id = getUniqueID("bar-");
         bar.type = BarType;
-        bar[Component] = BarComponent;
+        bar[Component] = BarComponent as GenericComponent;
 
         processComputable(bar as T, "visibility");
         setDefault(bar, "visibility", Visibility.Visible);

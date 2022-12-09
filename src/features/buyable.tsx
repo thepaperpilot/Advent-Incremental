@@ -1,5 +1,5 @@
 import ClickableComponent from "features/clickables/Clickable.vue";
-import type { CoercableComponent, OptionsFunc, Replace, StyleValue } from "features/feature";
+import type { CoercableComponent, GenericComponent, OptionsFunc, Replace, StyleValue } from "features/feature";
 import { Component, GatherProps, getUniqueID, jsx, setDefault, Visibility } from "features/feature";
 import type { Resource } from "features/resources/resource";
 import { DefaultValue, Persistent } from "game/persistence";
@@ -53,7 +53,7 @@ export interface BaseBuyable {
     onClick: VoidFunction;
     purchase: VoidFunction;
     type: typeof BuyableType;
-    [Component]: typeof ClickableComponent;
+    [Component]: GenericComponent;
     [GatherProps]: () => Record<string, unknown>;
 }
 
@@ -99,7 +99,7 @@ export function createBuyable<T extends BuyableOptions>(
 
         buyable.id = getUniqueID("buyable-");
         buyable.type = BuyableType;
-        buyable[Component] = ClickableComponent;
+        buyable[Component] = ClickableComponent as GenericComponent;
 
         buyable.amount = amount;
         buyable.amount[DefaultValue] = buyable.initialValue ?? 0;
