@@ -5,7 +5,12 @@ import Column from "components/layout/Column.vue";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import Sqrt from "components/math/Sqrt.vue";
 
-import { colorText, createCollapsibleModifierSections, createCollapsibleMilestones, setUpDailyProgressTracker } from "data/common";
+import {
+    colorText,
+    createCollapsibleModifierSections,
+    createCollapsibleMilestones,
+    setUpDailyProgressTracker
+} from "data/common";
 import { jsx, showIf } from "features/feature";
 import { createResource, Resource, trackBest } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
@@ -17,7 +22,11 @@ import { createBuyable, GenericBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
 import { format, formatWhole } from "util/break_eternity";
 import metal from "./metal";
-import { createSequentialModifier, createAdditiveModifier, createMultiplicativeModifier } from "game/modifiers";
+import {
+    createSequentialModifier,
+    createAdditiveModifier,
+    createMultiplicativeModifier
+} from "game/modifiers";
 import { main } from "data/projEntry";
 import { globalBus } from "game/events";
 import coal from "./coal";
@@ -25,11 +34,9 @@ import { createUpgrade } from "features/upgrades/upgrade";
 import { createMilestone, GenericMilestone, Milestone } from "features/milestones/milestone";
 import { formatGain } from "util/bignum";
 
-
 const id = "oil";
 const day = 9;
 const layer = createLayer(id, function (this: BaseLayer) {
-
     const name = "Oil";
     const color = "#000000";
     const colorText = "var(--foreground)";
@@ -37,30 +44,51 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const oil = createResource<DecimalSource>(0, "oil");
     const depth = createResource<DecimalSource>(0, "depth");
     const drillProgress = persistent<DecimalSource>(0);
-    const drillProgressReq = computed(() => Decimal.lt(depth.value, 990) ? Decimal.add(10, depth.value) : Decimal.pow(1.001, Decimal.sub(depth.value, 990)).mul(1000));
+    const drillProgressReq = computed(() =>
+        Decimal.lt(depth.value, 990)
+            ? Decimal.add(10, depth.value)
+            : Decimal.pow(1.001, Decimal.sub(depth.value, 990)).mul(1000)
+    );
 
     function checkDrillProgress() {
         if (Decimal.lt(depth.value, 990)) {
-            const amt = Decimal.min(Decimal.affordArithmeticSeries(drillProgress.value, 10, 1, depth.value), Decimal.sub(990, depth.value));
+            const amt = Decimal.min(
+                Decimal.affordArithmeticSeries(drillProgress.value, 10, 1, depth.value),
+                Decimal.sub(990, depth.value)
+            );
             const cost = Decimal.sumArithmeticSeries(amt, 10, 1, depth.value);
             drillProgress.value = Decimal.sub(drillProgress.value, cost);
             depth.value = Decimal.add(depth.value, amt);
         }
         if (Decimal.gte(depth.value, 990)) {
-            const amt = Decimal.affordGeometricSeries(drillProgress.value, 1000, 1.001, Decimal.sub(depth.value, 990));
-            const cost = Decimal.sumGeometricSeries(amt, 1000, 1.001, Decimal.sub(depth.value, 990));
+            const amt = Decimal.affordGeometricSeries(
+                drillProgress.value,
+                1000,
+                1.001,
+                Decimal.sub(depth.value, 990)
+            );
+            const cost = Decimal.sumGeometricSeries(
+                amt,
+                1000,
+                1.001,
+                Decimal.sub(depth.value, 990)
+            );
             drillProgress.value = Decimal.sub(drillProgress.value, cost);
             depth.value = Decimal.add(depth.value, amt);
         }
     }
 
     const activeHeavy = persistent<DecimalSource>(0);
-    const heavyCoal = computed(() => Decimal.times(Decimal.pow(activeHeavy.value, heavy2Power.value).pow(2), 1e14));
-    const heavyPower = computed(() => Decimal.times(Decimal.pow(activeHeavy.value, heavy2Power.value), 1));
+    const heavyCoal = computed(() =>
+        Decimal.times(Decimal.pow(activeHeavy.value, heavy2Power.value).pow(2), 1e14)
+    );
+    const heavyPower = computed(() =>
+        Decimal.times(Decimal.pow(activeHeavy.value, heavy2Power.value), 1)
+    );
     const buildHeavy = createBuyable(() => ({
         resource: metal.metal,
         cost() {
-            let v = new Decimal(this.amount.value);
+            const v = new Decimal(this.amount.value);
             return Decimal.pow(1.3, v).times(2.5e4);
         },
         display: jsx(() => (
@@ -68,7 +96,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <h3>Heavy Drill</h3>
                 <br />
                 A large drill specialized at deep mining.
-                <br />Consumes 1e14x<sup>2</sup> coal/sec for 1x drill power.
+                <br />
+                Consumes 1e14*(Heavy Drills amount)<sup>2</sup> coal/sec for (Heavy Drills amount)
+                drill power.
                 <br />
                 <br />
                 Currently:
@@ -133,7 +163,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const buildHeavy2 = createBuyable(() => ({
         resource: metal.metal,
         cost() {
-            let v = new Decimal(this.amount.value);
+            const v = new Decimal(this.amount.value);
             return Decimal.pow(2, v).times(1e5);
         },
         display: jsx(() => (
@@ -141,8 +171,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <h3>Heavy Drill Drill</h3>
                 <br />
                 Attach extra drills to Heavy Drills to make them faster
-                <br />Raise amount of effective Heavy Drills by ^ln(x + e).
-                <br />(also affect coal consumption).
+                <br />
+                Raise amount of effective Heavy Drills by ^ln(Heavy Drill Drill amount + e).
+                <br />
+                (also affects coal consumption).
                 <br />
                 <br />
                 Currently:
@@ -200,7 +232,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             activeHeavy2.value = buildHeavy2.amount.value;
         }
     }));
-    
+
     const activeExtractor = persistent<DecimalSource>(0);
     const extractorPower = computed(() => Decimal.pow(1 / 3, activeExtractor.value));
     const extractorCoal = computed(() => Decimal.pow(2, activeExtractor.value));
@@ -208,15 +240,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const buildExtractor = createBuyable(() => ({
         resource: metal.metal,
         cost() {
-            let v = new Decimal(this.amount.value);
+            const v = new Decimal(this.amount.value);
             return Decimal.pow(8, v).times(2e5);
         },
         display: jsx(() => (
             <>
                 <h3>Heavy Extractor</h3>
                 <br />
-                Attach extractors to the drill to mine coal and ore, with a price.
-                <br />Sacrifice 3× drill power to get 2× coal/sec and 1.2× ore/sec.
+                Attach extractors to the drill to mine coal and ore, but with a price.
+                <br />
+                Divides drill power by 3 to multiply coal gain by 2 and ore gain by 1.2.
                 <br />
                 <br />
                 Currently:
@@ -225,7 +258,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <br />×{format(extractorOre.value)} ore/sec
                 <br />
                 <br />
-                Cost: {formatWhole(unref(buildExtractor.cost!))} {buildExtractor.resource!.displayName}
+                Cost: {formatWhole(unref(buildExtractor.cost!))}{" "}
+                {buildExtractor.resource!.displayName}
             </>
         )),
         onPurchase() {
@@ -276,24 +310,36 @@ const layer = createLayer(id, function (this: BaseLayer) {
             activeExtractor.value = buildExtractor.amount.value;
         }
     }));
-    
+
     const activePump = persistent<DecimalSource>(0);
-    const pumpCoal = computed(() => Decimal.pow(row2Upgrades[3].bought.value ? 4 : 5, activePump.value));
-    const pumpOil = computed(() => Decimal.pow(activePump.value, 2).mul(activeHeavy.value).mul(Decimal.add(activeHeavy2.value, 1)).mul(activeExtractor.value).mul(depth.value).div(1e5));
+    const pumpCoal = computed(() =>
+        Decimal.pow(row2Upgrades[3].bought.value ? 4 : 5, activePump.value)
+    );
+    const pumpOil = computed(() =>
+        Decimal.pow(activePump.value, 2)
+            .mul(activeHeavy.value)
+            .mul(Decimal.add(activeHeavy2.value, 1))
+            .mul(activeExtractor.value)
+            .mul(depth.value)
+            .div(1e5)
+    );
     const buildPump = createBuyable(() => ({
         resource: metal.metal,
         cost() {
-            let v = new Decimal(this.amount.value);
+            const v = new Decimal(this.amount.value);
             let price = Decimal.pow(16, v).times(2e6);
-            if (row2Upgrades[4].bought.value) price = price.div(Decimal.add(totalOil.value, 1).root(6));
+            if (row2Upgrades[4].bought.value)
+                price = price.div(Decimal.add(totalOil.value, 1).root(6));
             return price;
         },
         display: jsx(() => (
             <>
                 <h3>Oil Pump</h3>
                 <br />
-                Pump those oil from the ground.
-                <br />Gain oil based on the number of Heavy stuff active and well depth, but coal usage increases by {row2Upgrades[3].bought.value ? 4 : 5}×.
+                Pump that oil from the ground.
+                <br />
+                Gain oil based on the number of Heavy Drills and Heavy Drill Drills active and well
+                depth, but coal usage is multiplied by {row2Upgrades[3].bought.value ? 4 : 5}×.
                 <br />
                 <br />
                 Currently:
@@ -352,7 +398,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             activePump.value = buildPump.amount.value;
         }
     }));
-    
+
     const activeBurner = persistent<DecimalSource>(0);
     const burnerOil = computed(() => Decimal.pow(activeBurner.value, 2));
     const burnerCoal = computed(() => Decimal.pow(activeBurner.value, 3).mul(1e19));
@@ -360,7 +406,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const buildBurner = createBuyable(() => ({
         resource: noPersist(oil),
         cost() {
-            let v = new Decimal(this.amount.value);
+            const v = new Decimal(this.amount.value);
             return Decimal.pow(2, v).times(50);
         },
         display: jsx(() => (
@@ -368,13 +414,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <h3>Oil Burner</h3>
                 <br />
                 Burn oil as fuel.
-                <br />1x<sup>2</sup> unit of oil can substitude 1e19x<sup>3</sup> units of coal.
+                <br />
+                (Oil Burner Amount)<sup>2</sup> unit of oil can give 1e19*(Oil Burner Amount)
+                <sup>3</sup> units of coal.
                 <br />
                 <br />
                 Currently:
                 <br />-{format(burnerOil.value)} oil/sec
                 <br />-{format(burnerCoal.value)} coal consumption
-                { row2Upgrades[2].bought.value ? <><br />×{format(burnerMetal.value)} auto smelting multi</> : "" }
+                {row2Upgrades[2].bought.value ? (
+                    <>
+                        <br />×{format(burnerMetal.value)} to auto smelting multi
+                    </>
+                ) : (
+                    ""
+                )}
                 <br />
                 <br />
                 Cost: {formatWhole(unref(buildBurner.cost!))} {buildBurner.resource!.displayName}
@@ -428,17 +482,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
             activeBurner.value = buildBurner.amount.value;
         }
     }));
-    
-    
+
     const activeSmelter = persistent<DecimalSource>(0);
     const smelterOil = computed(() => Decimal.pow(activeSmelter.value, 2).mul(100));
     const smelterMetal = computed(() => Decimal.add(activeSmelter.value, 1));
     const buildSmelter = createBuyable(() => ({
         resource: metal.metal,
         cost() {
-            let v = new Decimal(this.amount.value);
+            const v = new Decimal(this.amount.value);
             let price = Decimal.pow(10, v).times(1e7);
-            if (row2Upgrades[4].bought.value) price = price.div(Decimal.add(totalOil.value, 1).root(6));
+            if (row2Upgrades[4].bought.value)
+                price = price.div(Decimal.add(totalOil.value, 1).root(6));
             return price;
         },
         display: jsx(() => (
@@ -446,7 +500,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <h3>Oil Smelter</h3>
                 <br />
                 Use oil as a crucible fuel.
-                <br />Burn 100x<sup>2</sup> oil to smelt +100% faster.
+                <br />
+                Burn 100x<sup>2</sup> oil to smelt +100% faster.
                 <br />
                 <br />
                 Currently:
@@ -507,14 +562,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
 
     // --------------------------------------------------------------------------- Milestones
-    
+
     const depthMilestones = [
         createMilestone(() => ({
             display: {
                 requirement: "5m Well Depth",
-                effectDisplay: "Gain 25% more coal for each metre of well depth (after the 3 elf milestone)."
+                effectDisplay:
+                    "Gain 25% more coal for each metre of well depth (after the 3 elf milestone)."
             },
-            shouldEarn: () => Decimal.gte(depth.value, 5),
+            shouldEarn: () => Decimal.gte(depth.value, 5)
         })),
         createMilestone(() => ({
             display: {
@@ -522,7 +578,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 effectDisplay: "Drill too slow? Unlock some drill upgrades!"
             },
             shouldEarn: () => Decimal.gte(depth.value, 10),
-            visibility: () => showIf(depthMilestones[0].earned.value),
+            visibility: () => showIf(depthMilestones[0].earned.value)
         })),
         createMilestone(() => ({
             display: {
@@ -530,7 +586,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 effectDisplay: "Gain 5% more ore for each metre of well depth."
             },
             shouldEarn: () => Decimal.gte(depth.value, 25),
-            visibility: () => showIf(depthMilestones[1].earned.value),
+            visibility: () => showIf(depthMilestones[1].earned.value)
         })),
         createMilestone(() => ({
             display: {
@@ -538,31 +594,34 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 effectDisplay: "Drill still too slow? Try unlocking another drill!"
             },
             shouldEarn: () => Decimal.gte(depth.value, 60),
-            visibility: () => showIf(depthMilestones[2].earned.value),
+            visibility: () => showIf(depthMilestones[2].earned.value)
         })),
         createMilestone(() => ({
             display: {
                 requirement: "150m Well Depth",
-                effectDisplay: "It appears that coal and metal appear a lot more when you go this deep! Unlock more coal and metal upgrades!"
+                effectDisplay:
+                    "It appears that coal and metal appear a lot more when you go this deep! Unlock more coal and metal upgrades!"
             },
             shouldEarn: () => Decimal.gte(depth.value, 150),
-            visibility: () => showIf(depthMilestones[3].earned.value),
+            visibility: () => showIf(depthMilestones[3].earned.value)
         })),
         createMilestone(() => ({
             display: {
                 requirement: "350m Well Depth",
-                effectDisplay: "There are even more coal and metal than you thought. Why don't you utilize your heavy drill to mine them? Unlock a new drill upgrade!"
+                effectDisplay:
+                    "There is even more coal and metal than you thought. Why don't you utilize your heavy drill to mine them? Unlock a new drill upgrade!"
             },
             shouldEarn: () => Decimal.gte(depth.value, 350),
-            visibility: () => showIf(depthMilestones[4].earned.value),
+            visibility: () => showIf(depthMilestones[4].earned.value)
         })),
         createMilestone(() => ({
             display: {
                 requirement: "1,000m Well Depth",
-                effectDisplay: "You've finally found oil! Maybe it's time to get those oil pumps to the use! Unfortunately extracting them would use more coal than ever, also it's becoming much harder to mine deeper due to the thermal heat and pressure."
+                effectDisplay:
+                    "You've finally found oil! Maybe it's time to make those oil useful! Unfortunately extracting them would use more coal, and also it's becoming much harder to mine deeper due to the thermal heat and pressure."
             },
             shouldEarn: () => Decimal.gte(depth.value, 1000),
-            visibility: () => showIf(Decimal.gte(depth.value, 1000)),
+            visibility: () => showIf(Decimal.gte(depth.value, 1000))
         })),
         createMilestone(() => ({
             display: {
@@ -570,21 +629,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 effectDisplay: "You found a large oil spot! Double oil gain!"
             },
             shouldEarn: () => Decimal.gte(depth.value, 3000),
-            visibility: () => showIf(Decimal.gte(depth.value, 2000)),
-        })),
+            visibility: () => showIf(Decimal.gte(depth.value, 2000))
+        }))
     ] as Record<number, GenericMilestone>;
-    
+
     const { collapseMilestones: collapsedDepthMilestones, display: depthMilestonesDisplay } =
         createCollapsibleMilestones(depthMilestones);
-        
-    
+
     const oilMilestones = [
         createMilestone(() => ({
             display: {
                 requirement: "100 total oil",
-                effectDisplay: "Hmm, these oil pumps are really expensive. Maybe you should find a way to solve this problem. Maybe you can use oil as fuel instead of coal?"
+                effectDisplay:
+                    "Hmm, these oil pumps are really expensive. Maybe you should find a way to solve this problem... maybe you can use oil as fuel instead of coal?"
             },
-            shouldEarn: () => Decimal.gte(totalOil.value, 100),
+            shouldEarn: () => Decimal.gte(totalOil.value, 100)
         })),
         createMilestone(() => ({
             display: {
@@ -592,23 +651,24 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 effectDisplay: "Unlocks oil upgrades! These can be bought with oil."
             },
             shouldEarn: () => Decimal.gte(totalOil.value, 500),
-            visibility: () => showIf(oilMilestones[0].earned.value),
+            visibility: () => showIf(oilMilestones[0].earned.value)
         })),
         createMilestone(() => ({
             display: {
                 requirement: "10,000 total oil",
-                effectDisplay: "Wow, these are really bright when you burn it. Maybe it can be helpful to use them to smelt metal?"
+                effectDisplay:
+                    "Wow, this is really bright when you burn it. Maybe it can be helpful to use them to smelt metal?"
             },
             shouldEarn: () => Decimal.gte(totalOil.value, 10000),
-            visibility: () => showIf(oilMilestones[1].earned.value),
-        })),
+            visibility: () => showIf(oilMilestones[1].earned.value)
+        }))
     ] as Record<number, GenericMilestone>;
-    
-    const { collapseMilestones: collapsedOilMilestones, display: oilMilestonesDisplay } =
+
+    const { display: oilMilestonesDisplay } =
         createCollapsibleMilestones(oilMilestones);
 
     // --------------------------------------------------------------------------- Upgrades
-    
+
     const row1Upgrades = [
         createUpgrade(() => ({
             resource: coal.coal,
@@ -655,28 +715,49 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 100,
             display: {
                 title: "Drill Oil",
-                description: "Increase previous upgrades' effect by +0.1% per thing per Heavy Drill owned.",
-                effectDisplay: jsx(() => <>+{format(Decimal.mul(row1UpgradeEffects[4].value, 100))}%</>)
+                description: "Increase previous upgrades' effect by +0.1% per Heavy Drill owned.",
+                effectDisplay: jsx(() => (
+                    <>+{format(Decimal.mul(row1UpgradeEffects[4].value, 100))}%</>
+                ))
             },
             style: { color: colorText }
-        })),
+        }))
     ];
     const row1UpgradeEffects: ComputedRef<DecimalSource>[] = [
-        computed(() => Decimal.mul(coal.buildDrill.amount.value, Decimal.add(0.04, computedUpgradeBonus.value)).add(1)),
-        computed(() => Decimal.mul(metal.oreDrill.amount.value, Decimal.add(0.04, computedUpgradeBonus.value)).add(1)),
-        computed(() => Decimal.mul(Decimal.max(coal.coal.value, 1).log10().floor(), Decimal.add(0.06, computedUpgradeBonus.value)).add(1)),
-        computed(() => Decimal.mul(Decimal.max(metal.metal.value, 1).log10().floor(), Decimal.add(0.10, computedUpgradeBonus.value)).add(1)),
-        computed(() => Decimal.mul(buildHeavy.amount.value, 0.001)),
+        computed(() =>
+            Decimal.mul(
+                coal.buildDrill.amount.value,
+                Decimal.add(0.04, computedUpgradeBonus.value)
+            ).add(1)
+        ),
+        computed(() =>
+            Decimal.mul(
+                metal.oreDrill.amount.value,
+                Decimal.add(0.04, computedUpgradeBonus.value)
+            ).add(1)
+        ),
+        computed(() =>
+            Decimal.mul(
+                Decimal.max(coal.coal.value, 1).log10().floor(),
+                Decimal.add(0.06, computedUpgradeBonus.value)
+            ).add(1)
+        ),
+        computed(() =>
+            Decimal.mul(
+                Decimal.max(metal.metal.value, 1).log10().floor(),
+                Decimal.add(0.1, computedUpgradeBonus.value)
+            ).add(1)
+        ),
+        computed(() => Decimal.mul(buildHeavy.amount.value, 0.001))
     ];
-    
-    
+
     const row2Upgrades = [
         createUpgrade(() => ({
             resource: noPersist(oil),
             cost: 100,
             display: {
                 title: "Oil the Oil Pump",
-                description: "Double oil gain.",
+                description: "Double oil gain."
             },
             style: { color: colorText }
         })),
@@ -685,7 +766,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 500,
             display: {
                 title: "Oil the Mining Drills",
-                description: "Double ore mining speed and square the coal drill amount in its effect.",
+                description:
+                    "Double ore mining speed and square the coal drill amount in its effect."
             },
             style: { color: colorText }
         })),
@@ -694,7 +776,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 1500,
             display: {
                 title: "Blaster Burner",
-                description: "The Oil Burner can now increase your metal gain.",
+                description: "The Oil Burner can now increase your metal gain."
             },
             style: { color: colorText }
         })),
@@ -703,7 +785,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 25000,
             display: {
                 title: "Oil Integration",
-                description: "Reduce Oil Well's coal consumption multipler from 5 to 4",
+                description: "Reduce Oil Well's coal consumption multipler from 5 to 4"
             },
             style: { color: colorText }
         })),
@@ -712,10 +794,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 50000,
             display: {
                 title: "Be One with the Oil",
-                description: jsx(() => <>Divide metal ingot prices of oil buildings by <sup>6</sup><Sqrt>total oil + 1</Sqrt></>),
+                description: jsx(() => (
+                    <>
+                        Divide metal ingot prices of oil buildings by <sup>6</sup>
+                        <Sqrt>total oil + 1</Sqrt>
+                    </>
+                ))
             },
             style: { color: colorText }
-        })),
+        }))
     ];
 
     const coalConsumption = createSequentialModifier(() => [
@@ -733,7 +820,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             addend: computedOilSubstitution,
             description: "Oil to Coal Substitution",
             enabled: () => Decimal.gt(computedOilSubstitution.value, 0)
-        })),
+        }))
     ]);
     const computedCoalConsumption = computed(() => coalConsumption.apply(0));
     const drillPower = createSequentialModifier(() => [
@@ -771,7 +858,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => coalEffectiveness.value,
             description: "Effectiveness",
             enabled: () => Decimal.lt(coalEffectiveness.value, 1)
-        })),
+        }))
     ]);
     const computedDrillPower = computed(() => drillPower.apply(0));
 
@@ -780,10 +867,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             addend: row1UpgradeEffects[4],
             description: "Drill Oil",
             enabled: row1Upgrades[4].bought
-        })),
+        }))
     ]);
     const computedUpgradeBonus = computed(() => upgradeBonus.apply(0));
-    
+
     const oilSpeed = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: pumpOil,
@@ -804,10 +891,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => coalEffectiveness.value,
             description: "Effectiveness",
             enabled: () => Decimal.lt(coalEffectiveness.value, 1)
-        })),
+        }))
     ]);
     const computedOilSpeed = computed(() => oilSpeed.apply(0));
-    
+
     const oilConsumption = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: () => Decimal.negate(burnerOil.value),
@@ -818,10 +905,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             addend: () => Decimal.negate(smelterOil.value),
             description: "Oil Smelter",
             enabled: () => Decimal.gt(activeSmelter.value, 0)
-        })),
+        }))
     ]);
     const computedOilConsumption = computed(() => oilConsumption.apply(0));
-    
+
     const oilSubstitution = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: burnerCoal,
@@ -832,7 +919,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => oilEffectiveness.value,
             description: "Effectiveness",
             enabled: () => Decimal.lt(oilEffectiveness.value, 1)
-        })),
+        }))
     ]);
     const computedOilSubstitution = computed(() => oilSubstitution.apply(0));
 
@@ -841,19 +928,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Coal Consumption",
             modifier: coalConsumption,
             unit: "/s",
-            base: 0,
+            base: 0
         },
         {
             title: "Drill Power",
             modifier: drillPower,
-            base: 0,
+            base: 0
         },
         {
             title: "Upgrade Bonus",
             modifier: upgradeBonus,
             base: 0,
             visible() {
-                return Decimal.gt(computedUpgradeBonus.value, 0)
+                return Decimal.gt(computedUpgradeBonus.value, 0);
             }
         },
         {
@@ -862,7 +949,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             unit: "/s",
             base: 0,
             visible() {
-                return Decimal.gt(computedOilSpeed.value, 0)
+                return Decimal.gt(computedOilSpeed.value, 0);
             }
         },
         {
@@ -871,7 +958,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             unit: "/s",
             base: 0,
             visible() {
-                return Decimal.lt(computedOilConsumption.value, 0)
+                return Decimal.lt(computedOilConsumption.value, 0);
             }
         },
         {
@@ -880,9 +967,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             unit: "/s",
             base: 0,
             visible() {
-                return Decimal.gt(computedOilSubstitution.value, 0)
+                return Decimal.gt(computedOilSubstitution.value, 0);
             }
-        },
+        }
     ]);
     const showModifiersModal = ref(false);
     const modifiersModal = jsx(() => (
@@ -895,34 +982,43 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }}
         />
     ));
-    
+
     const coalEffectiveness = ref<DecimalSource>(Decimal.dOne);
     const oilEffectiveness = ref<DecimalSource>(Decimal.dOne);
     globalBus.on("update", diff => {
         if (Decimal.lt(main.day.value, day)) {
             return;
         }
-        
+
         const coalCost = Decimal.negate(computedCoalConsumption.value);
         if (Decimal.gt(coalCost, 0)) {
             coalEffectiveness.value = Decimal.min(Decimal.div(coal.coal.value, coalCost), 1);
-            coal.coal.value = Decimal.sub(coal.coal.value, Decimal.mul(coalCost, coalEffectiveness.value).mul(diff));
+            coal.coal.value = Decimal.sub(
+                coal.coal.value,
+                Decimal.mul(coalCost, coalEffectiveness.value).mul(diff)
+            );
         } else {
             coalEffectiveness.value = Decimal.dOne;
         }
-        drillProgress.value = Decimal.add(drillProgress.value, Decimal.mul(computedDrillPower.value, diff));
+        drillProgress.value = Decimal.add(
+            drillProgress.value,
+            Decimal.mul(computedDrillPower.value, diff)
+        );
         oil.value = Decimal.add(oil.value, Decimal.mul(computedOilSpeed.value, diff));
         checkDrillProgress();
 
         const oilCost = Decimal.negate(computedOilConsumption.value);
         if (Decimal.gt(oilCost, 0)) {
             oilEffectiveness.value = Decimal.min(Decimal.div(oil.value, oilCost), 1);
-            oil.value = Decimal.sub(oil.value, Decimal.mul(oilCost, oilEffectiveness.value).mul(diff));
+            oil.value = Decimal.sub(
+                oil.value,
+                Decimal.mul(oilCost, oilEffectiveness.value).mul(diff)
+            );
         } else {
             oilEffectiveness.value = Decimal.dOne;
         }
     });
-    
+
     const { total: totalOil, trackerDisplay } = setUpDailyProgressTracker({
         resource: oil,
         goal: 250000,
@@ -977,35 +1073,44 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 {render(trackerDisplay)}
                 <Spacer />
-                {
-                    Decimal.lt(coalEffectiveness.value, 1) ?
-                        "Coal efficiency: " + format(Decimal.mul(coalEffectiveness.value, 100)) + "%"
-                    : null
-                }
-                {
-                    Decimal.lt(oilEffectiveness.value, 1) ?
-                        "Oil efficiency: " + format(Decimal.mul(oilEffectiveness.value, 100)) + "%"
-                    : null
-                }
+                {Decimal.lt(coalEffectiveness.value, 1)
+                    ? "Coal efficiency: " + format(Decimal.mul(coalEffectiveness.value, 100)) + "%"
+                    : null}
+                {Decimal.lt(oilEffectiveness.value, 1)
+                    ? "Oil efficiency: " + format(Decimal.mul(oilEffectiveness.value, 100)) + "%"
+                    : null}
                 <MainDisplay
                     resource={oil}
                     color={color}
                     sticky={true}
                     productionDisplay={jsx(() => (
                         <>
-                            {Decimal.lt(depth.value, 1000) ? "Reach 1000m to start gaining oil" : 
-                                <>{formatGain(Decimal.add(computedOilSpeed.value, computedOilConsumption.value))}
+                            {Decimal.lt(depth.value, 1000) ? (
+                                "Reach 1000m to start gaining oil"
+                            ) : (
+                                <>
+                                    {formatGain(
+                                        Decimal.add(
+                                            computedOilSpeed.value,
+                                            computedOilConsumption.value
+                                        )
+                                    )}
                                 </>
-                            }
+                            )}
                         </>
                     ))}
                 />
-                {Decimal.eq(computedOilSpeed.value, 0) ? <>
-                    (Need at least 1 Oil Pump, 1 Heavy Drill and 1 Heavy Extractor active to gain oil)
-                <br/></> : ""}
+                {Decimal.eq(computedOilSpeed.value, 0) ? (
+                    <>
+                        (Need at least 1 Oil Pump, 1 Heavy Drill and 1 Heavy Extractor active to
+                        gain oil)
+                        <br />
+                    </>
+                ) : (
+                    ""
+                )}
                 <Row>
-                    {
-                        depthMilestones[6].earned.value ?
+                    {depthMilestones[6].earned.value ? (
                         <Column>
                             {render(buildPump)}
                             <div>
@@ -1014,10 +1119,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                             </div>
                             {renderRow(minPump, removePump, addPump, maxPump)}
                         </Column>
-                        : null
-                    }
-                    {
-                        oilMilestones[0].earned.value ?
+                    ) : null}
+                    {oilMilestones[0].earned.value ? (
                         <Column>
                             {render(buildBurner)}
                             <div>
@@ -1026,10 +1129,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                             </div>
                             {renderRow(minBurner, removeBurner, addBurner, maxBurner)}
                         </Column>
-                        : null
-                    }
-                    {
-                        oilMilestones[2].earned.value ?
+                    ) : null}
+                    {oilMilestones[2].earned.value ? (
                         <Column>
                             {render(buildSmelter)}
                             <div>
@@ -1038,8 +1139,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                             </div>
                             {renderRow(minSmelter, removeSmelter, addSmelter, maxSmelter)}
                         </Column>
-                        : null
-                    }
+                    ) : null}
                 </Row>
                 <br />
                 <div>
@@ -1048,7 +1148,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         {formatWhole(depth.value)}
                     </h2>
                     m deep
-                    <br/>Next at {format(Decimal.sub(drillProgressReq.value, drillProgress.value))} drill power seconds
+                    <br />
+                    Next at {format(Decimal.sub(drillProgressReq.value, drillProgress.value))} drill
+                    power seconds
                 </div>
                 <div>
                     <span>Your drill power is </span>
@@ -1066,8 +1168,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         </div>
                         {renderRow(minHeavy, removeHeavy, addHeavy, maxHeavy)}
                     </Column>
-                    {
-                        depthMilestones[3].earned.value ?
+                    {depthMilestones[3].earned.value ? (
                         <Column>
                             {render(buildHeavy2)}
                             <div>
@@ -1076,10 +1177,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                             </div>
                             {renderRow(minHeavy2, removeHeavy2, addHeavy2, maxHeavy2)}
                         </Column>
-                        : null
-                    }
-                    {
-                        depthMilestones[5].earned.value ?
+                    ) : null}
+                    {depthMilestones[5].earned.value ? (
                         <Column>
                             {render(buildExtractor)}
                             <div>
@@ -1088,8 +1187,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                             </div>
                             {renderRow(minExtractor, removeExtractor, addExtractor, maxExtractor)}
                         </Column>
-                        : null
-                    }
+                    ) : null}
                 </Row>
                 <Spacer />
                 {depthMilestones[1].earned.value ? renderRow(...row1Upgrades) : null}
@@ -1099,7 +1197,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {Decimal.gte(totalOil.value, 50) ? oilMilestonesDisplay() : ""}
             </>
         ))
-    }
+    };
 });
 
 export default layer;

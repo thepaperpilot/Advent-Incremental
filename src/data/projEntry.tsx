@@ -216,7 +216,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
                 "The sounds of drills and metal clanging join the already loud din as yet another piece of the puzzle fits into place. You're making solid progress, Good Job!"
         })),
         createDay(() => ({
-            day: 8, 
+            day: 8,
             shouldNotify: false,
             layer: "cloth",
             symbol: clothSymbol,
@@ -229,8 +229,9 @@ export const main = createLayer("main", function (this: BaseLayer) {
             shouldNotify: false,
             layer: "oil",
             symbol: oilSymbol,
-            story: "Looks like you just need one more thing before the toy factory can get running: plastic! Every toy nowadays is made with plastic! But wait, how are you going to get plastic? What can make plastic? Wait that's right, oil! You figured out you might as well repurpose your coal and ore drills into something that can get you oil, unfortunately you'll need to mine much deeper that you're currently doing before, so let's get to work!",
-            completedStory: "It took a while, but you finally got enough oil for the next step! You deserve a good rest after all these digging work - tomorrow will be a busy day! Good Job!"
+            story: "Looks like you just need one more thing before the toy factory can start running: plastic! Every toy nowadays is made with plastic! But wait, how are you going to get plastic? What can make plastic? Wait that's right, oil! You figured out you might as well repurpose your coal and ore drills into something that can get you oil, but unfortunately you'll need to mine much deeper that you're currently doing, so let's get to work!",
+            completedStory:
+                "It took a while, but you finally got enough oil for the next step! You deserve a good rest after all this digging work - tomorrow will be a busy day! Good Job!"
         })),
         createDay(() => ({
             day: 10,
