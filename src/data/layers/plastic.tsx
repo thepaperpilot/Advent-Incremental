@@ -73,7 +73,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <br />
                 Refines oil into plastic pellets
                 <br />
-                Consumes 1000 oil/s to create 1 plastic/s
+                Consumes 100 oil/s to create 1 plastic/s
                 <br />
                 <br />
                 Currently:
