@@ -78,7 +78,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <br />
                 Currently:
                 <br />-{format(oilCost.value)} oil/sec
-                <br />+{format(activeRefinery.value)} drill power
+                <br />+{format(activeRefinery.value)} plastic/sec
                 <br />
                 <br />
                 Cost: {formatWhole(unref(buildRefinery.cost!))}{" "}
@@ -212,7 +212,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () => showIf(clothElf.bought.value),
         display: {
             title: "Plastic Shepherd",
-            description: "All cloth actions complete +10% amounts per cycle",
+            description: "All cloth actions are +10% more efficient",
             effectDisplay: jsx(() => (
                 <>{formatWhole(Decimal.times(clothGains.amount.value, 10))}%</>
             )),
@@ -293,7 +293,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 {render(trackerDisplay)}
                 <Spacer />
-                <MainDisplay resource={plastic} color={color} style="margin-bottom: 0" />
+                <MainDisplay resource={plastic} color={color} style="margin-bottom: 0"  effectDisplay={
+                        Decimal.gt(computedPlasticGain.value, 0)
+                            ? `+${format(computedPlasticGain.value)}/s`
+                            : undefined
+                    } />
                 <Spacer />
                 <Column>
                     {render(buildRefinery)}

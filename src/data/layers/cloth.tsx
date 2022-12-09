@@ -250,7 +250,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () => showIf(plastic.upgrades.clothTools.bought.value),
         display: {
             title: "Felt-Gripped Axe",
-            description: "10x trees planted"
+            description: "10x log gain"
         }
     }));
     const treesUpgrades = { treesUpgrade4, treesUpgrade3, treesUpgrade2, treesUpgrade1 };
