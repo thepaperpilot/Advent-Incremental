@@ -21,7 +21,7 @@ import { createSequentialModifier, createAdditiveModifier, createMultiplicativeM
 import { main } from "data/projEntry";
 import { globalBus } from "game/events";
 import coal from "./coal";
-import { createUpgrade } from "features/upgrades/upgrade";
+import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
 import { createMilestone, GenericMilestone, Milestone } from "features/milestones/milestone";
 import { formatGain } from "util/bignum";
 
@@ -609,7 +609,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     // --------------------------------------------------------------------------- Upgrades
     
-    const row1Upgrades = [
+    const row1Upgrades: GenericUpgrade[] = [
         createUpgrade(() => ({
             resource: coal.coal,
             cost: 1e18,

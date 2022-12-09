@@ -296,7 +296,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Efficient Drills",
             description: `Use metal and a bunch of R&D to make drilling stuff faster. Double coal and ore mining speed.`
         },
-        visibilty: () => showIf(oil.depthMilestones[4].earned.value)
+        visibility: () => showIf(oil.depthMilestones[4].earned.value)
     }));
 
 
