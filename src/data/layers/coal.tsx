@@ -7,10 +7,13 @@ import Modal from "components/Modal.vue";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import Row from "components/layout/Row.vue";
 import Column from "components/layout/Column.vue";
-import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
+import {
+    createCollapsibleModifierSections,
+    setUpDailyProgressTracker,
+    changeActiveBuyables
+} from "data/common";
 import { main } from "data/projEntry";
 import { createBuyable, GenericBuyable } from "features/buyable";
-import { createClickable } from "features/clickables/clickable";
 import { jsx, JSXFunction, showIf, StyleValue, Visibility } from "features/feature";
 import { createResource, Resource } from "features/resources/resource";
 import { globalBus } from "game/events";
@@ -27,12 +30,11 @@ import {
     createSequentialModifier,
     Modifier
 } from "game/modifiers";
-import { createUpgrade, Upgrade, UpgradeOptions } from "features/upgrades/upgrade";
+import { createUpgrade, Upgrade } from "features/upgrades/upgrade";
 import elves from "./elves";
 import paper from "./paper";
 import boxes from "./boxes";
 import metal from "./metal";
-import { cloneWithoutLoc } from "@babel/types";
 import cloth from "./cloth";
 import { WithRequired } from "util/common";
 import oil from "./oil";
@@ -115,48 +117,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
             width: "160px"
         }
     })) as GenericBuyable & { resource: Resource };
-    const minFire = createClickable(() => ({
-        display: "0",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.gt(activeFires.value, 0);
-        },
-        onClick() {
-            activeFires.value = 0;
-        }
-    }));
-    const removeFire = createClickable(() => ({
-        display: "-",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.gt(activeFires.value, 0);
-        },
-        onClick() {
-            activeFires.value = Decimal.sub(activeFires.value, 1);
-        }
-    }));
-    const addFire = createClickable(() => ({
-        display: "+",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.lt(activeFires.value, buildFire.amount.value);
-        },
-        onClick() {
-            activeFires.value = Decimal.add(activeFires.value, 1);
-        }
-    }));
-    const maxFire = createClickable(() => ({
-        display: "Max",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.lt(activeFires.value, buildFire.amount.value);
-        },
-        onClick() {
-            activeFires.value = buildFire.amount.value;
-        }
-    }));
+
+    const {
+        min: minFire,
+        max: maxFire,
+        add: addFire,
+        remove: removeFire
+    } = changeActiveBuyables({
+        active: activeFires,
+        buyable: buildFire
+    });
     const fireResource = createResource(buildFire.amount, "small fires");
-    
+
     const activeBonfires = persistent<DecimalSource>(0);
     const bonfireLogs = computed(() => Decimal.times(activeBonfires.value, 10000));
     const bonfireCoal = computed(() => Decimal.times(activeBonfires.value, 10));
@@ -192,47 +164,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         visibility: () => showIf(unlockBonfire.bought.value)
     })) as GenericBuyable & { resource: Resource };
-    const minBonfire = createClickable(() => ({
-        display: "0",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.gt(activeBonfires.value, 0);
-        },
-        onClick() {
-            activeBonfires.value = 0;
-        }
-    }));
-    const removeBonfire = createClickable(() => ({
-        display: "-",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.gt(activeBonfires.value, 0);
-        },
-        onClick() {
-            activeBonfires.value = Decimal.sub(activeBonfires.value, 1);
-        }
-    }));
-    const addBonfire = createClickable(() => ({
-        display: "+",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.lt(activeBonfires.value, buildBonfire.amount.value);
-        },
-        onClick() {
-            activeBonfires.value = Decimal.add(activeBonfires.value, 1);
-        }
-    }));
-    const maxBonfire = createClickable(() => ({
-        display: "Max",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.lt(activeBonfires.value, buildBonfire.amount.value);
-        },
-        onClick() {
-            activeBonfires.value = buildBonfire.amount.value;
-        }
-    }));
-
+    const {
+        min: minBonfire,
+        max: maxBonfire,
+        add: addBonfire,
+        remove: removeBonfire
+    } = changeActiveBuyables({
+        buyable: buildBonfire,
+        active: activeBonfires
+    });
     const activeKilns = persistent<DecimalSource>(0);
     const kilnLogs = computed(() => Decimal.times(activeKilns.value, 1e6));
     const kilnCoal = computed(() => Decimal.times(activeKilns.value, 1e4));
@@ -271,49 +211,22 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         visibility: () => showIf(unlockKiln.bought.value)
     })) as GenericBuyable & { resource: Resource };
-    const minKiln = createClickable(() => ({
-        display: "0",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.gt(activeKilns.value, 0);
-        },
-        onClick() {
-            activeKilns.value = 0;
-        }
-    }));
-    const removeKiln = createClickable(() => ({
-        display: "-",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.gt(activeKilns.value, 0);
-        },
-        onClick() {
-            activeKilns.value = Decimal.sub(activeKilns.value, 1);
-        }
-    }));
-    const addKiln = createClickable(() => ({
-        display: "+",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.lt(activeKilns.value, buildKiln.amount.value);
-        },
-        onClick() {
-            activeKilns.value = Decimal.add(activeKilns.value, 1);
-        }
-    }));
-    const maxKiln = createClickable(() => ({
-        display: "Max",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.lt(activeKilns.value, buildKiln.amount.value);
-        },
-        onClick() {
-            activeKilns.value = buildKiln.amount.value;
-        }
-    }));
-
+    const {
+        min: minKiln,
+        max: maxKiln,
+        add: addKiln,
+        remove: removeKiln
+    } = changeActiveBuyables({
+        buyable: buildKiln,
+        active: activeKilns
+    });
     const activeDrills = persistent<DecimalSource>(0);
-    const drillCoal = computed(() => Decimal.times(Decimal.pow(activeDrills.value, oil.row2Upgrades[1].bought.value ? 2 : 1), 5e7).times(metal.efficientDrill.bought.value ? 2 : 1));
+    const drillCoal = computed(() =>
+        Decimal.times(
+            Decimal.pow(activeDrills.value, oil.row2Upgrades[1].bought.value ? 2 : 1),
+            5e7
+        ).times(metal.efficientDrill.bought.value ? 2 : 1)
+    );
     const buildDrill = createBuyable(() => ({
         resource: metal.metal,
         cost() {
@@ -346,46 +259,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         visibility: () => showIf(metal.coalDrill.bought.value)
     })) as GenericBuyable & { resource: Resource };
-    const minDrill = createClickable(() => ({
-        display: "0",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.gt(activeDrills.value, 0);
-        },
-        onClick() {
-            activeDrills.value = 0;
-        }
-    }));
-    const removeDrill = createClickable(() => ({
-        display: "-",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.gt(activeDrills.value, 0);
-        },
-        onClick() {
-            activeDrills.value = Decimal.sub(activeDrills.value, 1);
-        }
-    }));
-    const addDrill = createClickable(() => ({
-        display: "+",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.lt(activeDrills.value, buildDrill.amount.value);
-        },
-        onClick() {
-            activeDrills.value = Decimal.add(activeDrills.value, 1);
-        }
-    }));
-    const maxDrill = createClickable(() => ({
-        display: "Max",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.lt(activeDrills.value, buildDrill.amount.value);
-        },
-        onClick() {
-            activeDrills.value = buildDrill.amount.value;
-        }
-    }));
+    const {
+        max: maxDrill,
+        min: minDrill,
+        add: addDrill,
+        remove: removeDrill
+    } = changeActiveBuyables({
+        buyable: buildDrill,
+        active: activeDrills
+    });
 
     const warmerCutters = createUpgrade(() => ({
         resource: noPersist(coal),
@@ -483,7 +365,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () => showIf(unlockBonfire.bought.value)
     }));
     const row2upgrades = [dedicatedCutters, dedicatedPlanters, betterFertilizer, unlockKiln];
-    
+
     const efficientSmelther: Upgrade<EfficientSmeltherUpgOptions> = createUpgrade(() => ({
         resource: noPersist(coal),
         cost: 1e19,
@@ -693,13 +575,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.mul(oil.depth.value, 0.25).add(1),
             description: "5m Well Depth",
-            enabled: oil.depthMilestones[0].earned,
+            enabled: oil.depthMilestones[0].earned
         })),
         createMultiplicativeModifier(() => ({
             multiplier: oil.extractorCoal,
             description: "Heavy Extractor",
             enabled: () => Decimal.gt(oil.activeExtractor.value, 0)
-        })),
+        }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedCoalGain = computed(() => coalGain.apply(0));
 

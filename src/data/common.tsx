@@ -1,9 +1,16 @@
 import Collapsible from "components/layout/Collapsible.vue";
 import { createBar } from "features/bars/bar";
+import { GenericBuyable } from "features/buyable";
 import type { Clickable, ClickableOptions, GenericClickable } from "features/clickables/clickable";
 import { createClickable } from "features/clickables/clickable";
 import type { GenericConversion } from "features/conversion";
-import type { CoercableComponent, JSXFunction, OptionsFunc, Replace } from "features/feature";
+import type {
+    CoercableComponent,
+    JSXFunction,
+    OptionsFunc,
+    Replace,
+    StyleValue
+} from "features/feature";
 import { jsx, setDefault } from "features/feature";
 import { GenericMilestone } from "features/milestones/milestone";
 import { displayResource, Resource, trackTotal } from "features/resources/resource";
@@ -479,5 +486,59 @@ export function setUpDailyProgressTracker(options: {
     return {
         total,
         trackerDisplay
+    };
+}
+
+export function changeActiveBuyables(options: {
+    style?: StyleValue;
+    active: Persistent<DecimalSource>;
+    buyable: GenericBuyable;
+}) {
+    const style = options.style ?? { minHeight: "20px", width: "40px", color: "var(--foreground)" };
+    const min = createClickable(() => ({
+        display: "0",
+        style,
+        canClick() {
+            return Decimal.gt(options.active.value, 0);
+        },
+        onClick() {
+            options.active.value = 0;
+        }
+    }));
+    const remove = createClickable(() => ({
+        display: "-",
+        style,
+        canClick() {
+            return Decimal.gt(options.active.value, 0);
+        },
+        onClick() {
+            options.active.value = Decimal.sub(options.active.value, 1);
+        }
+    }));
+    const add = createClickable(() => ({
+        display: "+",
+        style,
+        canClick() {
+            return Decimal.lt(options.active.value, options.buyable.amount.value);
+        },
+        onClick() {
+            options.active.value = Decimal.add(options.active.value, 1);
+        }
+    }));
+    const max = createClickable(() => ({
+        display: "Max",
+        style,
+        canClick() {
+            return Decimal.lt(options.active.value, options.buyable.amount.value);
+        },
+        onClick() {
+            options.active.value = options.buyable.amount.value;
+        }
+    }));
+    return {
+        min,
+        remove,
+        add,
+        max
     };
 }

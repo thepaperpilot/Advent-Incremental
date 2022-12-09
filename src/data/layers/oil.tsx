@@ -6,20 +6,19 @@ import MainDisplay from "features/resources/MainDisplay.vue";
 import Sqrt from "components/math/Sqrt.vue";
 
 import {
-    colorText,
     createCollapsibleModifierSections,
     createCollapsibleMilestones,
-    setUpDailyProgressTracker
+    setUpDailyProgressTracker,
+    changeActiveBuyables
 } from "data/common";
 import { jsx, showIf } from "features/feature";
-import { createResource, Resource, trackBest } from "features/resources/resource";
+import { createResource, Resource } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { render, renderRow } from "util/vue";
 import { computed, ComputedRef, ref, unref } from "vue";
 import { noPersist, persistent } from "game/persistence";
 import { createBuyable, GenericBuyable } from "features/buyable";
-import { createClickable } from "features/clickables/clickable";
 import { format, formatWhole } from "util/break_eternity";
 import metal from "./metal";
 import {
@@ -31,7 +30,7 @@ import { main } from "data/projEntry";
 import { globalBus } from "game/events";
 import coal from "./coal";
 import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
-import { createMilestone, GenericMilestone, Milestone } from "features/milestones/milestone";
+import { createMilestone, GenericMilestone } from "features/milestones/milestone";
 import { formatGain } from "util/bignum";
 
 const id = "oil";
@@ -117,47 +116,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
             width: "160px"
         }
     })) as GenericBuyable & { resource: Resource };
-    const minHeavy = createClickable(() => ({
-        display: "0",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.gt(activeHeavy.value, 0);
-        },
-        onClick() {
-            activeHeavy.value = 0;
-        }
-    }));
-    const removeHeavy = createClickable(() => ({
-        display: "-",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.gt(activeHeavy.value, 0);
-        },
-        onClick() {
-            activeHeavy.value = Decimal.sub(activeHeavy.value, 1);
-        }
-    }));
-    const addHeavy = createClickable(() => ({
-        display: "+",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.lt(activeHeavy.value, buildHeavy.amount.value);
-        },
-        onClick() {
-            activeHeavy.value = Decimal.add(activeHeavy.value, 1);
-        }
-    }));
-    const maxHeavy = createClickable(() => ({
-        display: "Max",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.lt(activeHeavy.value, buildHeavy.amount.value);
-        },
-        onClick() {
-            activeHeavy.value = buildHeavy.amount.value;
-        }
-    }));
-
+    const {
+        min: minHeavy,
+        max: maxHeavy,
+        add: addHeavy,
+        remove: removeHeavy
+    } = changeActiveBuyables({
+        buyable: buildHeavy,
+        active: activeHeavy
+    });
     const activeHeavy2 = persistent<DecimalSource>(0);
     const heavy2Power = computed(() => Decimal.add(activeHeavy2.value, Math.E).ln());
     const buildHeavy2 = createBuyable(() => ({
@@ -192,46 +159,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
             width: "160px"
         }
     })) as GenericBuyable & { resource: Resource };
-    const minHeavy2 = createClickable(() => ({
-        display: "0",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.gt(activeHeavy2.value, 0);
-        },
-        onClick() {
-            activeHeavy2.value = 0;
-        }
-    }));
-    const removeHeavy2 = createClickable(() => ({
-        display: "-",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.gt(activeHeavy2.value, 0);
-        },
-        onClick() {
-            activeHeavy2.value = Decimal.sub(activeHeavy2.value, 1);
-        }
-    }));
-    const addHeavy2 = createClickable(() => ({
-        display: "+",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.lt(activeHeavy2.value, buildHeavy2.amount.value);
-        },
-        onClick() {
-            activeHeavy2.value = Decimal.add(activeHeavy2.value, 1);
-        }
-    }));
-    const maxHeavy2 = createClickable(() => ({
-        display: "Max",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.lt(activeHeavy2.value, buildHeavy2.amount.value);
-        },
-        onClick() {
-            activeHeavy2.value = buildHeavy2.amount.value;
-        }
-    }));
+    const {
+        min: minHeavy2,
+        max: maxHeavy2,
+        add: addHeavy2,
+        remove: removeHeavy2
+    } = changeActiveBuyables({
+        buyable: buildHeavy2,
+        active: activeHeavy2
+    });
 
     const activeExtractor = persistent<DecimalSource>(0);
     const extractorPower = computed(() => Decimal.pow(1 / 3, activeExtractor.value));
@@ -270,46 +206,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
             width: "160px"
         }
     })) as GenericBuyable & { resource: Resource };
-    const minExtractor = createClickable(() => ({
-        display: "0",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.gt(activeExtractor.value, 0);
-        },
-        onClick() {
-            activeExtractor.value = 0;
-        }
-    }));
-    const removeExtractor = createClickable(() => ({
-        display: "-",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.gt(activeExtractor.value, 0);
-        },
-        onClick() {
-            activeExtractor.value = Decimal.sub(activeExtractor.value, 1);
-        }
-    }));
-    const addExtractor = createClickable(() => ({
-        display: "+",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.lt(activeExtractor.value, buildExtractor.amount.value);
-        },
-        onClick() {
-            activeExtractor.value = Decimal.add(activeExtractor.value, 1);
-        }
-    }));
-    const maxExtractor = createClickable(() => ({
-        display: "Max",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.lt(activeExtractor.value, buildExtractor.amount.value);
-        },
-        onClick() {
-            activeExtractor.value = buildExtractor.amount.value;
-        }
-    }));
+    const {
+        min: minExtractor,
+        max: maxExtractor,
+        add: addExtractor,
+        remove: removeExtractor
+    } = changeActiveBuyables({
+        buyable: buildExtractor,
+        active: activeExtractor
+    });
 
     const activePump = persistent<DecimalSource>(0);
     const pumpCoal = computed(() =>
@@ -358,46 +263,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
             width: "160px"
         }
     })) as GenericBuyable & { resource: Resource };
-    const minPump = createClickable(() => ({
-        display: "0",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.gt(activePump.value, 0);
-        },
-        onClick() {
-            activePump.value = 0;
-        }
-    }));
-    const removePump = createClickable(() => ({
-        display: "-",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.gt(activePump.value, 0);
-        },
-        onClick() {
-            activePump.value = Decimal.sub(activePump.value, 1);
-        }
-    }));
-    const addPump = createClickable(() => ({
-        display: "+",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.lt(activePump.value, buildPump.amount.value);
-        },
-        onClick() {
-            activePump.value = Decimal.add(activePump.value, 1);
-        }
-    }));
-    const maxPump = createClickable(() => ({
-        display: "Max",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.lt(activePump.value, buildPump.amount.value);
-        },
-        onClick() {
-            activePump.value = buildPump.amount.value;
-        }
-    }));
+    const {
+        max: maxPump,
+        min: minPump,
+        add: addPump,
+        remove: removePump
+    } = changeActiveBuyables({
+        buyable: buildPump,
+        active: activePump
+    });
 
     const activeBurner = persistent<DecimalSource>(0);
     const burnerOil = computed(() => Decimal.pow(activeBurner.value, 2));
@@ -442,46 +316,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
             width: "160px"
         }
     })) as GenericBuyable & { resource: Resource };
-    const minBurner = createClickable(() => ({
-        display: "0",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.gt(activeBurner.value, 0);
-        },
-        onClick() {
-            activeBurner.value = 0;
-        }
-    }));
-    const removeBurner = createClickable(() => ({
-        display: "-",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.gt(activeBurner.value, 0);
-        },
-        onClick() {
-            activeBurner.value = Decimal.sub(activeBurner.value, 1);
-        }
-    }));
-    const addBurner = createClickable(() => ({
-        display: "+",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.lt(activeBurner.value, buildBurner.amount.value);
-        },
-        onClick() {
-            activeBurner.value = Decimal.add(activeBurner.value, 1);
-        }
-    }));
-    const maxBurner = createClickable(() => ({
-        display: "Max",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.lt(activeBurner.value, buildBurner.amount.value);
-        },
-        onClick() {
-            activeBurner.value = buildBurner.amount.value;
-        }
-    }));
+    const {
+        max: maxBurner,
+        min: minBurner,
+        add: addBurner,
+        remove: removeBurner
+    } = changeActiveBuyables({
+        buyable: buildBurner,
+        active: activeBurner
+    });
 
     const activeSmelter = persistent<DecimalSource>(0);
     const smelterOil = computed(() => Decimal.pow(activeSmelter.value, 2).mul(100));
@@ -520,46 +363,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             width: "160px"
         }
     })) as GenericBuyable & { resource: Resource };
-    const minSmelter = createClickable(() => ({
-        display: "0",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.gt(activeSmelter.value, 0);
-        },
-        onClick() {
-            activeSmelter.value = 0;
-        }
-    }));
-    const removeSmelter = createClickable(() => ({
-        display: "-",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.gt(activeSmelter.value, 0);
-        },
-        onClick() {
-            activeSmelter.value = Decimal.sub(activeSmelter.value, 1);
-        }
-    }));
-    const addSmelter = createClickable(() => ({
-        display: "+",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.lt(activeSmelter.value, buildSmelter.amount.value);
-        },
-        onClick() {
-            activeSmelter.value = Decimal.add(activeSmelter.value, 1);
-        }
-    }));
-    const maxSmelter = createClickable(() => ({
-        display: "Max",
-        style: { minHeight: "20px", width: "40px", color: colorText },
-        canClick() {
-            return Decimal.lt(activeSmelter.value, buildSmelter.amount.value);
-        },
-        onClick() {
-            activeSmelter.value = buildSmelter.amount.value;
-        }
-    }));
+
+    const {
+        max: maxSmelter,
+        min: minSmelter,
+        add: addSmelter,
+        remove: removeSmelter
+    } = changeActiveBuyables({
+        buyable: buildSmelter,
+        active: activeSmelter
+    });
 
     // --------------------------------------------------------------------------- Milestones
 
@@ -668,7 +481,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createCollapsibleMilestones(oilMilestones);
 
     // --------------------------------------------------------------------------- Upgrades
-    
+
     const row1Upgrades: GenericUpgrade[] = [
         createUpgrade(() => ({
             resource: coal.coal,
