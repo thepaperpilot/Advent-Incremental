@@ -10,13 +10,16 @@ import { createClickable } from "features/clickables/clickable";
 import { createCumulativeConversion, createPolynomialScaling } from "features/conversion";
 import { jsx, showIf } from "features/feature";
 import MainDisplay from "features/resources/MainDisplay.vue";
-import { createResource, displayResource } from "features/resources/resource";
+import { createResource, displayResource, Resource } from "features/resources/resource";
 import { createUpgrade } from "features/upgrades/upgrade";
+import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
 import { noPersist } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { render, renderRow } from "util/vue";
 import { unref } from "vue";
+import paper from "./paper";
+import plastic from "./plastic";
 import trees from "./trees";
 
 const id = "boxes";
@@ -100,6 +103,35 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const upgrades = { logsUpgrade, ashUpgrade, coalUpgrade };
 
+    const oreUpgrade = createUpgrade(() => ({
+        resource: noPersist(boxes),
+        cost: 1e8,
+        visibility: () => showIf(plastic.upgrades.boxTools.bought.value),
+        display: {
+            title: "Carry ore in boxes",
+            description: "Double ore per mining op"
+        }
+    }));
+    const metalUpgrade = createUpgrade(() => ({
+        resource: noPersist(boxes),
+        cost: 1e9,
+        visibility: () => showIf(plastic.upgrades.boxTools.bought.value),
+        display: {
+            title: "Carry metal in boxes",
+            description: "Double ore purity"
+        }
+    }));
+    const plasticUpgrade = createUpgrade(() => ({
+        resource: noPersist(boxes),
+        cost: 1e10,
+        visibility: () => showIf(plastic.upgrades.boxTools.bought.value),
+        display: {
+            title: "Carry plastic in boxes",
+            description: "Double plastic gain"
+        }
+    }));
+    const row2Upgrades = { oreUpgrade, metalUpgrade, plasticUpgrade };
+
     const logBoxesBuyable = createBuyable(() => ({
         display: {
             title: "Carry more logs",
@@ -110,10 +142,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         resource: noPersist(boxes),
         cost() {
-            return Decimal.pow(3, logBoxesBuyable.amount.value).times(100);
+            let v = this.amount.value;
+            v = Decimal.pow(0.95, paper.books.boxBook.amount.value).times(v);
+            return Decimal.pow(3, v).times(100);
         },
         visibility: () => showIf(logsUpgrade.bought.value)
-    })) as GenericBuyable;
+    })) as GenericBuyable & { resource: Resource };
     const ashBoxesBuyable = createBuyable(() => ({
         display: {
             title: "Carry more ash",
@@ -124,10 +158,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         resource: noPersist(boxes),
         cost() {
-            return Decimal.pow(5, ashBoxesBuyable.amount.value).times(1000);
+            let v = this.amount.value;
+            v = Decimal.pow(0.95, paper.books.boxBook.amount.value).times(v);
+            return Decimal.pow(5, v).times(1000);
         },
         visibility: () => showIf(ashUpgrade.bought.value)
-    })) as GenericBuyable;
+    })) as GenericBuyable & { resource: Resource };
     const coalBoxesBuyable = createBuyable(() => ({
         display: {
             title: "Carry more coal",
@@ -138,11 +174,24 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         resource: noPersist(boxes),
         cost() {
-            return Decimal.pow(7, coalBoxesBuyable.amount.value).times(1000);
+            let v = this.amount.value;
+            v = Decimal.pow(0.95, paper.books.boxBook.amount.value).times(v);
+            return Decimal.pow(7, v).times(1000);
         },
         visibility: () => showIf(coalUpgrade.bought.value)
-    })) as GenericBuyable;
+    })) as GenericBuyable & { resource: Resource };
     const buyables = { logBoxesBuyable, ashBoxesBuyable, coalBoxesBuyable };
+
+    globalBus.on("update", diff => {
+        if (Decimal.lt(main.day.value, day)) {
+            return;
+        }
+
+        boxes.value = Decimal.times(diff, plastic.buyables.passiveBoxes.amount.value)
+            .times(boxesConversion.currentGain.value)
+            .div(100)
+            .add(boxes.value);
+    });
 
     const { total: totalBoxes, trackerDisplay } = setUpDailyProgressTracker({
         resource: boxes,
@@ -160,6 +209,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         totalBoxes,
         boxesConversion,
         upgrades,
+        row2Upgrades,
         buyables,
         minWidth: 700,
         display: jsx(() => (
@@ -171,6 +221,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {render(makeBoxes)}
                 <Spacer />
                 {renderRow(...Object.values(upgrades))}
+                {renderRow(...Object.values(row2Upgrades))}
                 {renderRow(...Object.values(buyables))}
             </>
         ))

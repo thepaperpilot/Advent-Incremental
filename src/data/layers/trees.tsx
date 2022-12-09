@@ -414,6 +414,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Carry more logs",
             enabled: boxes.upgrades.logsUpgrade.bought
         })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 10,
+            description: "Felt-Gripped Axe",
+            enabled: cloth.treesUpgrades.treesUpgrade4.bought
+        })),
         createExponentialModifier(() => ({
             exponent: 1.2,
             description: "100% Foundation Completed",

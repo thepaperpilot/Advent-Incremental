@@ -32,6 +32,8 @@ import coal from "./coal";
 import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
 import { createMilestone, GenericMilestone } from "features/milestones/milestone";
 import { formatGain } from "util/bignum";
+import plastic from "./plastic";
+import paper from "./paper";
 
 const id = "oil";
 const day = 9;
@@ -598,7 +600,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 25000,
             display: {
                 title: "Oil Integration",
-                description: "Reduce Oil Well's coal consumption multipler from 5 to 4"
+                description: "Reduce Oil Pump's coal consumption multipler from 5 to 4"
             },
             style: { color: colorText }
         })),
@@ -668,6 +670,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: row1Upgrades[3].bought
         })),
         createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Guide to drilling",
+            enabled: paper.upgrades.drillingUpgrade.bought
+        })),
+        createMultiplicativeModifier(() => ({
             multiplier: () => coalEffectiveness.value,
             description: "Effectiveness",
             enabled: () => Decimal.lt(coalEffectiveness.value, 1)
@@ -701,6 +708,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: depthMilestones[7].earned
         })),
         createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Oil and where to find it",
+            enabled: paper.upgrades.oilUpgrade.bought
+        })),
+        createMultiplicativeModifier(() => ({
             multiplier: () => coalEffectiveness.value,
             description: "Effectiveness",
             enabled: () => Decimal.lt(coalEffectiveness.value, 1)
@@ -718,6 +730,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             addend: () => Decimal.negate(smelterOil.value),
             description: "Oil Smelter",
             enabled: () => Decimal.gt(activeSmelter.value, 0)
+        })),
+        createAdditiveModifier(() => ({
+            addend: () => Decimal.negate(plastic.oilCost.value),
+            description: "Oil Refinery",
+            enabled: () => Decimal.gt(plastic.activeRefinery.value, 0)
         }))
     ]);
     const computedOilConsumption = computed(() => oilConsumption.apply(0));
@@ -826,7 +843,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             oil.value = Decimal.sub(
                 oil.value,
                 Decimal.mul(oilCost, oilEffectiveness.value).mul(diff)
-            );
+            ).max(0);
         } else {
             oilEffectiveness.value = Decimal.dOne;
         }
@@ -889,12 +906,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 {render(trackerDisplay)}
                 <Spacer />
-                {Decimal.lt(coalEffectiveness.value, 1)
-                    ? "Coal efficiency: " + format(Decimal.mul(coalEffectiveness.value, 100)) + "%"
-                    : null}
-                {Decimal.lt(oilEffectiveness.value, 1)
-                    ? "Oil efficiency: " + format(Decimal.mul(oilEffectiveness.value, 100)) + "%"
-                    : null}
+                {Decimal.lt(coalEffectiveness.value, 1) ? (
+                    <div>Coal efficiency: {format(Decimal.mul(coalEffectiveness.value, 100))}%</div>
+                ) : null}
+                {Decimal.lt(oilEffectiveness.value, 1) ? (
+                    <div>Oil efficiency: {format(Decimal.mul(oilEffectiveness.value, 100))}%</div>
+                ) : null}
                 <MainDisplay
                     resource={oil}
                     color={color}

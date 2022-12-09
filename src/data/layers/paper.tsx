@@ -5,22 +5,26 @@
 import Spacer from "components/layout/Spacer.vue";
 import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
+import { main } from "data/projEntry";
 import { BuyableOptions, createBuyable, GenericBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
 import { createCumulativeConversion, createPolynomialScaling } from "features/conversion";
 import { jsx, showIf } from "features/feature";
 import MainDisplay from "features/resources/MainDisplay.vue";
-import { createResource, displayResource } from "features/resources/resource";
+import { createResource, displayResource, Resource } from "features/resources/resource";
+import { createUpgrade } from "features/upgrades/upgrade";
+import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier, Modifier } from "game/modifiers";
 import { noPersist } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { WithRequired } from "util/common";
-import { render, renderCol } from "util/vue";
+import { render, renderCol, renderRow } from "util/vue";
 import { computed, ref, unref } from "vue";
 import cloth from "./cloth";
 import coal from "./coal";
 import elves from "./elves";
+import plastic from "./plastic";
 import trees from "./trees";
 
 const id = "paper";
@@ -96,9 +100,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 showAmount: false
             },
             resource: noPersist(paper),
-            cost: () => Decimal.pow(5, buyable.amount.value).times(10),
+            cost() {
+                let v = this.amount.value;
+                if (options.elfName === "Star" || options.elfName === "Bell") v = Decimal.pow(v, 2);
+                if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
+                if (Decimal.gte(v, 10000)) v = Decimal.pow(v, 2).div(10000);
+                v = Decimal.pow(0.95, paperBook.amount.value).times(v);
+                return Decimal.pow(5, v).times(10);
+            },
             style: "width: 600px"
-        })) as GenericBuyable;
+        })) as GenericBuyable & { resource: Resource };
         return buyable;
     }
 
@@ -150,6 +161,24 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buyableName: "Kiln",
         visibility: () => showIf(elves.elves.kilnElf.bought.value)
     });
+    const paperBook = createBook({
+        name: "The Book Thief",
+        elfName: "Star",
+        buyableName: "Paper Buyables",
+        visibility: () => showIf(elves.elves.paperElf.bought.value)
+    });
+    const boxBook = createBook({
+        name: "Not a box",
+        elfName: "Bell",
+        buyableName: "Box Buyables",
+        visibility: () => showIf(elves.elves.boxElf.bought.value)
+    });
+    const clothBook = createBook({
+        name: "Fuzzy Bee and Friends",
+        elfName: "Gingersnap",
+        buyableName: "Cloth Buyables",
+        visibility: () => showIf(elves.elves.clothElf.bought.value)
+    });
     const books = {
         cuttersBook,
         plantersBook,
@@ -159,8 +188,40 @@ const layer = createLayer(id, function (this: BaseLayer) {
         fertilizerBook,
         smallFireBook,
         bonfireBook,
-        kilnBook
+        kilnBook,
+        paperBook,
+        boxBook,
+        clothBook
     };
+
+    const clothUpgrade = createUpgrade(() => ({
+        resource: noPersist(paper),
+        cost: 1e8,
+        visibility: () => showIf(plastic.upgrades.paperTools.bought.value),
+        display: {
+            title: "Shepherding for Dummies",
+            description: "Double effectiveness of all cloth actions"
+        }
+    }));
+    const drillingUpgrade = createUpgrade(() => ({
+        resource: noPersist(paper),
+        cost: 1e9,
+        visibility: () => showIf(plastic.upgrades.paperTools.bought.value),
+        display: {
+            title: "Guide to drilling",
+            description: "Double drilling power"
+        }
+    }));
+    const oilUpgrade = createUpgrade(() => ({
+        resource: noPersist(paper),
+        cost: 1e10,
+        visibility: () => showIf(plastic.upgrades.paperTools.bought.value),
+        display: {
+            title: "Oil and where to find it",
+            description: "Double oil gain"
+        }
+    }));
+    const upgrades = { clothUpgrade, drillingUpgrade, oilUpgrade };
 
     const paperGain = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
@@ -177,6 +238,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "Scholar's jacket",
             enabled: cloth.paperUpgrades.paperUpgrade3.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 10,
+            description: "Felt Elbow Pads",
+            enabled: cloth.paperUpgrades.paperUpgrade4.bought
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
 
@@ -199,6 +265,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
         />
     ));
 
+    globalBus.on("update", diff => {
+        if (Decimal.lt(main.day.value, day)) {
+            return;
+        }
+
+        paper.value = Decimal.times(diff, plastic.buyables.passivePaper.amount.value)
+            .times(paperConversion.currentGain.value)
+            .div(100)
+            .add(paper.value);
+    });
+
     const { total: totalPaper, trackerDisplay } = setUpDailyProgressTracker({
         resource: paper,
         goal: 5e3,
@@ -220,6 +297,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         totalPaper,
         paperConversion,
         books,
+        upgrades,
         generalTabCollapsed,
         minWidth: 700,
         display: jsx(() => (
@@ -229,6 +307,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <MainDisplay resource={paper} color={color} style="margin-bottom: 0" />
                 <Spacer />
                 {render(makePaper)}
+                <Spacer />
+                {renderRow(...Object.values(upgrades))}
                 <Spacer />
                 {renderCol(...Object.values(books))}
             </>

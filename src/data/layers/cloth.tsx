@@ -8,16 +8,20 @@ import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
 import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
-import { createBuyable } from "features/buyable";
+import { createBuyable, GenericBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
 import { createHotkey } from "features/hotkey";
 import MainDisplay from "features/resources/MainDisplay.vue";
-import { createResource } from "features/resources/resource";
+import { createResource, Resource } from "features/resources/resource";
 import { createUpgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
-import { createAdditiveModifier, createSequentialModifier } from "game/modifiers";
+import {
+    createAdditiveModifier,
+    createMultiplicativeModifier,
+    createSequentialModifier
+} from "game/modifiers";
 import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource } from "util/bignum";
 import { formatWhole } from "util/break_eternity";
@@ -26,6 +30,7 @@ import { render, renderCol, renderRow } from "util/vue";
 import { computed, ref } from "vue";
 import metal from "./metal";
 import paper from "./paper";
+import plastic from "./plastic";
 import trees from "./trees";
 
 const id = "cloth";
@@ -176,39 +181,42 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost() {
             let v = this.amount.value;
             if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
+            v = Decimal.pow(0.95, paper.books.clothBook.amount.value).times(v);
             return Decimal.pow(1.5, v).times(1e14);
         },
         display: {
             title: "Build more pens",
             description: "Breed +1 sheep at once"
         }
-    }));
+    })) as GenericBuyable & { resource: Resource };
 
     const betterShears = createBuyable(() => ({
         resource: metal.metal,
         cost() {
             let v = this.amount.value;
             if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
+            v = Decimal.pow(0.95, paper.books.clothBook.amount.value).times(v);
             return Decimal.pow(1.4, v).times(10000);
         },
         display: {
             title: "Make stronger shears",
             description: "Shear +1 sheep at once"
         }
-    }));
+    })) as GenericBuyable & { resource: Resource };
 
     const fasterSpinning = createBuyable(() => ({
         resource: paper.paper,
         cost() {
             let v = this.amount.value;
             if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
+            v = Decimal.pow(0.95, paper.books.clothBook.amount.value).times(v);
             return Decimal.pow(1.3, v).times(1000000);
         },
         display: {
             title: "Learn how to spin",
             description: "Spin +1 wool at once"
         }
-    }));
+    })) as GenericBuyable & { resource: Resource };
 
     const treesUpgrade1 = createUpgrade(() => ({
         resource: noPersist(cloth),
@@ -236,7 +244,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Quadruple trees planted"
         }
     }));
-    const treesUpgrades = { treesUpgrade3, treesUpgrade2, treesUpgrade1 };
+    const treesUpgrade4 = createUpgrade(() => ({
+        resource: noPersist(cloth),
+        cost: 1e3,
+        visibility: () => showIf(plastic.upgrades.clothTools.bought.value),
+        display: {
+            title: "Felt-Gripped Axe",
+            description: "10x trees planted"
+        }
+    }));
+    const treesUpgrades = { treesUpgrade4, treesUpgrade3, treesUpgrade2, treesUpgrade1 };
 
     const metalUpgrade1 = createUpgrade(() => ({
         resource: noPersist(cloth),
@@ -264,7 +281,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Triple coal gain"
         }
     }));
-    const metalUpgrades = { metalUpgrade3, metalUpgrade2, metalUpgrade1 };
+    const metalUpgrade4 = createUpgrade(() => ({
+        resource: noPersist(cloth),
+        cost: 2e3,
+        visibility: () => showIf(plastic.upgrades.clothTools.bought.value),
+        display: {
+            title: "Felt-Gripped Pick",
+            description: "Quadruple coal gain"
+        }
+    }));
+    const metalUpgrades = { metalUpgrade4, metalUpgrade3, metalUpgrade2, metalUpgrade1 };
 
     const paperUpgrade1 = createUpgrade(() => ({
         resource: noPersist(cloth),
@@ -292,12 +318,31 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Double paper gain"
         }
     }));
-    const paperUpgrades = { paperUpgrade3, paperUpgrade2, paperUpgrade1 };
+    const paperUpgrade4 = createUpgrade(() => ({
+        resource: noPersist(cloth),
+        cost: 4e3,
+        visibility: () => showIf(plastic.upgrades.clothTools.bought.value),
+        display: {
+            title: "Felt Elbow Pads",
+            description: "10x paper gain"
+        }
+    }));
+    const paperUpgrades = { paperUpgrade4, paperUpgrade3, paperUpgrade2, paperUpgrade1 };
 
     const sheepGain = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: buildPens.amount,
             description: "Build more pens"
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.div(plastic.buyables.clothGains.amount.value, 10).add(1),
+            description: "Plastic Shepherd",
+            enabled: () => Decimal.gte(plastic.buyables.clothGains.amount.value, 1)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Shepherding for Dummies",
+            enabled: paper.upgrades.clothUpgrade.bought
         }))
     ]);
     const computedSheepGain = computed(() => sheepGain.apply(1));
@@ -308,6 +353,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createAdditiveModifier(() => ({
             addend: betterShears.amount,
             description: "Make stronger shears"
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.div(plastic.buyables.clothGains.amount.value, 10).add(1),
+            description: "Plastic Shepherd",
+            enabled: () => Decimal.gte(plastic.buyables.clothGains.amount.value, 1)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Shepherding for Dummies",
+            enabled: paper.upgrades.clothUpgrade.bought
         }))
     ]);
     const computedShearingAmount = computed(() => shearingAmount.apply(1));
@@ -318,6 +373,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createAdditiveModifier(() => ({
             addend: fasterSpinning.amount,
             description: "Learn how to spin"
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.div(plastic.buyables.clothGains.amount.value, 10).add(1),
+            description: "Plastic Shepherd",
+            enabled: () => Decimal.gte(plastic.buyables.clothGains.amount.value, 1)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Shepherding for Dummies",
+            enabled: paper.upgrades.clothUpgrade.bought
         }))
     ]);
     const computedSpinningAmount = computed(() => spinningAmount.apply(1));

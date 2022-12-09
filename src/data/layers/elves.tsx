@@ -2,6 +2,7 @@
  * @module
  * @hidden
  */
+import { isArray } from "@vue/shared";
 import Toggle from "components/fields/Toggle.vue";
 import Spacer from "components/layout/Spacer.vue";
 import Modal from "components/Modal.vue";
@@ -25,8 +26,10 @@ import { Computable, convertComputable } from "util/computed";
 import { render, renderRow } from "util/vue";
 import { computed, ref, Ref, unref, watchEffect } from "vue";
 import boxes from "./boxes";
+import cloth from "./cloth";
 import coal from "./coal";
 import paper from "./paper";
+import plastic from "./plastic";
 import trees from "./trees";
 import workshop from "./workshop";
 
@@ -86,6 +89,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 if (foundationMilestone.earned.value) {
                     workshop.foundationProgress.value = 100;
                 }
+                if (coalUpgradesMilestone.earned.value) {
+                    coal.warmerCutters.bought.value = true;
+                    coal.warmerPlanters.bought.value = true;
+                    coal.basicFertilizer.bought.value = true;
+                    coal.unlockBonfire.bought.value = true;
+                    coal.dedicatedCutters.bought.value = true;
+                    coal.dedicatedPlanters.bought.value = true;
+                    coal.betterFertilizer.bought.value = true;
+                    coal.unlockKiln.bought.value = true;
+                    coal.efficientSmelther.bought.value = true;
+                }
             });
         }
     }));
@@ -100,6 +114,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.times(paper.books.cuttersBook.amount.value, 0.1).add(1),
             description: "Now You're Logging!",
             enabled: () => Decimal.gt(paper.books.cuttersBook.amount.value, 0)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "10 Elves Trained",
+            enabled: elvesMilestone2.earned
         }))
     ]);
     const planterCooldown = createSequentialModifier(() => [
@@ -112,6 +131,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.times(paper.books.plantersBook.amount.value, 0.1).add(1),
             description: "The Man Who Planted Trees",
             enabled: () => Decimal.gt(paper.books.plantersBook.amount.value, 0)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "10 Elves Trained",
+            enabled: elvesMilestone2.earned
         }))
     ]);
     const expanderCooldown = createSequentialModifier(() => [
@@ -124,6 +148,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.times(paper.books.expandersBook.amount.value, 0.1).add(1),
             description: "Logjam",
             enabled: () => Decimal.gt(paper.books.expandersBook.amount.value, 0)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "10 Elves Trained",
+            enabled: elvesMilestone2.earned
         }))
     ]);
     const heatedCutterCooldown = createSequentialModifier(() => [
@@ -136,6 +165,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.times(paper.books.heatedCuttersBook.amount.value, 0.1).add(1),
             description: "Fahrenheit 451",
             enabled: () => Decimal.gt(paper.books.heatedCuttersBook.amount.value, 0)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "10 Elves Trained",
+            enabled: elvesMilestone2.earned
         }))
     ]);
     const heatedPlanterCooldown = createSequentialModifier(() => [
@@ -149,6 +183,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 Decimal.times(paper.books.heatedPlantersBook.amount.value, 0.1).add(1),
             description: "Tillamook Burn Country",
             enabled: () => Decimal.gt(paper.books.heatedPlantersBook.amount.value, 0)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "10 Elves Trained",
+            enabled: elvesMilestone2.earned
         }))
     ]);
     const fertilizerCooldown = createSequentialModifier(() => [
@@ -161,6 +200,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.times(paper.books.fertilizerBook.amount.value, 0.1).add(1),
             description: "The Garden Tree's Handbook",
             enabled: () => Decimal.gt(paper.books.fertilizerBook.amount.value, 0)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "10 Elves Trained",
+            enabled: elvesMilestone2.earned
         }))
     ]);
     const smallFireCooldown = createSequentialModifier(() => [
@@ -173,6 +217,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.times(paper.books.smallFireBook.amount.value, 0.1).add(1),
             description: "Firestarter",
             enabled: () => Decimal.gt(paper.books.smallFireBook.amount.value, 0)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "10 Elves Trained",
+            enabled: elvesMilestone2.earned
         }))
     ]);
     const bonfireCooldown = createSequentialModifier(() => [
@@ -185,6 +234,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.times(paper.books.bonfireBook.amount.value, 0.1).add(1),
             description: "An Arsonist's Guide to Writer's Homes in New England",
             enabled: () => Decimal.gt(paper.books.bonfireBook.amount.value, 0)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "10 Elves Trained",
+            enabled: elvesMilestone2.earned
         }))
     ]);
     const kilnCooldown = createSequentialModifier(() => [
@@ -197,6 +251,62 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.times(paper.books.kilnBook.amount.value, 0.1).add(1),
             description: "Little Fires Everywhere",
             enabled: () => Decimal.gt(paper.books.kilnBook.amount.value, 0)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "10 Elves Trained",
+            enabled: elvesMilestone2.earned
+        }))
+    ]);
+    const paperCooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "6 Elves Trained",
+            enabled: elvesMilestone.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.times(paper.books.paperBook.amount.value, 0.1).add(1),
+            description: "The Book Thief",
+            enabled: () => Decimal.gt(paper.books.paperBook.amount.value, 0)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "10 Elves Trained",
+            enabled: elvesMilestone2.earned
+        }))
+    ]);
+    const boxCooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "6 Elves Trained",
+            enabled: elvesMilestone.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.times(paper.books.boxBook.amount.value, 0.1).add(1),
+            description: "Not a box",
+            enabled: () => Decimal.gt(paper.books.boxBook.amount.value, 0)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "10 Elves Trained",
+            enabled: elvesMilestone2.earned
+        }))
+    ]);
+    const clothCooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "6 Elves Trained",
+            enabled: elvesMilestone.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.times(paper.books.clothBook.amount.value, 0.1).add(1),
+            description: "Fuzzy Bee and Friends",
+            enabled: () => Decimal.gt(paper.books.clothBook.amount.value, 0)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "10 Elves Trained",
+            enabled: elvesMilestone2.earned
         }))
     ]);
 
@@ -263,6 +373,27 @@ const layer = createLayer(id, function (this: BaseLayer) {
             base: 10,
             unit: "/s",
             visible: elves.kilnElf.bought
+        },
+        {
+            title: "Star Auto-Buy Frequency",
+            modifier: paperCooldown,
+            base: 10,
+            unit: "/s",
+            visible: elves.paperElf.bought
+        },
+        {
+            title: "Bell Auto-Buy Frequency",
+            modifier: boxCooldown,
+            base: 10,
+            unit: "/s",
+            visible: elves.boxElf.bought
+        },
+        {
+            title: "Gingersnap Auto-Buy Frequency",
+            modifier: clothCooldown,
+            base: 10,
+            unit: "/s",
+            visible: elves.clothElf.bought
         }
     ]);
     const showModifiersModal = ref(false);
@@ -277,11 +408,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
         />
     ));
 
+    const trainingCost = computed(() => {
+        let cost = Decimal.pow(4, totalElves.value).times(1e6);
+        if (Decimal.gte(totalElves.value, 9)) {
+            cost = Decimal.times(cost, 1e15);
+        }
+        return cost;
+    });
+
     function createElf(
         options: {
             name: string;
             description: string;
-            buyable: GenericBuyable & { resource: Resource };
+            buyable:
+                | (GenericBuyable & { resource: Resource })
+                | (GenericBuyable & { resource: Resource })[];
             cooldownModifier: Modifier;
             customCost?: (amount: DecimalSource) => DecimalSource;
             hasToggle?: boolean;
@@ -291,7 +432,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
             canBuy?: Computable<boolean>;
         } & Partial<ClickableOptions>
     ) {
-        const trainingCost = computed(() => Decimal.pow(4, totalElves.value).times(1e6));
         const buyProgress = persistent<DecimalSource>(0);
         const toggle = options.hasToggle ? persistent<boolean>(false) : ref(true);
 
@@ -303,23 +443,27 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (upgrade.bought.value && unref(isActive)) {
                 buyProgress.value = Decimal.add(buyProgress.value, diff);
                 const cooldown = Decimal.recip(computedAutoBuyCooldown.value);
-                while (Decimal.gte(buyProgress.value, cooldown)) {
-                    if (
-                        options.customCost == undefined
-                            ? unref(options.buyable.canPurchase)
-                            : Decimal.gte(
-                                  options.buyable.resource.value,
-                                  options.customCost(options.buyable.amount.value)
-                              )
-                    ) {
-                        options.buyable.amount.value = Decimal.add(options.buyable.amount.value, 1);
-                        buyProgress.value = Decimal.sub(buyProgress.value, cooldown);
-                        options.onAutoPurchase?.();
-                    } else {
-                        buyProgress.value = cooldown;
-                        break;
+                (isArray(options.buyable) ? options.buyable : [options.buyable]).forEach(
+                    buyable => {
+                        while (Decimal.gte(buyProgress.value, cooldown)) {
+                            if (
+                                options.customCost == undefined
+                                    ? unref(buyable.canPurchase)
+                                    : Decimal.gte(
+                                          buyable.resource.value,
+                                          options.customCost(buyable.amount.value)
+                                      )
+                            ) {
+                                buyable.amount.value = Decimal.add(buyable.amount.value, 1);
+                                buyProgress.value = Decimal.sub(buyProgress.value, cooldown);
+                                options.onAutoPurchase?.();
+                            } else {
+                                buyProgress.value = cooldown;
+                                break;
+                            }
+                        }
                     }
-                }
+                );
             }
         }
 
@@ -445,7 +589,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         hasToggle: true,
         toggleDesc: "Activate auto-purchased bonfires",
         onAutoPurchase() {
-            const spent = unref(this.buyable.cost!);
+            const spent = unref((this.buyable as GenericBuyable).cost!);
             coal.activeFires.value = Decimal.sub(coal.activeFires.value, spent).max(0);
             coal.buildFire.amount.value = Decimal.sub(coal.buildFire.amount.value, spent).max(0);
             if (bonfireElf.toggle.value) {
@@ -477,6 +621,31 @@ const layer = createLayer(id, function (this: BaseLayer) {
         canBuy: coal.unlockKiln.bought
     });
     const fireElves = [smallFireElf, bonfireElf, kilnElf];
+    const paperElf = createElf({
+        name: "Star",
+        description:
+            "Star will automatically purchase all books you can afford, without actually spending any paper.",
+        buyable: Object.values(paper.books),
+        cooldownModifier: paperCooldown,
+        visibility: () => showIf(plastic.elfUpgrades.paperElf.bought.value)
+    });
+    const boxElf = createElf({
+        name: "Bell",
+        description:
+            "Bell will automatically purchase all box buyables you can afford, without actually spending any boxes.",
+        buyable: Object.values(boxes.buyables),
+        cooldownModifier: boxCooldown,
+        visibility: () => showIf(plastic.elfUpgrades.boxElf.bought.value)
+    });
+    const clothElf = createElf({
+        name: "Gingersnap",
+        description:
+            "Gingersnap will automatically purchase all cloth buyables you can afford, without actually spending any resources.",
+        buyable: [cloth.buildPens, cloth.betterShears, cloth.fasterSpinning],
+        cooldownModifier: clothCooldown,
+        visibility: () => showIf(plastic.elfUpgrades.clothElf.bought.value)
+    });
+    const plasticElves = [paperElf, boxElf, clothElf];
     const elves = {
         cuttersElf,
         plantersElf,
@@ -486,7 +655,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         fertilizerElf,
         smallFireElf,
         bonfireElf,
-        kilnElf
+        kilnElf,
+        paperElf,
+        boxElf,
+        clothElf
     };
     const totalElves = computed(() => Object.values(elves).filter(elf => elf.bought.value).length);
 
@@ -562,6 +734,30 @@ const layer = createLayer(id, function (this: BaseLayer) {
         shouldEarn: () => Decimal.gte(totalElves.value, 9),
         visibility: () => showIf(forestMilestone2.earned.value)
     }));
+    const elvesMilestone2 = createMilestone(() => ({
+        display: {
+            requirement: "10 Elves Trained",
+            effectDisplay: "Elves work twice as fast (again)"
+        },
+        shouldEarn: () => Decimal.gte(totalElves.value, 10),
+        visibility: () => showIf(main.day.value >= 10)
+    }));
+    const coalUpgradesMilestone = createMilestone(() => ({
+        display: {
+            requirement: "11 Elves Trained",
+            effectDisplay: "Coal upgrades aren't reset after training"
+        },
+        shouldEarn: () => Decimal.gte(totalElves.value, 11),
+        visibility: () => showIf(elvesMilestone2.earned.value)
+    }));
+    const coalGainMilestone2 = createMilestone(() => ({
+        display: {
+            requirement: "12 Elves Trained",
+            effectDisplay: "Double coal gain"
+        },
+        shouldEarn: () => Decimal.gte(totalElves.value, 12),
+        visibility: () => showIf(coalUpgradesMilestone.earned.value)
+    }));
     // Gosh why did I make these as an array at first
     const milestones = [
         manualMilestone,
@@ -572,7 +768,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         elvesMilestone,
         foundationMilestone,
         forestMilestone2,
-        treeUpgradesMilestone
+        treeUpgradesMilestone,
+        elvesMilestone2,
+        coalUpgradesMilestone,
+        coalGainMilestone2
     ];
     const milestonesDict = {
         manualMilestone,
@@ -583,7 +782,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         elvesMilestone,
         foundationMilestone,
         forestMilestone2,
-        treeUpgradesMilestone
+        treeUpgradesMilestone,
+        elvesMilestone2,
+        coalUpgradesMilestone,
+        coalGainMilestone2
     };
     const { collapseMilestones, display: milestonesDisplay } =
         createCollapsibleMilestones(milestonesDict);
@@ -639,6 +841,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     {renderRow(...treesElves)}
                     {renderRow(...coalElves)}
                     {renderRow(...fireElves)}
+                    {renderRow(...plasticElves)}
                 </div>
                 {milestonesDisplay()}
             </>
