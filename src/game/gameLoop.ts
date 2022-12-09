@@ -80,7 +80,13 @@ function update() {
     if (!Number.isFinite(player.timePlayed)) {
         player.timePlayed = 1e308;
     }
-    globalBus.emit("update", diff, trueDiff);
+
+    let currentTime = trueDiff;
+    while (currentTime > 1) {
+        globalBus.emit("update", diff / trueDiff, 1);
+        currentTime--;
+    }
+    globalBus.emit("update", (diff * currentTime) / trueDiff, currentTime);
 
     if (settings.unthrottled) {
         requestAnimationFrame(update);
