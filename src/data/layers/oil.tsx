@@ -664,7 +664,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     ] as Record<number, GenericMilestone>;
 
-    const { display: oilMilestonesDisplay } =
+    const { collapseMilestones: collapsedOilMilestones, display: oilMilestonesDisplay } =
         createCollapsibleMilestones(oilMilestones);
 
     // --------------------------------------------------------------------------- Upgrades
