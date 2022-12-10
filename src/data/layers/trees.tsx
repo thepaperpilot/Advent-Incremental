@@ -24,17 +24,17 @@ import {
     Modifier
 } from "game/modifiers";
 import { noPersist, persistent } from "game/persistence";
-import Decimal, { DecimalSource, format, formatWhole, formatLimit, formatGain } from "util/bignum";
+import Decimal, { DecimalSource, format, formatGain, formatLimit, formatWhole } from "util/bignum";
 import { Direction, WithRequired } from "util/common";
-import { render, renderRow } from "util/vue";
+import { render, renderGrid, renderRow } from "util/vue";
 import { computed, ref } from "vue";
 import boxes from "./boxes";
 import cloth from "./cloth";
 import coal from "./coal";
+import dyes from "./dyes";
 import elves from "./elves";
 import paper from "./paper";
 import workshop from "./workshop";
-import dyes from "./dyes";
 const id = "trees";
 const day = 1;
 
@@ -426,7 +426,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: cloth.treesUpgrades.treesUpgrade4.bought
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: computed(() => Decimal.add(computedAutoCuttingAmount.value, 1).log10().plus(1)),
+            multiplier: computed(() =>
+                Decimal.add(computedAutoCuttingAmount.value, 1).log10().plus(1)
+            ),
             description: "Is Blue Dye just Water?",
             enabled: dyes.upgrades.blueDyeUpg.bought
         })),
