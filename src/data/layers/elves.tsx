@@ -334,6 +334,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 resource: coal.coal,
                 cost: trainingCost,
                 computedAutoBuyCooldown,
+                name: options.name,
                 display: () => ({
                     title: options.name,
                     description: jsx(() => (
@@ -369,6 +370,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             buyProgress: Ref<number>;
             update: (diff: number) => void;
             toggle: Ref<boolean>;
+            name: string;
         };
         return upgrade;
     }

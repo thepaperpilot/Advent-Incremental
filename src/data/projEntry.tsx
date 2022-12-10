@@ -29,6 +29,7 @@ import boxesSymbol from "./symbols/cardboardBox.png";
 import metalSymbol from "./symbols/metal.png";
 import clothSymbol from "./symbols/cloth.png";
 import oilSymbol from "./symbols/oil.png";
+import managementSymbol from "./symbols/elfManagement.png"
 import coal from "./layers/coal";
 import elves from "./layers/elves";
 import paper from "./layers/paper";
@@ -36,6 +37,7 @@ import boxes from "./layers/boxes";
 import metal from "./layers/metal";
 import cloth from "./layers/cloth";
 import oil from "./layers/oil";
+import management from "./layers/management";
 
 export interface Day extends VueFeature {
     day: number;
@@ -252,9 +254,9 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 12,
             shouldNotify: false,
-            layer: null, // "management"
-            symbol: "",
-            story: "",
+            layer: "management", // "management"
+            symbol: managementSymbol,
+            story: "You watch as the elves work, and you realize that they could probably be trained to help out better. Just then, Santa comes over to check on your progress. You reply that you're doing fine, except that the elves may need a bit of behavior management. Santa offers to help, saying that he doesn't want to leave you to do everything. Unfortunately for you, the behavior problems won't fix themselves, so let's get to work!",
             completedStory: ""
         })),
         createDay(() => ({
@@ -412,7 +414,19 @@ export const main = createLayer("main", function (this: BaseLayer) {
 export const getInitialLayers = (
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     player: Partial<PlayerData>
-): Array<GenericLayer> => [main, trees, workshop, coal, elves, paper, boxes, metal, cloth, oil];
+): Array<GenericLayer> => [
+    main,
+    trees,
+    workshop,
+    coal,
+    elves,
+    paper,
+    boxes,
+    metal,
+    cloth,
+    oil,
+    management
+];
 
 /**
  * A computed ref whose value is true whenever the game is over.
