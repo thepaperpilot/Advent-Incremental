@@ -417,7 +417,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 requirement: "150m Well Depth",
                 effectDisplay:
-                    "It appears that coal and metal appear a lot more when you go this deep! Unlock more coal and metal upgrades!"
+                    "It appears that coal and metal appear a lot more when you go this deep! Unlock an upgrade apiece for coal and metal!"
             },
             shouldEarn: () => Decimal.gte(depth.value, 150),
             visibility: () => showIf(depthMilestones[3].earned.value)
