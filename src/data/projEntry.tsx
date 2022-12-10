@@ -39,6 +39,9 @@ import boxes from "./layers/boxes";
 import metal from "./layers/metal";
 import cloth from "./layers/cloth";
 import oil from "./layers/oil";
+import plastic from "./layers/plastic";
+import dyes from "./layers/dyes";
+import management from "./layers/management";
 
 export interface Day extends VueFeature {
     day: number;
@@ -417,7 +420,21 @@ export const main = createLayer("main", function (this: BaseLayer) {
 export const getInitialLayers = (
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     player: Partial<PlayerData>
-): Array<GenericLayer> => [main, trees, workshop, coal, elves, paper, boxes, metal, cloth, oil];
+): Array<GenericLayer> => [
+    main,
+    trees,
+    workshop,
+    coal,
+    elves,
+    paper,
+    boxes,
+    metal,
+    cloth,
+    oil,
+    plastic,
+    dyes,
+    management
+];
 
 /**
  * A computed ref whose value is true whenever the game is over.
