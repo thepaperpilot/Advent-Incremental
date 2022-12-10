@@ -417,8 +417,9 @@ export function setUpDailyProgressTracker(options: {
         display: VueFeature | CoercableComponent;
     };
     usingLog?: Ref<boolean>;
+    ignoreTotal?: boolean
 }) {
-    const total = trackTotal(options.resource);
+    const total = options.ignoreTotal ? options.resource : trackTotal(options.resource);
     const progressFunc = () => {
         if (main.day.value !== options.day) return 1;
         let progress = Decimal.add(total.value, 1);
@@ -452,7 +453,7 @@ export function setUpDailyProgressTracker(options: {
             <div>
                 {main.day.value === options.day ? (
                     <>
-                        Reach {formatWhole(options.goal)} total {options.resource.displayName} to
+                        Reach {formatWhole(options.goal)} {options.ignoreTotal ? "" : ("total ")}{options.resource.displayName} to
                         complete the day
                     </>
                 ) : (

@@ -109,21 +109,21 @@ export default defineComponent({
             };
             switch (unref(direction)) {
                 case Direction.Up:
-                    barStyle.clipPath = `inset(${normalizedProgress.value}% 0% 0% 0%)`;
-                    barStyle.width = unwrapRef(width) + 1 + "px";
+                    barStyle.clipPath = `inset(${normalizedProgress.value}% -2px -2px -2px)`;
+                    barStyle.width = unwrapRef(width) + 2 + "px";
                     break;
                 case Direction.Down:
-                    barStyle.clipPath = `inset(0% 0% ${normalizedProgress.value}% 0%)`;
-                    barStyle.width = unwrapRef(width) + 1 + "px";
+                    barStyle.clipPath = `inset(-2px -2px ${normalizedProgress.value}% -2px)`;
+                    barStyle.width = unwrapRef(width) + 2 + "px";
                     break;
                 case Direction.Right:
-                    barStyle.clipPath = `inset(0% ${normalizedProgress.value}% 0% 0%)`;
+                    barStyle.clipPath = `inset(-2px ${normalizedProgress.value}% -2px -2px)`;
                     break;
                 case Direction.Left:
-                    barStyle.clipPath = `inset(0% 0% 0% ${normalizedProgress.value} + '%)`;
+                    barStyle.clipPath = `inset(-2px -2px -2px ${normalizedProgress.value} + '%)`;
                     break;
                 case Direction.Default:
-                    barStyle.clipPath = "inset(0% 50% 0% 0%)";
+                    barStyle.clipPath = "inset(-2px 50% -2px -2px)";
                     break;
             }
             return barStyle;
@@ -146,6 +146,8 @@ export default defineComponent({
 .bar {
     position: relative;
     display: table;
+    overflow: hidden;
+    border-radius: 10px;
 }
 
 .overlayTextContainer {
@@ -166,7 +168,6 @@ export default defineComponent({
     border-radius: 10px;
     border-color: var(--foreground);
     overflow: hidden;
-    mask-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAA5JREFUeNpiYGBgAAgwAAAEAAGbA+oJAAAAAElFTkSuQmCC);
     margin: 0;
 }
 

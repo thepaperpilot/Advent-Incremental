@@ -32,6 +32,9 @@ import coal from "./coal";
 import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
 import { createMilestone, GenericMilestone } from "features/milestones/milestone";
 import { formatGain } from "util/bignum";
+import plastic from "./plastic";
+import paper from "./paper";
+import dyes from "./dyes";
 
 const id = "oil";
 const day = 9;
@@ -221,7 +224,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         Decimal.pow(row2Upgrades[3].bought.value ? 4 : 5, activePump.value)
     );
     const pumpOil = computed(() =>
-        Decimal.pow(activePump.value, 2)
+        Decimal.add(activePump.value, computedExtraOilPumps.value)
+            .pow(2)
             .mul(activeHeavy.value)
             .mul(Decimal.add(activeHeavy2.value, 1))
             .mul(activeExtractor.value)
@@ -413,7 +417,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 requirement: "150m Well Depth",
                 effectDisplay:
-                    "It appears that coal and metal appear a lot more when you go this deep! Unlock more coal and metal upgrades!"
+                    "It appears that coal and metal appear a lot more when you go this deep! Unlock an upgrade apiece for coal and metal!"
             },
             shouldEarn: () => Decimal.gte(depth.value, 150),
             visibility: () => showIf(depthMilestones[3].earned.value)
@@ -598,7 +602,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 25000,
             display: {
                 title: "Oil Integration",
-                description: "Reduce Oil Well's coal consumption multipler from 5 to 4"
+                description: "Reduce Oil Pump's coal consumption multipler from 5 to 4"
             },
             style: { color: colorText }
         })),
@@ -668,6 +672,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: row1Upgrades[3].bought
         })),
         createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Guide to drilling",
+            enabled: paper.upgrades.drillingUpgrade.bought
+        })),
+        createMultiplicativeModifier(() => ({
             multiplier: () => coalEffectiveness.value,
             description: "Effectiveness",
             enabled: () => Decimal.lt(coalEffectiveness.value, 1)
@@ -701,6 +710,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: depthMilestones[7].earned
         })),
         createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Oil and where to find it",
+            enabled: paper.upgrades.oilUpgrade.bought
+        })),
+        createMultiplicativeModifier(() => ({
             multiplier: () => coalEffectiveness.value,
             description: "Effectiveness",
             enabled: () => Decimal.lt(coalEffectiveness.value, 1)
@@ -718,6 +732,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             addend: () => Decimal.negate(smelterOil.value),
             description: "Oil Smelter",
             enabled: () => Decimal.gt(activeSmelter.value, 0)
+        })),
+        createAdditiveModifier(() => ({
+            addend: () => Decimal.negate(plastic.oilCost.value),
+            description: "Oil Refinery",
+            enabled: () => Decimal.gt(plastic.activeRefinery.value, 0)
         }))
     ]);
     const computedOilConsumption = computed(() => oilConsumption.apply(0));
@@ -735,6 +754,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     ]);
     const computedOilSubstitution = computed(() => oilSubstitution.apply(0));
+
+    const extraOilPumps = createSequentialModifier(() => [
+        createAdditiveModifier(() => ({
+            addend: dyes.boosts.red1,
+            description: "Red Dye Boost 1",
+            enabled: () => Decimal.gte(dyes.dyes.red.amount.value, 1)
+        }))
+    ])
+    const computedExtraOilPumps = computed(() => extraOilPumps.apply(0));
 
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
         {
@@ -782,6 +810,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visible() {
                 return Decimal.gt(computedOilSubstitution.value, 0);
             }
+        },
+        {
+            title: "Extra Oil Pumps",
+            modifier: extraOilPumps,
+            base: 0,
+            visible() {
+                return Decimal.gt(computedExtraOilPumps.value, 0)
+            }
         }
     ]);
     const showModifiersModal = ref(false);
@@ -826,7 +862,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             oil.value = Decimal.sub(
                 oil.value,
                 Decimal.mul(oilCost, oilEffectiveness.value).mul(diff)
-            );
+            ).max(0);
         } else {
             oilEffectiveness.value = Decimal.dOne;
         }
@@ -889,12 +925,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 {render(trackerDisplay)}
                 <Spacer />
-                {Decimal.lt(coalEffectiveness.value, 1)
-                    ? "Coal efficiency: " + format(Decimal.mul(coalEffectiveness.value, 100)) + "%"
-                    : null}
-                {Decimal.lt(oilEffectiveness.value, 1)
-                    ? "Oil efficiency: " + format(Decimal.mul(oilEffectiveness.value, 100)) + "%"
-                    : null}
+                {Decimal.lt(coalEffectiveness.value, 1) ? (
+                    <div>Coal efficiency: {format(Decimal.mul(coalEffectiveness.value, 100))}%</div>
+                ) : null}
+                {Decimal.lt(oilEffectiveness.value, 1) ? (
+                    <div>Oil efficiency: {format(Decimal.mul(oilEffectiveness.value, 100))}%</div>
+                ) : null}
                 <MainDisplay
                     resource={oil}
                     color={color}

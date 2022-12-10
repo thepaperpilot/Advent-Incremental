@@ -20,16 +20,13 @@
             class="scene-item"
             style="left: 72%; bottom: 8%; width: 40px; height: 40px"
         />
-        <img
-            v-if="(day >= 8)"
-            :src="oil"
-            class="scene-item"
-            style="left: 80%; bottom: 6%"
-        />
+        <img v-if="day >= 8" :src="oil" class="scene-item" style="left: 80%; bottom: 6%" />
         <img v-if="day >= 3" :src="elves" class="scene-item" style="left: 52%; bottom: 12%" />
         <div v-if="day >= 4" class="scene-bubble" style="left: 50%; bottom: 38%">
             <img v-if="day >= 4" :src="paper" class="scene-item" />
             <img v-if="day >= 5" :src="boxes" class="scene-item" />
+            <img v-if="day >= 9" :src="plastic" class="scene-item" />
+            <img v-if="day >= 10" :src="dyes" class="scene-item" />
         </div>
     </div>
 </template>
@@ -44,6 +41,8 @@ import boxes from "./symbols/cardboardBox.png";
 import metal from "./symbols/metal.png";
 import cloth from "./symbols/cloth.png";
 import oil from "./symbols/oil.png";
+import plastic from "./symbols/plastic.png";
+import dyes from "./symbols/dyes.png";
 
 defineProps<{
     day: number;

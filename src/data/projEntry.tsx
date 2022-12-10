@@ -29,6 +29,8 @@ import boxesSymbol from "./symbols/cardboardBox.png";
 import metalSymbol from "./symbols/metal.png";
 import clothSymbol from "./symbols/cloth.png";
 import oilSymbol from "./symbols/oil.png";
+import plasticSymbol from "./symbols/plastic.png";
+import dyesSymbol from "./symbols/dyes.png";
 import managementSymbol from "./symbols/elfManagement.png"
 import coal from "./layers/coal";
 import elves from "./layers/elves";
@@ -37,7 +39,6 @@ import boxes from "./layers/boxes";
 import metal from "./layers/metal";
 import cloth from "./layers/cloth";
 import oil from "./layers/oil";
-import management from "./layers/management";
 
 export interface Day extends VueFeature {
     day: number;
@@ -238,18 +239,20 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 10,
             shouldNotify: false,
-            layer: null, // "plastic"
-            symbol: "",
-            story: "",
-            completedStory: ""
+            layer: "plastic",
+            symbol: plasticSymbol,
+            story: "Now that plenty of oil has been prepared, it's time to start refining it into plastic! This should be incredibly useful not only for toys, but making tools and other items!",
+            completedStory:
+                "You've started refining massive amounts of oil into slightly less massive amounts of plastic. You have a slight pang of regret thinking of the environmental impact, but ultimately decide Christmas is worth it. Good Job!"
         })),
         createDay(() => ({
             day: 11,
             shouldNotify: false,
-            layer: null, // "dyes"
-            symbol: "",
-            story: "",
-            completedStory: ""
+            layer: "dyes",
+            symbol: dyesSymbol,
+            story: "To make toys, we're going to need some color to make them look nice and enticing! We can't just give kids clear toys after all! To add some color to our toys, we'll need some dyes!",
+            completedStory:
+                "After all that effort, you finally have a rainbow of dyes to choose from! Now the children won't be able to resist the toys you have to offer, once you get them made of course..."
         })),
         createDay(() => ({
             day: 12,
@@ -414,19 +417,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
 export const getInitialLayers = (
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     player: Partial<PlayerData>
-): Array<GenericLayer> => [
-    main,
-    trees,
-    workshop,
-    coal,
-    elves,
-    paper,
-    boxes,
-    metal,
-    cloth,
-    oil,
-    management
-];
+): Array<GenericLayer> => [main, trees, workshop, coal, elves, paper, boxes, metal, cloth, oil];
 
 /**
  * A computed ref whose value is true whenever the game is over.

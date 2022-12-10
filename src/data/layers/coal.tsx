@@ -2,42 +2,42 @@
  * @module
  * @hidden
  */
+import Column from "components/layout/Column.vue";
+import Row from "components/layout/Row.vue";
 import Spacer from "components/layout/Spacer.vue";
 import Modal from "components/Modal.vue";
-import MainDisplay from "features/resources/MainDisplay.vue";
-import Row from "components/layout/Row.vue";
-import Column from "components/layout/Column.vue";
 import {
-    createCollapsibleModifierSections,
-    setUpDailyProgressTracker,
-    changeActiveBuyables
+changeActiveBuyables, createCollapsibleModifierSections,
+setUpDailyProgressTracker
 } from "data/common";
 import { main } from "data/projEntry";
 import { createBuyable, GenericBuyable } from "features/buyable";
 import { jsx, JSXFunction, showIf, StyleValue, Visibility } from "features/feature";
+import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource, Resource } from "features/resources/resource";
+import { createUpgrade, Upgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
+import {
+createAdditiveModifier,
+createExponentialModifier,
+createMultiplicativeModifier,
+createSequentialModifier,
+Modifier
+} from "game/modifiers";
 import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
+import { WithRequired } from "util/common";
 import { render, renderRow } from "util/vue";
 import { computed, ref, unref } from "vue";
-import trees from "./trees";
-import {
-    createAdditiveModifier,
-    createExponentialModifier,
-    createMultiplicativeModifier,
-    createSequentialModifier,
-    Modifier
-} from "game/modifiers";
-import { createUpgrade, Upgrade } from "features/upgrades/upgrade";
-import elves from "./elves";
-import paper from "./paper";
 import boxes from "./boxes";
-import metal from "./metal";
 import cloth from "./cloth";
-import { WithRequired } from "util/common";
+import elves from "./elves";
+import metal from "./metal";
 import oil from "./oil";
+import paper from "./paper";
+import trees from "./trees";
+import dyes from "./dyes";
 
 interface BetterFertilizerUpgOptions {
     canAfford: () => boolean;
@@ -552,7 +552,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elves.elves.bonfireElf.bought
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.div(buildKiln.amount.value, 100).add(1),
+            multiplier: () => Decimal.div(buildKiln.amount.value, 100).times(dyes.boosts.green2.value).add(1),
             description: "Kiln Synergy",
             enabled: elves.elves.kilnElf.bought
         })),
@@ -565,6 +565,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 3,
             description: "Mining helmet",
             enabled: cloth.metalUpgrades.metalUpgrade3.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 4,
+            description: "Felt-Gripped Pick",
+            enabled: cloth.metalUpgrades.metalUpgrade4.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "12 Elves Trained",
+            enabled: elves.milestones[11].earned
         })),
         createExponentialModifier(() => ({
             exponent: 1.25,
@@ -634,7 +644,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elves.elves.bonfireElf.bought
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.div(buildKiln.amount.value, 100).add(1),
+            multiplier: () => Decimal.div(buildKiln.amount.value, 100).times(dyes.boosts.green2.value).add(1),
             description: "Kiln Synergy",
             enabled: elves.elves.kilnElf.bought
         })),
