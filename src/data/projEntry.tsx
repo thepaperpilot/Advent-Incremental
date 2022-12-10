@@ -30,6 +30,7 @@ import metalSymbol from "./symbols/metal.png";
 import clothSymbol from "./symbols/cloth.png";
 import oilSymbol from "./symbols/oil.png";
 import plasticSymbol from "./symbols/plastic.png";
+import dyesSymbol from "./symbols/dyes.png";
 import coal from "./layers/coal";
 import elves from "./layers/elves";
 import paper from "./layers/paper";
@@ -249,9 +250,10 @@ export const main = createLayer("main", function (this: BaseLayer) {
             day: 11,
             shouldNotify: false,
             layer: "dyes",
-            symbol: "", // TODO: Add symbol for dyes
+            symbol: dyesSymbol,
             story: "To make toys, we're going to need some color to make them look nice and enticing! We can't just give kids clear toys after all! To add some color to our toys, we'll need some dyes!",
-            completedStory: "After all that effort, you finally have a rainbow of dyes to choose from! Now the children won't be able to resist the toys you have to offer, once you get them made of course..."
+            completedStory:
+                "After all that effort, you finally have a rainbow of dyes to choose from! Now the children won't be able to resist the toys you have to offer, once you get them made of course..."
         })),
         createDay(() => ({
             day: 12,

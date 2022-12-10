@@ -26,6 +26,7 @@
             <img v-if="day >= 4" :src="paper" class="scene-item" />
             <img v-if="day >= 5" :src="boxes" class="scene-item" />
             <img v-if="day >= 9" :src="plastic" class="scene-item" />
+            <img v-if="day >= 10" :src="dyes" class="scene-item" />
         </div>
     </div>
 </template>
@@ -41,6 +42,7 @@ import metal from "./symbols/metal.png";
 import cloth from "./symbols/cloth.png";
 import oil from "./symbols/oil.png";
 import plastic from "./symbols/plastic.png";
+import dyes from "./symbols/dyes.png";
 
 defineProps<{
     day: number;
