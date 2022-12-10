@@ -3,7 +3,7 @@
         <div
             class="main-display-container"
             :class="classes ?? {}"
-            :style="[{ height: `${(effectRef?.$el.clientHeight ?? 0) + 50}px` }, style ?? {}]"
+            :style="[{ 'min-height': `${(effectRef?.$el.clientHeight ?? 0) + 50}px` }, style ?? {}]"
         >
             <div class="main-display">
                 <span v-if="showPrefix">You have </span>
@@ -23,7 +23,7 @@
     <div v-else
         class="main-display-container"
         :class="classes ?? {}"
-        :style="[{ height: '50px' }, style ?? {}]"
+        :style="[{ 'min-height': '50px' }, style ?? {}]"
     >
         <div class="main-display">
             <span v-if="showPrefix">You have </span>

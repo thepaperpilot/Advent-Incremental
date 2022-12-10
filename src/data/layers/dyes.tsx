@@ -4,9 +4,11 @@
  */
 import Modal from "components/Modal.vue";
 import MainDisplay from "features/resources/MainDisplay.vue";
+import Row from "components/layout/Row.vue";
 import Spacer from "components/layout/Spacer.vue";
+import Sqrt from "components/math/Sqrt.vue";
 import { BuyableOptions, GenericBuyable, createBuyable } from "features/buyable";
-import { jsx, JSXFunction, Visibility } from "features/feature";
+import { jsx, JSXFunction, showIf, Visibility } from "features/feature";
 import { createResource, Resource } from "features/resources/resource";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
@@ -101,9 +103,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                             <br/>
                             Create {format(computedToGenerate.value)} {options.name}{options.dyesToReset.length > 0 ? ", but reset " + options.dyesToReset.map(dye => dye.name).join(", ") : ""}.
                             <br/>
+                            <br/>
                             <span class="white-space: pre-wrap">
                                 Currently: {options.listedBoosts.filter(b => unref(b.visible)).map(b => render(jsx(() => <div>{unref(b.desc)}</div>)))}
                             </span>
+                            <br/>
                             <div>
                                 Cost: {options.costs.map(c => render(jsx(() => 
                                     <div>
@@ -174,7 +178,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             listedBoosts: [
                 {
                     visible: true,
-                    desc: computed(() => `Increase effective Oil Pumps by ${format(boosts.red1.value)} (does not impact coal consumption)`)
+                    desc: computed(() => `+${format(boosts.red1.value)} effective Oil Pumps (does not impact coal consumption)`)
                 }
             ],
             dyesToReset: [],
@@ -197,7 +201,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             listedBoosts: [
                 {
                     visible: true,
-                    desc: computed(() => `Multiply Paper \& Plastic gain by ${format(boosts.yellow1.value)}`)
+                    desc: computed(() => `x${format(boosts.yellow1.value)} Paper \& Plastic gain`)
                 }
             ],
             dyesToReset: [],
@@ -220,7 +224,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             listedBoosts: [
                 {
                     visible: true,
-                    desc: computed(() => `Add ${formatWhole(boosts.blue1.value)} trees to the forest (after all other modifiers).`)
+                    desc: computed(() => `+${formatWhole(boosts.blue1.value)} forest size (after all other modifiers).`)
                 }
             ],
             dyesToReset: [],
@@ -243,11 +247,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             listedBoosts: [
                 {
                     visible: true,
-                    desc: computed(() => `Multiply Red and Yellow Dye gain by ${format(boosts.orange1.value)}`)
+                    desc: computed(() => `x${format(boosts.orange1.value)} Red and Yellow Dye gain`)
                 },
                 {
                     visible: true,
-                    desc: computed(() => `Divide Box buyable costs by ${format(boosts.orange2.value)}.`)
+                    desc: computed(() => `/${format(boosts.orange2.value)} Box buyable costs.`)
                 }
             ],
             dyesToReset: [{
@@ -282,11 +286,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             listedBoosts: [
                 {
                     visible: true,
-                    desc: computed(() => `Multiply Yellow and Blue Dye gain by ${format(boosts.green1.value)}`)
+                    desc: computed(() => `x${format(boosts.green1.value)} Yellow and Blue Dye gain`)
                 },
                 {
                     visible: true,
-                    desc: computed(() => `Kiln synergy to Coal and Ash gain is ${formatWhole(Decimal.sub(boosts.green2.value, 1).times(100))}% stronger.`)
+                    desc: computed(() => `x${formatWhole(Decimal.sub(boosts.green2.value, 1).times(100))}% Kiln synergy effect.`)
                 }
             ],
             dyesToReset: [{
@@ -321,11 +325,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             listedBoosts: [
                 {
                     visible: true,
-                    desc: computed(() => `Multiply Red and Blue Dye gain by ${format(boosts.purple1.value)}`)
+                    desc: computed(() => `x${format(boosts.purple1.value)} Red and Blue Dye gain`)
                 },
                 {
                     visible: true,
-                    desc: computed(() => `Multiply Smelting Speed and Ore Purity by ${format(boosts.purple2.value)}`)
+                    desc: computed(() => `x${format(boosts.purple2.value)} Smelting Speed and Ore Purity`)
                 }
             ],
             dyesToReset: [{
@@ -392,10 +396,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const upgrades: Record<DyeUpg, GenericUpgrade> = {
         blueDyeUpg: createUpgrade(() => ({
-            visibility: () => (Decimal.add(dyes.orange.amount.value, dyes.green.amount.value).add(dyes.purple.amount.value).gte(1) || upgrades.blueDyeUpg.bought.value) ? Visibility.Visible : Visibility.Hidden,
+            visibility: () => showIf(Decimal.add(dyes.orange.amount.value, dyes.green.amount.value).add(dyes.purple.amount.value).gte(1) || upgrades.blueDyeUpg.bought.value),
             display: {
                 title: "Is Blue Dye just Water?",
-                description: "Multiply Log gain by log(Auto Cutting Amount)+1."
+                description: jsx(() => <>Multiply Log gain by log<sub>10</sub>(Auto Cutting Amount)+1.</>)
             },
             cost: 1000,
             resource: dyes.blue.amount,
@@ -405,10 +409,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         redDyeUpg: createUpgrade(() => ({
-            visibility: () => (Decimal.add(dyes.orange.amount.value, dyes.green.amount.value).add(dyes.purple.amount.value).gte(10) || upgrades.redDyeUpg.bought.value) ? Visibility.Visible : Visibility.Hidden,
+            visibility: () => showIf(Decimal.add(dyes.orange.amount.value, dyes.green.amount.value).add(dyes.purple.amount.value).gte(10) || upgrades.redDyeUpg.bought.value),
             display: {
                 title: "Glistening Paint",
-                description: "Multiply Ore Purity by log(Cloth)+1."
+                description: jsx(() => <>Multiply Ore Purity by log<sub>10</sub>(Cloth)+1.</>)
             },
             cost: 1500,
             resource: dyes.red.amount,
@@ -418,7 +422,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         yellowDyeUpg: createUpgrade(() => ({
-            visibility: () => (Decimal.add(dyes.orange.amount.value, dyes.green.amount.value).add(dyes.purple.amount.value).gte(100) || upgrades.yellowDyeUpg.bought.value) ? Visibility.Visible : Visibility.Hidden,
+            visibility: () => showIf(Decimal.add(dyes.orange.amount.value, dyes.green.amount.value).add(dyes.purple.amount.value).gte(100) || upgrades.yellowDyeUpg.bought.value),
             display: {
                 title: "Wetter Dyes",
                 description: "Double Red, Yellow, and Blue Dye gain, but reset their amounts."
@@ -437,7 +441,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         yellowDyeUpg2: createUpgrade(() => ({
-            visibility: () => upgrades.yellowDyeUpg.bought.value ? Visibility.Visible : Visibility.Hidden,
+            visibility: () => showIf(upgrades.yellowDyeUpg.bought.value),
             display: {
                 title: "Golden Wash",
                 description: "Halve the Oil cost of Red, Yellow, and Blue Dyes."
@@ -450,10 +454,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         redDyeUpg2: createUpgrade(() => ({
-            visibility: () => upgrades.redDyeUpg.bought.value ? Visibility.Visible : Visibility.Hidden,
+            visibility: () => showIf(upgrades.redDyeUpg.bought.value),
             display: {
                 title: "De Louvre",
-                description: "Multiply Smelting Speed by sqrt(Refineries+1)"
+                description: jsx(() => <>Multiply Smelting Speed by <Sqrt>Refineries+1</Sqrt>.</>)
             },
             cost: 6000,
             resource: dyes.red.amount,
@@ -463,7 +467,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         blueDyeUpg2: createUpgrade(() => ({
-            visibility: () => upgrades.blueDyeUpg.bought.value ? Visibility.Visible : Visibility.Hidden,
+            visibility: () => showIf(upgrades.blueDyeUpg.bought.value),
             display: {
                 title: "Hydrophobia",
                 description: "Raise Red Dye's effect ^1.5."
@@ -476,10 +480,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         coalUpg: createUpgrade(() => ({
-            visibility: () => (upgrades.blueDyeUpg2.bought.value && upgrades.redDyeUpg2.bought.value && upgrades.yellowDyeUpg2.bought.value) ? Visibility.Visible : Visibility.Hidden,
+            visibility: () => showIf(upgrades.blueDyeUpg2.bought.value && upgrades.redDyeUpg2.bought.value && upgrades.yellowDyeUpg2.bought.value),
             display: {
                 title: "Denser Spectrum",
-                description: "Orange, Green, and Purple Dyes' first effect is raised ^1.2, and Green Dye's second effect is squared."
+                description: "Orange, Green, and Purple Dyes' first effect is raised ^1.2, and Green Dye's second effect is squared. Buying this resets Red, Yellow, and Blue Dyes.",
             },
             cost: "5e30",
             resource: coal.coal,
@@ -542,8 +546,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {renderRow(dyes.orange.display, dyes.green.display, dyes.purple.display)}
                 <Spacer />
-                {renderRow(upgrades.redDyeUpg, upgrades.yellowDyeUpg, upgrades.blueDyeUpg)}
-                {renderRow(upgrades.redDyeUpg2, upgrades.yellowDyeUpg2, upgrades.blueDyeUpg2)}
+                <div class="row" style="vertical-align: top">
+                    {renderCol(upgrades.redDyeUpg, upgrades.redDyeUpg2)}
+                    {renderCol(upgrades.yellowDyeUpg, upgrades.yellowDyeUpg2)}
+                    {renderCol(upgrades.blueDyeUpg, upgrades.blueDyeUpg2)}
+                </div>
                 {render(upgrades.coalUpg)}
             </>
         ))
