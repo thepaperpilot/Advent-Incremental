@@ -38,6 +38,7 @@ import metal from "./layers/metal";
 import cloth from "./layers/cloth";
 import oil from "./layers/oil";
 import plastic from "./layers/plastic";
+import dyes from "./layers/dyes";
 
 export interface Day extends VueFeature {
     day: number;
@@ -247,10 +248,10 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 11,
             shouldNotify: false,
-            layer: null, // "dyes"
-            symbol: "",
-            story: "",
-            completedStory: ""
+            layer: "dyes",
+            symbol: "", // TODO: Add symbol for dyes
+            story: "To make toys, we're going to need some color to make them look nice and enticing! We can't just give kids clear toys after all! To add some color to our toys, we'll need some dyes!",
+            completedStory: "After all that effort, you finally have a rainbow of dyes to choose from! Now the children won't be able to resist the toys you have to offer, once you get them made of course..."
         })),
         createDay(() => ({
             day: 12,
@@ -426,7 +427,8 @@ export const getInitialLayers = (
     metal,
     cloth,
     oil,
-    plastic
+    plastic,
+    dyes
 ];
 
 /**

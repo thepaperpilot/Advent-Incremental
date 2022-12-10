@@ -26,6 +26,7 @@ import coal from "./coal";
 import elves from "./elves";
 import plastic from "./plastic";
 import trees from "./trees";
+import dyes from "./dyes";
 
 const id = "paper";
 const day = 5;
@@ -243,6 +244,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 10,
             description: "Felt Elbow Pads",
             enabled: cloth.paperUpgrades.paperUpgrade4.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: dyes.boosts.yellow1,
+            description: "Yellow Dye Boost 1",
+            enabled: () => Decimal.gte(dyes.dyes.yellow.amount.value, 1)
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
 

@@ -34,6 +34,7 @@ import { createMilestone, GenericMilestone } from "features/milestones/milestone
 import { formatGain } from "util/bignum";
 import plastic from "./plastic";
 import paper from "./paper";
+import dyes from "./dyes";
 
 const id = "oil";
 const day = 9;
@@ -223,7 +224,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         Decimal.pow(row2Upgrades[3].bought.value ? 4 : 5, activePump.value)
     );
     const pumpOil = computed(() =>
-        Decimal.pow(activePump.value, 2)
+        Decimal.add(activePump.value, computedExtraOilPumps.value)
+            .pow(2)
             .mul(activeHeavy.value)
             .mul(Decimal.add(activeHeavy2.value, 1))
             .mul(activeExtractor.value)
@@ -753,6 +755,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
     ]);
     const computedOilSubstitution = computed(() => oilSubstitution.apply(0));
 
+    const extraOilPumps = createSequentialModifier(() => [
+        createAdditiveModifier(() => ({
+            addend: dyes.boosts.red1,
+            description: "Red Dye Boost 1",
+            enabled: () => Decimal.gte(dyes.dyes.red.amount.value, 1)
+        }))
+    ])
+    const computedExtraOilPumps = computed(() => extraOilPumps.apply(0));
+
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
         {
             title: "Coal Consumption",
@@ -798,6 +809,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             base: 0,
             visible() {
                 return Decimal.gt(computedOilSubstitution.value, 0);
+            }
+        },
+        {
+            title: "Extra Oil Pumps",
+            modifier: extraOilPumps,
+            base: 0,
+            visible() {
+                return Decimal.gt(computedExtraOilPumps.value, 0)
             }
         }
     ]);

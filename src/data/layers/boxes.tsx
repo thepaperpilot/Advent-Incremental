@@ -21,6 +21,7 @@ import { unref } from "vue";
 import paper from "./paper";
 import plastic from "./plastic";
 import trees from "./trees";
+import dyes from "./dyes";
 
 const id = "boxes";
 const day = 6;
@@ -144,7 +145,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost() {
             let v = this.amount.value;
             v = Decimal.pow(0.95, paper.books.boxBook.amount.value).times(v);
-            return Decimal.pow(3, v).times(100);
+            return Decimal.pow(3, v).times(100).div(dyes.boosts.orange2.value);
         },
         visibility: () => showIf(logsUpgrade.bought.value)
     })) as GenericBuyable & { resource: Resource };
@@ -160,7 +161,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost() {
             let v = this.amount.value;
             v = Decimal.pow(0.95, paper.books.boxBook.amount.value).times(v);
-            return Decimal.pow(5, v).times(1000);
+            return Decimal.pow(5, v).times(1000).div(dyes.boosts.orange2.value);;
         },
         visibility: () => showIf(ashUpgrade.bought.value)
     })) as GenericBuyable & { resource: Resource };
@@ -176,7 +177,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost() {
             let v = this.amount.value;
             v = Decimal.pow(0.95, paper.books.boxBook.amount.value).times(v);
-            return Decimal.pow(7, v).times(1000);
+            return Decimal.pow(7, v).times(1000).div(dyes.boosts.orange2.value);
         },
         visibility: () => showIf(coalUpgrade.bought.value)
     })) as GenericBuyable & { resource: Resource };

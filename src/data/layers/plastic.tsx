@@ -31,6 +31,7 @@ import { computed, ref, unref } from "vue";
 import boxes from "./boxes";
 import metal from "./metal";
 import oil from "./oil";
+import dyes from "./dyes";
 
 const id = "plastic";
 const day = 10;
@@ -251,6 +252,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => oil.oilEffectiveness.value,
             description: "Effectiveness",
             enabled: () => Decimal.lt(oil.oilEffectiveness.value, 1)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: dyes.boosts.yellow1,
+            description: "Yellow Dye Boost 1",
+            enabled: () => Decimal.gte(dyes.dyes.yellow.amount.value, 1)
         }))
     ]);
     const computedPlasticGain = computed(() => plasticGain.apply(0));

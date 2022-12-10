@@ -27,6 +27,9 @@ import { createBuyable, GenericBuyable } from "features/buyable";
 import { main } from "../projEntry";
 import oil from "./oil";
 import boxes from "./boxes";
+import cloth from "./cloth";
+import plastic from "./plastic";
+import dyes from "./dyes";
 
 const id = "metal";
 const day = 7;
@@ -65,6 +68,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "Carry metal in boxes",
             enabled: boxes.row2Upgrades.metalUpgrade.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: dyes.boosts.purple2,
+            description: "Purple Dye Boost 2",
+            enabled: () => Decimal.gte(dyes.dyes.purple.amount.value, 1)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(cloth.cloth.value, 1).log10().plus(1),
+            description: "Glistening Paint",
+            enabled: dyes.upgrades.redDyeUpg.bought
         }))
     ]);
     const computedOrePurity = computed(() => orePurity.apply(0.1));
@@ -85,6 +98,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 Decimal.mul(oil.activeSmelter.value, oil.oilEffectiveness.value).add(1),
             description: "Oil Smelter",
             enabled: () => Decimal.gt(oil.activeSmelter.value, 0)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: dyes.boosts.purple2,
+            description: "Purple Dye Boost 2",
+            enabled: () => Decimal.gte(dyes.dyes.purple.amount.value, 1)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(plastic.activeRefinery.value, 1).sqrt(),
+            description: "De Louvre",
+            enabled: dyes.upgrades.redDyeUpg2.bought
         }))
     ]);
     const computedAutoSmeltSpeed = computed(() => autoSmeltSpeed.apply(0));

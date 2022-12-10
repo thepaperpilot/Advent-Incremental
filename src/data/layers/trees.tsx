@@ -34,6 +34,7 @@ import coal from "./coal";
 import elves from "./elves";
 import paper from "./paper";
 import workshop from "./workshop";
+import dyes from "./dyes";
 const id = "trees";
 const day = 1;
 
@@ -76,6 +77,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 4,
             description: "Lumberjack Boots",
             enabled: cloth.treesUpgrades.treesUpgrade1.bought
+        })),
+        createAdditiveModifier(() => ({
+            addend: dyes.boosts.blue1,
+            description: "Blue Dye Boost 1",
+            enabled: () => Decimal.gte(dyes.dyes.blue.amount.value, 1)
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const trees = createResource(
@@ -418,6 +424,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 10,
             description: "Felt-Gripped Axe",
             enabled: cloth.treesUpgrades.treesUpgrade4.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: computed(() => Decimal.add(computedAutoCuttingAmount.value, 1).log10().plus(1)),
+            description: "Is Blue Dye just Water?",
+            enabled: dyes.upgrades.blueDyeUpg.bought
         })),
         createExponentialModifier(() => ({
             exponent: 1.2,

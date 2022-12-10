@@ -37,6 +37,7 @@ import metal from "./metal";
 import oil from "./oil";
 import paper from "./paper";
 import trees from "./trees";
+import dyes from "./dyes";
 
 interface BetterFertilizerUpgOptions {
     canAfford: () => boolean;
@@ -551,7 +552,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elves.elves.bonfireElf.bought
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.div(buildKiln.amount.value, 100).add(1),
+            multiplier: () => Decimal.div(buildKiln.amount.value, 100).times(dyes.boosts.green2.value).add(1),
             description: "Kiln Synergy",
             enabled: elves.elves.kilnElf.bought
         })),
@@ -643,7 +644,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elves.elves.bonfireElf.bought
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.div(buildKiln.amount.value, 100).add(1),
+            multiplier: () => Decimal.div(buildKiln.amount.value, 100).times(dyes.boosts.green2.value).add(1),
             description: "Kiln Synergy",
             enabled: elves.elves.kilnElf.bought
         })),
