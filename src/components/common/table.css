@@ -7,6 +7,11 @@
 	margin: 0 auto;
 }
 
+.table-grid {
+    display: flex;
+    flex-flow: column;
+}
+
 .table + .table {
     margin-top: 10px;
 }
@@ -56,6 +61,10 @@
     border-radius: var(--border-radius);
 }
 
+.row-grid {
+    display: flex;
+}
+
 .row-grid.mergeAdjacent > .feature:not(.dontMerge),
 .row-grid.mergeAdjacent > .tooltip-container > .feature:not(.dontMerge) {
     margin-left: 0;
@@ -77,19 +86,19 @@
 }
 
 .table-grid > .row-grid.mergeAdjacent:last-child > .feature:not(.dontMerge):first-child {
-    border-radius: 0 0 0 var(--border-radius);
+    border-bottom-left-radius: var(--border-radius);
 }
 
 .table-grid > .row-grid.mergeAdjacent:first-child > .feature:not(.dontMerge):last-child {
-    border-radius: 0 var(--border-radius) 0 0;
+    border-top-right-radius: var(--border-radius);
 }
 
 .table-grid > .row-grid.mergeAdjacent:first-child > .feature:not(.dontMerge):first-child {
-    border-radius: var(--border-radius) 0 0 0;
+    border-top-left-radius: var(--border-radius);
 }
 
 .table-grid > .row-grid.mergeAdjacent:last-child > .feature:not(.dontMerge):last-child {
-    border-radius: 0 0 var(--border-radius) 0;
+    border-bottom-right-radius: var(--border-radius);
 }
 
 

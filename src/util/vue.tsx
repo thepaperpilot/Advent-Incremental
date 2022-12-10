@@ -1,7 +1,10 @@
+import "components/common/table.css";
 import Col from "components/layout/Column.vue";
 import Row from "components/layout/Row.vue";
+import themes from "data/themes";
 import type { CoercableComponent, GenericComponent, JSXFunction } from "features/feature";
 import { Component as ComponentKey, GatherProps, jsx, Visibility } from "features/feature";
+import settings from "game/settings";
 import type { ProcessedComputable } from "util/computed";
 import { DoNotCache } from "util/computed";
 import type { Component, ComputedRef, DefineComponent, PropType, Ref, ShallowRef } from "vue";
@@ -61,6 +64,23 @@ export function renderCol(...objects: (VueFeature | CoercableComponent)[]): JSX.
     return <Col>{objects.map(render)}</Col>;
 }
 
+export function renderGrid(...rows: (VueFeature | CoercableComponent)[][]): JSX.Element {
+    return (
+        <div class="table-grid">
+            {rows.map(row => (
+                <div
+                    class={{
+                        ["row-grid"]: true,
+                        ["mergeAdjacent"]: themes[settings.theme].mergeAdjacent
+                    }}
+                >
+                    {row.map(render)}
+                </div>
+            ))}
+        </div>
+    );
+}
+
 export function renderJSX(object: VueFeature | CoercableComponent): JSX.Element {
     if (isCoercableComponent(object)) {
         if (typeof object === "function") {
@@ -83,6 +103,23 @@ export function renderRowJSX(...objects: (VueFeature | CoercableComponent)[]): J
 
 export function renderColJSX(...objects: (VueFeature | CoercableComponent)[]): JSX.Element {
     return <Col>{objects.map(renderJSX)}</Col>;
+}
+
+export function renderGridJSX(...rows: (VueFeature | CoercableComponent)[][]): JSX.Element {
+    return (
+        <div class="table-grid">
+            {rows.map(row => (
+                <div
+                    class={{
+                        ["row-grid"]: true,
+                        ["mergeAdjacent"]: themes[settings.theme].mergeAdjacent
+                    }}
+                >
+                    {row.map(renderJSX)}
+                </div>
+            ))}
+        </div>
+    );
 }
 
 export function joinJSX(objects: JSX.Element[], joiner: JSX.Element): JSX.Element {
