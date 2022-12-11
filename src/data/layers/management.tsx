@@ -11,6 +11,8 @@ import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render, renderGrid } from "util/vue";
 import { computed } from "vue";
+import { createTabFamily } from "features/tabs/tabFamily";
+import { createTab } from "features/tabs/tab";
 import elves from "./elves";
 
 const id = "management";
@@ -30,6 +32,13 @@ const layer = createLayer(id, () => {
         display: jsx(() => (main.day.value === day ? <>0 / 10</> : ""))
     })) as GenericBar;
 
+    const totalElfLevels = computed(() => {
+        let elfLevel = 0;
+        for (const elf of Object.values(elfTraining)) {
+            elfLevel += elf.level.value;
+        }
+        return elfLevel;
+    });
     // Training core function
     function createElfTraining(
         elf: {
@@ -58,7 +67,7 @@ const layer = createLayer(id, () => {
                 description: jsx(() => (
                     <>
                         {elf.name} is currently at level {formatWhole(level.value)}! They have{" "}
-                        {format(exp.value)}/{format(exp.value)} experience points.{" "}
+                        {format(exp.value)}/{format(exp.value)} experience points (XP).{" "}
                         {currentShown.value !== elf.name
                             ? "Click to see this elf's milestones."
                             : undefined}
@@ -218,7 +227,18 @@ const layer = createLayer(id, () => {
         fertilizerElfTraining,
         smallfireElfTraining,
         bonfireElfTraining,
-        fireElfTraining
+        kilnElfTraining
+    };
+    const elfMilestones = {
+        cutterElfMilestones,
+        planterElfMilestones,
+        expanderElfMilestones,
+        heatedCutterElfMilestones,
+        heatedPlanterElfMilestones,
+        fertilizerElfMilestones,
+        smallfireElfMilestones,
+        bonfireElfMilestones,
+        kilnElfMilestones
     };
 
     const msDisplay = jsx(() => (
@@ -226,6 +246,27 @@ const layer = createLayer(id, () => {
             {currentElfDisplay.value.name}'s milestones: {currentElfDisplay.value.disp()}
         </>
     ));
+    const tabs = createTabFamily({
+        training: () => ({
+            tab: createTab(() => ({
+                display: jsx(() => (
+                    <>
+                        <Spacer />
+                        {renderGrid(treeElfTraining, coalElfTraining, fireElfTraining)}
+                        <Spacer />
+                        {msDisplay()}
+                    </>
+                ))
+            })),
+            display: "Elf Training"
+        }),
+        info: () => ({
+            tab: createTab(() => ({
+                display: jsx(() => <>1</>)
+            })),
+            display: "Info"
+        })
+    });
     return {
         name,
         day,
@@ -237,10 +278,7 @@ const layer = createLayer(id, () => {
             <>
                 {main.day.value === day ? `Get all elves to level 10.` : `${name} Complete!`}
                 {render(dayProgress)}
-                <Spacer />
-                {renderGrid(treeElfTraining, coalElfTraining, fireElfTraining)}
-                <Spacer />
-                {msDisplay()}
+                {render(tabs)}
             </>
         ))
     };

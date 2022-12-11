@@ -22,7 +22,6 @@ import { NonPersistent, noPersist, Persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { WithRequired } from "util/common";
 import { Computable, convertComputable } from "util/computed";
-import { createLazyProxy } from "util/proxies";
 import { render, renderCol, renderRow } from "util/vue";
 import { computed, ComputedRef, ref, Ref, unref } from "vue";
 import coal from "./coal";
