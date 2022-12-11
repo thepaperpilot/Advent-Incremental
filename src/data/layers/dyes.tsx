@@ -75,12 +75,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }[];
         } & Partial<BuyableOptions>
     ): Dye {
-        const amount = createResource<DecimalSource>(0, name);
+        const amount = createResource<DecimalSource>(0, options.name);
 
         const toGenerate = createSequentialModifier(() => [
             createAdditiveModifier(() => ({
                 addend: () => Decimal.add(buyable.amount.value, 1),
-                description: `${name} Chambers`
+                description: `${options.name} Chambers`
             })),
             createMultiplicativeModifier(() => ({
                 multiplier: boosts.orange1,
@@ -119,9 +119,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 display: jsx(() => {
                     return (
                         <span>
-                            <h3>{name} Chambers</h3>
+                            <h3>{options.name} Chambers</h3>
                             <br />
-                            Create {format(computedToGenerate.value)} {name}
+                            Create {format(computedToGenerate.value)} {options.name}
                             {options.dyesToReset.length > 0
                                 ? ", but reset " +
                                   options.dyesToReset.map(dye => dye.name).join(", ")
@@ -193,17 +193,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
         });
 
         return {
-            name,
+            name: options.name,
             amount,
             buyable,
             toGenerate,
             computedToGenerate,
             display: jsx(() => (
-                <div class="col" style="max-width: 200px">
-                    <MainDisplay resource={amount} color={options.color} style="margin-bottom: 0" />
-                    <Spacer />
-                    {render(buyable)}
-                </div>
+                <MainDisplay
+                    resource={amount}
+                    color={options.color}
+                    style="margin: 0; width: 200px; width: 180px; padding: 10px;"
+                    sticky={false}
+                />
             ))
         };
     }
@@ -677,9 +678,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 {render(trackerDisplay)}
                 <Spacer />
-                {renderRow(dyes.red.display, dyes.yellow.display, dyes.blue.display)}
-                <Spacer />
-                {renderRow(dyes.orange.display, dyes.green.display, dyes.purple.display)}
+                <div style="width: 620px">
+                    {renderRow(dyes.red.display, dyes.yellow.display, dyes.blue.display)}
+                    {renderRow(dyes.red.buyable, dyes.yellow.buyable, dyes.blue.buyable)}
+                    <Spacer />
+                    {renderRow(dyes.orange.display, dyes.green.display, dyes.purple.display)}
+                    {renderRow(dyes.orange.buyable, dyes.green.buyable, dyes.purple.buyable)}
+                </div>
                 <Spacer />
                 <div class="row" style="vertical-align: top">
                     {renderCol(upgrades.redDyeUpg, upgrades.redDyeUpg2)}
