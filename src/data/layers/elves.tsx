@@ -23,7 +23,7 @@ import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { Computable, convertComputable } from "util/computed";
-import { render, renderRow } from "util/vue";
+import { render, renderGrid, renderRow } from "util/vue";
 import { computed, ref, Ref, unref, watchEffect } from "vue";
 import boxes from "./boxes";
 import cloth from "./cloth";
@@ -840,10 +840,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {render(modifiersModal)}
                 <Spacer />
                 <div style="width: 600px">
-                    {renderRow(...treesElves)}
-                    {renderRow(...coalElves)}
-                    {renderRow(...fireElves)}
-                    {renderRow(...plasticElves)}
+                    {renderGrid(treesElves, coalElves, fireElves, plasticElves)}
                 </div>
                 {milestonesDisplay()}
             </>

@@ -7,8 +7,9 @@ import Row from "components/layout/Row.vue";
 import Spacer from "components/layout/Spacer.vue";
 import Modal from "components/Modal.vue";
 import {
-changeActiveBuyables, createCollapsibleModifierSections,
-setUpDailyProgressTracker
+    changeActiveBuyables,
+    createCollapsibleModifierSections,
+    setUpDailyProgressTracker
 } from "data/common";
 import { main } from "data/projEntry";
 import { createBuyable, GenericBuyable } from "features/buyable";
@@ -19,16 +20,16 @@ import { createUpgrade, Upgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
 import {
-createAdditiveModifier,
-createExponentialModifier,
-createMultiplicativeModifier,
-createSequentialModifier,
-Modifier
+    createAdditiveModifier,
+    createExponentialModifier,
+    createMultiplicativeModifier,
+    createSequentialModifier,
+    Modifier
 } from "game/modifiers";
 import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { WithRequired } from "util/common";
-import { render, renderRow } from "util/vue";
+import { render, renderGrid, renderRow } from "util/vue";
 import { computed, ref, unref } from "vue";
 import boxes from "./boxes";
 import cloth from "./cloth";
@@ -552,7 +553,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elves.elves.bonfireElf.bought
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.div(buildKiln.amount.value, 100).times(dyes.boosts.green2.value).add(1),
+            multiplier: () =>
+                Decimal.div(buildKiln.amount.value, 100).times(dyes.boosts.green2.value).add(1),
             description: "Kiln Synergy",
             enabled: elves.elves.kilnElf.bought
         })),
@@ -644,7 +646,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elves.elves.bonfireElf.bought
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.div(buildKiln.amount.value, 100).times(dyes.boosts.green2.value).add(1),
+            multiplier: () =>
+                Decimal.div(buildKiln.amount.value, 100).times(dyes.boosts.green2.value).add(1),
             description: "Kiln Synergy",
             enabled: elves.elves.kilnElf.bought
         })),
@@ -871,9 +874,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     ) : undefined}
                 </Row>
                 <Spacer />
-                {renderRow(...row1upgrades)}
-                {renderRow(...row2upgrades)}
-                {renderRow(...row3upgrades)}
+                {renderGrid(row1upgrades, row2upgrades, row3upgrades)}
                 {renderRow(...row3buyables)}
             </>
         ))

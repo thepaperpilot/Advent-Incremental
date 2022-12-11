@@ -16,7 +16,7 @@ import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
 import { noPersist } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
-import { render, renderRow } from "util/vue";
+import { render, renderGrid, renderRow } from "util/vue";
 import { unref } from "vue";
 import paper from "./paper";
 import plastic from "./plastic";
@@ -161,7 +161,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost() {
             let v = this.amount.value;
             v = Decimal.pow(0.95, paper.books.boxBook.amount.value).times(v);
-            return Decimal.pow(5, v).times(1000).div(dyes.boosts.orange2.value);;
+            return Decimal.pow(5, v).times(1000).div(dyes.boosts.orange2.value);
         },
         visibility: () => showIf(ashUpgrade.bought.value)
     })) as GenericBuyable & { resource: Resource };
@@ -221,8 +221,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {render(makeBoxes)}
                 <Spacer />
-                {renderRow(...Object.values(upgrades))}
-                {renderRow(...Object.values(row2Upgrades))}
+                {renderGrid(Object.values(upgrades), Object.values(row2Upgrades))}
+                <Spacer />
                 {renderRow(...Object.values(buyables))}
             </>
         ))

@@ -15,7 +15,7 @@ import { jsx, showIf } from "features/feature";
 import { createResource, Resource } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
 import Decimal, { DecimalSource } from "lib/break_eternity";
-import { render, renderRow } from "util/vue";
+import { render, renderGrid, renderRow } from "util/vue";
 import { computed, ComputedRef, ref, unref } from "vue";
 import { noPersist, persistent } from "game/persistence";
 import { createBuyable, GenericBuyable } from "features/buyable";
@@ -761,7 +761,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Red Dye Boost 1",
             enabled: () => Decimal.gte(dyes.dyes.red.amount.value, 1)
         }))
-    ])
+    ]);
     const computedExtraOilPumps = computed(() => extraOilPumps.apply(0));
 
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
@@ -816,7 +816,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             modifier: extraOilPumps,
             base: 0,
             visible() {
-                return Decimal.gt(computedExtraOilPumps.value, 0)
+                return Decimal.gt(computedExtraOilPumps.value, 0);
             }
         }
     ]);
@@ -1042,8 +1042,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     ) : null}
                 </Row>
                 <Spacer />
-                {depthMilestones[1].earned.value ? renderRow(...row1Upgrades) : null}
-                {oilMilestones[1].earned.value ? renderRow(...row2Upgrades) : null}
+                {renderGrid(
+                    ...(oilMilestones[1].earned.value
+                        ? depthMilestones[1].earned.value
+                            ? [row1Upgrades, row2Upgrades]
+                            : [row1Upgrades]
+                        : [])
+                )}
                 <Spacer />
                 {depthMilestonesDisplay()}
                 {Decimal.gte(totalOil.value, 50) ? oilMilestonesDisplay() : ""}

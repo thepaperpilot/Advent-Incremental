@@ -742,8 +742,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {renderRow(cutTree, plantTree)}
                 <div>Tip: You can hold down on actions to perform them automatically</div>
                 <Spacer />
-                {renderRow(...row1Upgrades)}
-                {renderRow(...row2Upgrades)}
+                {renderGrid(row1Upgrades, row2Upgrades)}
+                <Spacer />
                 {renderRow(...row1Buyables)}
             </>
         ))
