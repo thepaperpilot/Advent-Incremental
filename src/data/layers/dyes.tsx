@@ -101,9 +101,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 multiplier: 2,
                 description: "Wetter Dyes",
                 enabled: () =>
-                    (upgrades.yellowDyeUpg.bought.value && options.color == "red") ||
-                    options.color == "yellow" ||
-                    options.color == "blue"
+                    upgrades.yellowDyeUpg.bought.value &&
+                    (options.color == "red" || options.color == "yellow" || options.color == "blue")
             }))
         ]) as WithRequired<Modifier, "description" | "revert">;
         const computedToGenerate = computed(() => toGenerate.apply(0));
