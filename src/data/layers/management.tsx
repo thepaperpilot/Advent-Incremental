@@ -1,16 +1,17 @@
-import { jsx, JSXFunction, showIf } from "features/feature";
-import { createLayer } from "game/layers";
-import { main } from "data/projEntry";
-import elves from "./elves";
-import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
-import { createMilestone, GenericMilestone } from "features/milestones/milestone";
-import { render, renderRow } from "util/vue";
-import { createClickable } from "features/clickables/clickable";
-import { computed } from "vue";
-import { createBar, GenericBar } from "features/bars/bar";
-import { Direction } from "util/common";
+import Spacer from "components/layout/Spacer.vue";
 import { createCollapsibleMilestones } from "data/common";
+import { main } from "data/projEntry";
+import { createBar, GenericBar } from "features/bars/bar";
+import { createClickable } from "features/clickables/clickable";
+import { jsx, JSXFunction, showIf } from "features/feature";
+import { createMilestone, GenericMilestone } from "features/milestones/milestone";
+import { createLayer } from "game/layers";
 import { persistent } from "game/persistence";
+import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
+import { Direction } from "util/common";
+import { render, renderGrid } from "util/vue";
+import { computed } from "vue";
+import elves from "./elves";
 
 const id = "management";
 const day = 12;
@@ -59,7 +60,7 @@ const layer = createLayer(id, () => {
                         {elf.name} is currently at level {formatWhole(level.value)}! They have{" "}
                         {format(exp.value)}/{format(exp.value)} experience points.{" "}
                         {currentShown.value !== elf.name
-                            ? "Click to see this elves' milestone."
+                            ? "Click to see this elf's milestones."
                             : undefined}
                         {render(bar)}
                     </>
@@ -231,13 +232,14 @@ const layer = createLayer(id, () => {
         color,
         minWidth: 700,
         elfTraining,
+        currentShown,
         display: jsx(() => (
             <>
                 {main.day.value === day ? `Get all elves to level 10.` : `${name} Complete!`}
                 {render(dayProgress)}
-                {renderRow(...treeElfTraining)}
-                {renderRow(...coalElfTraining)}
-                {renderRow(...fireElfTraining)}
+                <Spacer />
+                {renderGrid(treeElfTraining, coalElfTraining, fireElfTraining)}
+                <Spacer />
                 {msDisplay()}
             </>
         ))
