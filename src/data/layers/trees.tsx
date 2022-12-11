@@ -33,6 +33,7 @@ import cloth from "./cloth";
 import coal from "./coal";
 import dyes from "./dyes";
 import elves from "./elves";
+import management from "./management";
 import paper from "./paper";
 import workshop from "./workshop";
 const id = "trees";
@@ -370,6 +371,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 4,
             description: "Lumberjack Plaid",
             enabled: cloth.treesUpgrades.treesUpgrade3.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Ivy Level 1",
+            enabled: management.elfTraining.planterElfTraining.milestones[0].earned
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAutoPlantingAmount = computed(() => autoPlantingAmount.apply(0));
@@ -431,6 +437,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
             ),
             description: "Is Blue Dye just Water?",
             enabled: dyes.upgrades.blueDyeUpg.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: computed(() =>
+                Decimal.add(computedAutoCuttingAmount.value, 1).log10().plus(1)
+            ),
+            description: "Holly Level 1",
+            enabled: management.elfTraining.cutterElfTraining.milestones[0].earned
         })),
         createExponentialModifier(() => ({
             exponent: 1.2,
@@ -703,6 +716,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         manualCutProgress,
         manualPlantProgress,
         generalTabCollapsed,
+        computedAutoCuttingAmount,
         minWidth: 700,
         display: jsx(() => (
             <>

@@ -1,21 +1,33 @@
 import Spacer from "components/layout/Spacer.vue";
-import { createCollapsibleMilestones } from "data/common";
+import Sqrt from "components/math/Sqrt.vue";
+import { createCollapsibleMilestones, createCollapsibleModifierSections } from "data/common";
 import { main } from "data/projEntry";
 import { createBar, GenericBar } from "features/bars/bar";
 import { createClickable } from "features/clickables/clickable";
 import { jsx, JSXFunction, showIf } from "features/feature";
 import { createMilestone, GenericMilestone } from "features/milestones/milestone";
 import { createLayer } from "game/layers";
-import { DefaultValue, Persistent, persistent } from "game/persistence";
+import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render, renderGrid } from "util/vue";
-import { computed, ComputedRef, Ref } from "vue";
+import { computed, ComputedRef, ref, Ref } from "vue";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
 import elves from "./elves";
+import trees from "./trees";
 import { globalBus } from "game/events";
 import { createMultiplicativeModifier, createSequentialModifier, Modifier } from "game/modifiers";
+import Modal from "components/Modal.vue";
+import { createBuyable } from "features/buyable";
+import { createUpgrade } from "features/upgrades/upgrade";
+import coal from "./coal";
+import paper from "./paper";
+import boxes from "./boxes";
+import metal from "./metal";
+import cloth from "./cloth";
+import plastic from "./plastic";
+import dyes from "./dyes";
 
 const id = "management";
 const day = 12;
@@ -31,11 +43,12 @@ const layer = createLayer(id, () => {
         height: 25,
         fillStyle: `backgroundColor: ${color}`,
         progress: () =>
-            main.day.value === day ? totalElfLevels.value / (elves.totalElves.value * 10) : 1,
+            main.day.value === day ? totalElfLevels.value / (elves.totalElves.value * 5) : 1,
         display: jsx(() =>
             main.day.value === day ? (
                 <>
-                    {formatWhole(totalElfLevels.value)}/{formatWhole(elves.totalElves.value * 10)}
+                    {formatWhole(totalElfLevels.value)}/{formatWhole(elves.totalElves.value * 5)}{" "}
+                    elf levels
                 </>
             ) : (
                 ""
@@ -50,7 +63,32 @@ const layer = createLayer(id, () => {
         }
         return elfLevel;
     });
-    const globalXPModifier = createSequentialModifier(() => []);
+    const teaching = createUpgrade(() => ({
+        display: {
+            title: "Teach the Elves",
+            description:
+                "The Elves probably need to be taught if they're to do better. Maybe you'll build a school so you can teach them?"
+        },
+        resource: trees.logs,
+        cost: 1e21
+    }));
+
+    const classroomUpgrade = createUpgrade(() => ({
+        display: {
+            title: "Add a Classroom?",
+            description:
+                "Yay, you have a school. Too bad it has pretty much nothing in it. Maybe you could add some classrooms to make it less boring and more enticing to the Elves?"
+        },
+        resources: boxes.boxes,
+        cost: 1e13
+    }));
+    const globalXPModifier = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: () => classroomEffect.value,
+            description: "Classroom Effect",
+            enabled: () => classroomUpgrade.bought.value
+        }))
+    ]);
     const globalXPModifierComputed = globalXPModifier.apply(1);
     // Training core function
     function createElfTraining(
@@ -63,9 +101,13 @@ const layer = createLayer(id, () => {
         ...modifiers: Modifier[]
     ) {
         const exp = persistent<DecimalSource>(0);
-        const expRequiredForNextLevel = computed(() => Infinity);
-        const level = computed(() => 0);
-        const expToNextLevel = computed(() => 0);
+        const expRequiredForNextLevel = computed(() => Decimal.pow(10, level.value).mul(1e4));
+        const level = computed(() =>
+            Decimal.mul(9, exp.value).div(1e4).add(1).log10().floor().toNumber()
+        );
+        const expToNextLevel = computed(() =>
+            Decimal.sub(exp.value, Decimal.pow(10, level.value).sub(1).div(9).mul(1e4))
+        );
         const bar = createBar(() => ({
             direction: Direction.Right,
             width: 100,
@@ -90,14 +132,26 @@ const layer = createLayer(id, () => {
                 title: elf.name,
                 description: jsx(() => (
                     <>
-                        {elf.name} is currently at level {formatWhole(level.value)}! They have{" "}
-                        {format(exp.value)}/{format(exp.value)} XP. They work{" "}
-                        {formatWhole(elf.computedAutoBuyCooldown.value)} times per second, gaining
-                        about{" "}
-                        {format(
-                            Decimal.mul(elfXPGainComputed.value, elf.computedAutoBuyCooldown.value)
-                        )}{" "}
+                        {elf.name} is currently at level {formatWhole(level.value)}! They have
+                        achieved a total of {format(exp.value)} XP, and have{" "}
+                        {format(expToNextLevel.value)}/{format(expRequiredForNextLevel.value)} XP.
+                        They buy buyables {formatWhole(elf.computedAutoBuyCooldown.value)} times per
+                        second, gaining{" "}
+                        {Decimal.gte(level.value, schools.amount.value)
+                            ? 0
+                            : format(
+                                  Decimal.mul(
+                                      elfXPGainComputed.value,
+                                      elf.computedAutoBuyCooldown.value
+                                  )
+                              )}{" "}
                         XP/sec.{" "}
+                        {Decimal.gte(level.value, schools.amount.value) ? (
+                            <div style="color: red">
+                                This elf cannot gain any XP because it has exceeded the maximum
+                                level from schools.
+                            </div>
+                        ) : undefined}
                         {currentShown.value !== elf.name
                             ? "Click to see this elf's milestones."
                             : undefined}
@@ -119,7 +173,8 @@ const layer = createLayer(id, () => {
             milestones,
             timeForExp: elf.computedAutoBuyCooldown,
             amountOfTimesDone: elf.amountOfTimesDone,
-            elfXPGainComputed
+            elfXPGainComputed,
+            elfXPGain
         }));
         return click;
     }
@@ -127,44 +182,45 @@ const layer = createLayer(id, () => {
     // Elf Milestones
     const cutterElfMilestones = [
         createMilestone(() => ({
-            display: {
+            display: () => ({
                 requirement: "Holly Level 1",
-                effectDisplay: "???"
-            },
-            shouldEarn: () => Decimal.gte(cutterElfTraining.level.value, 1)
+                effectDisplay: "Cutting speed multiplies log gain."
+            }),
+            shouldEarn: () => cutterElfTraining.level.value >= 1
         })),
         createMilestone(() => ({
             display: {
                 requirement: "Holly Level 2",
-                effectDisplay: "???"
+                effectDisplay: "Holly now buys max."
             },
             visibility: showIf(cutterElfMilestones[0].earned.value),
-            shouldEarn: () => Decimal.gte(cutterElfTraining.level.value, 2)
+            shouldEarn: () => cutterElfTraining.level.value >= 2
         })),
         createMilestone(() => ({
             display: {
                 requirement: "Holly Level 3",
-                effectDisplay: "???"
+                effectDisplay:
+                    "Cutting speed multiplies cloth gain, wool gain (increasing the requirement as well), and sheep gain."
             },
             visibility: showIf(cutterElfMilestones[1].earned.value),
-            shouldEarn: () => Decimal.gte(cutterElfTraining.level.value, 3)
+            shouldEarn: () => cutterElfTraining.level.value >= 3
         }))
     ] as Array<GenericMilestone>;
     const planterElfMilestones = [
         createMilestone(() => ({
             display: {
                 requirement: "Ivy Level 1",
-                effectDisplay: "???"
+                effectDisplay: "Planters are now twice as efficent."
             },
-            shouldEarn: () => Decimal.gte(planterElfTraining.level.value, 1)
+            shouldEarn: () => planterElfTraining.level.value >= 1
         })),
         createMilestone(() => ({
             display: {
                 requirement: "Ivy Level 2",
-                effectDisplay: "???"
+                effectDisplay: "Ivy now buys max."
             },
             visibility: showIf(planterElfMilestones[0].earned.value),
-            shouldEarn: () => Decimal.gte(planterElfTraining.level.value, 2)
+            shouldEarn: () => planterElfTraining.level.value >= 2
         })),
         createMilestone(() => ({
             display: {
@@ -172,7 +228,7 @@ const layer = createLayer(id, () => {
                 effectDisplay: "???"
             },
             visibility: showIf(planterElfMilestones[1].earned.value),
-            shouldEarn: () => Decimal.gte(planterElfTraining.level.value, 3)
+            shouldEarn: () => planterElfTraining.level.value >= 3
         })),
         createMilestone(() => ({
             display: {
@@ -180,7 +236,7 @@ const layer = createLayer(id, () => {
                 effectDisplay: "???"
             },
             visibility: showIf(planterElfMilestones[2].earned.value),
-            shouldEarn: () => Decimal.gte(planterElfTraining.level.value, 4)
+            shouldEarn: () => planterElfTraining.level.value >= 4
         })),
         createMilestone(() => ({
             display: {
@@ -188,7 +244,7 @@ const layer = createLayer(id, () => {
                 effectDisplay: "???"
             },
             visibility: showIf(planterElfMilestones[3].earned.value),
-            shouldEarn: () => Decimal.gte(planterElfTraining.level.value, 5)
+            shouldEarn: () => planterElfTraining.level.value >= 5
         }))
     ] as Array<GenericMilestone>;
     const expanderElfMilestones = [
@@ -197,7 +253,7 @@ const layer = createLayer(id, () => {
                 requirement: "Hope Level 1",
                 effectDisplay: "???"
             },
-            shouldEarn: () => Decimal.gte(expandersElfTraining.level.value, 3)
+            shouldEarn: () => expandersElfTraining.level.value >= 1
         }))
     ] as Array<GenericMilestone>;
     const heatedCutterElfMilestones = [] as Array<GenericMilestone>;
@@ -309,9 +365,10 @@ const layer = createLayer(id, () => {
     };
 
     globalBus.on("update", () => {
+        if (main.day.value < day) return;
         for (const elf of Object.values(elfTraining)) {
             const times = Math.floor(elf.amountOfTimesDone.value);
-            if (times >= 1) {
+            if (times >= 1 && Decimal.lt(elf.level.value, schools.amount.value)) {
                 elf.amountOfTimesDone.value -= times;
                 elf.exp.value = Decimal.mul(elf.elfXPGainComputed.value, times).add(elf.exp.value);
             }
@@ -323,6 +380,142 @@ const layer = createLayer(id, () => {
             {currentElfDisplay.value.name}'s milestones: {currentElfDisplay.value.disp()}
         </>
     ));
+
+    const schoolCost = computed(() => {
+        const schoolFactor = Decimal.pow(10, schools.amount.value);
+        return {
+            wood: schoolFactor.mul(1e21),
+            coal: schoolFactor.mul(1e32),
+            paper: schoolFactor.mul(1e19),
+            boxes: schoolFactor.mul(1e13),
+            metalIngots: schoolFactor.mul(1e12),
+            cloth: schoolFactor.mul(1e4),
+            plastic: schoolFactor.mul(1e6),
+            dye: Decimal.add(schools.amount.value, 1).mul(10000)
+        };
+    });
+
+    const schools = createBuyable(() => ({
+        display: jsx(() => (
+            <>
+                <h3>Build a School</h3>
+                <div>
+                    You gotta start somewhere, right? Each school increases the maximum level for
+                    elves by 1. Maximum of 5.
+                </div>
+                <div>You have {formatWhole(schools.amount.value)} schools.</div>
+                <div>
+                    They are currently letting elves learn up to level{" "}
+                    {formatWhole(schools.amount.value)}.
+                </div>
+                <div>
+                    Costs {format(schoolCost.value.wood)} logs, {format(schoolCost.value.coal)}{" "}
+                    coal, {format(schoolCost.value.paper)} paper, {format(schoolCost.value.boxes)}{" "}
+                    boxes, {format(schoolCost.value.metalIngots)} metal ingots,{" "}
+                    {format(schoolCost.value.cloth)} cloth, {format(schoolCost.value.plastic)}{" "}
+                    plastic, and requires {format(schoolCost.value.dye)} of red, yellow, and blue
+                    dye
+                </div>
+            </>
+        )),
+        canPurchase(): boolean {
+            return (
+                schoolCost.value.wood.lte(trees.logs.value) &&
+                schoolCost.value.coal.lte(coal.coal.value) &&
+                schoolCost.value.paper.lte(paper.paper.value) &&
+                schoolCost.value.boxes.lte(boxes.boxes.value) &&
+                schoolCost.value.metalIngots.lte(metal.metal.value) &&
+                schoolCost.value.cloth.lte(cloth.cloth.value) &&
+                schoolCost.value.plastic.lte(plastic.plastic.value) &&
+                schoolCost.value.dye.lte(dyes.dyes.blue.amount.value) &&
+                schoolCost.value.dye.lte(dyes.dyes.red.amount.value) &&
+                schoolCost.value.dye.lte(dyes.dyes.yellow.amount.value)
+            );
+        },
+        onPurchase() {
+            trees.logs.value = Decimal.sub(trees.logs.value, schoolCost.value.wood);
+            coal.coal.value = Decimal.sub(coal.coal.value, schoolCost.value.coal);
+            paper.paper.value = Decimal.sub(paper.paper.value, schoolCost.value.paper);
+            boxes.boxes.value = Decimal.sub(boxes.boxes.value, schoolCost.value.boxes);
+            metal.metal.value = Decimal.sub(metal.metal.value, schoolCost.value.metalIngots);
+            cloth.cloth.value = Decimal.sub(cloth.cloth.value, schoolCost.value.cloth);
+            plastic.plastic.value = Decimal.sub(plastic.plastic.value, schoolCost.value.plastic);
+            this.amount.value = Decimal.add(this.amount.value, 1);
+        },
+        purchaseLimit: 5,
+        visibility: computed(() => showIf(teaching.bought.value)),
+        style: "width: 600px"
+    }));
+
+    const classroomCost = computed(() => {
+        const classroomFactor = Decimal.add(schools.amount.value, 1).pow(1.5);
+        return {
+            wood: classroomFactor.mul(1e21),
+            coal: classroomFactor.mul(1e32),
+            paper: classroomFactor.mul(1e19),
+            boxes: classroomFactor.mul(1e13),
+            metalIngots: classroomFactor.mul(1e12),
+            cloth: classroomFactor.mul(1e4),
+            plastic: classroomFactor.mul(1e6),
+            dye: classroomFactor.mul(10000)
+        };
+    });
+
+    const classroomEffect = computed(() => {
+        return Decimal.add(classrooms.amount.value, 1).sqrt();
+    });
+
+    const classrooms = createBuyable(() => ({
+        display: jsx(() => (
+            <>
+                <h3>Build a Classroom</h3>
+                <div>
+                    Hopefully it makes the school a bit less boring. Multiplies elves' XP gain by{" "}
+                    <Sqrt>Classrooms + 1</Sqrt>.
+                </div>
+                <div>You have {formatWhole(schools.amount.value)} classrooms.</div>
+                <div>
+                    They are currently multiplying elves' XP gain by {format(classroomEffect.value)}
+                </div>
+                <div>
+                    Costs {format(classroomCost.value.wood)} logs,{" "}
+                    {format(classroomCost.value.coal)} coal, {format(classroomCost.value.paper)}{" "}
+                    paper, {format(classroomCost.value.boxes)} boxes,{" "}
+                    {format(classroomCost.value.metalIngots)} metal ingots,{" "}
+                    {format(classroomCost.value.cloth)} cloth, {format(classroomCost.value.plastic)}{" "}
+                    plastic, and requires {format(classroomCost.value.dye)} of red, yellow, and blue
+                    dye
+                </div>
+            </>
+        )),
+        canPurchase(): boolean {
+            return (
+                classroomCost.value.wood.lte(trees.logs.value) &&
+                classroomCost.value.coal.lte(coal.coal.value) &&
+                classroomCost.value.paper.lte(paper.paper.value) &&
+                classroomCost.value.boxes.lte(boxes.boxes.value) &&
+                classroomCost.value.metalIngots.lte(metal.metal.value) &&
+                classroomCost.value.cloth.lte(cloth.cloth.value) &&
+                classroomCost.value.plastic.lte(plastic.plastic.value) &&
+                classroomCost.value.dye.lte(dyes.dyes.blue.amount.value) &&
+                classroomCost.value.dye.lte(dyes.dyes.red.amount.value) &&
+                classroomCost.value.dye.lte(dyes.dyes.yellow.amount.value)
+            );
+        },
+        onPurchase() {
+            trees.logs.value = Decimal.sub(trees.logs.value, classroomCost.value.wood);
+            coal.coal.value = Decimal.sub(coal.coal.value, classroomCost.value.coal);
+            paper.paper.value = Decimal.sub(paper.paper.value, classroomCost.value.paper);
+            boxes.boxes.value = Decimal.sub(boxes.boxes.value, classroomCost.value.boxes);
+            metal.metal.value = Decimal.sub(metal.metal.value, classroomCost.value.metalIngots);
+            cloth.cloth.value = Decimal.sub(cloth.cloth.value, classroomCost.value.cloth);
+            plastic.plastic.value = Decimal.sub(plastic.plastic.value, classroomCost.value.plastic);
+            this.amount.value = Decimal.add(this.amount.value, 1);
+        },
+        visibility: computed(() => showIf(classroomUpgrade.bought.value)),
+        style: "width: 600px"
+    }));
+
     const tabs = createTabFamily({
         training: () => ({
             tab: createTab(() => ({
@@ -341,6 +534,17 @@ const layer = createLayer(id, () => {
             })),
             display: "Elf Training"
         }),
+        teaching: () => ({
+            tab: createTab(() => ({
+                display: jsx(() => (
+                    <>
+                        {render(schools)} {render(classrooms)}{" "}
+                        {renderGrid([teaching, classroomUpgrade])}
+                    </>
+                ))
+            })),
+            display: "The Schools"
+        }),
         info: () => ({
             tab: createTab(() => ({
                 display: jsx(() => (
@@ -354,6 +558,85 @@ const layer = createLayer(id, () => {
             display: "Info"
         })
     });
+
+    const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
+        {
+            title: "Global XP Gain",
+            modifier: globalXPModifier,
+            unit: " XP"
+        },
+        {
+            title: "Holly XP Gain per Action",
+            modifier: cutterElfTraining.elfXPGain,
+            unit: " XP"
+        },
+        {
+            title: "Ivy XP Gain per Action",
+            modifier: planterElfTraining.elfXPGain,
+            unit: " XP"
+        },
+        {
+            title: "Hope XP Gain per Action",
+            modifier: expandersElfTraining.elfXPGain,
+            unit: " XP"
+        },
+        {
+            title: "Jack XP Gain per Action",
+            modifier: heatedCutterElfTraining.elfXPGain,
+            unit: " XP"
+        },
+        {
+            title: "Mary XP Gain per Action",
+            modifier: heatedPlanterElfTraining.elfXPGain,
+            unit: " XP"
+        },
+        {
+            title: "Noel XP Gain per Action",
+            modifier: fertilizerElfTraining.elfXPGain,
+            unit: " XP"
+        },
+        {
+            title: "Joy XP Gain per Action",
+            modifier: smallfireElfTraining.elfXPGain,
+            unit: " XP"
+        },
+        {
+            title: "Faith XP Gain per Action",
+            modifier: bonfireElfTraining.elfXPGain,
+            unit: " XP"
+        },
+        {
+            title: "Snowball XP Gain per Action",
+            modifier: kilnElfTraining.elfXPGain,
+            unit: " XP"
+        },
+        {
+            title: "Star XP Gain per Action",
+            modifier: paperElfTraining.elfXPGain,
+            unit: " XP"
+        },
+        {
+            title: "Bell XP Gain per Action",
+            modifier: boxElfTraining.elfXPGain,
+            unit: " XP"
+        },
+        {
+            title: "Gingersnap XP Gain per Action",
+            modifier: clothElfTraining.elfXPGain,
+            unit: " XP"
+        }
+    ]);
+    const showModifiersModal = ref(false);
+    const modifiersModal = jsx(() => (
+        <Modal
+            modelValue={showModifiersModal.value}
+            onUpdate:modelValue={(value: boolean) => (showModifiersModal.value = value)}
+            v-slots={{
+                header: () => <h2>{name} Modifiers</h2>,
+                body: generalTab
+            }}
+        />
+    ));
     return {
         name,
         day,
@@ -362,17 +645,31 @@ const layer = createLayer(id, () => {
         elfTraining,
         currentShown,
         tabs,
+        generalTabCollapsed,
+        teaching,
+        schools,
+        classrooms,
+        classroomUpgrade,
         display: jsx(() => (
             <>
                 {import.meta.env.DEV ? (
                     <>
-                        {main.day.value === day
-                            ? `Get all elves to level 10.`
-                            : `${name} Complete!`}
+                        {main.day.value === day ? `Get all elves to level 5.` : `${name} Complete!`}{" "}
+                        -
+                        <button
+                            class="button"
+                            style="display: inline-block;"
+                            onClick={() => (showModifiersModal.value = true)}
+                        >
+                            Check Modifiers
+                        </button>
+                        {render(modifiersModal)}
                         {render(dayProgress)}
                         {render(tabs)}
                     </>
-                ) : undefined}
+                ) : (
+                    "The day is still being developed, please wait patiently."
+                )}
             </>
         ))
     };

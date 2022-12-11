@@ -28,6 +28,7 @@ import { formatWhole } from "util/break_eternity";
 import { Direction } from "util/common";
 import { render, renderCol, renderRow } from "util/vue";
 import { computed, ref } from "vue";
+import management from "./management";
 import metal from "./metal";
 import paper from "./paper";
 import plastic from "./plastic";
@@ -363,6 +364,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "Shepherding for Dummies",
             enabled: paper.upgrades.clothUpgrade.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(trees.computedAutoCuttingAmount.value, 1).log10().add(1),
+            description: "Holly Level 3",
+            enabled: management.elfTraining.cutterElfTraining.milestones[2].earned
         }))
     ]);
     const computedShearingAmount = computed(() => shearingAmount.apply(1));
@@ -383,6 +389,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "Shepherding for Dummies",
             enabled: paper.upgrades.clothUpgrade.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(trees.computedAutoCuttingAmount.value, 1).log10().add(1),
+            description: "Holly Level 3",
+            enabled: management.elfTraining.cutterElfTraining.milestones[2].earned
         }))
     ]);
     const computedSpinningAmount = computed(() => spinningAmount.apply(1));
