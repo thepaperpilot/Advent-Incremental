@@ -23,8 +23,8 @@ import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { Computable, convertComputable } from "util/computed";
-import { render, renderGrid, renderRow } from "util/vue";
-import { computed, ref, Ref, unref, watchEffect } from "vue";
+import { render, renderGrid } from "util/vue";
+import { computed, ComputedRef, ref, Ref, unref, watchEffect } from "vue";
 import boxes from "./boxes";
 import cloth from "./cloth";
 import coal from "./coal";
@@ -433,6 +433,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         } & Partial<ClickableOptions>
     ) {
         const buyProgress = persistent<DecimalSource>(0);
+        const amountOfTimesDone = persistent(0);
         const toggle = options.hasToggle ? persistent<boolean>(false) : ref(true);
 
         const computedAutoBuyCooldown = computed(() => options.cooldownModifier.apply(10));
@@ -443,6 +444,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (upgrade.bought.value && unref(isActive)) {
                 buyProgress.value = Decimal.add(buyProgress.value, diff);
                 const cooldown = Decimal.recip(computedAutoBuyCooldown.value);
+                amountOfTimesDone.value += diff / cooldown.toNumber();
                 (isArray(options.buyable) ? options.buyable : [options.buyable]).forEach(
                     buyable => {
                         while (Decimal.gte(buyProgress.value, cooldown)) {
@@ -478,6 +480,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 resource: coal.coal,
                 cost: trainingCost,
                 computedAutoBuyCooldown,
+                amountOfTimesDone,
                 name: options.name,
                 display: () => ({
                     title: options.name,
@@ -515,6 +518,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             update: (diff: number) => void;
             toggle: Ref<boolean>;
             name: string;
+            computedAutoBuyCooldown: ComputedRef<DecimalSource>;
+            amountOfTimesDone: Ref<number>;
         };
         return upgrade;
     }

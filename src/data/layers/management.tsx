@@ -6,14 +6,16 @@ import { createClickable } from "features/clickables/clickable";
 import { jsx, JSXFunction, showIf } from "features/feature";
 import { createMilestone, GenericMilestone } from "features/milestones/milestone";
 import { createLayer } from "game/layers";
-import { persistent } from "game/persistence";
+import { DefaultValue, Persistent, persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render, renderGrid } from "util/vue";
-import { computed } from "vue";
+import { computed, ComputedRef, Ref } from "vue";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
 import elves from "./elves";
+import { globalBus } from "game/events";
+import { createMultiplicativeModifier, createSequentialModifier, Modifier } from "game/modifiers";
 
 const id = "management";
 const day = 12;
@@ -28,8 +30,17 @@ const layer = createLayer(id, () => {
         width: 600,
         height: 25,
         fillStyle: `backgroundColor: ${color}`,
-        progress: () => (main.day.value === day ? 0 : 1),
-        display: jsx(() => (main.day.value === day ? <>0 / 10</> : ""))
+        progress: () =>
+            main.day.value === day ? totalElfLevels.value / (elves.totalElves.value * 10) : 1,
+        display: jsx(() =>
+            main.day.value === day ? (
+                <>
+                    {formatWhole(totalElfLevels.value)}/{formatWhole(elves.totalElves.value * 10)}
+                </>
+            ) : (
+                ""
+            )
+        )
     })) as GenericBar;
 
     const totalElfLevels = computed(() => {
@@ -39,12 +50,17 @@ const layer = createLayer(id, () => {
         }
         return elfLevel;
     });
+    const globalXPModifier = createSequentialModifier(() => []);
+    const globalXPModifierComputed = globalXPModifier.apply(1);
     // Training core function
     function createElfTraining(
         elf: {
             name: string;
+            computedAutoBuyCooldown: ComputedRef<DecimalSource>;
+            amountOfTimesDone: Ref<number>;
         },
-        milestones: Array<GenericMilestone>
+        milestones: Array<GenericMilestone>,
+        ...modifiers: Modifier[]
     ) {
         const exp = persistent<DecimalSource>(0);
         const expRequiredForNextLevel = computed(() => Infinity);
@@ -61,13 +77,27 @@ const layer = createLayer(id, () => {
         }));
         const { collapseMilestones: state, display: displayMilestone } =
             createCollapsibleMilestones(milestones as Record<number, GenericMilestone>);
+        const elfXPGain = createSequentialModifier(() => [
+            createMultiplicativeModifier(() => ({
+                multiplier: globalXPModifierComputed,
+                description: "Global XP Multiplier"
+            })),
+            ...modifiers
+        ]);
+        const elfXPGainComputed = computed(() => elfXPGain.apply(1));
         const click = createClickable(() => ({
             display: {
                 title: elf.name,
                 description: jsx(() => (
                     <>
                         {elf.name} is currently at level {formatWhole(level.value)}! They have{" "}
-                        {format(exp.value)}/{format(exp.value)} experience points (XP).{" "}
+                        {format(exp.value)}/{format(exp.value)} XP. They work{" "}
+                        {formatWhole(elf.computedAutoBuyCooldown.value)} times per second, gaining
+                        about{" "}
+                        {format(
+                            Decimal.mul(elfXPGainComputed.value, elf.computedAutoBuyCooldown.value)
+                        )}{" "}
+                        XP/sec.{" "}
                         {currentShown.value !== elf.name
                             ? "Click to see this elf's milestones."
                             : undefined}
@@ -86,7 +116,10 @@ const layer = createLayer(id, () => {
             displayMilestone,
             level,
             exp,
-            milestones
+            milestones,
+            timeForExp: elf.computedAutoBuyCooldown,
+            amountOfTimesDone: elf.amountOfTimesDone,
+            elfXPGainComputed
         }));
         return click;
     }
@@ -105,7 +138,7 @@ const layer = createLayer(id, () => {
                 requirement: "Holly Level 2",
                 effectDisplay: "???"
             },
-            visible: showIf(cutterElfMilestones[0].earned.value),
+            visibility: showIf(cutterElfMilestones[0].earned.value),
             shouldEarn: () => Decimal.gte(cutterElfTraining.level.value, 2)
         })),
         createMilestone(() => ({
@@ -113,6 +146,7 @@ const layer = createLayer(id, () => {
                 requirement: "Holly Level 3",
                 effectDisplay: "???"
             },
+            visibility: showIf(cutterElfMilestones[1].earned.value),
             shouldEarn: () => Decimal.gte(cutterElfTraining.level.value, 3)
         }))
     ] as Array<GenericMilestone>;
@@ -122,31 +156,59 @@ const layer = createLayer(id, () => {
                 requirement: "Ivy Level 1",
                 effectDisplay: "???"
             },
-            shouldEarn: () => Decimal.gte(cutterElfTraining.level.value, 1)
+            shouldEarn: () => Decimal.gte(planterElfTraining.level.value, 1)
         })),
         createMilestone(() => ({
             display: {
                 requirement: "Ivy Level 2",
                 effectDisplay: "???"
             },
-            visible: showIf(cutterElfMilestones[0].earned.value),
-            shouldEarn: () => Decimal.gte(cutterElfTraining.level.value, 2)
+            visibility: showIf(planterElfMilestones[0].earned.value),
+            shouldEarn: () => Decimal.gte(planterElfTraining.level.value, 2)
         })),
         createMilestone(() => ({
             display: {
                 requirement: "Ivy Level 3",
                 effectDisplay: "???"
             },
-            shouldEarn: () => Decimal.gte(cutterElfTraining.level.value, 3)
+            visibility: showIf(planterElfMilestones[1].earned.value),
+            shouldEarn: () => Decimal.gte(planterElfTraining.level.value, 3)
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Ivy Level 4",
+                effectDisplay: "???"
+            },
+            visibility: showIf(planterElfMilestones[2].earned.value),
+            shouldEarn: () => Decimal.gte(planterElfTraining.level.value, 4)
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Ivy Level 5",
+                effectDisplay: "???"
+            },
+            visibility: showIf(planterElfMilestones[3].earned.value),
+            shouldEarn: () => Decimal.gte(planterElfTraining.level.value, 5)
         }))
     ] as Array<GenericMilestone>;
-    const expanderElfMilestones = [] as Array<GenericMilestone>;
+    const expanderElfMilestones = [
+        createMilestone(() => ({
+            display: {
+                requirement: "Hope Level 1",
+                effectDisplay: "???"
+            },
+            shouldEarn: () => Decimal.gte(expandersElfTraining.level.value, 3)
+        }))
+    ] as Array<GenericMilestone>;
     const heatedCutterElfMilestones = [] as Array<GenericMilestone>;
     const heatedPlanterElfMilestones = [] as Array<GenericMilestone>;
     const fertilizerElfMilestones = [] as Array<GenericMilestone>;
     const smallfireElfMilestones = [] as Array<GenericMilestone>;
     const bonfireElfMilestones = [] as Array<GenericMilestone>;
     const kilnElfMilestones = [] as Array<GenericMilestone>;
+    const paperElfMilestones = [] as Array<GenericMilestone>;
+    const boxElfMilestones = [] as Array<GenericMilestone>;
+    const clothElfMilestones = [] as Array<GenericMilestone>;
 
     // some milestone display stuff
     const currentShown = persistent<string>("Holly");
@@ -179,6 +241,15 @@ const layer = createLayer(id, () => {
                 break;
             case "Snowball":
                 disp = kilnElfTraining;
+                break;
+            case "Star":
+                disp = paperElfTraining;
+                break;
+            case "Bell":
+                disp = boxElfTraining;
+                break;
+            case "Gingersnap":
+                disp = clothElfTraining;
                 break;
             default:
                 console.warn("This should not happen.", currentShown.value);
@@ -217,6 +288,10 @@ const layer = createLayer(id, () => {
     const bonfireElfTraining = createElfTraining(elves.elves.bonfireElf, bonfireElfMilestones);
     const kilnElfTraining = createElfTraining(elves.elves.kilnElf, kilnElfMilestones);
     const fireElfTraining = [smallfireElfTraining, bonfireElfTraining, kilnElfTraining];
+    const paperElfTraining = createElfTraining(elves.elves.paperElf, paperElfMilestones);
+    const boxElfTraining = createElfTraining(elves.elves.boxElf, boxElfMilestones);
+    const clothElfTraining = createElfTraining(elves.elves.clothElf, clothElfMilestones);
+    const plasticElfTraining = [paperElfTraining, boxElfTraining, clothElfTraining];
 
     const elfTraining = {
         cutterElfTraining,
@@ -227,19 +302,21 @@ const layer = createLayer(id, () => {
         fertilizerElfTraining,
         smallfireElfTraining,
         bonfireElfTraining,
-        kilnElfTraining
+        kilnElfTraining,
+        paperElfTraining,
+        boxElfTraining,
+        clothElfTraining
     };
-    const elfMilestones = {
-        cutterElfMilestones,
-        planterElfMilestones,
-        expanderElfMilestones,
-        heatedCutterElfMilestones,
-        heatedPlanterElfMilestones,
-        fertilizerElfMilestones,
-        smallfireElfMilestones,
-        bonfireElfMilestones,
-        kilnElfMilestones
-    };
+
+    globalBus.on("update", () => {
+        for (const elf of Object.values(elfTraining)) {
+            const times = Math.floor(elf.amountOfTimesDone.value);
+            if (times >= 1) {
+                elf.amountOfTimesDone.value -= times;
+                elf.exp.value = Decimal.mul(elf.elfXPGainComputed.value, times).add(elf.exp.value);
+            }
+        }
+    });
 
     const msDisplay = jsx(() => (
         <>
@@ -251,8 +328,12 @@ const layer = createLayer(id, () => {
             tab: createTab(() => ({
                 display: jsx(() => (
                     <>
-                        <Spacer />
-                        {renderGrid(treeElfTraining, coalElfTraining, fireElfTraining)}
+                        {renderGrid(
+                            treeElfTraining,
+                            coalElfTraining,
+                            fireElfTraining,
+                            plasticElfTraining
+                        )}
                         <Spacer />
                         {msDisplay()}
                     </>
@@ -262,7 +343,13 @@ const layer = createLayer(id, () => {
         }),
         info: () => ({
             tab: createTab(() => ({
-                display: jsx(() => <>1</>)
+                display: jsx(() => (
+                    <>
+                        Each elf gains experience points (XP) every time they perform their action
+                        (they don't have to buy anything though). When they get enough XP, they can
+                        level up, granting special rewards.
+                    </>
+                ))
             })),
             display: "Info"
         })
@@ -274,11 +361,18 @@ const layer = createLayer(id, () => {
         minWidth: 700,
         elfTraining,
         currentShown,
+        tabs,
         display: jsx(() => (
             <>
-                {main.day.value === day ? `Get all elves to level 10.` : `${name} Complete!`}
-                {render(dayProgress)}
-                {render(tabs)}
+                {import.meta.env.DEV ? (
+                    <>
+                        {main.day.value === day
+                            ? `Get all elves to level 10.`
+                            : `${name} Complete!`}
+                        {render(dayProgress)}
+                        {render(tabs)}
+                    </>
+                ) : undefined}
             </>
         ))
     };
