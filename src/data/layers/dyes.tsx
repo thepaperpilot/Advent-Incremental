@@ -353,7 +353,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     visible: true,
                     desc: computed(
                         () =>
-                            `x${formatWhole(
+                            `+${formatWhole(
                                 Decimal.sub(boosts.green2.value, 1).times(100)
                             )}% Kiln synergy effect.`
                     )
