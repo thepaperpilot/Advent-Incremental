@@ -463,6 +463,7 @@ export function fixOldSave(
     }
     if (player.layers?.main?.day === 12) {
         player.layers?.main?.day === 11;
+        player.devSpeed = 0;
     }
     if (player.tabs) {
         player.tabs = player.tabs.filter(l => l !== "management");
