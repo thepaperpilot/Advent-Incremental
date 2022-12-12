@@ -135,14 +135,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const bonfireLogs = computed(() => Decimal.times(activeBonfires.value, 10000));
     const bonfireCoal = computed(() => {
         let gain = Decimal.times(activeBonfires.value, 10);
-        if (management.elfTraining.bonfireTraining.milestones[0].earned.value) {
+        if (management.elfTraining.bonfireElfTraining.milestones[0].earned.value) {
             gain = gain.times(5);
         }
         return gain;
     });
     const bonfireAsh = computed(() => {
         let gain = Decimal.times(activeBonfires.value, 1000);
-        if (management.elfTraining.bonfireTraining.milestones[0].earned.value) {
+        if (management.elfTraining.bonfireElfTraining.milestones[0].earned.value) {
             gain = gain.times(5);
         }
         return gain;
@@ -686,7 +686,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createExponentialModifier(() => ({
             exponent: 1.1,
             description: "Faith Level 2",
-            enabled: management.elfTraining.bonfireTraining.milestones[1].earned
+            enabled: management.elfTraining.bonfireElfTraining.milestones[1].earned
         })),
         createExponentialModifier(() => ({
             exponent: 1.1,
