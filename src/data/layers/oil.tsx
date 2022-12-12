@@ -247,7 +247,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <br />
                 Pump that oil from the ground.
                 <br />
-                Gain oil based on the number of Heavy Drills and Heavy Drill Drills active and well
+                Gain oil based on the number of Heavy buildings active and well
                 depth, but coal usage is multiplied by {row2Upgrades[3].bought.value ? 4 : 5}×.
                 <br />
                 <br />
@@ -348,7 +348,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <br />
                 Use oil as a crucible fuel.
                 <br />
-                Burn 100x<sup>2</sup> oil to smelt +100% faster.
+                Burn 100*(Oil Smelter amount)<sup>2</sup> oil to smelt +100% faster.
                 <br />
                 <br />
                 Currently:
@@ -924,10 +924,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         display: jsx(() => {
             const upgrades: GenericUpgrade[][] = [];
 
-            if (oilMilestones[1].earned.value) {
+            if (depthMilestones[1].earned.value) {
                 upgrades.push(row1Upgrades);
             }
-            if (depthMilestones[1].earned.value) {
+            if (oilMilestones[1].earned.value) {
                 upgrades.push(row2Upgrades);
             }
             return (

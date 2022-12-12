@@ -730,7 +730,7 @@ const layer = createLayer(id, () => {
     const bonfireElfTraining = createElfTraining(elves.elves.bonfireElf, bonfireElfMilestones);
     const kilnElfTraining = createElfTraining(elves.elves.kilnElf, kilnElfMilestones);
     const fireElfTraining = [smallfireElfTraining, bonfireElfTraining, kilnElfTraining];
-    
+
     const paperElfTraining = createElfTraining(elves.elves.paperElf, paperElfMilestones);
     const boxElfTraining = createElfTraining(elves.elves.boxElf, boxElfMilestones);
     const clothElfTraining = createElfTraining(elves.elves.clothElf, clothElfMilestones);
@@ -785,11 +785,10 @@ const layer = createLayer(id, () => {
                 <h3>Build a School</h3>
                 <div>
                     You gotta start somewhere, right? Each school increases the maximum level for
-                    elves by 1. Maximum of 5.
+                    elves by 1, up to 5.
                 </div>
-                <div>You have {formatWhole(schools.amount.value)} schools.</div>
-                <div>
-                    They are currently letting elves learn up to level{" "}
+                <div>You have {formatWhole(schools.amount.value)} schools,
+                    which are currently letting elves learn up to level{" "}
                     {formatWhole(schools.amount.value)}.
                 </div>
                 <div>
@@ -857,9 +856,8 @@ const layer = createLayer(id, () => {
                     Hopefully it makes the school a bit less boring. Multiplies elves' XP gain by{" "}
                     <Sqrt>Classrooms + 1</Sqrt>.
                 </div>
-                <div>You have {formatWhole(schools.amount.value)} classrooms.</div>
-                <div>
-                    They are currently multiplying elves' XP gain by {format(classroomEffect.value)}
+                <div>You have {formatWhole(schools.amount.value)} classrooms,
+                    which are currently multiplying elves' XP gain by {format(classroomEffect.value)}
                 </div>
                 <div>
                     Costs {format(classroomCost.value.wood)} logs,{" "}
@@ -905,6 +903,9 @@ const layer = createLayer(id, () => {
             tab: createTab(() => ({
                 display: jsx(() => (
                     <>
+                        <br/>
+                        Click on an elf to see their milestones.
+                        <br/><br/>
                         {renderGrid(
                             treeElfTraining,
                             coalElfTraining,
