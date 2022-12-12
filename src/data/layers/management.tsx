@@ -32,19 +32,6 @@ const id = "management";
 const day = 12;
 const advancedDay = 13;
 
-interface ElfTrainingClickable extends GenericClickable {
-    name: string;
-    state: Persistent<boolean>;
-    displayMilestone: JSXFunction;
-    level: ComputedRef<number>;
-    exp: Persistent<DecimalSource>;
-    milestones: GenericMilestone[];
-    timeForExp: ComputedRef<DecimalSource>;
-    amountOfTimesDone: Ref<number>;
-    elfXPGainComputed: ComputedRef<DecimalSource>;
-    elfXPGain: Modifier;
-}
-
 const layer = createLayer(id, () => {
     const name = "Management";
     const color = "green"; // idk what to do
@@ -262,7 +249,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Holly Level 4",
-                effectDisplay: "Multiply cutting speed by 1.1 per day completed"
+                effectDisplay: "Multiply auto cutting amount by 1.1 per day completed"
             },
             visibility: () => showIf(cutterElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => cutterElfTraining.level.value >= 4
@@ -297,7 +284,7 @@ const layer = createLayer(id, () => {
                 requirement: "Ivy Level 3",
                 effectDisplay: jsx(() => (
                     <>
-                        Planting speed is multiplied by 2
+                        Auto planting speed is multiplied by 2
                         <sup>
                             (log<sub>10</sub>(logs)<sup>0.2</sup>)
                         </sup>
@@ -318,7 +305,8 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Ivy Level 5",
-                effectDisplay: "Boost planting/cutting speed based on which is falling behind"
+                effectDisplay:
+                    "The lesser of auto planting and cutting amounts is increased to match the greater"
             },
             visibility: () => showIf(planterElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => planterElfTraining.level.value >= 5
@@ -861,7 +849,7 @@ const layer = createLayer(id, () => {
         paperElfTraining,
         boxElfTraining,
         clothElfTraining
-    } as Record<string, ElfTrainingClickable>;
+    };
     const day12Elves = [
         cutterElfTraining,
         planterElfTraining,
