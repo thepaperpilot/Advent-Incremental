@@ -431,6 +431,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
             if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
             v = Decimal.pow(0.95, paper.books.heatedCuttersBook.amount.value).times(v);
+            if (management.elfTraining.heatedCuttersElfTraining.milestones[0].earned.value) {
+                v = Decimal.pow(0.95, paper.books.heatedCuttersBook.amount.value).times(v);
+            }
             return Decimal.add(v, 1).pow(2.5).times(10);
         },
         display: {
@@ -643,7 +646,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: oil.extractorCoal,
             description: "Heavy Extractor",
             enabled: () => Decimal.gt(oil.activeExtractor.value, 0)
-        }))
+        })),
+        createExponentialModifier(() => ({
+            exponent: 1.05,
+            description: "Jack Level 2",
+            enabled: management.elfTraining.heatedCutterElfTraining.milestones[1].earned
+        })
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedCoalGain = computed(() => coalGain.apply(0));
 

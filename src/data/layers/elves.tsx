@@ -554,7 +554,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         description:
             "Jack will automatically purchase heated cutters you can afford, without actually spending any coal.",
         buyable: coal.heatedCutters,
-        cooldownModifier: heatedCutterCooldown
+        cooldownModifier: heatedCutterCooldown,
+        buyMax: () => management.elfTraining.heatedCutterElfTraining.milestones[2].earned.value
     });
     const heatedPlantersElf = createElf({
         name: "Mary",
