@@ -24,6 +24,11 @@ export default defineConfig({
             vue: "vue/dist/vue.esm-bundler.js"
         }
     },
+    server: {
+        hmr: {
+            clientPort: process.env.CODESPACES ? 443 : undefined
+        }
+    },
     plugins: [
         vue(),
         vueJsx({
