@@ -408,9 +408,111 @@ const layer = createLayer(id, () => {
             },
             shouldEarn: () => heatedPlanterElfTraining.level.value >= 5
         }))] as Array<GenericMilestone>;
-    const smallfireElfMilestones = [] as Array<GenericMilestone>;
-    const bonfireElfMilestones = [] as Array<GenericMilestone>;
-    const kilnElfMilestones = [] as Array<GenericMilestone>;
+    const smallfireElfMilestones = [createMilestone(() => ({
+            display: {
+                requirement: "Joy Level 1",
+                effectDisplay: "Multiply small fire efficiency by 5."
+            },
+            shouldEarn: () => smallfireElfTraining.level.value >= 1
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Joy Level 2",
+                effectDisplay: "Raise ash gain to the 1.1"
+            },
+            shouldEarn: () => smallfireElfTraining.level.value >= 2
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Joy Level 3",
+                effectDisplay: "Mining drill is 2x more powerful"
+            },
+            shouldEarn: () => smallfireElfTraining.level.value >= 3
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Joy Level 4",
+                effectDisplay: "Metal gain is boosted by heavy drills"
+            },
+            shouldEarn: () => smallfireElfTraining.level.value >= 4
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Joy Level 5",
+                effectDisplay: "Raise Industrial Crucible's effect to the 1.1"
+            },
+            shouldEarn: () => smallfireElfTraining.level.value >= 5
+        }))] as Array<GenericMilestone>;
+    const bonfireElfMilestones = [createMilestone(() => ({
+            display: {
+                requirement: "Faith Level 1",
+                effectDisplay: "Multiply bonfire efficiency by 5."
+            },
+            shouldEarn: () => bonfireElfTraining.level.value >= 1
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Faith Level 2",
+                effectDisplay: "Raise ash gain to the 1.1"
+            },
+            shouldEarn: () => bonfireElfTraining.level.value >= 2
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Faith Level 3",
+                effectDisplay: "Mining drill is 2x more powerful"
+            },
+            shouldEarn: () => bonfireElfTraining.level.value >= 3
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "FaithJoy Level 4",
+                effectDisplay: "Oil gain is boosted by heavy drill drills"
+            },
+            shouldEarn: () => bonfireElfTraining.level.value >= 4
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Faith Level 5",
+                effectDisplay: "Raise Industrial Crucible's effect to the 1.1"
+            },
+            shouldEarn: () => bonfireElfTraining.level.value >= 5
+        }))] as Array<GenericMilestone>;
+    const kilnElfMilestones = [createMilestone(() => ({
+            display: {
+                requirement: "Snowball Level 1",
+                effectDisplay: "Multiply kiln efficiency by 5."
+            },
+            shouldEarn: () => kilnElfTraining.level.value >= 1
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Snowball Level 2",
+                effectDisplay: "Raise ash gain to the 1.1"
+            },
+            shouldEarn: () => kilnElfTraining.level.value >= 2
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Snowball Level 3",
+                effectDisplay: "Mining drill is 2x more powerful"
+            },
+            shouldEarn: () => kilnElfTraining.level.value >= 3
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Snowball Level 4",
+                effectDisplay: "Plastic gain is boosted by heavy extractors"
+            },
+            shouldEarn: () => kilnElfTraining.level.value >= 4
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Snowball Level 5",
+                effectDisplay: "Raise Industrial Crucible's effect to the 1.1"
+            },
+            shouldEarn: () => kilnElfTraining.level.value >= 5
+        }))] as Array<GenericMilestone>;
     const paperElfMilestones = [] as Array<GenericMilestone>;
     const boxElfMilestones = [] as Array<GenericMilestone>;
     const clothElfMilestones = [] as Array<GenericMilestone>;
