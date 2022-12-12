@@ -39,6 +39,7 @@ import oil from "./oil";
 import paper from "./paper";
 import trees from "./trees";
 import dyes from "./dyes";
+import management from "./management";
 
 interface BetterFertilizerUpgOptions {
     canAfford: () => boolean;
@@ -176,8 +177,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
     const activeKilns = persistent<DecimalSource>(0);
     const kilnLogs = computed(() => Decimal.times(activeKilns.value, 1e6));
-    const kilnCoal = computed(() => Decimal.times(activeKilns.value, 1e4));
-    const kilnAsh = computed(() => Decimal.times(activeKilns.value, 1e4));
+    const kilnCoal = computed(() => {
+        let gain = Decimal.times(activeKilns.value, 1e4);
+        if (management.elfTraining.kilnTraining.milestones[0].earned.value) {
+            gain = gain.times(5);
+        }
+        return gain;
+    });
+    const kilnAsh = computed(() => {
+        let gain = Decimal.times(activeKilns.value, 1e4);
+        if (management.elfTraining.kilnTraining.milestones[0].earned.value) {
+            gain = gain.times(5);
+        }
+        return gain;
+    });
     const buildKiln = createBuyable(() => ({
         resource: trees.logs,
         cost() {
@@ -227,6 +240,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.pow(activeDrills.value, oil.row2Upgrades[1].bought.value ? 2 : 1),
             5e7
         ).times(metal.efficientDrill.bought.value ? 2 : 1)
+        .times(management.elfTraining.kilnTraining.milestones[2].earned.value ? 2 : 1)
     );
     const buildDrill = createBuyable(() => ({
         resource: metal.metal,
@@ -655,6 +669,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 4,
             description: "Mining boots",
             enabled: cloth.metalUpgrades.metalUpgrade1.bought
+        })),
+        createExponentialModifier(() => ({
+            exponent: 1.1,
+            description: "Snowball Level 2",
+            enabled: management.elfTraining.kilnTraining.milestones[1].earned
         }))
     ]);
     const computedAshGain = computed(() => ashGain.apply(0));
