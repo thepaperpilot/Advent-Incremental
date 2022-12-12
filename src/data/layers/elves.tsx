@@ -532,7 +532,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         description:
             "Holly will automatically purchase cutters you can afford, without actually spending any logs.",
         buyable: trees.row1Buyables[0],
-        cooldownModifier: cutterCooldown
+        cooldownModifier: cutterCooldown,
+        buyMax: () => management.elfTraining.cutterElfTraining.milestones[1].earned.value
     });
     const plantersElf = createElf({
         name: "Ivy",

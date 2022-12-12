@@ -331,7 +331,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const paperUpgrades = { paperUpgrade4, paperUpgrade3, paperUpgrade2, paperUpgrade1 };
 
-    const hollyEffect = computed(() => Decimal.add(trees.computedAutoCuttingAmount.value, 1).log10().add(1));
+    const hollyEffect = computed(() => Decimal.add(trees.computedAutoCuttingAmount.value, 1).root(3));
     const gingersnapEffect = computed(() => Decimal.add(dyes.dyeSum.value, 10).log10());
 
     const sheepGain = createSequentialModifier(() => [

@@ -455,7 +455,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createMultiplicativeModifier(() => ({
             multiplier: computed(() =>
-                Decimal.add(computedAutoCuttingAmount.value, 1).log10().plus(1)
+                Decimal.add(computedAutoCuttingAmount.value, 1).root(3)
             ),
             description: "Holly Level 1",
             enabled: management.elfTraining.cutterElfTraining.milestones[0].earned

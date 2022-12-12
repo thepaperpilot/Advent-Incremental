@@ -219,7 +219,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Holly Level 1",
-                effectDisplay: jsx(() => <>Multiply log gain by (<Sqrt>Cutter amount</Sqrt>)<sup>3</sup>.</>)
+                effectDisplay: jsx(() => <>Multiply log gain by <sup>3</sup><Sqrt>Cutter amount</Sqrt>.</>)
             },
             shouldEarn: () => cutterElfTraining.level.value >= 1
         })),
@@ -234,7 +234,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Holly Level 3",
-                effectDisplay: jsx(() => <>Multiply all cloth actions' effectiveness by (<Sqrt>Cutter amount</Sqrt>)<sup>3</sup>.</>)
+                effectDisplay: jsx(() => <>Multiply all cloth actions' effectiveness by <sup>3</sup><Sqrt>Cutter amount</Sqrt>.</>)
             },
             visibility: () => showIf(cutterElfMilestones[1].earned.value),
             shouldEarn: () => cutterElfTraining.level.value >= 3
