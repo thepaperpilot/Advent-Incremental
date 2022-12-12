@@ -260,23 +260,23 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 12,
             shouldNotify: false,
-            layer: null,
+            layer: "management",
             symbol: managementSymbol,
             story: "You watch as the elves work, and you realize that they could probably be trained to help out better. Just then, Santa comes over to check on your progress. You reply that you're doing fine, except that the elves may need a bit of behavior management. Santa offers to help, saying that he doesn't want to leave you to do everything. Unfortunately for you, the behavior problems won't fix themselves, so let's get to work!",
-            completedStory: ""
+            completedStory: "Woo! You are exhausted - this layer felt really long to you. It's great seeing the elves so productive, although you worry a bit about your own job security now! Good Job!"
         })),
         createDay(() => ({
             day: 13,
             shouldNotify: false,
-            layer: null, // ""
+            layer: null, // "management" (advanced)
             symbol: "",
-            story: "",
-            completedStory: ""
+            story: "So after a good night's rest you decide that maybe making these elves able to do all the work for you isn't something to be scared of, but rather encouraged. Let's spend another day continuing to train them up and really get this place spinning. They are Santa's elves after all, they're supposed to be able to run everything without you!",
+            completedStory: "The elves are doing an incredible job, and Santa does not seem keen on firing you - Score! Now you can get to work on guiding this properly trained highly functional group of hard workers to make Christmas as great as possible. Good Job!"
         })),
         createDay(() => ({
             day: 14,
             shouldNotify: false,
-            layer: null, // ""
+            layer: null, // "letters to santa"
             symbol: "",
             story: "",
             completedStory: ""
@@ -432,7 +432,8 @@ export const getInitialLayers = (
     cloth,
     oil,
     plastic,
-    dyes
+    dyes,
+    management
 ];
 
 /**

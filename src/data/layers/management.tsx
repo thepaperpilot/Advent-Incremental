@@ -32,6 +32,7 @@ import dyes from "./dyes";
 
 const id = "management";
 const day = 12;
+const advancedDay = 13;
 
 interface ElfTrainingClickable extends GenericClickable {
     name: string,
@@ -58,7 +59,7 @@ const layer = createLayer(id, () => {
         height: 25,
         fillStyle: `backgroundColor: ${color}`,
         progress: () =>
-            main.day.value === day ? totalElfLevels.value / (elves.totalElves.value * 5) : 1,
+            main.day.value === day ? Object.values(elfTraining).reduce((acc, curr) => acc + curr.level.value / 3, 0) / Object.keys(elves).length : 1,
         display: jsx(() =>
             main.day.value === day ? (
                 <>
@@ -1137,7 +1138,7 @@ const layer = createLayer(id, () => {
 
         display: jsx(() => (
             <>
-                {main.day.value === day ? `Get all elves to level 5.` : `${name} Complete!`} -
+                {main.day.value === day ? `Get all elves to level 3.` : main.day.value === advancedDay && main.days[advancedDay - 1].opened.value ? `Get all elves to level 5.` : `${name} Complete!`} -
                 <button
                     class="button"
                     style="display: inline-block;"
