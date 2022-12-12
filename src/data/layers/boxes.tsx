@@ -140,7 +140,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Carry cloth in boxes",
             description: "Double all cloth actions"
         }
-    }));
+    })) as GenericUpgrade;
     const dyeUpgrade = createUpgrade(() => ({
         resource: noPersist(boxes),
         cost: 1e17,
@@ -149,7 +149,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Carry dye in boxes",
             description: "Double all dye gain"
         }
-    }));
+    }))  as GenericUpgrade;
     const xpUpgrade = createUpgrade(() => ({
         resource: noPersist(boxes),
         cost: 1e18,
@@ -158,7 +158,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Carry experience in boxes???",
             description: "Double xp gain"
         }
-    }));
+    })) as GenericUpgrade;
     const row3Upgrades = { clothUpgrade, dyeUpgrade, xpUpgrade };
     const logBoxesBuyable = createBuyable(() => ({
         display: {
