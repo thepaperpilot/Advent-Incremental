@@ -513,9 +513,111 @@ const layer = createLayer(id, () => {
             },
             shouldEarn: () => kilnElfTraining.level.value >= 5
         }))] as Array<GenericMilestone>;
-    const paperElfMilestones = [] as Array<GenericMilestone>;
-    const boxElfMilestones = [] as Array<GenericMilestone>;
-    const clothElfMilestones = [] as Array<GenericMilestone>;
+    const paperElfMilestones = [createMilestone(() => ({
+            display: {
+                requirement: "Star Level 1",
+                effectDisplay: "Book cost is divided by total books bought."
+            },
+            shouldEarn: () => paperElfTraining.level.value >= 1
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Star Level 2",
+                effectDisplay: "Paper requires 10x less ash"
+            },
+            shouldEarn: () => paperElfTraining.level.value >= 2
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Star Level 3",
+                effectDisplay: "Book cost scaling 5x -> 4x"
+            },
+            shouldEarn: () => paperElfTraining.level.value >= 3
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Star Level 4",
+                effectDisplay: "0.95^(total books) multiplies XP requirement"
+            },
+            shouldEarn: () => paperElfTraining.level.value >= 4
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Star Level 5",
+                effectDisplay: "Gain 5 free books for all level 5 elves"
+            },
+            shouldEarn: () => paperElfTraining.level.value >= 5
+        }))] as Array<GenericMilestone>;
+    const boxElfMilestones = [createMilestone(() => ({
+            display: {
+                requirement: "Bell Level 1",
+                effectDisplay: "Every box buyable adds sqrt(level) levels to same-row box buyables."
+            },
+            shouldEarn: () => boxElfTraining.level.value >= 1
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Bell Level 2",
+                effectDisplay: "Box gain ^1.1"
+            },
+            shouldEarn: () => boxElfTraining.level.value >= 2
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Bell Level 3",
+                effectDisplay: "All box buyables scaling bases -1"
+            },
+            shouldEarn: () => boxElfTraining.level.value >= 3
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Bell Level 4",
+                effectDisplay: "Unlock a second row of box buyables"
+            },
+            shouldEarn: () => boxElfTraining.level.value >= 4
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Bell Level 5",
+                effectDisplay: "Unlock another row of box upgrades"
+            },
+            shouldEarn: () => boxElfTraining.level.value >= 5
+        }))] as Array<GenericMilestone>;
+    const clothElfMilestones = [createMilestone(() => ({
+            display: {
+                requirement: "Gingersnap Level 1",
+                effectDisplay: "Multiply all primary dye colors by ln(cloth+e)."
+            },
+            shouldEarn: () => clothElfTraining.level.value >= 1
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Gingersnap Level 2",
+                effectDisplay: "Multiply all cloth actions by log(dye sum + 10)"
+            },
+            shouldEarn: () => clothElfTraining.level.value >= 2
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Gingersnap Level 3",
+                effectDisplay: "Double all dye colors and cloth actions, but reset all dyes."
+            },
+            shouldEarn: () => clothElfTraining.level.value >= 3
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Gingersnap Level 4",
+                effectDisplay: "sqrt(classrooms)/2+1 multiplies ALL dye gain, but reset all dyes."
+            },
+            shouldEarn: () => clothElfTraining.level.value >= 4
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Gingersnap Level 5",
+                effectDisplay: "Well depth divides metal machine costs"
+            },
+            shouldEarn: () => clothkilnElfTraining.level.value >= 5
+        }))] as Array<GenericMilestone>;
 
     // some milestone display stuff
     const currentShown = persistent<string>("Holly");
