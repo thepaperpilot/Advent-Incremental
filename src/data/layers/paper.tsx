@@ -27,6 +27,7 @@ import elves from "./elves";
 import plastic from "./plastic";
 import trees from "./trees";
 import dyes from "./dyes";
+import management from "./management";
 
 const id = "paper";
 const day = 5;
@@ -37,9 +38,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const paper = createResource<DecimalSource>(0, "paper");
 
     const pulp = createResource<DecimalSource>(
-        computed(() =>
-            Decimal.min(Decimal.div(trees.logs.value, 1e9), Decimal.div(coal.ash.value, 1e6))
-        ),
+        computed(() => Decimal.min(Decimal.div(trees.logs.value, 1e9), Decimal.div(coal.ash.value, computedAshCost.value))),
         "pulp"
     );
 
@@ -50,7 +49,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         roundUpCost: true,
         spend(gain, cost) {
             trees.logs.value = Decimal.sub(trees.logs.value, Decimal.times(cost, 1e9));
-            coal.ash.value = Decimal.sub(coal.ash.value, Decimal.times(cost, 1e6));
+            coal.ash.value = Decimal.sub(coal.ash.value, Decimal.times(cost, computedAshCost.value));
         },
         gainModifier: paperGain
     }));
@@ -69,7 +68,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     <span style="font-size: large">
                         Cost: {displayResource(trees.logs, cost)} {pulp.displayName} (
                         {formatWhole(Decimal.times(cost, 1e9))} {trees.logs.displayName};{" "}
-                        {formatWhole(Decimal.times(cost, 1e6))} {coal.ash.displayName})
+                        {formatWhole(Decimal.times(cost, computedAshCost.value))} {coal.ash.displayName})
                     </span>
                 </>
             );
@@ -107,7 +106,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
                 if (Decimal.gte(v, 10000)) v = Decimal.pow(v, 2).div(10000);
                 v = Decimal.pow(0.95, paperBook.amount.value).times(v);
-                return Decimal.pow(5, v).times(10);
+                let scaling = 5;
+                if (management.elfTraining.paperElfTraining.milestones[0].earned.value) {
+                    scaling--;
+                }
+                let cost = Decimal.pow(scaling, v).times(10);
+                if (management.elfTraining.paperElfTraining.milestones[0].earned.value) {
+                    cost = Decimal.div(cost, sumBooks.value.max(1));
+                }
+                return cost;
             },
             style: "width: 600px"
         })) as GenericBuyable & { resource: Resource };
@@ -194,6 +201,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         boxBook,
         clothBook
     };
+    const sumBooks = computed(() => Object.values(books).reduce((acc, curr) => acc.add(curr.amount.value), new Decimal(0)));
 
     const clothUpgrade = createUpgrade(() => ({
         resource: noPersist(paper),
@@ -251,12 +259,26 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: () => Decimal.gte(dyes.dyes.yellow.amount.value, 1)
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
+    const ashCost = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: .1,
+            description: "Star Level 2",
+            enabled: management.elfTraining.paperElfTraining.milestones[1].earned
+        }))
+    ]);
+    const computedAshCost = computed(() => ashCost.apply(1e6));
 
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
         {
             title: "Paper Gain",
             modifier: paperGain,
             base: 1
+        },
+        {
+            title: "Ash Cost",
+            modifier: ashCost,
+            base: 1e6,
+            unit: " ash/pulp"
         }
     ]);
     const showModifiersModal = ref(false);

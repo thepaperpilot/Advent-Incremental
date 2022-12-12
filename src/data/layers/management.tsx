@@ -603,7 +603,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Star Level 2",
-                effectDisplay: "Paper requires 10x less ash"
+                effectDisplay: "Pulp requires 10x less ash"
             },
             visibility: () => showIf(paperElfMilestones[0].earned.value),
             shouldEarn: () => paperElfTraining.level.value >= 2
