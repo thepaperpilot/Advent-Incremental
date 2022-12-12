@@ -173,50 +173,50 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const extraExpansionMilestone1 = createMilestone(() => ({
         display: {
-            requirement: "120% Foundation Completed",
+            requirement: "200% Foundation Completed",
             effectDisplay: "The 1% milestone is now +2% and multiplicative"
         },
-        shouldEarn: () => Decimal.gte(foundationProgress.value, 120),
+        shouldEarn: () => Decimal.gte(foundationProgress.value, 200),
         visibility: () =>
             showIf(management.elfTraining.expandersElfTraining.milestones[2].earned.value),
         showPopups: shouldShowPopups
     }));
     const extraExpansionMilestone2 = createMilestone(() => ({
         display: {
-            requirement: "140% Foundation Completed",
+            requirement: "400% Foundation Completed",
             effectDisplay: "Gain +10% metal for every 10% foundation completed"
         },
-        shouldEarn: () => Decimal.gte(foundationProgress.value, 140),
+        shouldEarn: () => Decimal.gte(foundationProgress.value, 400),
         visibility: () =>
             showIf(management.elfTraining.expandersElfTraining.milestones[2].earned.value),
         showPopups: shouldShowPopups
     }));
     const extraExpansionMilestone3 = createMilestone(() => ({
         display: {
-            requirement: "160% Foundation Completed",
+            requirement: "600% Foundation Completed",
             effectDisplay: "Gain +10% oil for every 10% foundation completed"
         },
-        shouldEarn: () => Decimal.gte(foundationProgress.value, 160),
+        shouldEarn: () => Decimal.gte(foundationProgress.value, 600),
         visibility: () =>
             showIf(management.elfTraining.expandersElfTraining.milestones[2].earned.value),
         showPopups: shouldShowPopups
     }));
     const extraExpansionMilestone4 = createMilestone(() => ({
         display: {
-            requirement: "180% Foundation Completed",
+            requirement: "800% Foundation Completed",
             effectDisplay: "Gain +10% plastic for every 10% foundation completed"
         },
-        shouldEarn: () => Decimal.gte(foundationProgress.value, 180),
+        shouldEarn: () => Decimal.gte(foundationProgress.value, 800),
         visibility: () =>
             showIf(management.elfTraining.expandersElfTraining.milestones[2].earned.value),
         showPopups: shouldShowPopups
     }));
     const extraExpansionMilestone5 = createMilestone(() => ({
         display: {
-            requirement: "200% Foundation Completed",
+            requirement: "1000% Foundation Completed",
             effectDisplay: "Double paper, boxes, and all cloth actions"
         },
-        shouldEarn: () => Decimal.gte(foundationProgress.value, 200),
+        shouldEarn: () => Decimal.gte(foundationProgress.value, 1000),
         visibility: () =>
             showIf(management.elfTraining.expandersElfTraining.milestones[2].earned.value),
         showPopups: shouldShowPopups
