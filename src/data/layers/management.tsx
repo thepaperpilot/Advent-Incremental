@@ -205,6 +205,24 @@ const layer = createLayer(id, () => {
             },
             visibility: () => showIf(cutterElfMilestones[1].earned.value),
             shouldEarn: () => cutterElfTraining.level.value >= 3
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Holly Level 4",
+                effectDisplay:
+                    "Multiply cutting speed by 1.1 per day completed"
+            },
+            visibility: () => showIf(cutterElfMilestones[1].earned.value),
+            shouldEarn: () => cutterElfTraining.level.value >= 4
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Holly Level 5",
+                effectDisplay:
+                    "Reduce workshop expansion cost by ^0.95"
+            },
+            visibility: () => showIf(cutterElfMilestones[1].earned.value),
+            shouldEarn: () => cutterElfTraining.level.value >= 5
         }))
     ] as Array<GenericMilestone>;
     const planterElfMilestones = [
@@ -226,7 +244,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Ivy Level 3",
-                effectDisplay: "???"
+                effectDisplay: "2^(log(logs)^0.2) multiplies planting speed"
             },
             visibility: () => showIf(planterElfMilestones[1].earned.value),
             shouldEarn: () => planterElfTraining.level.value >= 3
@@ -234,7 +252,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Ivy Level 4",
-                effectDisplay: "???"
+                effectDisplay: "Divide planter cost by 10"
             },
             visibility: () => showIf(planterElfMilestones[2].earned.value),
             shouldEarn: () => planterElfTraining.level.value >= 4
@@ -242,7 +260,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Ivy Level 5",
-                effectDisplay: "???"
+                effectDisplay: "Boost planting/cutting speed based on which is falling behind"
             },
             visibility: () => showIf(planterElfMilestones[3].earned.value),
             shouldEarn: () => planterElfTraining.level.value >= 5
@@ -252,14 +270,144 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Hope Level 1",
-                effectDisplay: "???"
+                effectDisplay: "Planting speed boosts forest size"
             },
             shouldEarn: () => expandersElfTraining.level.value >= 1
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Hope Level 2",
+                effectDisplay: "Hope now buys max."
+            },
+            shouldEarn: () => expandersElfTraining.level.value >= 2
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Hope Level 3",
+                effectDisplay: "The workshop can be expanded past 100%, but costs scale faster."
+            },
+            shouldEarn: () => expandersElfTraining.level.value >= 3
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Hope Level 4",
+                effectDisplay: "Unlock an elf that autobuys mining drills."
+            },
+            shouldEarn: () => expandersElfTraining.level.value >= 4
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Hope Level 5",
+                effectDisplay: "Unlock an elf that autobuys metal buyables."
+            },
+            shouldEarn: () => expandersElfTraining.level.value >= 5
         }))
     ] as Array<GenericMilestone>;
-    const heatedCutterElfMilestones = [] as Array<GenericMilestone>;
-    const heatedPlanterElfMilestones = [] as Array<GenericMilestone>;
-    const fertilizerElfMilestones = [] as Array<GenericMilestone>;
+    const heatedCutterElfMilestones = [createMilestone(() => ({
+            display: {
+                requirement: "Jack Level 1",
+                effectDisplay: "Heated cutters are less expensive."
+            },
+            shouldEarn: () => heatedCutterElfTraining.level.value >= 1
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Jack Level 2",
+                effectDisplay: "Coal gain is raised to the ^1.05"
+            },
+            shouldEarn: () => heatedCutterElfTraining.level.value >= 2
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Jack Level 3",
+                effectDisplay: "Jack now buys max."
+            },
+            shouldEarn: () => heatedCutterElfTraining.level.value >= 3
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Jack Level 4",
+                effectDisplay: "Oil gain is multiplied based on total elf levels."
+            },
+            shouldEarn: () => heatedCutterElfTraining.level.value >= 4
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Jack Level 5",
+                effectDisplay: "Unlock an elf that autobuys oil buyables."
+            },
+            shouldEarn: () => heatedCutterElfTraining.level.value >= 5
+        }))] as Array<GenericMilestone>;
+    const heatedPlanterElfMilestones = [createMilestone(() => ({
+            display: {
+                requirement: "Mary Level 1",
+                effectDisplay: "Heated planters are less expensive."
+            },
+            shouldEarn: () => heatedPlanterElfTraining.level.value >= 1
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Mary Level 2",
+                effectDisplay: "Double tree planting speed"
+            },
+            shouldEarn: () => heatedPlanterElfTraining.level.value >= 2
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Mary Level 3",
+                effectDisplay: "Mary now buys max."
+            },
+            shouldEarn: () => heatedPlanterElfTraining.level.value >= 3
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Mary Level 4",
+                effectDisplay: "Metal gain is raised to the 1.1."
+            },
+            shouldEarn: () => heatedPlanterElfTraining.level.value >= 4
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Mary Level 5",
+                effectDisplay: "Auto smelting speed is multiplied by (total XP/1000)^0.5"
+            },
+            shouldEarn: () => heatedPlanterElfTraining.level.value >= 5
+        }))] as Array<GenericMilestone>;
+    const fertilizerElfMilestones = [createMilestone(() => ({
+            display: {
+                requirement: "Noel Level 1",
+                effectDisplay: "Log gain is increased based on total elf level."
+            },
+            shouldEarn: () => heatedPlanterElfTraining.level.value >= 1
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Noel Level 2",
+                effectDisplay: "Fertilized soil is less expensive"
+            },
+            shouldEarn: () => heatedPlanterElfTraining.level.value >= 2
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Noel Level 3",
+                effectDisplay: "Divide the mining drill cost based on total logs produced"
+            },
+            shouldEarn: () => heatedPlanterElfTraining.level.value >= 3
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Noel Level 4",
+                effectDisplay: "Plastic² subtracts from oil refinery cost"
+            },
+            shouldEarn: () => heatedPlanterElfTraining.level.value >= 4
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Noel Level 5",
+                effectDisplay: "Unlock an elf that autobuys drills and extractors"
+            },
+            shouldEarn: () => heatedPlanterElfTraining.level.value >= 5
+        }))] as Array<GenericMilestone>;
     const smallfireElfMilestones = [] as Array<GenericMilestone>;
     const bonfireElfMilestones = [] as Array<GenericMilestone>;
     const kilnElfMilestones = [] as Array<GenericMilestone>;
