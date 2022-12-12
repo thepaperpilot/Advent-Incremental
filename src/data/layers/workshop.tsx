@@ -175,7 +175,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effectDisplay: "The 1% milestone is now +2% and multiplicative"
         },
         shouldEarn: () => Decimal.gte(foundationProgress.value, 120),
-        visibility: () => showIf(management.expanderElfMilestones[2].earned.value),
+        visibility: () =>
+            showIf(management.elfTraining.expandersElfTraining.milestones[2].earned.value),
         showPopups: shouldShowPopups
     }));
     const extraExpansionMilestone2 = createMilestone(() => ({
@@ -184,7 +185,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effectDisplay: "Gain +10% metal for every 10% foundation completed"
         },
         shouldEarn: () => Decimal.gte(foundationProgress.value, 140),
-        visibility: () => showIf(management.expanderElfMilestones[2].earned.value),
+        visibility: () =>
+            showIf(management.elfTraining.expandersElfTraining.milestones[2].earned.value),
         showPopups: shouldShowPopups
     }));
     const extraExpansionMilestone3 = createMilestone(() => ({
@@ -193,7 +195,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effectDisplay: "Gain +10% oil for every 10% foundation completed"
         },
         shouldEarn: () => Decimal.gte(foundationProgress.value, 160),
-        visibility: () => showIf(management.expanderElfMilestones[2].earned.value),
+        visibility: () =>
+            showIf(management.elfTraining.expandersElfTraining.milestones[2].earned.value),
         showPopups: shouldShowPopups
     }));
     const extraExpansionMilestone4 = createMilestone(() => ({
@@ -202,7 +205,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effectDisplay: "Gain +10% plastic for every 10% foundation completed"
         },
         shouldEarn: () => Decimal.gte(foundationProgress.value, 180),
-        visibility: () => showIf(management.expanderElfMilestones[2].earned.value),
+        visibility: () =>
+            showIf(management.elfTraining.expandersElfTraining.milestones[2].earned.value),
         showPopups: shouldShowPopups
     }));
     const extraExpansionMilestone5 = createMilestone(() => ({
@@ -211,7 +215,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effectDisplay: "Double paper, boxes, and all cloth actions"
         },
         shouldEarn: () => Decimal.gte(foundationProgress.value, 200),
-        visibility: () => showIf(management.expanderElfMilestones[2].earned.value),
+        visibility: () =>
+            showIf(management.elfTraining.expandersElfTraining.milestones[2].earned.value),
         showPopups: shouldShowPopups
     }));
     const milestones = {
