@@ -28,6 +28,7 @@ import { computed, ComputedRef, ref, Ref, unref, watchEffect } from "vue";
 import boxes from "./boxes";
 import cloth from "./cloth";
 import coal from "./coal";
+import management from "./management";
 import paper from "./paper";
 import plastic from "./plastic";
 import trees from "./trees";
@@ -430,6 +431,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             onAutoPurchase?: VoidFunction;
             onPurchase?: VoidFunction; // Will get overriden by the custom onpurchase, but that's fine
             canBuy?: Computable<boolean>;
+            buyMax?: Computable<boolean>;
         } & Partial<ClickableOptions>
     ) {
         const buyProgress = persistent<DecimalSource>(0);
@@ -439,6 +441,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const computedAutoBuyCooldown = computed(() => options.cooldownModifier.apply(10));
 
         const isActive = convertComputable(options.canBuy ?? true);
+        const buyMax = convertComputable(options.buyMax ?? false);
 
         function update(diff: number) {
             if (upgrade.bought.value && unref(isActive)) {
@@ -447,7 +450,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 amountOfTimesDone.value += diff / cooldown.toNumber();
                 (isArray(options.buyable) ? options.buyable : [options.buyable]).forEach(
                     buyable => {
-                        while (Decimal.gte(buyProgress.value, cooldown)) {
+                        while (buyMax ? true : Decimal.gte(buyProgress.value, cooldown)) {
                             if (
                                 options.customCost == undefined
                                     ? unref(buyable.canPurchase)
@@ -558,7 +561,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         description:
             "Mary will automatically purchase heated planters you can afford, without actually spending any coal.",
         buyable: coal.heatedPlanters,
-        cooldownModifier: heatedPlanterCooldown
+        cooldownModifier: heatedPlanterCooldown,
+        buyMax: management.elfTraining.heatedPlanterElfTraining.milestones[2].earned
     });
     const fertilizerElf = createElf({
         name: "Noel",

@@ -385,14 +385,14 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Mary Level 1",
-                effectDisplay: "Heated planters are less expensive."
+                effectDisplay: `"Tillamook Burn Country" affects "Heated Planters" twice.`
             },
             shouldEarn: () => heatedPlanterElfTraining.level.value >= 1
         })),
         createMilestone(() => ({
             display: {
                 requirement: "Mary Level 2",
-                effectDisplay: "Double tree planting speed"
+                effectDisplay: "Double automatic tree planting speed"
             },
             visibility: () => showIf(heatedPlanterElfMilestones[0].earned.value),
             shouldEarn: () => heatedPlanterElfTraining.level.value >= 2
@@ -435,7 +435,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Noel Level 2",
-                effectDisplay: `"The Garden Tree's Handbook" affects Fertilized Soil twice`
+                effectDisplay: `"The Garden Tree's Handbook" affects "Fertilized Soil" twice`
             },
             visibility: () => showIf(fertilizerElfMilestones[0].earned.value),
             shouldEarn: () => heatedPlanterElfTraining.level.value >= 2
