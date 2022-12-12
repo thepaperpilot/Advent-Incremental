@@ -219,7 +219,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Holly Level 1",
-                effectDisplay: jsx(() => <>Multiply log gain by <sup>3</sup><Sqrt>Cutter amount</Sqrt>.</>)
+                effectDisplay: jsx(() => <>Multiply log gain by (<Sqrt>Cutter amount</Sqrt>)<sup>3</sup>.</>)
             },
             shouldEarn: () => cutterElfTraining.level.value >= 1
         })),
@@ -234,7 +234,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Holly Level 3",
-                effectDisplay: jsx(() => <>Multiply all cloth actions' effectiveness by <sup>3</sup><Sqrt>Cutter amount</Sqrt>.</>)
+                effectDisplay: jsx(() => <>Multiply all cloth actions' effectiveness by (<Sqrt>Cutter amount</Sqrt>)<sup>3</sup>.</>)
             },
             visibility: () => showIf(cutterElfMilestones[1].earned.value),
             shouldEarn: () => cutterElfTraining.level.value >= 3
@@ -250,7 +250,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Holly Level 5",
-                effectDisplay: "Reduce workshop expansion cost by ^0.95"
+                effectDisplay: "Raise workshop expansion cost by 0.95"
             },
             visibility: () => showIf(cutterElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => cutterElfTraining.level.value >= 5
@@ -275,7 +275,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Ivy Level 3",
-                effectDisplay: jsx(() => <>Planting speed is multiplied by x2<sup>(log<sub>10</sub>(logs)<sup>0.2</sup>)</sup></>)
+                effectDisplay: jsx(() => <>Planting speed is multiplied by 2<sup>(log<sub>10</sub>(logs)<sup>0.2</sup>)</sup></>)
             },
             visibility: () => showIf(planterElfMilestones[1].earned.value),
             shouldEarn: () => planterElfTraining.level.value >= 3
@@ -627,7 +627,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Star Level 5",
-                effectDisplay: "Gain 5 free books for all level 5 elves"
+                effectDisplay: "Gain 5 free books for all elves that are at level 5 or above."
             },
             visibility: () => showIf(paperElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => paperElfTraining.level.value >= 5
@@ -712,7 +712,13 @@ const layer = createLayer(id, () => {
                     but reset all dyes.</>)
             },
             visibility: () => showIf(clothElfMilestones[2].earned.value && main.day.value >= 13),
-            shouldEarn: () => clothElfTraining.level.value >= 4
+            shouldEarn: () => clothElfTraining.level.value >= 4,
+            onComplete() {
+                (["red", "yellow", "blue", "orange", "green", "purple"] as const).forEach(dyeColor => {
+                    dyes.dyes[dyeColor].amount.value = 0;
+                    dyes.dyes[dyeColor].buyable.amount.value = 0;
+                });
+            }
         })),
         createMilestone(() => ({
             display: {
