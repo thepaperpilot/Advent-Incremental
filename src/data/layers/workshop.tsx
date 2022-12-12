@@ -49,7 +49,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const foundationConversion: Conversion<FoundationConversionOptions> =
         createIndependentConversion(() => ({
-            scaling: addSoftcap(addSoftcap(createPolynomialScaling(250, 1.5), 100, 1/5), 1000, 1/10),
+            scaling: addSoftcap(addSoftcap(createPolynomialScaling(250, 1.5), 5387, 1/1e10), 1e20, 1e9),
             baseResource: trees.logs,
             gainResource: noPersist(foundationProgress),
             roundUpCost: true,
