@@ -511,6 +511,8 @@ export function addSoftcap(
 ): ScalingFunction {
     return {
         ...scaling,
+        currentAt: conversion => softcap(scaling.currentAt(conversion), unref(cap), Decimal.recip(unref(power))),
+        nextAt: conversion => softcap(scaling.nextAt(conversion), unref(cap), Decimal.recip(unref(power))),
         currentGain: conversion =>
             softcap(scaling.currentGain(conversion), unref(cap), unref(power))
     };
