@@ -25,6 +25,7 @@ import { render } from "util/vue";
 import { computed, unref, watchEffect } from "vue";
 import elves from "./elves";
 import trees from "./trees";
+import management from "./management";
 
 interface FoundationConversionOptions {
     scaling: ScalingFunction;
