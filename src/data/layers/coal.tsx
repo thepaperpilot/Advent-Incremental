@@ -454,7 +454,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
             if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
             v = Decimal.pow(0.95, paper.books.heatedPlantersBook.amount.value).times(v);
-            if (management.elfTraining.heatedPlantersElfTraining.milestones[0].earned.value) {
+            if (management.elfTraining.heatedPlanterElfTraining.milestones[0].earned.value) {
                 v = Decimal.pow(0.95, paper.books.heatedPlantersBook.amount.value).times(v);
             }
             return Decimal.add(v, 1).pow(2.5).times(10);
