@@ -664,7 +664,13 @@ const layer = createLayer(id, () => {
                 effectDisplay: "Double all dye colors and cloth actions, but reset all dyes."
             },
             visibility: () => showIf(clothElfMilestones[1].earned.value),
-            shouldEarn: () => clothElfTraining.level.value >= 3
+            shouldEarn: () => clothElfTraining.level.value >= 3,
+            onComplete() {
+                (["red", "yellow", "blue", "orange", "green", "purple"] as const).forEach(dyeColor => {
+                    dyes.dyes[dyeColor].amount.value = 0;
+                    dyes.dyes[dyeColor].buyable.amount.value = 0;
+                });
+            }
         })),
         createMilestone(() => ({
             display: {

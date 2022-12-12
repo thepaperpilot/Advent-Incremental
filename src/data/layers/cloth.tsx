@@ -28,6 +28,7 @@ import { formatWhole } from "util/break_eternity";
 import { Direction } from "util/common";
 import { render, renderCol, renderRow } from "util/vue";
 import { computed, ref } from "vue";
+import dyes from "./dyes";
 import management from "./management";
 import metal from "./metal";
 import paper from "./paper";
@@ -330,6 +331,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const paperUpgrades = { paperUpgrade4, paperUpgrade3, paperUpgrade2, paperUpgrade1 };
 
+    const hollyEffect = computed(() => Decimal.add(trees.computedAutoCuttingAmount.value, 1).log10().add(1));
+    const gingersnapEffect = computed(() => Decimal.add(dyes.dyeSum.value, 10).log10());
+
     const sheepGain = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: buildPens.amount,
@@ -344,6 +348,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "Shepherding for Dummies",
             enabled: paper.upgrades.clothUpgrade.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: hollyEffect,
+            description: "Holly Level 3",
+            enabled: management.elfTraining.cutterElfTraining.milestones[2].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: gingersnapEffect,
+            description: "Gingersnap Level 2",
+            enabled: management.elfTraining.clothElfTraining.milestones[1].earned
         }))
     ]);
     const computedSheepGain = computed(() => sheepGain.apply(1));
@@ -366,9 +380,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: paper.upgrades.clothUpgrade.bought
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.add(trees.computedAutoCuttingAmount.value, 1).log10().add(1),
+            multiplier: hollyEffect,
             description: "Holly Level 3",
             enabled: management.elfTraining.cutterElfTraining.milestones[2].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: gingersnapEffect,
+            description: "Gingersnap Level 2",
+            enabled: management.elfTraining.clothElfTraining.milestones[1].earned
         }))
     ]);
     const computedShearingAmount = computed(() => shearingAmount.apply(1));
@@ -391,9 +410,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: paper.upgrades.clothUpgrade.bought
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.add(trees.computedAutoCuttingAmount.value, 1).log10().add(1),
+            multiplier: hollyEffect,
             description: "Holly Level 3",
             enabled: management.elfTraining.cutterElfTraining.milestones[2].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: gingersnapEffect,
+            description: "Gingersnap Level 2",
+            enabled: management.elfTraining.clothElfTraining.milestones[1].earned
         }))
     ]);
     const computedSpinningAmount = computed(() => spinningAmount.apply(1));
