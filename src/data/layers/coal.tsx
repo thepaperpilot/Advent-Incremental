@@ -651,7 +651,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             exponent: 1.05,
             description: "Jack Level 2",
             enabled: management.elfTraining.heatedCutterElfTraining.milestones[1].earned
-        })
+        }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedCoalGain = computed(() => coalGain.apply(0));
 

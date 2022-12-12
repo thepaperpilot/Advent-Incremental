@@ -546,7 +546,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         description:
             "Hope will automatically purchase forest expanders you can afford, without actually spending any logs.",
         buyable: trees.row1Buyables[2],
-        cooldownModifier: expanderCooldown
+        cooldownModifier: expanderCooldown,
+        buyMax: () => management.elfTraining.expandersElfTraining.milestones[1].earned.value
     });
     const treesElves = [cuttersElf, plantersElf, expandersElf];
     const heatedCuttersElf = createElf({

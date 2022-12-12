@@ -83,6 +83,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             addend: dyes.boosts.blue1,
             description: "Blue Dye Boost 1",
             enabled: () => Decimal.gte(dyes.dyes.blue.amount.value, 1)
+        })),
+        createAdditiveModifier(() => ({
+            addend: () => Decimal.pow(computedManualCuttingAmount.value, 0.99),
+            description: "Hope Level 1",
+            enabled: management.elfTraining.expandersElfTraining.milestones[0].earned
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const trees = createResource(

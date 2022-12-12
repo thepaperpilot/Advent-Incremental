@@ -301,7 +301,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Hope Level 1",
-                effectDisplay: "Planting speed boosts forest size"
+                effectDisplay: "Forest size grows by trees planted per second raised to ^0.99"
             },
             shouldEarn: () => expandersElfTraining.level.value >= 1
         })),
@@ -316,7 +316,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Hope Level 3",
-                effectDisplay: "The workshop can be expanded past 100%, but costs scale faster."
+                effectDisplay: "The workshop can be expanded past 100%, but costs scale faster. It also buys max now."
             },
             visibility: () => showIf(expanderElfMilestones[1].earned.value),
             shouldEarn: () => expandersElfTraining.level.value >= 3

@@ -8,6 +8,7 @@ import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
 import { createClickable } from "features/clickables/clickable";
 import {
+    addSoftcap,
     Conversion,
     createIndependentConversion,
     createPolynomialScaling,
@@ -21,18 +22,19 @@ import { BaseLayer, createLayer } from "game/layers";
 import { noPersist } from "game/persistence";
 import Decimal, { DecimalSource, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
+import { Computable } from "util/computed";
 import { render } from "util/vue";
 import { computed, unref, watchEffect } from "vue";
 import elves from "./elves";
-import trees from "./trees";
 import management from "./management";
+import trees from "./trees";
 
 interface FoundationConversionOptions {
     scaling: ScalingFunction;
     baseResource: Resource;
     gainResource: Resource;
     roundUpCost: boolean;
-    buyMax: boolean;
+    buyMax: Computable<boolean>;
     spend: (gain: DecimalSource, spent: DecimalSource) => void;
 }
 
@@ -47,11 +49,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const foundationConversion: Conversion<FoundationConversionOptions> =
         createIndependentConversion(() => ({
-            scaling: createPolynomialScaling(250, 1.5),
+            scaling: addSoftcap(addSoftcap(createPolynomialScaling(250, 1.5), 100, 1/5), 1000, 1/10),
             baseResource: trees.logs,
             gainResource: noPersist(foundationProgress),
             roundUpCost: true,
-            buyMax: false,
+            buyMax: management.elfTraining.heatedCutterElfTraining.milestones[2].earned,
             spend(gain, spent) {
                 trees.logs.value = Decimal.sub(trees.logs.value, spent);
             }
@@ -75,10 +77,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 </span>
             </>
         )),
-        visibility: () => showIf(Decimal.lt(foundationProgress.value, 100)),
+        visibility: () => showIf(Decimal.lt(foundationProgress.value, 100) || management.elfTraining.expandersElfTraining.milestones[2].earned.value),
         canClick: () =>
             Decimal.gte(foundationConversion.actualGain.value, 1) &&
-            Decimal.lt(foundationProgress.value, 100),
+            (Decimal.lt(foundationProgress.value, 100) || management.elfTraining.expandersElfTraining.milestones[2].earned.value),
         onClick() {
             if (!unref(this.canClick)) {
                 return;
@@ -280,7 +282,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     </h2>
                     % completed
                 </div>
-                {Decimal.lt(foundationProgress.value, 100) ? <Spacer /> : null}
+                {Decimal.lt(foundationProgress.value, 100) || management.elfTraining.expandersElfTraining.milestones[2].earned.value ? <Spacer /> : null}
                 {render(buildFoundation)}
                 <Spacer />
                 {milestonesDisplay()}
