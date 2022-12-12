@@ -616,7 +616,7 @@ const layer = createLayer(id, () => {
                 requirement: "Gingersnap Level 5",
                 effectDisplay: "Well depth divides metal machine costs"
             },
-            shouldEarn: () => clothkilnElfTraining.level.value >= 5
+            shouldEarn: () => clothElfTraining.level.value >= 5
         }))] as Array<GenericMilestone>;
 
     // some milestone display stuff
