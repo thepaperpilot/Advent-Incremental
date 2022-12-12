@@ -1240,13 +1240,10 @@ const layer = createLayer(id, () => {
         focusMultiplier: focusMulti,
         upgrades,
         focusTargets,
-<<<<<<< HEAD
         focusCooldown,
         focusTime,
-=======
         focusRolling,
         
->>>>>>> bee8ce7d5169e7205fa7dc409d6488a902a890f5
 
         display: jsx(() => (
             <>
