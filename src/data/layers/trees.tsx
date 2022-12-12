@@ -385,7 +385,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: 2,
             description: "Mary Level 2",
-            enabled: management.elfTraining.planterElfTraining.milestones[1].earned
+            enabled: management.elfTraining.heatedPlanterElfTraining.milestones[1].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.pow(trees.value, .2).log10().pow_base(2),
+            description: "Ivy Level 3",
+            enabled: management.elfTraining.planterElfTraining.milestones[2].earned
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAutoPlantingAmount = computed(() => autoPlantingAmount.apply(0));

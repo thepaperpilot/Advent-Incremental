@@ -539,7 +539,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         description:
             "Ivy will automatically purchase planters you can afford, without actually spending any logs.",
         buyable: trees.row1Buyables[1],
-        cooldownModifier: planterCooldown
+        cooldownModifier: planterCooldown,
+        buyMax: () => management.elfTraining.planterElfTraining.milestones[1].earned.value
     });
     const expandersElf = createElf({
         name: "Hope",
