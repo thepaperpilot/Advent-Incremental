@@ -104,7 +104,10 @@ const layer = createLayer(id, () => {
         const exp = persistent<DecimalSource>(0);
         const expRequiredForNextLevel = computed(() => Decimal.pow(10, level.value).mul(1e4));
         const level = computed(() =>
-            Decimal.min(Decimal.mul(9, exp.value).div(1e4).add(1).log10().floor(), schools.amount.value).toNumber()
+            Decimal.min(
+                Decimal.mul(9, exp.value).div(1e4).add(1).log10().floor(),
+                schools.amount.value
+            ).toNumber()
         );
         const expToNextLevel = computed(() =>
             Decimal.sub(exp.value, Decimal.pow(10, level.value).sub(1).div(9).mul(1e4))
@@ -209,8 +212,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Holly Level 4",
-                effectDisplay:
-                    "Multiply cutting speed by 1.1 per day completed"
+                effectDisplay: "Multiply cutting speed by 1.1 per day completed"
             },
             visibility: () => showIf(cutterElfMilestones[1].earned.value),
             shouldEarn: () => cutterElfTraining.level.value >= 4
@@ -218,8 +220,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Holly Level 5",
-                effectDisplay:
-                    "Reduce workshop expansion cost by ^0.95"
+                effectDisplay: "Reduce workshop expansion cost by ^0.95"
             },
             visibility: () => showIf(cutterElfMilestones[1].earned.value),
             shouldEarn: () => cutterElfTraining.level.value >= 5
@@ -303,7 +304,8 @@ const layer = createLayer(id, () => {
             shouldEarn: () => expandersElfTraining.level.value >= 5
         }))
     ] as Array<GenericMilestone>;
-    const heatedCutterElfMilestones = [createMilestone(() => ({
+    const heatedCutterElfMilestones = [
+        createMilestone(() => ({
             display: {
                 requirement: "Jack Level 1",
                 effectDisplay: "Heated cutters are less expensive."
@@ -337,8 +339,10 @@ const layer = createLayer(id, () => {
                 effectDisplay: "Unlock an elf that autobuys oil buyables."
             },
             shouldEarn: () => heatedCutterElfTraining.level.value >= 5
-        }))] as Array<GenericMilestone>;
-    const heatedPlanterElfMilestones = [createMilestone(() => ({
+        }))
+    ] as Array<GenericMilestone>;
+    const heatedPlanterElfMilestones = [
+        createMilestone(() => ({
             display: {
                 requirement: "Mary Level 1",
                 effectDisplay: "Heated planters are less expensive."
@@ -372,8 +376,10 @@ const layer = createLayer(id, () => {
                 effectDisplay: "Auto smelting speed is multiplied by (total XP/1000)^0.5"
             },
             shouldEarn: () => heatedPlanterElfTraining.level.value >= 5
-        }))] as Array<GenericMilestone>;
-    const fertilizerElfMilestones = [createMilestone(() => ({
+        }))
+    ] as Array<GenericMilestone>;
+    const fertilizerElfMilestones = [
+        createMilestone(() => ({
             display: {
                 requirement: "Noel Level 1",
                 effectDisplay: "Log gain is increased based on total elf level."
@@ -407,8 +413,10 @@ const layer = createLayer(id, () => {
                 effectDisplay: "Unlock an elf that autobuys drills and extractors"
             },
             shouldEarn: () => heatedPlanterElfTraining.level.value >= 5
-        }))] as Array<GenericMilestone>;
-    const smallfireElfMilestones = [createMilestone(() => ({
+        }))
+    ] as Array<GenericMilestone>;
+    const smallfireElfMilestones = [
+        createMilestone(() => ({
             display: {
                 requirement: "Joy Level 1",
                 effectDisplay: "Multiply small fire efficiency by 5."
@@ -442,8 +450,10 @@ const layer = createLayer(id, () => {
                 effectDisplay: "Raise Industrial Crucible's effect to the 1.1"
             },
             shouldEarn: () => smallfireElfTraining.level.value >= 5
-        }))] as Array<GenericMilestone>;
-    const bonfireElfMilestones = [createMilestone(() => ({
+        }))
+    ] as Array<GenericMilestone>;
+    const bonfireElfMilestones = [
+        createMilestone(() => ({
             display: {
                 requirement: "Faith Level 1",
                 effectDisplay: "Multiply bonfire efficiency by 5."
@@ -477,8 +487,10 @@ const layer = createLayer(id, () => {
                 effectDisplay: "Raise Industrial Crucible's effect to the 1.1"
             },
             shouldEarn: () => bonfireElfTraining.level.value >= 5
-        }))] as Array<GenericMilestone>;
-    const kilnElfMilestones = [createMilestone(() => ({
+        }))
+    ] as Array<GenericMilestone>;
+    const kilnElfMilestones = [
+        createMilestone(() => ({
             display: {
                 requirement: "Snowball Level 1",
                 effectDisplay: "Multiply kiln efficiency by 5."
@@ -512,8 +524,10 @@ const layer = createLayer(id, () => {
                 effectDisplay: "Raise Industrial Crucible's effect to the 1.1"
             },
             shouldEarn: () => kilnElfTraining.level.value >= 5
-        }))] as Array<GenericMilestone>;
-    const paperElfMilestones = [createMilestone(() => ({
+        }))
+    ] as Array<GenericMilestone>;
+    const paperElfMilestones = [
+        createMilestone(() => ({
             display: {
                 requirement: "Star Level 1",
                 effectDisplay: "Book cost is divided by total books bought."
@@ -547,8 +561,10 @@ const layer = createLayer(id, () => {
                 effectDisplay: "Gain 5 free books for all level 5 elves"
             },
             shouldEarn: () => paperElfTraining.level.value >= 5
-        }))] as Array<GenericMilestone>;
-    const boxElfMilestones = [createMilestone(() => ({
+        }))
+    ] as Array<GenericMilestone>;
+    const boxElfMilestones = [
+        createMilestone(() => ({
             display: {
                 requirement: "Bell Level 1",
                 effectDisplay: "Every box buyable adds sqrt(level) levels to same-row box buyables."
@@ -582,8 +598,10 @@ const layer = createLayer(id, () => {
                 effectDisplay: "Unlock another row of box upgrades"
             },
             shouldEarn: () => boxElfTraining.level.value >= 5
-        }))] as Array<GenericMilestone>;
-    const clothElfMilestones = [createMilestone(() => ({
+        }))
+    ] as Array<GenericMilestone>;
+    const clothElfMilestones = [
+        createMilestone(() => ({
             display: {
                 requirement: "Gingersnap Level 1",
                 effectDisplay: "Multiply all primary dye colors by ln(cloth+e)."
@@ -617,7 +635,8 @@ const layer = createLayer(id, () => {
                 effectDisplay: "Well depth divides metal machine costs"
             },
             shouldEarn: () => clothElfTraining.level.value >= 5
-        }))] as Array<GenericMilestone>;
+        }))
+    ] as Array<GenericMilestone>;
 
     // some milestone display stuff
     const currentShown = persistent<string>("Holly");
@@ -1008,18 +1027,17 @@ const layer = createLayer(id, () => {
         classroomUpgrade,
         display: jsx(() => (
             <>
-                        {main.day.value === day ? `Get all elves to level 5.` : `${name} Complete!`}{" "}
-                        -
-                        <button
-                            class="button"
-                            style="display: inline-block;"
-                            onClick={() => (showModifiersModal.value = true)}
-                        >
-                            Check Modifiers
-                        </button>
-                        {render(modifiersModal)}
-                        {render(dayProgress)}
-                        {render(tabs)}
+                {main.day.value === day ? `Get all elves to level 5.` : `${name} Complete!`} -
+                <button
+                    class="button"
+                    style="display: inline-block;"
+                    onClick={() => (showModifiersModal.value = true)}
+                >
+                    Check Modifiers
+                </button>
+                {render(modifiersModal)}
+                {render(dayProgress)}
+                {render(tabs)}
             </>
         ))
     };
