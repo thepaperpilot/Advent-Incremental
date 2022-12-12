@@ -11,7 +11,7 @@ import { createCumulativeConversion, createPolynomialScaling } from "features/co
 import { jsx, showIf } from "features/feature";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource, displayResource, Resource } from "features/resources/resource";
-import { createUpgrade } from "features/upgrades/upgrade";
+import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
 import { noPersist } from "game/persistence";
