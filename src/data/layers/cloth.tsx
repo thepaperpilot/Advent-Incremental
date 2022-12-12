@@ -350,14 +350,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: paper.upgrades.clothUpgrade.bought
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: hollyEffect,
-            description: "Holly Level 3",
-            enabled: management.elfTraining.cutterElfTraining.milestones[2].earned
-        })),
-        createMultiplicativeModifier(() => ({
             multiplier: gingersnapEffect,
             description: "Gingersnap Level 2",
             enabled: management.elfTraining.clothElfTraining.milestones[1].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: hollyEffect,
+            description: "Holly Level 3",
+            enabled: management.elfTraining.cutterElfTraining.milestones[2].earned
         }))
     ]);
     const computedSheepGain = computed(() => sheepGain.apply(1));
@@ -380,14 +380,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: paper.upgrades.clothUpgrade.bought
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: hollyEffect,
-            description: "Holly Level 3",
-            enabled: management.elfTraining.cutterElfTraining.milestones[2].earned
-        })),
-        createMultiplicativeModifier(() => ({
             multiplier: gingersnapEffect,
             description: "Gingersnap Level 2",
             enabled: management.elfTraining.clothElfTraining.milestones[1].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: hollyEffect,
+            description: "Holly Level 3",
+            enabled: management.elfTraining.cutterElfTraining.milestones[2].earned
         }))
     ]);
     const computedShearingAmount = computed(() => shearingAmount.apply(1));
@@ -410,14 +410,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: paper.upgrades.clothUpgrade.bought
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: hollyEffect,
-            description: "Holly Level 3",
-            enabled: management.elfTraining.cutterElfTraining.milestones[2].earned
-        })),
-        createMultiplicativeModifier(() => ({
             multiplier: gingersnapEffect,
             description: "Gingersnap Level 2",
             enabled: management.elfTraining.clothElfTraining.milestones[1].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: hollyEffect,
+            description: "Holly Level 3",
+            enabled: management.elfTraining.cutterElfTraining.milestones[2].earned
         }))
     ]);
     const computedSpinningAmount = computed(() => spinningAmount.apply(1));

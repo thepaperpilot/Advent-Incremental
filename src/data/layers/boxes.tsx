@@ -3,7 +3,8 @@
  * @hidden
  */
 import Spacer from "components/layout/Spacer.vue";
-import { setUpDailyProgressTracker } from "data/common";
+import Modal from "components/Modal.vue";
+import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
 import { main } from "data/projEntry";
 import { createBuyable, GenericBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
@@ -14,15 +15,20 @@ import { createResource, displayResource, Resource } from "features/resources/re
 import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
+import { createExponentialModifier, createSequentialModifier, Modifier } from "game/modifiers";
 import { noPersist } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
+import { WithRequired } from "util/common";
 import { render, renderGrid, renderRow } from "util/vue";
-import { unref } from "vue";
+import { computed, ComputedRef, ref, unref } from "vue";
+import dyes from "./dyes";
+import management from "./management";
 import paper from "./paper";
 import plastic from "./plastic";
 import trees from "./trees";
-import dyes from "./dyes";
-import management from "./management";
+
+export type BoxesBuyable = GenericBuyable & { resource: Resource; freeLevels: ComputedRef<DecimalSource>; totalAmount: ComputedRef<Decimal> };
+
 const id = "boxes";
 const day = 6;
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -31,11 +37,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const boxes = createResource<DecimalSource>(0, "boxes");
 
+    const boxGain = createSequentialModifier(() => [
+        createExponentialModifier(() => ({
+            exponent: 1.1,
+            description: "Bell Level 2",
+            enabled: management.elfTraining.boxElfTraining.milestones[1].earned
+        }))
+    ]) as WithRequired<Modifier, "description" | "revert">;
+
     const boxesConversion = createCumulativeConversion(() => ({
         scaling: createPolynomialScaling(1e10, 1),
         baseResource: trees.logs,
         gainResource: noPersist(boxes),
-        roundUpCost: true
+        roundUpCost: true,
+        gainModifier: boxGain
     }));
 
     const makeBoxes = createClickable(() => ({
@@ -163,51 +178,72 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const logBoxesBuyable = createBuyable(() => ({
         display: {
             title: "Carry more logs",
-            description: "Use boxes to carry even more logs, boosting their gain",
+            description: jsx(() => <>Use boxes to carry even more logs, boosting their gain<br /><br /><div>Amount: {formatWhole(logBoxesBuyable.amount.value)}{Decimal.gt(logBoxesBuyable.freeLevels.value, 0) ? <> (+{formatWhole(logBoxesBuyable.freeLevels.value)})</> : null}</div></>),
             effectDisplay: jsx(() => (
-                <>{format(Decimal.div(logBoxesBuyable.amount.value, 2).add(1))}x</>
-            ))
+                <>{format(Decimal.div(logBoxesBuyable.totalAmount.value, 2).add(1))}x</>
+            )),
+            showAmount: false
         },
         resource: noPersist(boxes),
         cost() {
             let v = this.amount.value;
             v = Decimal.pow(0.95, paper.books.boxBook.amount.value).times(v);
-            return Decimal.pow(3, v).times(100).div(dyes.boosts.orange2.value);
+            let scaling = 3;
+            if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
+                scaling--;
+            }
+            return Decimal.pow(scaling, v).times(100).div(dyes.boosts.orange2.value);
         },
-        visibility: () => showIf(logsUpgrade.bought.value)
-    })) as GenericBuyable & { resource: Resource };
+        visibility: () => showIf(logsUpgrade.bought.value),
+        freeLevels: computed(() => management.elfTraining.boxElfTraining.milestones[0].earned.value ? Decimal.max(ashBoxesBuyable.amount.value, 1).sqrt().floor().add(Decimal.max(coalBoxesBuyable.amount.value, 1).sqrt().floor()) : 0),
+        totalAmount: computed(() => Decimal.add(logBoxesBuyable.amount.value, logBoxesBuyable.freeLevels.value))
+    })) as BoxesBuyable;
     const ashBoxesBuyable = createBuyable(() => ({
         display: {
             title: "Carry more ash",
-            description: "Use boxes to carry even more ash, boosting its gain",
+            description: jsx(() => <>Use boxes to carry even more ash, boosting its gain<br /><br /><div>Amount: {formatWhole(ashBoxesBuyable.amount.value)}{Decimal.gt(ashBoxesBuyable.freeLevels.value, 0) ? <> (+{formatWhole(ashBoxesBuyable.freeLevels.value)})</> : null}</div></>),
             effectDisplay: jsx(() => (
-                <>{format(Decimal.div(ashBoxesBuyable.amount.value, 2).add(1))}x</>
-            ))
+                <>{format(Decimal.div(ashBoxesBuyable.totalAmount.value, 2).add(1))}x</>
+            )),
+            showAmount: false
         },
         resource: noPersist(boxes),
         cost() {
             let v = this.amount.value;
             v = Decimal.pow(0.95, paper.books.boxBook.amount.value).times(v);
-            return Decimal.pow(5, v).times(1000).div(dyes.boosts.orange2.value);
+            let scaling = 5;
+            if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
+                scaling--;
+            }
+            return Decimal.pow(scaling, v).times(1000).div(dyes.boosts.orange2.value);
         },
-        visibility: () => showIf(ashUpgrade.bought.value)
-    })) as GenericBuyable & { resource: Resource };
+        visibility: () => showIf(ashUpgrade.bought.value),
+        freeLevels: computed(() => management.elfTraining.boxElfTraining.milestones[0].earned.value ? Decimal.max(logBoxesBuyable.amount.value, 1).sqrt().floor().add(Decimal.max(coalBoxesBuyable.amount.value, 1).sqrt().floor()) : 0),
+        totalAmount: computed(() => Decimal.add(ashBoxesBuyable.amount.value, ashBoxesBuyable.freeLevels.value))
+    })) as BoxesBuyable;
     const coalBoxesBuyable = createBuyable(() => ({
         display: {
             title: "Carry more coal",
-            description: "Use boxes to carry even more coal, boosting its gain",
+            description: jsx(() => <>Use boxes to carry even more coal, boosting its gain<br /><br /><div>Amount: {formatWhole(coalBoxesBuyable.amount.value)}{Decimal.gt(coalBoxesBuyable.freeLevels.value, 0) ? <> (+{formatWhole(coalBoxesBuyable.freeLevels.value)})</> : null}</div></>),
             effectDisplay: jsx(() => (
-                <>{format(Decimal.div(coalBoxesBuyable.amount.value, 2).add(1))}x</>
-            ))
+                <>{format(Decimal.div(coalBoxesBuyable.totalAmount.value, 2).add(1))}x</>
+            )),
+            showAmount: false
         },
         resource: noPersist(boxes),
         cost() {
             let v = this.amount.value;
             v = Decimal.pow(0.95, paper.books.boxBook.amount.value).times(v);
-            return Decimal.pow(7, v).times(1000).div(dyes.boosts.orange2.value);
+            let scaling = 7;
+            if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
+                scaling--;
+            }
+            return Decimal.pow(scaling, v).times(1000).div(dyes.boosts.orange2.value);
         },
-        visibility: () => showIf(coalUpgrade.bought.value)
-    })) as GenericBuyable & { resource: Resource };
+        visibility: () => showIf(coalUpgrade.bought.value),
+        freeLevels: computed(() => management.elfTraining.boxElfTraining.milestones[0].earned.value ? Decimal.max(logBoxesBuyable.amount.value, 1).sqrt().floor().add(Decimal.max(ashBoxesBuyable.amount.value, 1).sqrt().floor()) : 0),
+        totalAmount: computed(() => Decimal.add(coalBoxesBuyable.amount.value, coalBoxesBuyable.freeLevels.value))
+    })) as BoxesBuyable;
     const buyables = { logBoxesBuyable, ashBoxesBuyable, coalBoxesBuyable };
 
     globalBus.on("update", diff => {
@@ -221,12 +257,35 @@ const layer = createLayer(id, function (this: BaseLayer) {
             .add(boxes.value);
     });
 
+    const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
+        {
+            title: "Boxes Gain",
+            modifier: boxGain,
+            base: 1
+        }
+    ]);
+    const showModifiersModal = ref(false);
+    const modifiersModal = jsx(() => (
+        <Modal
+            modelValue={showModifiersModal.value}
+            onUpdate:modelValue={(value: boolean) => (showModifiersModal.value = value)}
+            v-slots={{
+                header: () => <h2>{name} Modifiers</h2>,
+                body: generalTab
+            }}
+        />
+    ));
+
     const { total: totalBoxes, trackerDisplay } = setUpDailyProgressTracker({
         resource: boxes,
         goal: 5e4,
         name,
         day,
-        color
+        color,
+        modal: {
+            display: modifiersModal,
+            show: showModifiersModal
+        }
     });
 
     return {

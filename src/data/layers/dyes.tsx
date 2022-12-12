@@ -110,8 +110,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     enabled: upgrades.yellowDyeUpg.bought
                 })));
                 modifiers.push(createMultiplicativeModifier(() => ({
-                    // adding e, which apparently isn't a constant
-                    multiplier: () => Decimal.add(cloth.cloth.value, 2.718281828459).ln(),
+                    multiplier: () => Decimal.add(cloth.cloth.value, Math.E).ln(),
                     description: "Gingersnap Level 1",
                     enabled: management.elfTraining.clothElfTraining.milestones[0].earned
                 })));
