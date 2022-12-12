@@ -1001,7 +1001,7 @@ const layer = createLayer(id, () => {
             title: "Focus Buffer",
             description: "Increase elves affected by focus by 1"
         },
-        resource: trees,
+        resource: trees.trees,
         cost: 1e40
     }));
     const focusUpgrade3 = createUpgrade(() => ({
