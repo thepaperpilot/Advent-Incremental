@@ -270,7 +270,7 @@ const layer = createLayer(id, () => {
     // some milestone display stuff
     const currentShown = persistent<string>("Holly");
     const currentElfDisplay = computed(() => {
-        let disp: { displayMilestone: JSXFunction } = { displayMilestone: jsx(() => undefined) };
+        let disp: { displayMilestone: JSXFunction } = { displayMilestone: jsx(() => "") };
         switch (currentShown.value) {
             case "Holly":
                 disp = cutterElfTraining;
