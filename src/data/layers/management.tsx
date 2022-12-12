@@ -79,7 +79,8 @@ const layer = createLayer(id, () => {
             description:
                 "Yay, you have a school. Too bad it has pretty much nothing in it. Maybe you could add some classrooms to make it less boring and more enticing to the Elves?"
         },
-        resources: boxes.boxes,
+        resource: boxes.boxes,
+        style: "width: 150px",
         cost: 1e13
     }));
     const globalXPModifier = createSequentialModifier(() => [
@@ -193,7 +194,7 @@ const layer = createLayer(id, () => {
                 requirement: "Holly Level 2",
                 effectDisplay: "Holly now buys max."
             },
-            visibility: showIf(cutterElfMilestones[0].earned.value),
+            visibility: () => showIf(cutterElfMilestones[0].earned.value),
             shouldEarn: () => cutterElfTraining.level.value >= 2
         })),
         createMilestone(() => ({
@@ -202,7 +203,7 @@ const layer = createLayer(id, () => {
                 effectDisplay:
                     "Cutting speed multiplies cloth gain, wool gain (increasing the requirement as well), and sheep gain."
             },
-            visibility: showIf(cutterElfMilestones[1].earned.value),
+            visibility: () => showIf(cutterElfMilestones[1].earned.value),
             shouldEarn: () => cutterElfTraining.level.value >= 3
         }))
     ] as Array<GenericMilestone>;
@@ -219,7 +220,7 @@ const layer = createLayer(id, () => {
                 requirement: "Ivy Level 2",
                 effectDisplay: "Ivy now buys max."
             },
-            visibility: showIf(planterElfMilestones[0].earned.value),
+            visibility: () => showIf(planterElfMilestones[0].earned.value),
             shouldEarn: () => planterElfTraining.level.value >= 2
         })),
         createMilestone(() => ({
@@ -227,7 +228,7 @@ const layer = createLayer(id, () => {
                 requirement: "Ivy Level 3",
                 effectDisplay: "???"
             },
-            visibility: showIf(planterElfMilestones[1].earned.value),
+            visibility: () => showIf(planterElfMilestones[1].earned.value),
             shouldEarn: () => planterElfTraining.level.value >= 3
         })),
         createMilestone(() => ({
@@ -235,7 +236,7 @@ const layer = createLayer(id, () => {
                 requirement: "Ivy Level 4",
                 effectDisplay: "???"
             },
-            visibility: showIf(planterElfMilestones[2].earned.value),
+            visibility: () => showIf(planterElfMilestones[2].earned.value),
             shouldEarn: () => planterElfTraining.level.value >= 4
         })),
         createMilestone(() => ({
@@ -243,7 +244,7 @@ const layer = createLayer(id, () => {
                 requirement: "Ivy Level 5",
                 effectDisplay: "???"
             },
-            visibility: showIf(planterElfMilestones[3].earned.value),
+            visibility: () => showIf(planterElfMilestones[3].earned.value),
             shouldEarn: () => planterElfTraining.level.value >= 5
         }))
     ] as Array<GenericMilestone>;
@@ -269,7 +270,7 @@ const layer = createLayer(id, () => {
     // some milestone display stuff
     const currentShown = persistent<string>("Holly");
     const currentElfDisplay = computed(() => {
-        let disp: { displayMilestone: JSXFunction } = { displayMilestone: jsx(() => "") };
+        let disp: { displayMilestone: JSXFunction } = { displayMilestone: jsx(() => undefined) };
         switch (currentShown.value) {
             case "Holly":
                 disp = cutterElfTraining;
@@ -368,9 +369,12 @@ const layer = createLayer(id, () => {
         if (main.day.value < day) return;
         for (const elf of Object.values(elfTraining)) {
             const times = Math.floor(elf.amountOfTimesDone.value);
-            if (times >= 1 && Decimal.lt(elf.level.value, schools.amount.value)) {
+            if (times >= 1) {
                 elf.amountOfTimesDone.value -= times;
-                elf.exp.value = Decimal.mul(elf.elfXPGainComputed.value, times).add(elf.exp.value);
+                if (Decimal.lt(elf.level.value, schools.amount.value))
+                    elf.exp.value = Decimal.mul(elf.elfXPGainComputed.value, times).add(
+                        elf.exp.value
+                    );
             }
         }
     });
