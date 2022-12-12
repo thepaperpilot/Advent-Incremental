@@ -103,7 +103,7 @@ const layer = createLayer(id, () => {
         const exp = persistent<DecimalSource>(0);
         const expRequiredForNextLevel = computed(() => Decimal.pow(10, level.value).mul(1e4));
         const level = computed(() =>
-            Decimal.mul(9, exp.value).div(1e4).add(1).log10().floor().toNumber()
+            Decimal.min(Decimal.mul(9, exp.value).div(1e4).add(1).log10().floor().toNumber(), schools.amount.value).toNumber()
         );
         const expToNextLevel = computed(() =>
             Decimal.sub(exp.value, Decimal.pow(10, level.value).sub(1).div(9).mul(1e4))
@@ -652,7 +652,7 @@ const layer = createLayer(id, () => {
         classroomUpgrade,
         display: jsx(() => (
             <>
-                {import.meta.env.DEV ? (
+                {import.meta.env.DEV || true ? (
                     <>
                         {main.day.value === day ? `Get all elves to level 5.` : `${name} Complete!`}{" "}
                         -
