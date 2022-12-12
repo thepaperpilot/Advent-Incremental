@@ -1242,7 +1242,6 @@ const layer = createLayer(id, () => {
         focusTargets,
         focusCooldown,
         focusTime,
-        focusRolling,
         
 
         display: jsx(() => (
