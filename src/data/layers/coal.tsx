@@ -275,7 +275,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
             if (Decimal.gte(v, 10000)) v = Decimal.pow(v, 2).div(10000);
             // v = Decimal.pow(0.95, paper.books.drillBook.amount.value).times(v);
-            return Decimal.pow(1.15, v).times(10);
+            let cost = Decimal.pow(1.15, v).times(10);
+            if (management.elfTraining.fertilizerElfTraining.milestones[2].earned.value) {
+                cost = cost.div(Decimal.add(trees.totalLogs.value, Math.E).ln());
+            }
+            return cost;
         },
         display: jsx(() => (
             <>
@@ -467,6 +471,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
             if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
             v = Decimal.pow(0.95, paper.books.fertilizerBook.amount.value).times(v);
+            if (management.elfTraining.fertilizerElfTraining.milestones[1].earned.value) {
+                v = Decimal.pow(0.95, paper.books.fertilizerBook.amount.value).times(v);
+            }
             return Decimal.add(v, 1).pow(1.5).times(50000);
         },
         display: {

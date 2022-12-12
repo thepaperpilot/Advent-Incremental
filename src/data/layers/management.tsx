@@ -428,14 +428,14 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Noel Level 1",
-                effectDisplay: "Log gain is increased based on total elf level."
+                effectDisplay: jsx(() => <>Log gain is multiplied by <Sqrt>total elf levels</Sqrt>.</>)
             },
             shouldEarn: () => heatedPlanterElfTraining.level.value >= 1
         })),
         createMilestone(() => ({
             display: {
                 requirement: "Noel Level 2",
-                effectDisplay: "Fertilized soil is less expensive"
+                effectDisplay: `"The Garden Tree's Handbook" affects Fertilized Soil twice`
             },
             visibility: () => showIf(fertilizerElfMilestones[0].earned.value),
             shouldEarn: () => heatedPlanterElfTraining.level.value >= 2
@@ -1122,6 +1122,7 @@ const layer = createLayer(id, () => {
         minWidth: 700,
 
         elfTraining,
+        totalElfLevels,
         currentShown,
         generalTabCollapsed,
 

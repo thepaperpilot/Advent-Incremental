@@ -445,6 +445,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Holly Level 1",
             enabled: management.elfTraining.cutterElfTraining.milestones[0].earned
         })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.sqrt(management.totalElfLevels.value),
+            description: "Noel Level 1",
+            enabled: management.elfTraining.fertilizerElfTraining.milestones[0].earned
+        })),
         createExponentialModifier(() => ({
             exponent: 1.2,
             description: "100% Foundation Completed",
