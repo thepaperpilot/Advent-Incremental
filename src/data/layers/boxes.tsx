@@ -22,7 +22,7 @@ import paper from "./paper";
 import plastic from "./plastic";
 import trees from "./trees";
 import dyes from "./dyes";
-
+import management from "./management";
 const id = "boxes";
 const day = 6;
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -132,7 +132,34 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const row2Upgrades = { oreUpgrade, metalUpgrade, plasticUpgrade };
-
+    const clothUpgrade = createUpgrade(() => ({
+        resource: noPersist(boxes),
+        cost: 1e16,
+        visibility: () => showIf(management.elfTraining.boxElfTraining.milestones[4].earned.value),
+        display: {
+            title: "Carry cloth in boxes",
+            description: "Double all cloth actions"
+        }
+    }));
+    const dyeUpgrade = createUpgrade(() => ({
+        resource: noPersist(boxes),
+        cost: 1e17,
+        visibility: () => showIf(management.elfTraining.boxElfTraining.milestones[4].earned.value),
+        display: {
+            title: "Carry dye in boxes",
+            description: "Double all dye gain"
+        }
+    }));
+    const xpUpgrade = createUpgrade(() => ({
+        resource: noPersist(boxes),
+        cost: 1e18,
+        visibility: () => showIf(management.elfTraining.boxElfTraining.milestones[4].earned.value),
+        display: {
+            title: "Carry experience in boxes???",
+            description: "Double xp gain"
+        }
+    }));
+    const row3Upgrades = { clothUpgrade, dyeUpgrade, xpUpgrade };
     const logBoxesBuyable = createBuyable(() => ({
         display: {
             title: "Carry more logs",
@@ -211,6 +238,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         boxesConversion,
         upgrades,
         row2Upgrades,
+        row3Upgrades,
         buyables,
         minWidth: 700,
         display: jsx(() => (
@@ -221,7 +249,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {render(makeBoxes)}
                 <Spacer />
-                {renderGrid(Object.values(upgrades), Object.values(row2Upgrades))}
+                {renderGrid(Object.values(upgrades), Object.values(row2Upgrades), Object.values(row3Upgrades))}
                 <Spacer />
                 {renderRow(...Object.values(buyables))}
             </>
