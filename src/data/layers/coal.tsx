@@ -82,8 +82,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const activeFires = persistent<DecimalSource>(0);
     const fireLogs = computed(() => Decimal.times(activeFires.value, 1000));
-    const fireCoal = computed(() => Decimal.times(activeFires.value, 0.1));
-    const fireAsh = computed(() => Decimal.times(activeFires.value, 50));
+    const fireCoal = computed(() => {
+        let gain = Decimal.times(activeFires.value, 0.1);
+        if (management.elfTraining.smallfireElfTraining.milestones[0].earned.value) {
+            gain = gain.times(5);
+        }
+        return gain;
+    });
+    const fireAsh = computed(() => {
+        let gain = Decimal.times(activeFires.value, 50);
+        if (management.elfTraining.smallfireElfTraining.milestones[0].earned.value) {
+            gain = gain.times(5);
+        }
+        return gain;
+    });
     const buildFire = createBuyable(() => ({
         resource: trees.logs,
         cost() {
@@ -191,14 +203,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const kilnLogs = computed(() => Decimal.times(activeKilns.value, 1e6));
     const kilnCoal = computed(() => {
         let gain = Decimal.times(activeKilns.value, 1e4);
-        if (management.elfTraining.kilnTraining.milestones[0].earned.value) {
+        if (management.elfTraining.kilnElfTraining.milestones[0].earned.value) {
             gain = gain.times(5);
         }
         return gain;
     });
     const kilnAsh = computed(() => {
         let gain = Decimal.times(activeKilns.value, 1e4);
-        if (management.elfTraining.kilnTraining.milestones[0].earned.value) {
+        if (management.elfTraining.kilnElfTraining.milestones[0].earned.value) {
             gain = gain.times(5);
         }
         return gain;
@@ -252,8 +264,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.pow(activeDrills.value, oil.row2Upgrades[1].bought.value ? 2 : 1),
             5e7
         ).times(metal.efficientDrill.bought.value ? 2 : 1)
+        .times(management.elfTraining.smallfireElfTraining.milestones[2].earned.value ? 2 : 1)
         .times(management.elfTraining.bonfireElfTraining.milestones[2].earned.value ? 2 : 1)
-        .times(management.elfTraining.kilnTraining.milestones[2].earned.value ? 2 : 1)
+        .times(management.elfTraining.kilnElfTraining.milestones[2].earned.value ? 2 : 1)
     );
     const buildDrill = createBuyable(() => ({
         resource: metal.metal,
@@ -685,13 +698,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createExponentialModifier(() => ({
             exponent: 1.1,
+            description: "Joy Level 2",
+            enabled: management.elfTraining.smallfireElfTraining.milestones[1].earned
+        })),
+        createExponentialModifier(() => ({
+            exponent: 1.1,
             description: "Faith Level 2",
             enabled: management.elfTraining.bonfireElfTraining.milestones[1].earned
         })),
         createExponentialModifier(() => ({
             exponent: 1.1,
             description: "Snowball Level 2",
-            enabled: management.elfTraining.kilnTraining.milestones[1].earned
+            enabled: management.elfTraining.kilnElfTraining.milestones[1].earned
         }))
     ]);
     const computedAshGain = computed(() => ashGain.apply(0));
