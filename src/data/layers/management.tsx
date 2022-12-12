@@ -466,7 +466,7 @@ const layer = createLayer(id, () => {
         })),
         createMilestone(() => ({
             display: {
-                requirement: "FaithJoy Level 4",
+                requirement: "Faith Level 4",
                 effectDisplay: "Oil gain is boosted by heavy drill drills"
             },
             shouldEarn: () => bonfireElfTraining.level.value >= 4
