@@ -1,13 +1,18 @@
 import Spacer from "components/layout/Spacer.vue";
-import Sqrt from "components/math/Sqrt.vue";
 import Fraction from "components/math/Fraction.vue";
+import Sqrt from "components/math/Sqrt.vue";
+import Modal from "components/Modal.vue";
 import { createCollapsibleMilestones, createCollapsibleModifierSections } from "data/common";
 import { main } from "data/projEntry";
 import { createBar, GenericBar } from "features/bars/bar";
+import { createBuyable } from "features/buyable";
 import { createClickable, GenericClickable } from "features/clickables/clickable";
 import { jsx, JSXFunction, showIf } from "features/feature";
 import { createMilestone, GenericMilestone } from "features/milestones/milestone";
+import { createUpgrade } from "features/upgrades/upgrade";
+import { globalBus } from "game/events";
 import { createLayer } from "game/layers";
+import { createMultiplicativeModifier, createSequentialModifier, Modifier } from "game/modifiers";
 import { Persistent, persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatTime, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
@@ -15,18 +20,13 @@ import { render, renderCol, renderGrid } from "util/vue";
 import { computed, ComputedRef, ref, Ref } from "vue";
 import elves from "./elves";
 import trees from "./trees";
-import { globalBus } from "game/events";
-import { createMultiplicativeModifier, createSequentialModifier, Modifier } from "game/modifiers";
-import Modal from "components/Modal.vue";
-import { createBuyable } from "features/buyable";
-import { createUpgrade } from "features/upgrades/upgrade";
-import coal from "./coal";
 import paper from "./paper";
 import boxes from "./boxes";
-import metal from "./metal";
 import cloth from "./cloth";
-import plastic from "./plastic";
+import coal from "./coal";
 import dyes from "./dyes";
+import metal from "./metal";
+import plastic from "./plastic";
 
 const id = "management";
 const day = 12;
@@ -58,8 +58,11 @@ const layer = createLayer(id, () => {
         fillStyle: `backgroundColor: ${color}`,
         progress: () =>
             main.day.value === day
-                ? Object.values(elfTraining).reduce((acc, curr) => acc + curr.level.value / 3, 0) /
-                  Object.keys(elves).length
+                ? day12Elves.reduce((acc, curr) => acc + Math.min(1, curr.level.value / 3), 0) /
+                  day12Elves.length
+                : main.day.value === advancedDay
+                ? day13Elves.reduce((acc, curr) => acc + Math.min(1, curr.level.value / 5), 0) /
+                  day13Elves.length
                 : 1,
         display: jsx(() =>
             main.day.value === day ? (
@@ -859,6 +862,34 @@ const layer = createLayer(id, () => {
         boxElfTraining,
         clothElfTraining
     } as Record<string, ElfTrainingClickable>;
+    const day12Elves = [
+        cutterElfTraining,
+        planterElfTraining,
+        expandersElfTraining,
+        heatedCutterElfTraining,
+        heatedPlanterElfTraining,
+        fertilizerElfTraining,
+        smallfireElfTraining,
+        bonfireElfTraining,
+        kilnElfTraining,
+        paperElfTraining,
+        boxElfTraining,
+        clothElfTraining
+    ];
+    const day13Elves = [
+        cutterElfTraining,
+        planterElfTraining,
+        expandersElfTraining,
+        heatedCutterElfTraining,
+        heatedPlanterElfTraining,
+        fertilizerElfTraining,
+        smallfireElfTraining,
+        bonfireElfTraining,
+        kilnElfTraining,
+        paperElfTraining,
+        boxElfTraining,
+        clothElfTraining
+    ];
 
     // ------------------------------------------------------------------------------- Update
 
