@@ -901,6 +901,7 @@ const layer = createLayer(id, () => {
                 focusMaxMulti.value,
                 1 - Math.abs(Math.sin((Date.now() / 1000) * 2))
             );
+            
         }
     });
 
@@ -911,7 +912,7 @@ const layer = createLayer(id, () => {
     const focusCooldown = persistent<number>(0);
     const focusTime = persistent<number>(0);
 
-    const focusMaxMulti = computed<DecimalSource>(() => 10);
+    const focusMaxMulti = computed<DecimalSource>(() => focusUpgrade1.bought.value ? 20 : 10);
 
     const focusMeter = createBar(() => ({
         direction: Direction.Right,
@@ -948,8 +949,9 @@ const layer = createLayer(id, () => {
         },
         canClick: () => focusCooldown.value === 0,
         onClick() {
-            focusCooldown.value = 15;
+            focusCooldown.value = focusUpgrade3.bought.value ? 10 : 15;
             focusTime.value = 10;
+            rerollFocusTargets(12, focusUpgrade2.bought.value ? 4 : 3);
         }
     }));
 
