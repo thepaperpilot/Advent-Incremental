@@ -6,14 +6,14 @@ import { createCollapsibleMilestones, createCollapsibleModifierSections } from "
 import { main } from "data/projEntry";
 import { createBar, GenericBar } from "features/bars/bar";
 import { createBuyable } from "features/buyable";
-import { createClickable, GenericClickable } from "features/clickables/clickable";
-import { jsx, JSXFunction, showIf } from "features/feature";
+import { createClickable } from "features/clickables/clickable";
+import { jsx, showIf } from "features/feature";
 import { createMilestone, GenericMilestone } from "features/milestones/milestone";
 import { createUpgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
 import { createLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier, Modifier } from "game/modifiers";
-import { Persistent, persistent } from "game/persistence";
+import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatTime, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render, renderCol, renderGrid } from "util/vue";
@@ -31,19 +31,6 @@ import plastic from "./plastic";
 const id = "management";
 const day = 12;
 const advancedDay = 13;
-
-interface ElfTrainingClickable extends GenericClickable {
-    name: string;
-    state: Persistent<boolean>;
-    displayMilestone: JSXFunction;
-    level: ComputedRef<number>;
-    exp: Persistent<DecimalSource>;
-    milestones: GenericMilestone[];
-    timeForExp: ComputedRef<DecimalSource>;
-    amountOfTimesDone: Ref<number>;
-    elfXPGainComputed: ComputedRef<DecimalSource>;
-    elfXPGain: Modifier;
-}
 
 const layer = createLayer(id, () => {
     const name = "Management";
@@ -262,7 +249,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Holly Level 4",
-                effectDisplay: "Multiply cutting speed by 1.1 per day completed"
+                effectDisplay: "Multiply auto cutting amount by 1.1 per day completed"
             },
             visibility: () => showIf(cutterElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => cutterElfTraining.level.value >= 4
@@ -297,7 +284,7 @@ const layer = createLayer(id, () => {
                 requirement: "Ivy Level 3",
                 effectDisplay: jsx(() => (
                     <>
-                        Planting speed is multiplied by 2
+                        Auto planting speed is multiplied by 2
                         <sup>
                             (log<sub>10</sub>(logs)<sup>0.2</sup>)
                         </sup>
@@ -318,7 +305,8 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Ivy Level 5",
-                effectDisplay: "Boost planting/cutting speed based on which is falling behind"
+                effectDisplay:
+                    "The lesser of auto planting and cutting amounts is increased to match the greater"
             },
             visibility: () => showIf(planterElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => planterElfTraining.level.value >= 5
@@ -861,7 +849,7 @@ const layer = createLayer(id, () => {
         paperElfTraining,
         boxElfTraining,
         clothElfTraining
-    } as Record<string, ElfTrainingClickable>;
+    };
     const day12Elves = [
         cutterElfTraining,
         planterElfTraining,
@@ -977,7 +965,31 @@ const layer = createLayer(id, () => {
             }
         }
     }
-
+    const focusUpgrade1 = createUpgrade(() => ({
+        display: {
+            title: "Focus Booster",
+            description: "Double experience multiplier from focus"
+        },
+        resource: trees.trees,
+        cost: 1e30
+    }));
+    const focusUpgrade2 = createUpgrade(() => ({
+        display: {
+            title: "Focus Buffer",
+            description: "Increase elves affected by focus by 1"
+        },
+        resource: trees.trees,
+        cost: 1e40
+    }));
+    const focusUpgrade3 = createUpgrade(() => ({
+        display: {
+            title: "Focus Upgrader",
+            description: "Focus can now be rerolled every 10 seconds"
+        },
+        resource: trees.trees,
+        cost: 1e50
+    }));
+    const upgrades = { focusUpgrade1, focusUpgrade2, focusUpgrade3 };
     // ------------------------------------------------------------------------------- Schools
 
     const schoolCost = computed(() => {
@@ -1226,9 +1238,15 @@ const layer = createLayer(id, () => {
         classroomUpgrade,
 
         focusMultiplier: focusMulti,
+        upgrades,
         focusTargets,
+<<<<<<< HEAD
         focusCooldown,
         focusTime,
+=======
+        focusRolling,
+        
+>>>>>>> bee8ce7d5169e7205fa7dc409d6488a902a890f5
 
         display: jsx(() => (
             <>

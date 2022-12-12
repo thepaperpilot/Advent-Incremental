@@ -27,7 +27,7 @@ import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatGain, formatLimit, formatWhole } from "util/bignum";
 import { Direction, WithRequired } from "util/common";
 import { render, renderGrid, renderRow } from "util/vue";
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import boxes from "./boxes";
 import cloth from "./cloth";
 import coal from "./coal";
@@ -223,7 +223,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
             if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
             v = Decimal.pow(0.95, paper.books.plantersBook.amount.value).times(v);
-            return Decimal.times(100, v).add(200);
+            let cost = Decimal.times(100, v).add(200);
+            if (management.elfTraining.planterElfTraining.milestones[3].earned.value) {
+                cost = Decimal.div(cost, 10);
+            }
+            return cost;
         },
         display: {
             title: "Generic Planters",
@@ -310,9 +314,24 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 4,
             description: "Lumberjack Jeans",
             enabled: cloth.treesUpgrades.treesUpgrade2.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.pow(1.1, main.day.value),
+            description: "Holly Level 4",
+            enabled: management.elfTraining.cutterElfTraining.milestones[3].earned
+        })),
+        createAdditiveModifier(() => ({
+            addend: () =>
+                Decimal.sub(lastAutoCuttingAmount.value, lastAutoPlantedAmount.value).max(0),
+            description: "Ivy Level 5",
+            enabled: management.elfTraining.planterElfTraining.milestones[4].earned
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAutoCuttingAmount = computed(() => autoCuttingAmount.apply(0));
+    const lastAutoCuttingAmount = ref<DecimalSource>(0);
+    watch(computedAutoCuttingAmount, cut => {
+        lastAutoCuttingAmount.value = cut;
+    });
 
     const manualPlantingAmount = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
@@ -388,12 +407,22 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: management.elfTraining.heatedPlanterElfTraining.milestones[1].earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.pow(trees.value, .2).log10().pow_base(2),
+            multiplier: () => Decimal.pow(trees.value, 0.2).log10().pow_base(2),
             description: "Ivy Level 3",
             enabled: management.elfTraining.planterElfTraining.milestones[2].earned
+        })),
+        createAdditiveModifier(() => ({
+            addend: () =>
+                Decimal.sub(lastAutoPlantedAmount.value, lastAutoCuttingAmount.value).max(0),
+            description: "Ivy Level 5",
+            enabled: management.elfTraining.planterElfTraining.milestones[4].earned
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAutoPlantingAmount = computed(() => autoPlantingAmount.apply(0));
+    const lastAutoPlantedAmount = ref<DecimalSource>(0);
+    watch(computedAutoPlantingAmount, planted => {
+        lastAutoPlantedAmount.value = planted;
+    });
 
     const logGain = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
@@ -454,9 +483,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: dyes.upgrades.blueDyeUpg.bought
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: computed(() =>
-                Decimal.add(computedAutoCuttingAmount.value, 1).root(3)
-            ),
+            multiplier: computed(() => Decimal.add(computedAutoCuttingAmount.value, 1).root(3)),
             description: "Holly Level 1",
             enabled: management.elfTraining.cutterElfTraining.milestones[0].earned
         })),
