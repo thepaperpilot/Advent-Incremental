@@ -24,7 +24,9 @@ import { WithRequired } from "util/common";
 import { Computable, convertComputable } from "util/computed";
 import { render, renderCol, renderRow } from "util/vue";
 import { computed, ComputedRef, ref, Ref, unref } from "vue";
+import cloth from "./cloth";
 import coal from "./coal";
+import management from "./management";
 import oil from "./oil";
 import trees from "./trees";
 
@@ -76,34 +78,51 @@ const layer = createLayer(id, function (this: BaseLayer) {
     ): Dye {
         const amount = createResource<DecimalSource>(0, options.name);
 
-        const toGenerate = createSequentialModifier(() => [
-            createAdditiveModifier(() => ({
-                addend: () => Decimal.add(buyable.amount.value, 1),
-                description: `${options.name} Chambers`
-            })),
-            createMultiplicativeModifier(() => ({
-                multiplier: boosts.orange1,
-                description: "Orange Dye Boost 1",
-                enabled: options.color == "red" || options.color == "yellow"
-            })),
-            createMultiplicativeModifier(() => ({
-                multiplier: boosts.green1,
-                description: "Green Dye Boost 1",
-                enabled: options.color == "yellow" || options.color == "blue"
-            })),
-            createMultiplicativeModifier(() => ({
-                multiplier: boosts.purple1,
-                description: "Purple Dye Boost 1",
-                enabled: options.color == "red" || options.color == "blue"
-            })),
-            createMultiplicativeModifier(() => ({
+        const toGenerate = createSequentialModifier(() => {
+            const modifiers = [
+                createAdditiveModifier(() => ({
+                    addend: () => Decimal.add(buyable.amount.value, 1),
+                    description: `${options.name} Chambers`
+                }))
+            ];
+            if (options.color === "red" || options.color === "yellow") {
+                modifiers.push(createMultiplicativeModifier(() => ({
+                    multiplier: boosts.orange1,
+                    description: "Orange Dye Boost 1"
+                })));
+            }
+            if (options.color == "yellow" || options.color == "blue") {
+                modifiers.push(createMultiplicativeModifier(() => ({
+                    multiplier: boosts.green1,
+                    description: "Green Dye Boost 1"
+                })));
+            }
+            if (options.color == "red" || options.color == "blue") {
+                modifiers.push(createMultiplicativeModifier(() => ({
+                    multiplier: boosts.purple1,
+                    description: "Purple Dye Boost 1"
+                })));
+            }
+            if (options.color == "red" || options.color == "yellow" || options.color == "blue") {
+                modifiers.push(createMultiplicativeModifier(() => ({
+                    multiplier: 2,
+                    description: "Wetter Dyes",
+                    enabled: upgrades.yellowDyeUpg.bought
+                })));
+                modifiers.push(createMultiplicativeModifier(() => ({
+                    // adding e, which apparently isn't a constant
+                    multiplier: () => Decimal.add(cloth.cloth.value, 2.718281828459).ln(),
+                    description: "Gingersnap Level 1",
+                    enabled: management.elfTraining.clothElfTraining.milestones[0].earned
+                })));
+            }
+            modifiers.push(createMultiplicativeModifier(() => ({
                 multiplier: 2,
-                description: "Wetter Dyes",
-                enabled: () =>
-                    upgrades.yellowDyeUpg.bought.value &&
-                    (options.color == "red" || options.color == "yellow" || options.color == "blue")
-            }))
-        ]) as WithRequired<Modifier, "description" | "revert">;
+                description: "Gingersnap Level 3",
+                enabled: management.elfTraining.clothElfTraining.milestones[2].earned
+            })))
+            return modifiers;
+        }) as WithRequired<Modifier, "description" | "revert">;
         const computedToGenerate = computed(() => toGenerate.apply(0));
 
         const buyable: GenericBuyable = createBuyable(() => {
