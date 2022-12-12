@@ -921,139 +921,154 @@ const layer = createLayer(id, function (this: BaseLayer) {
         collapsedOilMilestones,
 
         generalTabCollapsed,
-        display: jsx(() => (
-            <>
-                {render(trackerDisplay)}
-                <Spacer />
-                {Decimal.lt(coalEffectiveness.value, 1) ? (
-                    <div>Coal efficiency: {format(Decimal.mul(coalEffectiveness.value, 100))}%</div>
-                ) : null}
-                {Decimal.lt(oilEffectiveness.value, 1) ? (
-                    <div>Oil efficiency: {format(Decimal.mul(oilEffectiveness.value, 100))}%</div>
-                ) : null}
-                <MainDisplay
-                    resource={oil}
-                    color={color}
-                    sticky={true}
-                    productionDisplay={jsx(() => (
-                        <>
-                            {Decimal.lt(depth.value, 1000) ? (
-                                "Reach 1000m to start gaining oil"
-                            ) : (
-                                <>
-                                    {formatGain(
-                                        Decimal.add(
-                                            computedOilSpeed.value,
-                                            computedOilConsumption.value
-                                        )
-                                    )}
-                                </>
-                            )}
-                        </>
-                    ))}
-                />
-                {Decimal.eq(computedOilSpeed.value, 0) ? (
-                    <>
-                        (Need at least 1 Oil Pump, 1 Heavy Drill and 1 Heavy Extractor active to
-                        gain oil)
-                        <br />
-                    </>
-                ) : (
-                    ""
-                )}
-                <Row>
-                    {depthMilestones[6].earned.value ? (
-                        <Column>
-                            {render(buildPump)}
-                            <div>
-                                {formatWhole(Decimal.floor(activePump.value))}/
-                                {formatWhole(Decimal.floor(buildPump.amount.value))}
-                            </div>
-                            {renderRow(minPump, removePump, addPump, maxPump)}
-                        </Column>
-                    ) : null}
-                    {oilMilestones[0].earned.value ? (
-                        <Column>
-                            {render(buildBurner)}
-                            <div>
-                                {formatWhole(Decimal.floor(activeBurner.value))}/
-                                {formatWhole(Decimal.floor(buildBurner.amount.value))}
-                            </div>
-                            {renderRow(minBurner, removeBurner, addBurner, maxBurner)}
-                        </Column>
-                    ) : null}
-                    {oilMilestones[2].earned.value ? (
-                        <Column>
-                            {render(buildSmelter)}
-                            <div>
-                                {formatWhole(Decimal.floor(activeSmelter.value))}/
-                                {formatWhole(Decimal.floor(buildSmelter.amount.value))}
-                            </div>
-                            {renderRow(minSmelter, removeSmelter, addSmelter, maxSmelter)}
-                        </Column>
-                    ) : null}
-                </Row>
-                <br />
-                <div>
-                    <span>The well is </span>
-                    <h2 style={`color: #6f767f; text-shadow: 0 0 10px #6f767f`}>
-                        {formatWhole(depth.value)}
-                    </h2>
-                    m deep
-                    <br />
-                    Next at {format(Decimal.sub(drillProgressReq.value, drillProgress.value))} drill
-                    power seconds
-                </div>
-                <div>
-                    <span>Your drill power is </span>
-                    <h2 style={`color: #6f767f; text-shadow: 0 0 10px #6f767f`}>
-                        {format(computedDrillPower.value)}
-                    </h2>
-                </div>
-                <Spacer />
-                <Row>
-                    <Column>
-                        {render(buildHeavy)}
+        display: jsx(() => {
+            const upgrades: GenericUpgrade[][] = [];
+
+            if (oilMilestones[1].earned.value) {
+                upgrades.push(row1Upgrades);
+            }
+            if (depthMilestones[1].earned.value) {
+                upgrades.push(row2Upgrades);
+            }
+            return (
+                <>
+                    {render(trackerDisplay)}
+                    <Spacer />
+                    {Decimal.lt(coalEffectiveness.value, 1) ? (
                         <div>
-                            {formatWhole(Decimal.floor(activeHeavy.value))}/
-                            {formatWhole(Decimal.floor(buildHeavy.amount.value))}
+                            Coal efficiency: {format(Decimal.mul(coalEffectiveness.value, 100))}%
                         </div>
-                        {renderRow(minHeavy, removeHeavy, addHeavy, maxHeavy)}
-                    </Column>
-                    {depthMilestones[3].earned.value ? (
-                        <Column>
-                            {render(buildHeavy2)}
-                            <div>
-                                {formatWhole(Decimal.floor(activeHeavy2.value))}/
-                                {formatWhole(Decimal.floor(buildHeavy2.amount.value))}
-                            </div>
-                            {renderRow(minHeavy2, removeHeavy2, addHeavy2, maxHeavy2)}
-                        </Column>
                     ) : null}
-                    {depthMilestones[5].earned.value ? (
-                        <Column>
-                            {render(buildExtractor)}
-                            <div>
-                                {formatWhole(Decimal.floor(activeExtractor.value))}/
-                                {formatWhole(Decimal.floor(buildExtractor.amount.value))}
-                            </div>
-                            {renderRow(minExtractor, removeExtractor, addExtractor, maxExtractor)}
-                        </Column>
+                    {Decimal.lt(oilEffectiveness.value, 1) ? (
+                        <div>
+                            Oil efficiency: {format(Decimal.mul(oilEffectiveness.value, 100))}%
+                        </div>
                     ) : null}
-                </Row>
-                <Spacer />
-                {renderGrid(
-                    ...(oilMilestones[1].earned.value
-                        ? depthMilestones[1].earned.value
-                            ? [row1Upgrades, row2Upgrades]
-                            : [row1Upgrades]
-                        : [])
-                )}
-                <Spacer />
-                {depthMilestonesDisplay()}
-                {Decimal.gte(totalOil.value, 50) ? oilMilestonesDisplay() : ""}
-            </>
-        ))
+                    <MainDisplay
+                        resource={oil}
+                        color={color}
+                        sticky={true}
+                        productionDisplay={jsx(() => (
+                            <>
+                                {Decimal.lt(depth.value, 1000) ? (
+                                    "Reach 1000m to start gaining oil"
+                                ) : (
+                                    <>
+                                        {formatGain(
+                                            Decimal.add(
+                                                computedOilSpeed.value,
+                                                computedOilConsumption.value
+                                            )
+                                        )}
+                                    </>
+                                )}
+                            </>
+                        ))}
+                    />
+                    {Decimal.eq(computedOilSpeed.value, 0) ? (
+                        <>
+                            (Need at least 1 Oil Pump, 1 Heavy Drill and 1 Heavy Extractor active to
+                            gain oil)
+                            <br />
+                        </>
+                    ) : (
+                        ""
+                    )}
+                    <Row>
+                        {depthMilestones[6].earned.value ? (
+                            <Column>
+                                {render(buildPump)}
+                                <div>
+                                    {formatWhole(Decimal.floor(activePump.value))}/
+                                    {formatWhole(Decimal.floor(buildPump.amount.value))}
+                                </div>
+                                {renderRow(minPump, removePump, addPump, maxPump)}
+                            </Column>
+                        ) : null}
+                        {oilMilestones[0].earned.value ? (
+                            <Column>
+                                {render(buildBurner)}
+                                <div>
+                                    {formatWhole(Decimal.floor(activeBurner.value))}/
+                                    {formatWhole(Decimal.floor(buildBurner.amount.value))}
+                                </div>
+                                {renderRow(minBurner, removeBurner, addBurner, maxBurner)}
+                            </Column>
+                        ) : null}
+                        {oilMilestones[2].earned.value ? (
+                            <Column>
+                                {render(buildSmelter)}
+                                <div>
+                                    {formatWhole(Decimal.floor(activeSmelter.value))}/
+                                    {formatWhole(Decimal.floor(buildSmelter.amount.value))}
+                                </div>
+                                {renderRow(minSmelter, removeSmelter, addSmelter, maxSmelter)}
+                            </Column>
+                        ) : null}
+                    </Row>
+                    <br />
+                    <div>
+                        <span>The well is </span>
+                        <h2 style={`color: #6f767f; text-shadow: 0 0 10px #6f767f`}>
+                            {formatWhole(depth.value)}
+                        </h2>
+                        m deep
+                        <br />
+                        Next at {format(
+                            Decimal.sub(drillProgressReq.value, drillProgress.value)
+                        )}{" "}
+                        drill power seconds
+                    </div>
+                    <div>
+                        <span>Your drill power is </span>
+                        <h2 style={`color: #6f767f; text-shadow: 0 0 10px #6f767f`}>
+                            {format(computedDrillPower.value)}
+                        </h2>
+                    </div>
+                    <Spacer />
+                    <Row>
+                        <Column>
+                            {render(buildHeavy)}
+                            <div>
+                                {formatWhole(Decimal.floor(activeHeavy.value))}/
+                                {formatWhole(Decimal.floor(buildHeavy.amount.value))}
+                            </div>
+                            {renderRow(minHeavy, removeHeavy, addHeavy, maxHeavy)}
+                        </Column>
+                        {depthMilestones[3].earned.value ? (
+                            <Column>
+                                {render(buildHeavy2)}
+                                <div>
+                                    {formatWhole(Decimal.floor(activeHeavy2.value))}/
+                                    {formatWhole(Decimal.floor(buildHeavy2.amount.value))}
+                                </div>
+                                {renderRow(minHeavy2, removeHeavy2, addHeavy2, maxHeavy2)}
+                            </Column>
+                        ) : null}
+                        {depthMilestones[5].earned.value ? (
+                            <Column>
+                                {render(buildExtractor)}
+                                <div>
+                                    {formatWhole(Decimal.floor(activeExtractor.value))}/
+                                    {formatWhole(Decimal.floor(buildExtractor.amount.value))}
+                                </div>
+                                {renderRow(
+                                    minExtractor,
+                                    removeExtractor,
+                                    addExtractor,
+                                    maxExtractor
+                                )}
+                            </Column>
+                        ) : null}
+                    </Row>
+                    <Spacer />
+                    {renderGrid(...upgrades)}
+                    <Spacer />
+                    {depthMilestonesDisplay()}
+                    {Decimal.gte(totalOil.value, 50) ? oilMilestonesDisplay() : ""}
+                </>
+            );
+        })
     };
 });
 
