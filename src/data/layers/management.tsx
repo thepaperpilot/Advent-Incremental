@@ -1,16 +1,17 @@
 import Spacer from "components/layout/Spacer.vue";
 import Sqrt from "components/math/Sqrt.vue";
+import Fraction from "components/math/Fraction.vue";
 import { createCollapsibleMilestones, createCollapsibleModifierSections } from "data/common";
 import { main } from "data/projEntry";
 import { createBar, GenericBar } from "features/bars/bar";
-import { createClickable } from "features/clickables/clickable";
+import { createClickable, GenericClickable } from "features/clickables/clickable";
 import { jsx, JSXFunction, showIf } from "features/feature";
 import { createMilestone, GenericMilestone } from "features/milestones/milestone";
 import { createLayer } from "game/layers";
-import { persistent } from "game/persistence";
-import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
+import { Persistent, persistent } from "game/persistence";
+import Decimal, { DecimalSource, format, formatTime, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
-import { render, renderGrid } from "util/vue";
+import { render, renderCol, renderGrid, renderRow } from "util/vue";
 import { computed, ComputedRef, ref, Ref } from "vue";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
@@ -19,7 +20,7 @@ import trees from "./trees";
 import { globalBus } from "game/events";
 import { createMultiplicativeModifier, createSequentialModifier, Modifier } from "game/modifiers";
 import Modal from "components/Modal.vue";
-import { createBuyable } from "features/buyable";
+import { createBuyable, GenericBuyable } from "features/buyable";
 import { createUpgrade } from "features/upgrades/upgrade";
 import coal from "./coal";
 import paper from "./paper";
@@ -32,11 +33,25 @@ import dyes from "./dyes";
 const id = "management";
 const day = 12;
 
+interface ElfTrainingClickable extends GenericClickable {
+    name: string,
+    state: Persistent<boolean>,
+    displayMilestone: JSXFunction,
+    level: ComputedRef<number>,
+    exp: Persistent<DecimalSource>,
+    milestones: GenericMilestone[],
+    timeForExp: ComputedRef<DecimalSource>,
+    amountOfTimesDone: Ref<number>,
+    elfXPGainComputed: ComputedRef<DecimalSource>,
+    elfXPGain: Modifier,
+}
+
 const layer = createLayer(id, () => {
     const name = "Management";
     const color = "green"; // idk what to do
 
-    // Day Progress
+    // ------------------------------------------------------------------------------- Day Progress
+
     const dayProgress = createBar(() => ({
         direction: Direction.Right,
         width: 600,
@@ -63,6 +78,10 @@ const layer = createLayer(id, () => {
         }
         return elfLevel;
     });
+
+    
+    // ------------------------------------------------------------------------------- Upgrades
+
     const teaching = createUpgrade(() => ({
         display: {
             title: "Teach the Elves",
@@ -92,7 +111,9 @@ const layer = createLayer(id, () => {
         }))
     ]);
     const globalXPModifierComputed = globalXPModifier.apply(1);
-    // Training core function
+
+    // ------------------------------------------------------------------------------- Training core function
+
     function createElfTraining(
         elf: {
             name: string;
@@ -116,8 +137,13 @@ const layer = createLayer(id, () => {
         const bar = createBar(() => ({
             direction: Direction.Right,
             width: 160,
-            height: 10,
-            style: "margin-top: 8px",
+            height: 12,
+            style: () => ({
+                "margin-top": "8px",
+                "box-shadow": focusTargets.value[elf.name] 
+                    ? "0 0 12px " + (currentShown.value == elf.name ? "black" : "white")
+                    : "",
+            }),
             baseStyle: "margin-top: 0",
             fillStyle: "margin-top: 0; transition-duration: 0s",
             borderStyle: () => Decimal.gte(level.value, schools.amount.value) ? "border-color: red" : "",
@@ -133,15 +159,20 @@ const layer = createLayer(id, () => {
                 multiplier: globalXPModifierComputed,
                 description: "Global XP Multiplier"
             })),
+            createMultiplicativeModifier(() => ({
+                multiplier: focusMulti,
+                description: "Focus Multiplier",
+                enabled: () => focusRolling.value <= 0 && focusTargets.value[elf.name] == true
+            })),
             ...modifiers
         ]);
-        const elfXPGainComputed = computed(() => elfXPGain.apply(1));
+        const elfXPGainComputed = computed(() => elfXPGain.apply(0.1));
         const click = createClickable(() => ({
             display: {
                 title: elf.name,
                 description: jsx(() => (
                     <>
-                        {elf.name} is currently at level {formatWhole(level.value)}, and have
+                        {elf.name} is currently at level {formatWhole(level.value)}, and 
                         achieved a total of {format(exp.value)} XP.
                         They buy buyables {formatWhole(elf.computedAutoBuyCooldown.value)} times per
                         second, gaining{" "}
@@ -160,7 +191,7 @@ const layer = createLayer(id, () => {
             },
             style: () => ({
                 width: "190px",
-                background: currentShown.value == elf.name ? "var(--bought)" : "",
+                background: currentShown.value == elf.name ? "var(--foreground)" : "",
             }),
             onClick() {
                 currentShown.value = elf.name;
@@ -168,6 +199,7 @@ const layer = createLayer(id, () => {
             canClick() {
                 return currentShown.value !== elf.name;
             },
+            name: elf.name,
             state,
             displayMilestone,
             level,
@@ -181,12 +213,13 @@ const layer = createLayer(id, () => {
         return click;
     }
 
-    // Elf Milestones
+    // ------------------------------------------------------------------------------- Elf milestones
+
     const cutterElfMilestones = [
         createMilestone(() => ({
             display: {
                 requirement: "Holly Level 1",
-                effectDisplay: "Cutting speed multiplies log gain."
+                effectDisplay: jsx(() => <>Multiply log gain by <sup>3</sup><Sqrt>Cutter amount</Sqrt>.</>)
             },
             shouldEarn: () => cutterElfTraining.level.value >= 1
         })),
@@ -201,8 +234,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Holly Level 3",
-                effectDisplay:
-                    "Cutting speed multiplies cloth gain, wool gain (increasing the requirement as well), and sheep gain."
+                effectDisplay: jsx(() => <>Multiply all cloth actions' effectiveness by <sup>3</sup><Sqrt>Cutter amount</Sqrt>.</>)
             },
             visibility: () => showIf(cutterElfMilestones[1].earned.value),
             shouldEarn: () => cutterElfTraining.level.value >= 3
@@ -243,7 +275,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Ivy Level 3",
-                effectDisplay: jsx(() => <>Planting speed is multiplied by x2^(log<sub>10</sub>(logs)^0.2)</>)
+                effectDisplay: jsx(() => <>Planting speed is multiplied by x2<sup>(log<sub>10</sub>(logs)<sup>0.2</sup>)</sup></>)
             },
             visibility: () => showIf(planterElfMilestones[1].earned.value),
             shouldEarn: () => planterElfTraining.level.value >= 3
@@ -385,7 +417,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Mary Level 5",
-                effectDisplay: "Auto smelting speed is multiplied by (total XP/1000)^0.5"
+                effectDisplay: jsx(() => <>Auto smelting speed is multiplied by <Sqrt>total XP/1000</Sqrt>.</>)
             },
             visibility: () =>
                 showIf(heatedPlanterElfMilestones[3].earned.value && main.day.value >= 13),
@@ -411,7 +443,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Noel Level 3",
-                effectDisplay: "Divide the mining drill cost based on total logs produced"
+                effectDisplay: "Divide the mining drill cost by ln(Total logs + e)"
             },
             visibility: () => showIf(fertilizerElfMilestones[1].earned.value),
             shouldEarn: () => heatedPlanterElfTraining.level.value >= 3
@@ -419,7 +451,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Noel Level 4",
-                effectDisplay: jsx(() => <>Plastic<sup>2</sup> subtracts from oil refinery cost</>)
+                effectDisplay: jsx(() => <>Reduce oil refinery cost by (Plastic amount)<sup>2</sup></>)
             },
             visibility: () =>
                 showIf(fertilizerElfMilestones[2].earned.value && main.day.value >= 13),
@@ -587,7 +619,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Star Level 4",
-                effectDisplay: "0.95^(total books) multiplies XP requirement"
+                effectDisplay: jsx(() => <>Multiply XP requirements by 0.95<sup>(total books)</sup></>)
             },
             visibility: () => showIf(paperElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => paperElfTraining.level.value >= 4
@@ -605,7 +637,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Bell Level 1",
-                effectDisplay: "Every box buyable adds sqrt(level) levels to same-row box buyables."
+                effectDisplay: jsx(() => <>Every box buyable adds <Sqrt>level</Sqrt> levels to same-row box buyables.</>)
             },
             shouldEarn: () => boxElfTraining.level.value >= 1
         })),
@@ -646,14 +678,14 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Gingersnap Level 1",
-                effectDisplay: "Multiply all primary dye colors by ln(cloth+e)."
+                effectDisplay: "Multiply all primary dye colors by ln(cloth + e)."
             },
             shouldEarn: () => clothElfTraining.level.value >= 1
         })),
         createMilestone(() => ({
             display: {
                 requirement: "Gingersnap Level 2",
-                effectDisplay: jsx(() => <>Multiply all cloth actions by log<sub>10</sub>(dye sum + 10)</>)
+                effectDisplay: jsx(() => <>Multiply all cloth actions' effectiveness by log<sub>10</sub>(dye sum + 10)</>)
             },
             visibility: () => showIf(clothElfMilestones[0].earned.value),
             shouldEarn: () => clothElfTraining.level.value >= 2
@@ -669,7 +701,9 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Gingersnap Level 4",
-                effectDisplay: jsx(() => <><Sqrt>classrooms</Sqrt>/2+1 multiplies ALL dye gain, but reset all dyes.</>)
+                effectDisplay: jsx(() => <>Multiply ALL dye gain by{" "}
+                    <Fraction><div><Sqrt>classrooms</Sqrt></div><div>2</div></Fraction>+1,
+                    but reset all dyes.</>)
             },
             visibility: () => showIf(clothElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => clothElfTraining.level.value >= 4
@@ -684,11 +718,12 @@ const layer = createLayer(id, () => {
         }))
     ] as Array<GenericMilestone>;
 
-    // some milestone display stuff
+    // ------------------------------------------------------------------------------- Milestone display
+
     const currentShown = persistent<string>("Holly");
     const currentElfDisplay = jsx(() => {
         const elf = Object.values(elfTraining).find(
-            training => training.display.title === currentShown.value
+            training => training.name === currentShown.value
         );
         if (elf == null) {
             console.warn("This should not happen.", currentShown.value);
@@ -749,10 +784,13 @@ const layer = createLayer(id, () => {
         paperElfTraining,
         boxElfTraining,
         clothElfTraining
-    };
+    } as Record<string, ElfTrainingClickable>;
 
-    globalBus.on("update", () => {
+    // ------------------------------------------------------------------------------- Update
+
+    globalBus.on("update", diff => {
         if (main.day.value < day) return;
+
         for (const elf of Object.values(elfTraining)) {
             const times = Math.floor(elf.amountOfTimesDone.value);
             if (times >= 1) {
@@ -763,7 +801,78 @@ const layer = createLayer(id, () => {
                     );
             }
         }
+
+        if (focusRolling.value > 0) {
+            focusRolling.value += diff;
+            focusMulti.value = Decimal.pow(focusMaxMulti.value, 1 - Math.abs(Math.sin((focusRolling.value - 1) * 3)));
+            rerollFocusTargets(12, 3);
+        } else {
+            focusRolling.value = Math.min(focusRolling.value + diff, 0);
+        }
     });
+    
+    // ------------------------------------------------------------------------------- Focus
+
+    const focusMulti = persistent<DecimalSource>(1);
+    const focusTargets = persistent<Record<string, boolean>>({});
+    const focusRolling = persistent<number>(0);
+
+    const focusMaxMulti = computed<DecimalSource>(() => 10);
+    
+    const focusMeter = createBar(() => ({
+        direction: Direction.Right,
+        width: 566,
+        height: 25,
+        style: `border-radius: 4px 4px 0 0`,
+        borderStyle: `border-radius: 4px 4px 0 0`,
+        fillStyle: `background: ${color}; transition: none`,
+        progress: () => Decimal.sub(focusMulti.value, 1).div(Decimal.sub(focusMaxMulti.value, 1)).toNumber(),
+        display: jsx(() => <>{format(focusMulti.value)}x</>)
+    })) as GenericBar;
+    
+    const focusButton = createClickable(() => ({
+        display: {
+            title: "Focus",
+            description: jsx(() => (
+                <>
+                    {focusRolling.value <= 0
+                        ? <>Motivate elves to focus, multiplying 3 random elves' XP gain by up to {format(focusMaxMulti.value)}x</>
+                        : "Click to stop the focus bar"
+                    }
+                    {focusRolling.value < 0
+                        ? <><br/>Reroll cooldown: {formatTime(-focusRolling.value)}</>
+                        : ""
+                    }
+                </>
+            ))
+        },
+        style: {
+            width: "300px"
+        },
+        canClick: () => focusRolling.value >= 0,
+        onClick() {
+            if (focusRolling.value == 0) {
+                focusRolling.value = 1;
+            } else if (focusRolling.value > 0) {
+                focusRolling.value = -30;
+            }
+        }
+    }));
+
+    function rerollFocusTargets(range: number, count: number) {
+        let x = 0;
+        focusTargets.value = {};
+        count = Math.min(count, range);
+        while (x < count) {
+            const roll = Object.values(elfTraining)[Math.floor(Math.random() * range)]?.name ?? "";
+            if (!focusTargets.value[roll]) {
+                focusTargets.value[roll] = true;
+                x++;
+            }
+        }
+    }
+    
+    // ------------------------------------------------------------------------------- Schools
 
     const schoolCost = computed(() => {
         const schoolFactor = Decimal.pow(10, schools.amount.value);
@@ -898,51 +1007,7 @@ const layer = createLayer(id, () => {
         style: "width: 600px"
     }));
 
-    const tabs = createTabFamily({
-        training: () => ({
-            tab: createTab(() => ({
-                display: jsx(() => (
-                    <>
-                        <br/>
-                        Click on an elf to see their milestones.
-                        <br/><br/>
-                        {renderGrid(
-                            treeElfTraining,
-                            coalElfTraining,
-                            fireElfTraining,
-                            plasticElfTraining
-                        )}
-                        <Spacer />
-                        {currentElfDisplay()}
-                    </>
-                ))
-            })),
-            display: "Elf Training"
-        }),
-        teaching: () => ({
-            tab: createTab(() => ({
-                display: jsx(() => (
-                    <>
-                        {render(schools)} {render(classrooms)}{" "}
-                        {renderGrid([teaching, classroomUpgrade])}
-                    </>
-                ))
-            })),
-            display: "The Schools"
-        }),
-        info: () => ({
-            tab: createTab(() => ({
-                display: jsx(() => (
-                    <>
-                        Each elf gains experience points (XP) every time they perform their action
-                        (they don't have to buy anything though). When they get enough XP, they can
-                        level up, granting special rewards.
-                    </>
-                ))
-            })),
-            display: "Info"
-        })
-    });
+    // ------------------------------------------------------------------------------- Modifiers
 
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
         {
@@ -953,61 +1018,73 @@ const layer = createLayer(id, () => {
         {
             title: "Holly XP Gain per Action",
             modifier: cutterElfTraining.elfXPGain,
+            base: 0.1,
             unit: " XP"
         },
         {
             title: "Ivy XP Gain per Action",
             modifier: planterElfTraining.elfXPGain,
+            base: 0.1,
             unit: " XP"
         },
         {
             title: "Hope XP Gain per Action",
             modifier: expandersElfTraining.elfXPGain,
+            base: 0.1,
             unit: " XP"
         },
         {
             title: "Jack XP Gain per Action",
             modifier: heatedCutterElfTraining.elfXPGain,
+            base: 0.1,
             unit: " XP"
         },
         {
             title: "Mary XP Gain per Action",
             modifier: heatedPlanterElfTraining.elfXPGain,
+            base: 0.1,
             unit: " XP"
         },
         {
             title: "Noel XP Gain per Action",
             modifier: fertilizerElfTraining.elfXPGain,
+            base: 0.1,
             unit: " XP"
         },
         {
             title: "Joy XP Gain per Action",
             modifier: smallfireElfTraining.elfXPGain,
+            base: 0.1,
             unit: " XP"
         },
         {
             title: "Faith XP Gain per Action",
             modifier: bonfireElfTraining.elfXPGain,
+            base: 0.1,
             unit: " XP"
         },
         {
             title: "Snowball XP Gain per Action",
             modifier: kilnElfTraining.elfXPGain,
+            base: 0.1,
             unit: " XP"
         },
         {
             title: "Star XP Gain per Action",
             modifier: paperElfTraining.elfXPGain,
+            base: 0.1,
             unit: " XP"
         },
         {
             title: "Bell XP Gain per Action",
             modifier: boxElfTraining.elfXPGain,
+            base: 0.1,
             unit: " XP"
         },
         {
             title: "Gingersnap XP Gain per Action",
             modifier: clothElfTraining.elfXPGain,
+            base: 0.1,
             unit: " XP"
         }
     ]);
@@ -1022,19 +1099,29 @@ const layer = createLayer(id, () => {
             }}
         />
     ));
+
+    
+    // ------------------------------------------------------------------------------- Return
+
     return {
         name,
         day,
         color,
         minWidth: 700,
+
         elfTraining,
         currentShown,
-        tabs,
         generalTabCollapsed,
+
         teaching,
         schools,
         classrooms,
         classroomUpgrade,
+
+        focusMultiplier: focusMulti,
+        focusTargets,
+        focusRolling,
+
         display: jsx(() => (
             <>
                 {main.day.value === day ? `Get all elves to level 5.` : `${name} Complete!`} -
@@ -1047,7 +1134,27 @@ const layer = createLayer(id, () => {
                 </button>
                 {render(modifiersModal)}
                 {render(dayProgress)}
-                {render(tabs)}
+                <br/>
+                {renderCol(schools, classrooms)}{" "}
+                {renderGrid([teaching, classroomUpgrade])}
+                {
+                    Decimal.gt(schools.amount.value, 0) ? <>
+                        <br/>
+                        Click on an elf to see their milestones.
+                        <br/><br/>
+                        {render(focusButton)}
+                        <br/>
+                        {renderGrid(
+                            [focusMeter],
+                            treeElfTraining,
+                            coalElfTraining,
+                            fireElfTraining,
+                            plasticElfTraining
+                        )}
+                        <Spacer />
+                        {currentElfDisplay()}
+                    </> : ""
+                }
             </>
         ))
     };
