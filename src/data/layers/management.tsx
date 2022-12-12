@@ -214,7 +214,7 @@ const layer = createLayer(id, () => {
                 requirement: "Holly Level 4",
                 effectDisplay: "Multiply cutting speed by 1.1 per day completed"
             },
-            visibility: () => showIf(cutterElfMilestones[2].earned.value),
+            visibility: () => showIf(cutterElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => cutterElfTraining.level.value >= 4
         })),
         createMilestone(() => ({
@@ -222,7 +222,7 @@ const layer = createLayer(id, () => {
                 requirement: "Holly Level 5",
                 effectDisplay: "Reduce workshop expansion cost by ^0.95"
             },
-            visibility: () => showIf(cutterElfMilestones[3].earned.value),
+            visibility: () => showIf(cutterElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => cutterElfTraining.level.value >= 5
         }))
     ] as Array<GenericMilestone>;
@@ -255,7 +255,7 @@ const layer = createLayer(id, () => {
                 requirement: "Ivy Level 4",
                 effectDisplay: "Divide planter cost by 10"
             },
-            visibility: () => showIf(planterElfMilestones[2].earned.value),
+            visibility: () => showIf(planterElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => planterElfTraining.level.value >= 4
         })),
         createMilestone(() => ({
@@ -263,7 +263,7 @@ const layer = createLayer(id, () => {
                 requirement: "Ivy Level 5",
                 effectDisplay: "Boost planting/cutting speed based on which is falling behind"
             },
-            visibility: () => showIf(planterElfMilestones[3].earned.value),
+            visibility: () => showIf(planterElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => planterElfTraining.level.value >= 5
         }))
     ] as Array<GenericMilestone>;
@@ -296,7 +296,7 @@ const layer = createLayer(id, () => {
                 requirement: "Hope Level 4",
                 effectDisplay: "Unlock an elf that autobuys mining drills."
             },
-            visibility: () => showIf(expanderElfMilestones[2].earned.value),
+            visibility: () => showIf(expanderElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => expandersElfTraining.level.value >= 4
         })),
         createMilestone(() => ({
@@ -304,7 +304,7 @@ const layer = createLayer(id, () => {
                 requirement: "Hope Level 5",
                 effectDisplay: "Unlock an elf that autobuys metal buyables."
             },
-            visibility: () => showIf(expanderElfMilestones[3].earned.value),
+            visibility: () => showIf(expanderElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => expandersElfTraining.level.value >= 5
         }))
     ] as Array<GenericMilestone>;
@@ -337,7 +337,8 @@ const layer = createLayer(id, () => {
                 requirement: "Jack Level 4",
                 effectDisplay: "Oil gain is multiplied based on total elf levels."
             },
-            visibility: () => showIf(heatedCutterElfMilestones[2].earned.value),
+            visibility: () =>
+                showIf(heatedCutterElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => heatedCutterElfTraining.level.value >= 4
         })),
         createMilestone(() => ({
@@ -345,7 +346,8 @@ const layer = createLayer(id, () => {
                 requirement: "Jack Level 5",
                 effectDisplay: "Unlock an elf that autobuys oil buyables."
             },
-            visibility: () => showIf(heatedCutterElfMilestones[3].earned.value),
+            visibility: () =>
+                showIf(heatedCutterElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => heatedCutterElfTraining.level.value >= 5
         }))
     ] as Array<GenericMilestone>;
@@ -378,7 +380,8 @@ const layer = createLayer(id, () => {
                 requirement: "Mary Level 4",
                 effectDisplay: "Metal gain is raised to the 1.1."
             },
-            visibility: () => showIf(heatedPlanterElfMilestones[2].earned.value),
+            visibility: () =>
+                showIf(heatedPlanterElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => heatedPlanterElfTraining.level.value >= 4
         })),
         createMilestone(() => ({
@@ -386,7 +389,8 @@ const layer = createLayer(id, () => {
                 requirement: "Mary Level 5",
                 effectDisplay: "Auto smelting speed is multiplied by (total XP/1000)^0.5"
             },
-            visibility: () => showIf(heatedPlanterElfMilestones[3].earned.value),
+            visibility: () =>
+                showIf(heatedPlanterElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => heatedPlanterElfTraining.level.value >= 5
         }))
     ] as Array<GenericMilestone>;
@@ -419,7 +423,8 @@ const layer = createLayer(id, () => {
                 requirement: "Noel Level 4",
                 effectDisplay: "Plastic² subtracts from oil refinery cost"
             },
-            visibility: () => showIf(fertilizerElfMilestones[2].earned.value),
+            visibility: () =>
+                showIf(fertilizerElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => heatedPlanterElfTraining.level.value >= 4
         })),
         createMilestone(() => ({
@@ -427,7 +432,8 @@ const layer = createLayer(id, () => {
                 requirement: "Noel Level 5",
                 effectDisplay: "Unlock an elf that autobuys drills and extractors"
             },
-            visibility: () => showIf(fertilizerElfMilestones[3].earned.value),
+            visibility: () =>
+                showIf(fertilizerElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => heatedPlanterElfTraining.level.value >= 5
         }))
     ] as Array<GenericMilestone>;
@@ -460,7 +466,8 @@ const layer = createLayer(id, () => {
                 requirement: "Joy Level 4",
                 effectDisplay: "Metal gain is boosted by heavy drills"
             },
-            visibility: () => showIf(smallfireElfMilestones[2].earned.value),
+            visibility: () =>
+                showIf(smallfireElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => smallfireElfTraining.level.value >= 4
         })),
         createMilestone(() => ({
@@ -468,7 +475,8 @@ const layer = createLayer(id, () => {
                 requirement: "Joy Level 5",
                 effectDisplay: "Raise Industrial Crucible's effect to the 1.1"
             },
-            visibility: () => showIf(smallfireElfMilestones[3].earned.value),
+            visibility: () =>
+                showIf(smallfireElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => smallfireElfTraining.level.value >= 5
         }))
     ] as Array<GenericMilestone>;
@@ -501,7 +509,7 @@ const layer = createLayer(id, () => {
                 requirement: "Faith Level 4",
                 effectDisplay: "Oil gain is boosted by heavy drill drills"
             },
-            visibility: () => showIf(bonfireElfMilestones[2].earned.value),
+            visibility: () => showIf(bonfireElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => bonfireElfTraining.level.value >= 4
         })),
         createMilestone(() => ({
@@ -509,7 +517,7 @@ const layer = createLayer(id, () => {
                 requirement: "Faith Level 5",
                 effectDisplay: "Raise Industrial Crucible's effect to the 1.1"
             },
-            visibility: () => showIf(bonfireElfMilestones[3].earned.value),
+            visibility: () => showIf(bonfireElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => bonfireElfTraining.level.value >= 5
         }))
     ] as Array<GenericMilestone>;
@@ -542,7 +550,7 @@ const layer = createLayer(id, () => {
                 requirement: "Snowball Level 4",
                 effectDisplay: "Plastic gain is boosted by heavy extractors"
             },
-            visibility: () => showIf(kilnElfMilestones[2].earned.value),
+            visibility: () => showIf(kilnElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => kilnElfTraining.level.value >= 4
         })),
         createMilestone(() => ({
@@ -550,7 +558,7 @@ const layer = createLayer(id, () => {
                 requirement: "Snowball Level 5",
                 effectDisplay: "Raise Industrial Crucible's effect to the 1.1"
             },
-            visibility: () => showIf(kilnElfMilestones[3].earned.value),
+            visibility: () => showIf(kilnElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => kilnElfTraining.level.value >= 5
         }))
     ] as Array<GenericMilestone>;
@@ -583,7 +591,7 @@ const layer = createLayer(id, () => {
                 requirement: "Star Level 4",
                 effectDisplay: "0.95^(total books) multiplies XP requirement"
             },
-            visibility: () => showIf(paperElfMilestones[2].earned.value),
+            visibility: () => showIf(paperElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => paperElfTraining.level.value >= 4
         })),
         createMilestone(() => ({
@@ -591,7 +599,7 @@ const layer = createLayer(id, () => {
                 requirement: "Star Level 5",
                 effectDisplay: "Gain 5 free books for all level 5 elves"
             },
-            visibility: () => showIf(paperElfMilestones[3].earned.value),
+            visibility: () => showIf(paperElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => paperElfTraining.level.value >= 5
         }))
     ] as Array<GenericMilestone>;
@@ -624,7 +632,7 @@ const layer = createLayer(id, () => {
                 requirement: "Bell Level 4",
                 effectDisplay: "Unlock a second row of box buyables"
             },
-            visibility: () => showIf(boxElfMilestones[2].earned.value),
+            visibility: () => showIf(boxElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => boxElfTraining.level.value >= 4
         })),
         createMilestone(() => ({
@@ -632,7 +640,7 @@ const layer = createLayer(id, () => {
                 requirement: "Bell Level 5",
                 effectDisplay: "Unlock another row of box upgrades"
             },
-            visibility: () => showIf(boxElfMilestones[3].earned.value),
+            visibility: () => showIf(boxElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => boxElfTraining.level.value >= 5
         }))
     ] as Array<GenericMilestone>;
@@ -665,7 +673,7 @@ const layer = createLayer(id, () => {
                 requirement: "Gingersnap Level 4",
                 effectDisplay: "sqrt(classrooms)/2+1 multiplies ALL dye gain, but reset all dyes."
             },
-            visibility: () => showIf(clothElfMilestones[2].earned.value),
+            visibility: () => showIf(clothElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => clothElfTraining.level.value >= 4
         })),
         createMilestone(() => ({
@@ -673,7 +681,7 @@ const layer = createLayer(id, () => {
                 requirement: "Gingersnap Level 5",
                 effectDisplay: "Well depth divides metal machine costs"
             },
-            visibility: () => showIf(clothElfMilestones[3].earned.value),
+            visibility: () => showIf(clothElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => clothElfTraining.level.value >= 5
         }))
     ] as Array<GenericMilestone>;

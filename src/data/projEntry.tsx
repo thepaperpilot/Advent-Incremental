@@ -31,7 +31,7 @@ import clothSymbol from "./symbols/cloth.png";
 import oilSymbol from "./symbols/oil.png";
 import plasticSymbol from "./symbols/plastic.png";
 import dyesSymbol from "./symbols/dyes.png";
-import managementSymbol from "./symbols/elfManagement.png"
+import managementSymbol from "./symbols/elfManagement.png";
 import coal from "./layers/coal";
 import elves from "./layers/elves";
 import paper from "./layers/paper";
@@ -260,7 +260,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 12,
             shouldNotify: false,
-            layer: "management", // "management"
+            layer: null,
             symbol: managementSymbol,
             story: "You watch as the elves work, and you realize that they could probably be trained to help out better. Just then, Santa comes over to check on your progress. You reply that you're doing fine, except that the elves may need a bit of behavior management. Santa offers to help, saying that he doesn't want to leave you to do everything. Unfortunately for you, the behavior problems won't fix themselves, so let's get to work!",
             completedStory: ""
@@ -432,8 +432,7 @@ export const getInitialLayers = (
     cloth,
     oil,
     plastic,
-    dyes,
-    management
+    dyes
 ];
 
 /**
@@ -454,6 +453,19 @@ export function fixOldSave(
     player: Partial<PlayerData>
     // eslint-disable-next-line @typescript-eslint/no-empty-function
 ): void {
+    if (oldVersion !== "0.0") {
+        return;
+    }
     player.offlineProd = false;
+    delete player.layers?.management;
+    if (player.layers?.main?.days?.[11]) {
+        player.layers.main.days[11].opened = false;
+    }
+    if (player.layers?.main?.day === 12) {
+        player.layers?.main?.day === 11;
+    }
+    if (player.tabs) {
+        player.tabs = player.tabs.filter(l => l !== "management");
+    }
 }
 /* eslint-enable @typescript-eslint/no-unused-vars */
