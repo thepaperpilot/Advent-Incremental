@@ -20,9 +20,8 @@
         <div class="date">Dec<br />{{ day }}</div>
         <div v-if="!canOpen" class="material-icons lock">lock</div>
         <div v-if="main.day.value === day && !canOpen" class="timer">
-            {{ formatTime(main.timeUntilNewDay.value, 0) }}
+            {{ main.timeUntilNewDay.value < 0 ? "NYI, sorry" : formatTime(main.timeUntilNewDay.value, 0) }}
         </div>
-        <div v-else-if="main.day.value === day && layer == null" class="timer">NYI</div>
         <Notif v-if="canOpen" />
     </div>
 </template>
