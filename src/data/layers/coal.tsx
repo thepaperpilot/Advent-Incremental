@@ -133,8 +133,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const activeBonfires = persistent<DecimalSource>(0);
     const bonfireLogs = computed(() => Decimal.times(activeBonfires.value, 10000));
-    const bonfireCoal = computed(() => Decimal.times(activeBonfires.value, 10));
-    const bonfireAsh = computed(() => Decimal.times(activeBonfires.value, 1000));
+    const bonfireCoal = computed(() => {
+        let gain = Decimal.times(activeBonfires.value, 10);
+        if (management.elfTraining.bonfireTraining.milestones[0].earned.value) {
+            gain = gain.times(5);
+        }
+        return gain;
+    });
+    const bonfireAsh = computed(() => {
+        let gain = Decimal.times(activeBonfires.value, 1000);
+        if (management.elfTraining.bonfireTraining.milestones[0].earned.value) {
+            gain = gain.times(5);
+        }
+        return gain;
+    });
     const buildBonfire = createBuyable(() => ({
         resource: fireResource,
         cost() {
@@ -240,6 +252,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.pow(activeDrills.value, oil.row2Upgrades[1].bought.value ? 2 : 1),
             5e7
         ).times(metal.efficientDrill.bought.value ? 2 : 1)
+        .times(management.elfTraining.bonfireElfTraining.milestones[2].earned.value ? 2 : 1)
         .times(management.elfTraining.kilnTraining.milestones[2].earned.value ? 2 : 1)
     );
     const buildDrill = createBuyable(() => ({
@@ -669,6 +682,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 4,
             description: "Mining boots",
             enabled: cloth.metalUpgrades.metalUpgrade1.bought
+        })),
+        createExponentialModifier(() => ({
+            exponent: 1.1,
+            description: "Faith Level 2",
+            enabled: management.elfTraining.bonfireTraining.milestones[1].earned
         })),
         createExponentialModifier(() => ({
             exponent: 1.1,
