@@ -79,6 +79,7 @@ const layer = createLayer(id, () => {
             description:
                 "Yay, you have a school. Too bad it has pretty much nothing in it. Maybe you could add some classrooms to make it less boring and more enticing to the Elves?"
         },
+        visibility: () => showIf(teaching.bought.value),
         resource: boxes.boxes,
         style: "width: 150px",
         cost: 1e13
@@ -114,12 +115,16 @@ const layer = createLayer(id, () => {
         );
         const bar = createBar(() => ({
             direction: Direction.Right,
-            width: 100,
+            width: 160,
             height: 10,
             style: "margin-top: 8px",
             baseStyle: "margin-top: 0",
             fillStyle: "margin-top: 0; transition-duration: 0s",
-            progress: () => Decimal.div(expToNextLevel.value, expRequiredForNextLevel.value)
+            borderStyle: () => Decimal.gte(level.value, schools.amount.value) ? "border-color: red" : "",
+            progress: () => Decimal.div(expToNextLevel.value, expRequiredForNextLevel.value),
+            display: jsx(() => Decimal.gte(level.value, schools.amount.value)
+                ? <>Limit reached</>
+                : <>{format(expToNextLevel.value)}/{format(expRequiredForNextLevel.value)} XP</>)
         }));
         const { collapseMilestones: state, display: displayMilestone } =
             createCollapsibleMilestones(milestones as Record<number, GenericMilestone>);
@@ -136,9 +141,8 @@ const layer = createLayer(id, () => {
                 title: elf.name,
                 description: jsx(() => (
                     <>
-                        {elf.name} is currently at level {formatWhole(level.value)}! They have
-                        achieved a total of {format(exp.value)} XP, and have{" "}
-                        {format(expToNextLevel.value)}/{format(expRequiredForNextLevel.value)} XP.
+                        {elf.name} is currently at level {formatWhole(level.value)}, and have
+                        achieved a total of {format(exp.value)} XP.
                         They buy buyables {formatWhole(elf.computedAutoBuyCooldown.value)} times per
                         second, gaining{" "}
                         {Decimal.gte(level.value, schools.amount.value)
@@ -149,21 +153,15 @@ const layer = createLayer(id, () => {
                                       elf.computedAutoBuyCooldown.value
                                   )
                               )}{" "}
-                        XP/sec.{" "}
-                        {Decimal.gte(level.value, schools.amount.value) ? (
-                            <div style="color: red">
-                                This elf cannot gain any XP because it has exceeded the maximum
-                                level from schools.
-                            </div>
-                        ) : undefined}
-                        {currentShown.value !== elf.name
-                            ? "Click to see this elf's milestones."
-                            : undefined}
+                        XP/sec.
                         {render(bar)}
                     </>
                 ))
             },
-            style: "width: 190px",
+            style: () => ({
+                width: "190px",
+                background: currentShown.value == elf.name ? "var(--bought)" : "",
+            }),
             onClick() {
                 currentShown.value = elf.name;
             },
@@ -245,7 +243,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Ivy Level 3",
-                effectDisplay: "2^(log(logs)^0.2) multiplies planting speed"
+                effectDisplay: jsx(() => <>Planting speed is multiplied by x2^(log<sub>10</sub>(logs)^0.2)</>)
             },
             visibility: () => showIf(planterElfMilestones[1].earned.value),
             shouldEarn: () => planterElfTraining.level.value >= 3
@@ -421,7 +419,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Noel Level 4",
-                effectDisplay: "Plastic² subtracts from oil refinery cost"
+                effectDisplay: jsx(() => <>Plastic<sup>2</sup> subtracts from oil refinery cost</>)
             },
             visibility: () =>
                 showIf(fertilizerElfMilestones[2].earned.value && main.day.value >= 13),
@@ -655,7 +653,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Gingersnap Level 2",
-                effectDisplay: "Multiply all cloth actions by log(dye sum + 10)"
+                effectDisplay: jsx(() => <>Multiply all cloth actions by log<sub>10</sub>(dye sum + 10)</>)
             },
             visibility: () => showIf(clothElfMilestones[0].earned.value),
             shouldEarn: () => clothElfTraining.level.value >= 2
@@ -671,7 +669,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Gingersnap Level 4",
-                effectDisplay: "sqrt(classrooms)/2+1 multiplies ALL dye gain, but reset all dyes."
+                effectDisplay: jsx(() => <><Sqrt>classrooms</Sqrt>/2+1 multiplies ALL dye gain, but reset all dyes.</>)
             },
             visibility: () => showIf(clothElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => clothElfTraining.level.value >= 4
@@ -706,6 +704,7 @@ const layer = createLayer(id, () => {
     const planterElfTraining = createElfTraining(elves.elves.plantersElf, planterElfMilestones);
     const expandersElfTraining = createElfTraining(elves.elves.expandersElf, expanderElfMilestones);
     const treeElfTraining = [cutterElfTraining, planterElfTraining, expandersElfTraining];
+
     const heatedCutterElfTraining = createElfTraining(
         elves.elves.heatedCuttersElf,
         heatedCutterElfMilestones
@@ -723,6 +722,7 @@ const layer = createLayer(id, () => {
         heatedPlanterElfTraining,
         fertilizerElfTraining
     ];
+
     const smallfireElfTraining = createElfTraining(
         elves.elves.smallFireElf,
         smallfireElfMilestones
@@ -730,6 +730,7 @@ const layer = createLayer(id, () => {
     const bonfireElfTraining = createElfTraining(elves.elves.bonfireElf, bonfireElfMilestones);
     const kilnElfTraining = createElfTraining(elves.elves.kilnElf, kilnElfMilestones);
     const fireElfTraining = [smallfireElfTraining, bonfireElfTraining, kilnElfTraining];
+    
     const paperElfTraining = createElfTraining(elves.elves.paperElf, paperElfMilestones);
     const boxElfTraining = createElfTraining(elves.elves.boxElf, boxElfMilestones);
     const clothElfTraining = createElfTraining(elves.elves.clothElf, clothElfMilestones);

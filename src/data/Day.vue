@@ -1,14 +1,16 @@
 <template>
     <div class="day feature dontMerge opened" v-if="opened.value">
-        <Transition appear name="door">
-            <div class="doors" @click="emit('openLayer')">
-                <div class="date">Dec<br />{{ day }}</div>
-                <div class="date">Dec<br />{{ day }}</div>
-            </div>
-        </Transition>
-        <div class="icon" :style="{ backgroundImage: `url(${symbol})` }"></div>
-        <div class="lore" @click="emit('openLore')">?</div>
-        <Notif v-if="unref(shouldNotify)" />
+        <Tooltip :display="(layers[layer ?? '']?.name ?? '')" :direction="Direction.Up" yoffset="5px">
+            <Transition appear name="door">
+                <div class="doors" @click="emit('openLayer')">
+                    <div class="date">Dec<br />{{ day }}</div>
+                    <div class="date">Dec<br />{{ day }}</div>
+                </div>
+            </Transition>
+            <div class="icon" @click="emit('openLayer')" :style="{ backgroundImage: `url(${symbol})` }"></div>
+            <div class="lore" @click="emit('openLore')">?</div>
+            <Notif v-if="unref(shouldNotify)" />
+        </Tooltip>
     </div>
     <div
         v-else
@@ -28,7 +30,10 @@
 
 <script setup lang="ts">
 import Notif from "components/Notif.vue";
+import Tooltip from "features/tooltips/Tooltip.vue";
 import Decimal from "util/bignum";
+import { layers } from "game/layers";
+import { Direction } from "util/common";
 import { formatTime } from "util/break_eternity";
 import { ProcessedComputable } from "util/computed";
 import type { Ref } from "vue";
@@ -127,7 +132,7 @@ function tryUnlock() {
     clip-path: polygon(100% 0, 50% 0, 50% 100%, 100% 100%);
 }
 
-.doors {
+.tooltip-container, .doors {
     position: absolute;
     width: 100%;
     height: 100%;
@@ -187,18 +192,18 @@ function tryUnlock() {
     border-radius: var(--border-radius);
     background: var(--locked);
 }
-
 .icon {
     pointer-events: none;
     background-size: contain;
-    width: 100%;
-    height: 100%;
+    width: 90%;
+    height: 90%;
+    margin: 5%;
 }
 
 .lore {
     position: absolute;
-    top: 5px;
-    right: 5px;
+    top: 2px;
+    right: 2px;
     width: 20px;
     height: 20px;
     z-index: 1;
