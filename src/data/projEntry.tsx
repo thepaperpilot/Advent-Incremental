@@ -8,7 +8,7 @@ import {
 } from "features/feature";
 import { BaseLayer, createLayer, GenericLayer, layers } from "game/layers";
 import { persistent } from "game/persistence";
-import type { PlayerData } from "game/player";
+import type { LayerData, PlayerData } from "game/player";
 import player from "game/player";
 import { format, formatTime } from "util/bignum";
 import { Computable, convertComputable, ProcessedComputable } from "util/computed";
@@ -458,11 +458,11 @@ export function fixOldSave(
     }
     player.offlineProd = false;
     delete player.layers?.management;
-    if (player.layers?.main?.days?.[11]) {
-        player.layers.main.days[11].opened = false;
+    if ((player.layers?.main as LayerData<typeof main> | undefined)?.days?.[11]) {
+        (player.layers!.main as LayerData<typeof main>).days![11].opened = false;
     }
-    if (player.layers?.main?.day === 12) {
-        player.layers?.main?.day === 11;
+    if ((player.layers?.main as LayerData<typeof main> | undefined)?.day === 12) {
+        (player.layers!.main as LayerData<typeof main>).day === 11;
         player.devSpeed = 0;
     }
     if (player.tabs) {
