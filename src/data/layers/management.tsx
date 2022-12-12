@@ -988,7 +988,31 @@ const layer = createLayer(id, () => {
             }
         }
     }
-
+    const focusUpgrade1 = createUpgrade(() => ({
+        display: {
+            title: "Focus Booster",
+            description: "Double experience multiplier from focus"
+        },
+        resource: trees.trees,
+        cost: 1e30
+    }));
+    const focusUpgrade2 = createUpgrade(() => ({
+        display: {
+            title: "Focus Buffer",
+            description: "Increase elves affected by focus by 1"
+        },
+        resource: trees,
+        cost: 1e40
+    }));
+    const focusUpgrade3 = createUpgrade(() => ({
+        display: {
+            title: "Focus Upgrader",
+            description: "Focus can now be rerolled every 10 seconds"
+        },
+        resource: trees.trees,
+        cost: 1e50
+    }));
+    const upgrades = { focusUpgrade1, focusUpgrade2, focusUpgrade3 };
     // ------------------------------------------------------------------------------- Schools
 
     const schoolCost = computed(() => {
@@ -1237,8 +1261,10 @@ const layer = createLayer(id, () => {
         classroomUpgrade,
 
         focusMultiplier: focusMulti,
+        upgrades,
         focusTargets,
         focusRolling,
+        
 
         display: jsx(() => (
             <>
