@@ -123,11 +123,27 @@ const layer = createLayer(id, () => {
         ...modifiers: Modifier[]
     ) {
         const exp = persistent<DecimalSource>(0);
-        var costMulti = ["Holly","Ivy","Hope","Jack","Mary","Noel","Joy","Faith","Snowball","Star","Bell","Gingersnap"].indexOf(elf.name)+1
-        if(elf.name == "Star" || elf.name == "Bell"){
-            costMulti /= 3
+        let costMulti =
+            [
+                "Holly",
+                "Ivy",
+                "Hope",
+                "Jack",
+                "Mary",
+                "Noel",
+                "Joy",
+                "Faith",
+                "Snowball",
+                "Star",
+                "Bell",
+                "Gingersnap"
+            ].indexOf(elf.name) + 1;
+        if (elf.name == "Star" || elf.name == "Bell") {
+            costMulti /= 3;
         }
-        const expRequiredForNextLevel = computed(() => Decimal.pow(10, level.value).mul(4000).mul(costMulti));
+        const expRequiredForNextLevel = computed(() =>
+            Decimal.pow(10, level.value).mul(4000).mul(costMulti)
+        );
         const level = computed(() =>
             Decimal.min(
                 Decimal.mul(9, exp.value).div(4000).div(costMulti).add(1).log10().floor(),
@@ -1034,13 +1050,13 @@ const layer = createLayer(id, () => {
         resource: trees.logs,
         cost: 1e50
     }));
-    const upgrades = [ focusUpgrade1, focusUpgrade2, focusUpgrade3 ];
+    const upgrades = [focusUpgrade1, focusUpgrade2, focusUpgrade3];
     // ------------------------------------------------------------------------------- Schools
 
     const schoolCost = computed(() => {
         const schoolFactor = Decimal.pow(10, schools.amount.value);
-        const woodFactor = Decimal.pow(2e4, schools.amount.value)
-        const coalFactor = Decimal.pow(2000, schools.amount.value)
+        const woodFactor = Decimal.pow(2e4, schools.amount.value);
+        const coalFactor = Decimal.pow(2000, schools.amount.value);
         return {
             wood: woodFactor.mul(1e21),
             coal: coalFactor.mul(1e32),
@@ -1131,9 +1147,9 @@ const layer = createLayer(id, () => {
                     multiplying elves' XP gain by {format(classroomEffect.value)}
                 </div>
                 <div>
-                    Costs {format(classroomCost.value.wood)} logs,{format(classroomCost.value.paper)}{" "}
-                    paper, {format(classroomCost.value.boxes)} boxes,{" "}
-                    {format(classroomCost.value.metalIngots)} metal ingots
+                    Costs {format(classroomCost.value.wood)} logs,
+                    {format(classroomCost.value.paper)} paper, {format(classroomCost.value.boxes)}{" "}
+                    boxes, {format(classroomCost.value.metalIngots)} metal ingots
                 </div>
             </>
         )),
@@ -1308,7 +1324,8 @@ const layer = createLayer(id, () => {
                 {render(modifiersModal)}
                 {render(dayProgress)}
                 <br />
-                {renderCol(schools, classrooms)} {renderGrid([teaching, classroomUpgrade])} {renderGrid(upgrades)}
+                {renderCol(schools, classrooms)} {renderGrid([teaching, classroomUpgrade])}{" "}
+                {renderGrid(upgrades)}
                 {Decimal.gt(schools.amount.value, 0) ? (
                     <>
                         <br />
