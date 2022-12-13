@@ -22,16 +22,16 @@ import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatTime, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render, renderCol, renderGrid } from "util/vue";
-import { computed, ComputedRef, ref, Ref, unref, watch, watchEffect } from "vue";
-import elves from "./elves";
-import trees from "./trees";
-import paper from "./paper";
+import { computed, ComputedRef, ref, Ref, unref, watchEffect } from "vue";
 import boxes from "./boxes";
 import cloth from "./cloth";
 import coal from "./coal";
 import dyes from "./dyes";
+import elves from "./elves";
 import metal from "./metal";
+import paper from "./paper";
 import plastic from "./plastic";
+import trees from "./trees";
 
 const id = "management";
 const day = 12;
@@ -1080,7 +1080,7 @@ const layer = createLayer(id, () => {
     const schoolCost = computed(() => {
         const schoolFactor = Decimal.pow(10, schools.amount.value);
         const nerfedSchoolFactor = Decimal.pow(5, schools.amount.value);
-        const woodFactor = Decimal.pow(1e4, schools.amount.value);
+        const woodFactor = Decimal.pow(2e4, Decimal.pow(schools.amount.value, 0.75));
         const coalFactor = Decimal.pow(2000, schools.amount.value);
         return {
             wood: woodFactor.mul(1e21),
