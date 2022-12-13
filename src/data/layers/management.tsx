@@ -196,12 +196,17 @@ const layer = createLayer(id, () => {
         const elfXPGainComputed = computed(() => elfXPGain.apply(0.1));
         const click = createClickable(() => ({
             display: {
-                title: elf.name,
+                title: jsx(() => (
+                    <>
+                        {elf.name} - LV {formatWhole(level.value)}
+                    </>
+                )),
                 description: jsx(() => (
                     <>
-                        {elf.name} is currently at level {formatWhole(level.value)}, and achieved a
-                        total of {format(exp.value)} XP. They buy buyables{" "}
-                        {formatWhole(elf.computedAutoBuyCooldown.value)} times per second, gaining{" "}
+                        Current XP: {format(exp.value)}
+                        <br />
+                        {elf.name} can buy buyables {formatWhole(elf.computedAutoBuyCooldown.value)}{" "}
+                        times per second, gaining{" "}
                         {Decimal.gte(level.value, schools.amount.value)
                             ? 0
                             : format(
@@ -487,7 +492,7 @@ const layer = createLayer(id, () => {
                     </>
                 ))
             },
-            shouldEarn: () => heatedPlanterElfTraining.level.value >= 1
+            shouldEarn: () => fertilizerElfTraining.level.value >= 1
         })),
         createMilestone(() => ({
             display: {
@@ -495,7 +500,7 @@ const layer = createLayer(id, () => {
                 effectDisplay: `"The Garden Tree's Handbook" affects "Fertilized Soil" twice`
             },
             visibility: () => showIf(fertilizerElfMilestones[0].earned.value),
-            shouldEarn: () => heatedPlanterElfTraining.level.value >= 2
+            shouldEarn: () => fertilizerElfTraining.level.value >= 2
         })),
         createMilestone(() => ({
             display: {
@@ -503,7 +508,7 @@ const layer = createLayer(id, () => {
                 effectDisplay: "Divide the mining drill cost by ln(Total logs + e)"
             },
             visibility: () => showIf(fertilizerElfMilestones[1].earned.value),
-            shouldEarn: () => heatedPlanterElfTraining.level.value >= 3
+            shouldEarn: () => fertilizerElfTraining.level.value >= 3
         })),
         createMilestone(() => ({
             display: {
@@ -516,7 +521,7 @@ const layer = createLayer(id, () => {
             },
             visibility: () =>
                 showIf(fertilizerElfMilestones[2].earned.value && main.day.value >= 13),
-            shouldEarn: () => heatedPlanterElfTraining.level.value >= 4
+            shouldEarn: () => fertilizerElfTraining.level.value >= 4
         })),
         createMilestone(() => ({
             display: {

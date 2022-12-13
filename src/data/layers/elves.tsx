@@ -535,7 +535,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const buyProgress = persistent<DecimalSource>(0);
         const amountOfTimesDone = persistent(0);
         const toggle = options.hasToggle ? persistent<boolean>(false) : ref(true);
-        
+
         const computedAutoBuyCooldown = computed(() => options.cooldownModifier.apply(10));
 
         const isActive = convertComputable(options.canBuy ?? true);
