@@ -18,7 +18,6 @@
                     >Manually save</FeedbackButton
                 >
                 <Toggle v-if="projInfo.enablePausing" :title="isPausedTitle" v-model="isPaused" />
-                <Toggle :title="autoPauseTitle" v-model="autoPause" />
             </div>
             <div v-if="isTab('appearance')">
                 <Select :title="themeTitle" :options="themes" v-model="theme" />
