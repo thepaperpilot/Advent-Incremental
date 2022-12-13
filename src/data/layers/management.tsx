@@ -972,7 +972,7 @@ const layer = createLayer(id, () => {
             title: "Focus Booster",
             description: "Double experience multiplier from focus"
         },
-        resource: trees.trees,
+        resource: trees.logs,
         cost: 1e30
     }));
     const focusUpgrade2 = createUpgrade(() => ({
@@ -980,7 +980,7 @@ const layer = createLayer(id, () => {
             title: "Focus Buffer",
             description: "Increase elves affected by focus by 1"
         },
-        resource: trees.trees,
+        resource: trees.logs,
         cost: 1e40
     }));
     const focusUpgrade3 = createUpgrade(() => ({
@@ -988,7 +988,7 @@ const layer = createLayer(id, () => {
             title: "Focus Upgrader",
             description: "Focus can now be rerolled every 10 seconds"
         },
-        resource: trees.trees,
+        resource: trees.logs,
         cost: 1e50
     }));
     const upgrades = { focusUpgrade1, focusUpgrade2, focusUpgrade3 };
