@@ -951,14 +951,14 @@ const layer = createLayer(id, () => {
         createMultiplicativeModifier(() => ({
             multiplier: 2,
             description: "Focus Upgrade 1",
-            enabled: focusUpgrade1.bought.value
+            enabled: focusUpgrade1.bought
         }))
     ]);
     const maximumElvesModifier = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: 1,
             description: "Focus Upgrade 2",
-            enabled: focusUpgrade2.bought.value
+            enabled: focusUpgrade2.bought
         }))
     ]);
 
@@ -966,7 +966,7 @@ const layer = createLayer(id, () => {
         createAdditiveModifier(() => ({
             addend: -5,
             description: "Focus Upgrade 3",
-            enabled: focusUpgrade3.bought.value
+            enabled: focusUpgrade3.bought
         }))
     ]);
 
