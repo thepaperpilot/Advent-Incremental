@@ -293,9 +293,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createAdditiveModifier(() => ({
             addend: () =>
-                workshop.milestones.extraExpansionMilestone1.earned.value
-                    ? Decimal.pow(1.02, workshop.foundationProgress.value)
-                    : Decimal.div(workshop.foundationProgress.value, 5).floor(),
+                Decimal.div(workshop.foundationProgress.value, 5).floor(),
             description: "10% Foundation Completed",
             enabled: workshop.milestones.autoCutMilestone1.earned
         })),
@@ -448,7 +446,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: researchUpgrade2.bought
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.div(workshop.foundationProgress.value, 20).add(1),
+            multiplier: () => workshop.milestones.extraExpansionMilestone1.earned.value
+                    ? Decimal.pow(1.02, workshop.foundationProgress.value) : Decimal.div(workshop.foundationProgress.value, 20).add(1),
             description: "1% Foundation Completed",
             enabled: workshop.milestones.logGainMilestone1.earned
         })),
