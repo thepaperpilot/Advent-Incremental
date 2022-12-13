@@ -1,6 +1,7 @@
 import "components/common/modifiers.css";
 import type { CoercableComponent } from "features/feature";
 import { jsx } from "features/feature";
+import settings from "game/settings";
 import type { DecimalSource } from "util/bignum";
 import Decimal, { format } from "util/bignum";
 import type { WithRequired } from "util/common";
@@ -9,6 +10,7 @@ import { convertComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { renderJSX } from "util/vue";
 import { computed, unref } from "vue";
+import player from "./player";
 
 /**
  * An object that can be used to apply or unapply some modification to a number.
@@ -272,7 +274,7 @@ export function createModifierSection(
     baseText: CoercableComponent = "Base"
 ) {
     return (
-        <div>
+        <div style={{"--unit": settings.alignUnits ? "'" + unit + "'" : ""}}>
             <h3>
                 {title}
                 {subtitle ? <span class="subtitle"> ({subtitle})</span> : null}

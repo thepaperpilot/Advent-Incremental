@@ -1164,7 +1164,7 @@ const layer = createLayer(id, () => {
                 <h3>Build a Classroom</h3>
                 <div>
                     Hopefully it makes the school a bit less boring. Multiplies elves' XP gain by{" "}
-                    <Sqrt>Classrooms + 1</Sqrt>.
+                    (Classrooms + 1)<sup>0.9</sup>.
                 </div>
                 <div>
                     You have {formatWhole(classrooms.amount.value)} classrooms, which are currently

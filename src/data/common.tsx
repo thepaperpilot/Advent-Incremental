@@ -20,6 +20,7 @@ import type { Modifier } from "game/modifiers";
 import type { Persistent } from "game/persistence";
 import { DefaultValue, persistent } from "game/persistence";
 import player from "game/player";
+import settings from "game/settings";
 import type { DecimalSource } from "util/bignum";
 import Decimal, { format } from "util/bignum";
 import { formatWhole } from "util/break_eternity";
@@ -333,7 +334,7 @@ export function createCollapsibleModifierSections(
             return (
                 <>
                     {hasPreviousSection ? <br /> : null}
-                    <div>
+                    <div style={{"--unit": settings.alignUnits && s.unit ? "'" + s.unit + "'" : ""}}>
                         {header}
                         <br />
                         {modifiers}
@@ -424,7 +425,7 @@ export function setUpDailyProgressTracker(options: {
         if (main.day.value !== options.day) return 1;
         let progress = Decimal.add(total.value, 1);
         let requirement = options.goal;
-        if (options.usingLog?.value ?? player.usingLog) {
+        if (options.usingLog?.value ?? settings.usingLog) {
             progress = progress.log10();
             requirement = Decimal.log10(requirement);
         }

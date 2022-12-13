@@ -146,7 +146,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
                                     loreScene.value = -1;
                                     loreTitle.value = unref(layers[layer ?? "trees"]?.name ?? "");
                                     loreBody.value = story;
-                                    player.devSpeed = null;
+                                    if (player.autoPause) player.devSpeed = null;
                                     showLoreModal.value = true;
                                 }, 1000);
                             }
@@ -370,7 +370,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         showLoreModal.value = true;
         day.value++;
         main.minimized.value = false;
-        player.devSpeed = 0;
+        if (player.autoPause) player.devSpeed = 0;
     }
 
     return {
