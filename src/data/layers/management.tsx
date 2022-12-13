@@ -104,12 +104,12 @@ const layer = createLayer(id, () => {
     }));
     const globalXPModifier = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
-            multiplier: () => classroomEffect.value,
+            multiplier: classroomEffect,
             description: "Classroom Effect",
-            enabled: () => classroomUpgrade.bought.value
+            enabled: classroomUpgrade.bought
         }))
     ]);
-    const globalXPModifierComputed = globalXPModifier.apply(1);
+    const globalXPModifierComputed = computed(() => globalXPModifier.apply(1));
 
     // ------------------------------------------------------------------------------- Training core function
 
