@@ -329,9 +329,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAutoCuttingAmount = computed(() => autoCuttingAmount.apply(0));
     const lastAutoCuttingAmount = ref<DecimalSource>(0);
-    watch(computedAutoCuttingAmount, cut => {
+    setInterval(() => watch(computedAutoCuttingAmount, cut => {
         lastAutoCuttingAmount.value = cut;
-    });
+    }), 0);
 
     const manualPlantingAmount = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
@@ -420,9 +420,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAutoPlantingAmount = computed(() => autoPlantingAmount.apply(0));
     const lastAutoPlantedAmount = ref<DecimalSource>(0);
-    watch(computedAutoPlantingAmount, planted => {
+    setInterval(() => watch(computedAutoPlantingAmount, planted => {
         lastAutoPlantedAmount.value = planted;
-    });
+    }), 0);
 
     const logGain = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
