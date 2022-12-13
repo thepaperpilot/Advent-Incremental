@@ -28,6 +28,7 @@ import plastic from "./plastic";
 import trees from "./trees";
 import dyes from "./dyes";
 import management from "./management";
+import workshop from "./workshop";
 
 const id = "paper";
 const day = 5;
@@ -300,6 +301,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: dyes.boosts.yellow1,
             description: "Yellow Dye Boost 1",
             enabled: () => Decimal.gte(dyes.dyes.yellow.amount.value, 1)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "1000% Foundation Completed",
+            enabled: workshop.milestones.extraExpansionMilestone5.earned
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const ashCost = createSequentialModifier(() => [

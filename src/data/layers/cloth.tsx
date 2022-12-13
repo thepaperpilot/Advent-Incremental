@@ -34,6 +34,7 @@ import metal from "./metal";
 import paper from "./paper";
 import plastic from "./plastic";
 import trees from "./trees";
+import workshop from "./workshop";
 
 const id = "cloth";
 const day = 8;
@@ -332,7 +333,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const paperUpgrades = { paperUpgrade4, paperUpgrade3, paperUpgrade2, paperUpgrade1 };
 
     const hollyEffect = computed(() =>
-        Decimal.add(trees.computedAutoCuttingAmount.value, 1).root(3)
+        Decimal.add(trees.computedAutoCuttingAmount.value, 1).root(9)
     );
     const gingersnapEffect = computed(() => Decimal.add(dyes.dyeSum.value, 10).log10());
 
@@ -360,6 +361,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: hollyEffect,
             description: "Holly Level 3",
             enabled: management.elfTraining.cutterElfTraining.milestones[2].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "1000% Foundation Completed",
+            enabled: workshop.milestones.extraExpansionMilestone5.earned
         }))
     ]);
     const computedSheepGain = computed(() => sheepGain.apply(1));
@@ -390,6 +396,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: hollyEffect,
             description: "Holly Level 3",
             enabled: management.elfTraining.cutterElfTraining.milestones[2].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "1000% Foundation Completed",
+            enabled: workshop.milestones.extraExpansionMilestone5.earned
         }))
     ]);
     const computedShearingAmount = computed(() => shearingAmount.apply(1));
@@ -420,6 +431,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: hollyEffect,
             description: "Holly Level 3",
             enabled: management.elfTraining.cutterElfTraining.milestones[2].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "1000% Foundation Completed",
+            enabled: workshop.milestones.extraExpansionMilestone5.earned
         }))
     ]);
     const computedSpinningAmount = computed(() => spinningAmount.apply(1));

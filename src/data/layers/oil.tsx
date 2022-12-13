@@ -36,6 +36,7 @@ import plastic from "./plastic";
 import paper from "./paper";
 import dyes from "./dyes";
 import management from "./management";
+import workshop from "./workshop";
 
 const id = "oil";
 const day = 9;
@@ -719,6 +720,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => coalEffectiveness.value,
             description: "Effectiveness",
             enabled: () => Decimal.lt(coalEffectiveness.value, 1)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () =>
+                Decimal.div(workshop.foundationProgress.value, 10).floor().div(10).add(1),
+            description: "600% Foundation Completed",
+            enabled: workshop.milestones.extraExpansionMilestone3.earned
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.sqrt(management.totalElfLevels.value),
