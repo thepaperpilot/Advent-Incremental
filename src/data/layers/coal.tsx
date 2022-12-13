@@ -885,7 +885,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <MainDisplay
                     resource={coal}
                     color={colorCoal}
-                    style="margin-bottom: 0"
+                    style={{marginBottom: 0}}
+                    resourceStyle={{textShadow: 'grey 0px 0px 10px'}}
                     effectDisplay={
                         Decimal.gt(computedCoalGain.value, 0)
                             ? `+${format(computedCoalGain.value)}/s`

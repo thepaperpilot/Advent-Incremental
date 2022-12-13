@@ -960,6 +960,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     <MainDisplay
                         resource={oil}
                         color={color}
+                        resourceStyle={{textShadow: 'grey 0px 0px 10px'}}
                         sticky={true}
                         productionDisplay={jsx(() => (
                             <>
