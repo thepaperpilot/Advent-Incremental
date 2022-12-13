@@ -146,19 +146,17 @@ const layer = createLayer(id, () => {
         if (elf.name == "Star" || elf.name == "Bell") {
             costMulti /= 3;
         }
+        const costBase = Decimal.mul(4000, costMulti)
         const expRequiredForNextLevel = computed(() =>
-            Decimal.pow(5, level.value).mul(4000).mul(costMulti)
+            Decimal.pow(5, level.value).mul(costBase)
         );
         const level = computed(() =>
-            Decimal.min(
-                Decimal.affordGeometricSeries(exp.value, Decimal.mul(4000, costMulti), 5, 0),
-                schools.amount.value
-            ).toNumber()
+            Decimal.affordGeometricSeries(exp.value, costBase, 5, 0).min(schools.amount.value).toNumber()
         );
         const expToNextLevel = computed(() =>
             Decimal.sub(
                 exp.value,
-                Decimal.sumGeometricSeries(level.value, Decimal.mul(4000, costMulti), 5, 0)
+                Decimal.sumGeometricSeries(level.value, costBase, 5, 0)
             )
         );
         const bar = createBar(() => ({
@@ -982,7 +980,7 @@ const layer = createLayer(id, () => {
 
     const focusMaxMulti = computed(() => focusMaxMultiModifiers.apply(10));
     const maximumElves = computed(() => maximumElvesModifier.apply(3));
-    const cooldown = computed(() => Number(cooldownModifiers.apply(15)));
+    const cooldown = computed(() => cooldownModifiers.apply(15));
 
     const focusMeter = createBar(() => ({
         direction: Direction.Right,
@@ -1031,8 +1029,6 @@ const layer = createLayer(id, () => {
         onClick() {
             focusCooldown.value = cooldown.value;
             focusTime.value = 10;
-
-            // better choice? this has to be a number
             rerollFocusTargets(12, maximumElves.value);
         }
     }));
