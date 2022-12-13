@@ -147,16 +147,16 @@ const layer = createLayer(id, () => {
             costMulti /= 3;
         }
         const expRequiredForNextLevel = computed(() =>
-            Decimal.pow(10, level.value).mul(4000).mul(costMulti)
+            Decimal.pow(5, level.value).mul(4000).mul(costMulti)
         );
         const level = computed(() =>
             Decimal.min(
-                Decimal.mul(9, exp.value).div(4000).div(costMulti).add(1).log10().floor(),
+                Decimal.mul(9, exp.value).div(4000).div(costMulti).add(1).log(5).floor(),
                 schools.amount.value
             ).toNumber()
         );
         const expToNextLevel = computed(() =>
-            Decimal.sub(exp.value, Decimal.pow(10, level.value).sub(1).div(9).mul(4000))
+            Decimal.sub(exp.value, Decimal.pow(5, level.value).sub(1).div(9).mul(4000))
         );
         const bar = createBar(() => ({
             direction: Direction.Right,
