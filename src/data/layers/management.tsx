@@ -273,7 +273,7 @@ const layer = createLayer(id, () => {
                 requirement: "Holly Level 3",
                 effectDisplay: jsx(() => (
                     <>
-                        Multiply all cloth actions' effectiveness by log<sub>10</sub>Cutter amount.
+                        Multiply all cloth actions' effectiveness by log<sub>10</sub>(Cutter amount).
                     </>
                 ))
             },
