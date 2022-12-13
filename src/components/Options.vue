@@ -11,6 +11,7 @@
             <Toggle :title="autosaveTitle" v-model="autosave" />
             <Toggle v-if="projInfo.enablePausing" :title="isPausedTitle" v-model="isPaused" />
             <Toggle :title="progressMethodTitle" v-model="usingLog" />
+            <Toggle :title="alignModifierUnitsTitle" v-model="alignUnits" />
         </template>
     </Modal>
 </template>
@@ -47,7 +48,7 @@ const settingFieldsComponent = computed(() => {
 });
 
 const { showTPS, theme } = toRefs(settings);
-const { autosave, usingLog } = toRefs(player);
+const { autosave, usingLog, alignUnits } = toRefs(player);
 const isPaused = computed({
     get() {
         return player.devSpeed === 0;
@@ -69,7 +70,12 @@ const isPausedTitle = jsx(() => (
 ));
 const progressMethodTitle = jsx(() => (
     <span>
-        Use log for progress bar<Tooltip display="Save-specific">*</Tooltip>
+        Logarithmic progress bars<Tooltip display="Save-specific">*</Tooltip>
+    </span>
+));
+const alignModifierUnitsTitle = jsx(() => (
+    <span>
+        Align modifier units<Tooltip display="Save-specific">*</Tooltip>
     </span>
 ));
 </script>
