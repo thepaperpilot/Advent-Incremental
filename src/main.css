@@ -66,3 +66,74 @@ ul {
 .Vue-Toastification__toast {
 	margin: unset;
 }
+
+/* Scrollbar stuff */
+
+* {
+	scrollbar-color: #ffffff0f var(--accent1);
+}
+
+::-webkit-scrollbar {
+	appearance: none;
+    width: 16px;
+    height: 16px;
+	background-color: #ffffff0f;
+}
+::-webkit-scrollbar-thumb {
+	--back-color: var(--accent1);
+    background: linear-gradient(90deg, var(--back-color), var(--back-color)) no-repeat content-box;
+    border: 2px solid transparent;
+}
+::-webkit-scrollbar-thumb:hover {
+    --back-color: var(--foreground);
+}
+::-webkit-scrollbar-button:single-button {
+	--back-color: transparent;
+	--arrow-color: var(--accent1);
+    width: 16px;
+    height: 16px;
+}
+::-webkit-scrollbar-button:single-button:hover {
+	--back-color: #ffffff0f;
+    --arrow-color: var(--foreground);
+}
+::-webkit-scrollbar-button:single-button:active {
+    --back-color: var(--foreground);
+    --arrow-color: var(--background);
+}
+::-webkit-scrollbar-button:single-button:disabled {
+    --arrow-color: var(--foreground);
+}
+::-webkit-scrollbar-button:single-button:vertical:decrement {
+    background: 
+        conic-gradient(#0000 37.5%, var(--arrow-color) 37.5% 62.5%, #0000 62.5%) no-repeat content-box,
+        linear-gradient(90deg, var(--back-color), var(--back-color)) no-repeat content-box;
+    background-size: 60% 50%, 100% 100%;
+    background-position: 50% 20%, 0% 0%;
+}
+::-webkit-scrollbar-button:single-button:vertical:increment {
+    background: 
+        conic-gradient(var(--arrow-color) 12.5%, #0000 12.5% 87.5%, var(--arrow-color) 87.5%) no-repeat content-box,
+        linear-gradient(90deg, var(--back-color), var(--back-color)) no-repeat content-box;
+    background-size: 60% 50%, 100% 100%;
+    background-position: 50% 80%, 0% 0%;
+}
+::-webkit-scrollbar-button:single-button:horizontal:decrement {
+    background: 
+        conic-gradient(#0000 12.5%, var(--arrow-color) 12.5% 37.5%, #0000 37.5%) no-repeat content-box,
+        linear-gradient(90deg, var(--back-color), var(--back-color)) no-repeat content-box;
+    background-size: 50% 60%, 100% 100%;
+    background-position: 20% 50%, 0% 0%;
+}
+::-webkit-scrollbar-button:single-button:horizontal:increment {
+    background: 
+        conic-gradient(#0000 62.5%, var(--arrow-color) 62.5% 87.5%, #0000 87.5%) no-repeat content-box,
+        linear-gradient(90deg, var(--back-color), var(--back-color)) no-repeat content-box;
+    background-size: 50% 60%, 100% 100%;
+    background-position: 80% 50%, 0% 0%;
+}
+
+::-webkit-scrollbar-corner {
+    background: #070710;
+}
+
