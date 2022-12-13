@@ -22,7 +22,7 @@ import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatTime, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render, renderCol, renderGrid } from "util/vue";
-import { computed, ComputedRef, ref, Ref } from "vue";
+import { computed, ComputedRef, ref, Ref, unref } from "vue";
 import elves from "./elves";
 import trees from "./trees";
 import paper from "./paper";
@@ -59,8 +59,13 @@ const layer = createLayer(id, () => {
         display: jsx(() =>
             main.day.value === day ? (
                 <>
-                    {formatWhole(totalElfLevels.value)}/{formatWhole(elves.totalElves.value * 5)}{" "}
-                    elf levels
+                    {formatWhole(
+                        Decimal.times(
+                            unref(dayProgress.progress),
+                            main.day.value === advancedDay ? 80 : 36
+                        )
+                    )}
+                    /{main.day.value === advancedDay ? 80 : 36} elf levels
                 </>
             ) : (
                 ""
