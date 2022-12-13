@@ -29,6 +29,7 @@ import coal from "./coal";
 import management from "./management";
 import oil from "./oil";
 import trees from "./trees";
+import wrappingPaper from "./wrapping-paper";
 
 interface Dye {
     name: string;
@@ -48,6 +49,8 @@ type DyeUpg =
     | "redDyeUpg2"
     | "blueDyeUpg2"
     | "coalUpg";
+
+export type enumColor = "red" | "green" | "blue" | "yellow" | "purple" | "orange";
 
 const id = "dyes";
 const day = 11;
@@ -114,6 +117,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     description: "Gingersnap Level 1",
                     enabled: management.elfTraining.clothElfTraining.milestones[0].earned
                 })));
+                modifiers.push(createMultiplicativeModifier(() => ({
+                    multiplier: 2,
+                    description: "Wrapping Paper Milestone 1",
+                    enabled: wrappingPaper.milestones.primaryBoost.earned
+                })));
+            }
+            if (options.color == "orange" || options.color == "green" || options.color == "purple") {
+                modifiers.push(createMultiplicativeModifier(() => ({
+                    multiplier: 2,
+                    description: "Wrapping Paper Milestone 2",
+                    enabled: wrappingPaper.milestones.secondaryBoost.earned
+                })));   
             }
             modifiers.push(createMultiplicativeModifier(() => ({
                 multiplier: 2,
@@ -225,7 +240,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         };
     }
 
-    const dyes: Record<"red" | "yellow" | "blue" | "orange" | "green" | "purple", Dye> = {
+    const dyes: Record<enumColor, Dye> = {
         red: createDye({
             name: "Red Dye",
             color: "red",
