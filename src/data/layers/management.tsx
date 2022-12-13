@@ -1018,7 +1018,7 @@ const layer = createLayer(id, () => {
         let x = 0;
         focusTargets.value = {};
         const newCount = Decimal.min(count, range);
-        while (newCount.gte(x)) {
+        while (newCount.gt(x)) {
             const roll = Object.values(elfTraining)[Math.floor(Math.random() * range)]?.name ?? "";
             if (!focusTargets.value[roll]) {
                 focusTargets.value[roll] = true;
