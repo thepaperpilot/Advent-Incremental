@@ -1012,7 +1012,7 @@ const layer = createLayer(id, () => {
             description: jsx(() => (
                 <>
                     Motivate elves to focus, multiplying 3 random elves' XP gain by up to{" "}
-                    {format(focusMaxMulti.value)}x for 10 seconds, equal to the focus bars' effect.
+                    {format(focusMaxMulti.value)}x for 10 seconds, equal to the focus bar's effect.
                     {Decimal.gte(focusCooldown.value, 0) ? (
                         <>
                             <br />
