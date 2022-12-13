@@ -12,6 +12,7 @@ import { persistent } from "game/persistence";
 import { globalBus } from "game/events";
 import {
     createAdditiveModifier,
+    createExponentialModifier,
     createMultiplicativeModifier,
     createSequentialModifier
 } from "game/modifiers";
@@ -30,6 +31,7 @@ import boxes from "./boxes";
 import cloth from "./cloth";
 import plastic from "./plastic";
 import dyes from "./dyes";
+import management from "./management";
 
 const id = "metal";
 const day = 7;
@@ -78,6 +80,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.add(cloth.cloth.value, 1).log10().plus(1),
             description: "Glistening Paint",
             enabled: dyes.upgrades.redDyeUpg.bought
+        })),
+        createExponentialModifier(() => ({
+            exponent: 1.1,
+            description: "Mary Level 4",
+            enabled: management.elfTraining.heatedPlanterElfTraining.milestones[3].earned
         }))
     ]);
     const computedOrePurity = computed(() => orePurity.apply(0.1));
@@ -108,6 +115,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.add(plastic.activeRefinery.value, 1).sqrt(),
             description: "De Louvre",
             enabled: dyes.upgrades.redDyeUpg2.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.div(management.totalElfExp.value, 1000).add(1).sqrt(),
+            description: "Mary Level 5",
+            enabled: management.elfTraining.heatedPlanterElfTraining.milestones[4].earned
         }))
     ]);
     const computedAutoSmeltSpeed = computed(() => autoSmeltSpeed.apply(0));

@@ -32,6 +32,7 @@ import boxes from "./boxes";
 import metal from "./metal";
 import oil from "./oil";
 import dyes from "./dyes";
+import management from "./management";
 
 const id = "plastic";
 const day = 10;
@@ -66,7 +67,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         resource: metal.metal,
         cost() {
             const v = new Decimal(this.amount.value);
-            return Decimal.pow(1.2, v).times(1e7);
+            let cost = Decimal.pow(1.2, v).times(1e7);
+            if (management.elfTraining.fertilizerElfTraining.milestones[3].earned.value) {
+                cost = Decimal.sub(cost, Decimal.pow(plastic.value, 2)).max(0);
+            }
+            return cost;
         },
         display: jsx(() => (
             <>
@@ -299,11 +304,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 {render(trackerDisplay)}
                 <Spacer />
-                <MainDisplay resource={plastic} color={color} style="margin-bottom: 0"  effectDisplay={
+                <MainDisplay
+                    resource={plastic}
+                    color={color}
+                    style="margin-bottom: 0"
+                    effectDisplay={
                         Decimal.gt(computedPlasticGain.value, 0)
                             ? `+${format(computedPlasticGain.value)}/s`
                             : undefined
-                    } />
+                    }
+                />
                 <Spacer />
                 <Column>
                     {render(buildRefinery)}

@@ -35,6 +35,7 @@ import { formatGain } from "util/bignum";
 import plastic from "./plastic";
 import paper from "./paper";
 import dyes from "./dyes";
+import management from "./management";
 
 const id = "oil";
 const day = 9;
@@ -247,8 +248,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <br />
                 Pump that oil from the ground.
                 <br />
-                Gain oil based on the number of Heavy buildings active and well
-                depth, but coal usage is multiplied by {row2Upgrades[3].bought.value ? 4 : 5}×.
+                Gain oil based on the number of Heavy buildings active and well depth, but coal
+                usage is multiplied by {row2Upgrades[3].bought.value ? 4 : 5}×.
                 <br />
                 <br />
                 Currently:
@@ -718,6 +719,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => coalEffectiveness.value,
             description: "Effectiveness",
             enabled: () => Decimal.lt(coalEffectiveness.value, 1)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.sqrt(management.totalElfLevels.value),
+            description: "Jack Level 4",
+            enabled: management.elfTraining.heatedCutterElfTraining.milestones[3].earned
         }))
     ]);
     const computedOilSpeed = computed(() => oilSpeed.apply(0));

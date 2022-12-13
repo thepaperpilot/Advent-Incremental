@@ -75,6 +75,9 @@ const layer = createLayer(id, () => {
         }
         return elfLevel;
     });
+    const totalElfExp = computed(() =>
+        Object.values(elfTraining).reduce((acc, curr) => acc.add(curr.exp.value), new Decimal(0))
+    );
 
     // ------------------------------------------------------------------------------- Upgrades
 
@@ -169,7 +172,8 @@ const layer = createLayer(id, () => {
             createMultiplicativeModifier(() => ({
                 multiplier: focusMulti,
                 description: "Focus Multiplier",
-                enabled: () => Decimal.gt(focusTime.value, 0) && focusTargets.value[elf.name] == true
+                enabled: () =>
+                    Decimal.gt(focusTime.value, 0) && focusTargets.value[elf.name] == true
             })),
             ...modifiers
         ]);
@@ -390,7 +394,11 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Jack Level 4",
-                effectDisplay: "Oil gain is multiplied based on total elf levels."
+                effectDisplay: jsx(() => (
+                    <>
+                        Oil gain is multiplied by <Sqrt>total elf levels</Sqrt>.
+                    </>
+                ))
             },
             visibility: () =>
                 showIf(heatedCutterElfMilestones[2].earned.value && main.day.value >= 13),
@@ -903,8 +911,8 @@ const layer = createLayer(id, () => {
                     );
             }
         }
-        focusTime.value = Decimal.sub(focusTime.value, diff).max(0)
-        focusCooldown.value = Decimal.sub(focusCooldown.value, diff).max(0)
+        focusTime.value = Decimal.sub(focusTime.value, diff).max(0);
+        focusCooldown.value = Decimal.sub(focusCooldown.value, diff).max(0);
         if (Decimal.eq(focusTime.value, 0)) {
             focusMulti.value = Decimal.pow(
                 focusMaxMulti.value,
@@ -993,7 +1001,7 @@ const layer = createLayer(id, () => {
     function rerollFocusTargets(range: number, count: DecimalSource) {
         let x = 0;
         focusTargets.value = {};
-        const newCount = Decimal.min(count, range)
+        const newCount = Decimal.min(count, range);
         while (newCount.gte(x)) {
             const roll = Object.values(elfTraining)[Math.floor(Math.random() * range)]?.name ?? "";
             if (!focusTargets.value[roll]) {
@@ -1267,6 +1275,7 @@ const layer = createLayer(id, () => {
 
         elfTraining,
         totalElfLevels,
+        totalElfExp,
         currentShown,
         generalTabCollapsed,
 
