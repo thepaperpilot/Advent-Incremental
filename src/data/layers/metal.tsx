@@ -4,7 +4,7 @@ import Toggle from "components/fields/Toggle.vue";
 import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
 import { jsx, showIf } from "features/feature";
-import { createResource, trackBest } from "features/resources/resource";
+import { createResource, Resource, trackBest } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { render, renderRow } from "util/vue";
@@ -359,7 +359,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         .gte(10)
             ),
         style: { width: "200px" }
-    })) as GenericBuyable;
+    })) as GenericBuyable & { resource: Resource };
     const industrialCrucible = createBuyable(() => ({
         resource: noPersist(metal),
         cost() {
@@ -382,7 +382,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     Decimal.gte(bestOre.value, 50)
             ),
         style: { width: "200px" }
-    })) as GenericBuyable;
+    })) as GenericBuyable & { resource: Resource };
     const autoSmeltEnabled = persistent<boolean>(true);
     const hotterForge = createBuyable(() => ({
         resource: coal.coal,
@@ -403,7 +403,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () =>
             showIf(Decimal.gte(hotterForge.amount.value, 1) || industrialFurnace.bought.value),
         style: { width: "200px" }
-    })) as GenericBuyable;
+    })) as GenericBuyable & { resource: Resource };
     const hotterForgeEffect = computed(() => Decimal.times(hotterForge.amount.value, 0.25));
 
     globalBus.on("update", diff => {

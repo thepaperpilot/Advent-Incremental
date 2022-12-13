@@ -29,6 +29,8 @@ import boxes from "./boxes";
 import cloth from "./cloth";
 import coal from "./coal";
 import management from "./management";
+import metal from "./metal";
+import oil from "./oil";
 import paper from "./paper";
 import plastic from "./plastic";
 import trees from "./trees";
@@ -310,6 +312,57 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elvesMilestone2.earned
         }))
     ]);
+    const miningDrillCooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "6 Elves Trained",
+            enabled: elvesMilestone.earned
+        })),
+        // createMultiplicativeModifier(() => ({
+        //     multiplier: () => Decimal.times(paper.books.clothBook.amount.value, 0.1).add(1),
+        //     description: "Fuzzy Bee and Friends",
+        //     enabled: () => Decimal.gt(paper.books.clothBook.amount.value, 0)
+        // })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "10 Elves Trained",
+            enabled: elvesMilestone2.earned
+        }))
+    ]);
+    const metalCooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "6 Elves Trained",
+            enabled: elvesMilestone.earned
+        })),
+        // createMultiplicativeModifier(() => ({
+        //     multiplier: () => Decimal.times(paper.books.clothBook.amount.value, 0.1).add(1),
+        //     description: "Fuzzy Bee and Friends",
+        //     enabled: () => Decimal.gt(paper.books.clothBook.amount.value, 0)
+        // })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "10 Elves Trained",
+            enabled: elvesMilestone2.earned
+        }))
+    ]);
+    const heavyDrillCooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "6 Elves Trained",
+            enabled: elvesMilestone.earned
+        })),
+        // createMultiplicativeModifier(() => ({
+        //     multiplier: () => Decimal.times(paper.books.clothBook.amount.value, 0.1).add(1),
+        //     description: "Fuzzy Bee and Friends",
+        //     enabled: () => Decimal.gt(paper.books.clothBook.amount.value, 0)
+        // })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "10 Elves Trained",
+            enabled: elvesMilestone2.earned
+        }))
+    ]);
 
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
         {
@@ -395,6 +448,27 @@ const layer = createLayer(id, function (this: BaseLayer) {
             base: 10,
             unit: "/s",
             visible: elves.clothElf.bought
+        },
+        {
+            title: "Peppermint Auto-Buy Frequency",
+            modifier: miningDrillCooldown,
+            base: 10,
+            unit: "/s",
+            visible: management.elfTraining.expandersElfTraining.milestones[3].earned
+        },
+        {
+            title: "Twinkle Auto-Buy Frequency",
+            modifier: metalCooldown,
+            base: 10,
+            unit: "/s",
+            visible: management.elfTraining.expandersElfTraining.milestones[4].earned
+        },
+        {
+            title: "Frosty Auto-Buy Frequency",
+            modifier: heavyDrillCooldown,
+            base: 10,
+            unit: "/s",
+            visible: management.elfTraining.heatedCutterElfTraining.milestones[4].earned.value
         }
     ]);
     const showModifiersModal = ref(false);
@@ -428,7 +502,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             customCost?: (amount: DecimalSource) => DecimalSource;
             hasToggle?: boolean;
             toggleDesc?: string;
-            onAutoPurchase?: VoidFunction;
+            onAutoPurchase?: (buyable: GenericBuyable & { resource: Resource }) => void;
             onPurchase?: VoidFunction; // Will get overriden by the custom onpurchase, but that's fine
             canBuy?: Computable<boolean>;
             buyMax?: Computable<boolean>;
@@ -461,7 +535,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                             ) {
                                 buyable.amount.value = Decimal.add(buyable.amount.value, 1);
                                 buyProgress.value = Decimal.sub(buyProgress.value, cooldown);
-                                options.onAutoPurchase?.();
+                                options.onAutoPurchase?.(buyable);
                             } else {
                                 buyProgress.value = cooldown;
                                 break;
@@ -661,6 +735,54 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () => showIf(plastic.elfUpgrades.clothElf.bought.value)
     });
     const plasticElves = [paperElf, boxElf, clothElf];
+    const miningDrillElf = createElf({
+        name: "Peppermint",
+        description:
+            "Peppermint will automatically purchase all mining drills you can afford, without actually spending any resources.",
+        buyable: coal.buildDrill,
+        cooldownModifier: miningDrillCooldown,
+        visibility: () =>
+            showIf(management.elfTraining.expandersElfTraining.milestones[3].earned.value),
+        hasToggle: true,
+        toggleDesc: "Activate auto-purchased mining drills",
+        onAutoPurchase() {
+            if (miningDrillElf.toggle.value) {
+                coal.activeDrills.value = Decimal.add(coal.activeDrills.value, 1);
+            }
+        }
+    });
+    const metalElf = createElf({
+        name: "Twinkle",
+        description:
+            "Twinkle will automatically purchase all metal buyables you can afford, without actually spending any resources.",
+        buyable: [metal.oreDrill, metal.industrialCrucible, metal.hotterForge],
+        cooldownModifier: metalCooldown,
+        visibility: () =>
+            showIf(management.elfTraining.expandersElfTraining.milestones[4].earned.value)
+    });
+    const heavyDrillElf = createElf({
+        name: "Frosty",
+        description:
+            "Frosty will automatically purchase all drill types in the oil section, without actually spending any resources.",
+        buyable: [oil.buildHeavy, oil.buildHeavy2, oil.buildExtractor],
+        cooldownModifier: heavyDrillCooldown,
+        visibility: () =>
+            showIf(management.elfTraining.heatedCutterElfTraining.milestones[4].earned.value),
+        hasToggle: true,
+        toggleDesc: "Activate auto-purchased oil drills",
+        onAutoPurchase(buyable) {
+            if (heavyDrillElf.toggle.value) {
+                if (buyable === oil.buildHeavy) {
+                    oil.activeHeavy.value = Decimal.add(oil.activeHeavy.value, 1);
+                } else if (buyable === oil.buildHeavy) {
+                    oil.activeHeavy.value = Decimal.add(oil.activeHeavy.value, 1);
+                } else if (buyable === oil.buildHeavy) {
+                    oil.activeHeavy.value = Decimal.add(oil.activeHeavy.value, 1);
+                }
+            }
+        }
+    });
+    const managementElves = [miningDrillElf, metalElf, heavyDrillElf];
     const elves = {
         cuttersElf,
         plantersElf,
@@ -673,7 +795,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         kilnElf,
         paperElf,
         boxElf,
-        clothElf
+        clothElf,
+        miningDrillElf,
+        metalElf,
+        heavyDrillElf
     };
     const totalElves = computed(() => Object.values(elves).filter(elf => elf.bought.value).length);
 
@@ -853,7 +978,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {render(modifiersModal)}
                 <Spacer />
                 <div style="width: 600px">
-                    {renderGrid(treesElves, coalElves, fireElves, plasticElves)}
+                    {renderGrid(treesElves, coalElves, fireElves, plasticElves, managementElves)}
                 </div>
                 {milestonesDisplay()}
             </>
