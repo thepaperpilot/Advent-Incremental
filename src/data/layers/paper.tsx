@@ -187,6 +187,24 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buyableName: "Cloth Buyables",
         visibility: () => showIf(elves.elves.clothElf.bought.value)
     });
+    const miningDrillBook = createBook({
+        name: "Drills and Mills",
+        elfName: "Peppermint",
+        buyableName: "Mining Drill",
+        visibility: () => showIf(management.elfTraining.expandersElfTraining.milestones[3].earned.value)
+    });
+    const metalBook = createBook({
+        name: "Physical Metallurgy",
+        elfName: "Twinkle",
+        buyableName: "Metal Buyables",
+        visibility: () => showIf(management.elfTraining.expandersElfTraining.milestones[4].earned.value)
+    });
+    const heavyDrillBook = createBook({
+        name: "Deep in the Earth",
+        elfName: "Frosty",
+        buyableName: "Oil Drills",
+        visibility: () => showIf(management.elfTraining.heatedCutterElfTraining.milestones[4].earned.value)
+    });
     const books = {
         cuttersBook,
         plantersBook,
@@ -199,7 +217,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         kilnBook,
         paperBook,
         boxBook,
-        clothBook
+        clothBook,
+        miningDrillBook,
+        metalBook,
+        heavyDrillBook
     };
     const sumBooks = computed(() => Object.values(books).reduce((acc, curr) => acc.add(curr.amount.value), new Decimal(0)));
 

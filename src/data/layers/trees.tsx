@@ -422,7 +422,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const lastAutoPlantedAmount = ref<DecimalSource>(0);
     setInterval(() => watch(computedAutoPlantingAmount, planted => {
         lastAutoPlantedAmount.value = planted;
-    }),0);
+    }), 0);
 
     const logGain = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({

@@ -318,11 +318,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "6 Elves Trained",
             enabled: elvesMilestone.earned
         })),
-        // createMultiplicativeModifier(() => ({
-        //     multiplier: () => Decimal.times(paper.books.clothBook.amount.value, 0.1).add(1),
-        //     description: "Fuzzy Bee and Friends",
-        //     enabled: () => Decimal.gt(paper.books.clothBook.amount.value, 0)
-        // })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.times(paper.books.miningDrillBook.amount.value, 0.1).add(1),
+            description: "Drills and Mills",
+            enabled: () => Decimal.gt(paper.books.miningDrillBook.amount.value, 0)
+        })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
             description: "10 Elves Trained",
@@ -335,11 +335,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "6 Elves Trained",
             enabled: elvesMilestone.earned
         })),
-        // createMultiplicativeModifier(() => ({
-        //     multiplier: () => Decimal.times(paper.books.clothBook.amount.value, 0.1).add(1),
-        //     description: "Fuzzy Bee and Friends",
-        //     enabled: () => Decimal.gt(paper.books.clothBook.amount.value, 0)
-        // })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.times(paper.books.metalBook.amount.value, 0.1).add(1),
+            description: "Physical Metallurgy",
+            enabled: () => Decimal.gt(paper.books.metalBook.amount.value, 0)
+        })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
             description: "10 Elves Trained",
@@ -352,11 +352,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "6 Elves Trained",
             enabled: elvesMilestone.earned
         })),
-        // createMultiplicativeModifier(() => ({
-        //     multiplier: () => Decimal.times(paper.books.clothBook.amount.value, 0.1).add(1),
-        //     description: "Fuzzy Bee and Friends",
-        //     enabled: () => Decimal.gt(paper.books.clothBook.amount.value, 0)
-        // })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.times(paper.books.heavyDrillBook.amount.value, 0.1).add(1),
+            description: "Deep in the Earth",
+            enabled: () => Decimal.gt(paper.books.heavyDrillBook.amount.value, 0)
+        })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
             description: "10 Elves Trained",

@@ -12,7 +12,12 @@ import { createMilestone, GenericMilestone } from "features/milestones/milestone
 import { createUpgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
 import { createLayer } from "game/layers";
-import { createMultiplicativeModifier, createSequentialModifier, Modifier } from "game/modifiers";
+import {
+    createAdditiveModifier,
+    createMultiplicativeModifier,
+    createSequentialModifier,
+    Modifier
+} from "game/modifiers";
 import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatTime, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
@@ -160,7 +165,7 @@ const layer = createLayer(id, () => {
             createMultiplicativeModifier(() => ({
                 multiplier: focusMulti,
                 description: "Focus Multiplier",
-                enabled: () => focusTime.value > 0 && focusTargets.value[elf.name] == true
+                enabled: () => Decimal.gt(focusTime.value, 0) && focusTargets.value[elf.name] == true
             })),
             ...modifiers
         ]);
@@ -894,14 +899,13 @@ const layer = createLayer(id, () => {
                     );
             }
         }
-        focusTime.value = Math.max(focusTime.value - diff, 0);
-        focusCooldown.value = Math.max(focusCooldown.value - diff, 0);
-        if (focusTime.value > 0) {
+        focusTime.value = Decimal.sub(focusTime.value, diff).max(0)
+        focusCooldown.value = Decimal.sub(focusCooldown.value, diff).max(0)
+        if (Decimal.eq(focusTime.value, 0)) {
             focusMulti.value = Decimal.pow(
                 focusMaxMulti.value,
                 1 - Math.abs(Math.sin((Date.now() / 1000) * 2))
             );
-            
         }
     });
 
@@ -909,10 +913,35 @@ const layer = createLayer(id, () => {
 
     const focusMulti = persistent<DecimalSource>(1);
     const focusTargets = persistent<Record<string, boolean>>({});
-    const focusCooldown = persistent<number>(0);
-    const focusTime = persistent<number>(0);
+    const focusCooldown = persistent<DecimalSource>(0);
+    const focusTime = persistent<DecimalSource>(0);
 
-    const focusMaxMulti = computed<DecimalSource>(() => focusUpgrade1.bought.value ? 20 : 10);
+    const focusMaxMultiModifiers = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Focus Upgrade 1",
+            enabled: focusUpgrade1.bought
+        }))
+    ]);
+    const maximumElvesModifier = createSequentialModifier(() => [
+        createAdditiveModifier(() => ({
+            addend: 1,
+            description: "Focus Upgrade 2",
+            enabled: focusUpgrade2.bought
+        }))
+    ]);
+
+    const cooldownModifiers = createSequentialModifier(() => [
+        createAdditiveModifier(() => ({
+            addend: -5,
+            description: "Focus Upgrade 3",
+            enabled: focusUpgrade3.bought
+        }))
+    ]);
+
+    const focusMaxMulti = computed(() => focusMaxMultiModifiers.apply(10));
+    const maximumElves = computed(() => maximumElvesModifier.apply(3));
+    const cooldown = computed(() => Number(cooldownModifiers.apply(15)));
 
     const focusMeter = createBar(() => ({
         direction: Direction.Right,
@@ -933,7 +962,7 @@ const layer = createLayer(id, () => {
                 <>
                     Motivate elves to focus, multiplying 3 random elves' XP gain by up to{" "}
                     {format(focusMaxMulti.value)}x, equal to the focus bars' effect.
-                    {focusCooldown.value > 0 ? (
+                    {Decimal.gte(focusCooldown.value, 0) ? (
                         <>
                             <br />
                             Reroll cooldown: {formatTime(focusCooldown.value)}
@@ -947,19 +976,21 @@ const layer = createLayer(id, () => {
         style: {
             width: "300px"
         },
-        canClick: () => focusCooldown.value === 0,
+        canClick: () => Decimal.eq(focusCooldown.value, 0),
         onClick() {
-            focusCooldown.value = focusUpgrade3.bought.value ? 10 : 15;
+            focusCooldown.value = cooldown.value;
             focusTime.value = 10;
-            rerollFocusTargets(12, focusUpgrade2.bought.value ? 4 : 3);
+
+            // better choice? this has to be a number
+            rerollFocusTargets(12, maximumElves.value);
         }
     }));
 
-    function rerollFocusTargets(range: number, count: number) {
+    function rerollFocusTargets(range: number, count: DecimalSource) {
         let x = 0;
         focusTargets.value = {};
-        count = Math.min(count, range);
-        while (x < count) {
+        const newCount = Decimal.min(count, range)
+        while (newCount.gte(x)) {
             const roll = Object.values(elfTraining)[Math.floor(Math.random() * range)]?.name ?? "";
             if (!focusTargets.value[roll]) {
                 focusTargets.value[roll] = true;
@@ -970,9 +1001,9 @@ const layer = createLayer(id, () => {
     const focusUpgrade1 = createUpgrade(() => ({
         display: {
             title: "Focus Booster",
-            description: "Double experience multiplier from focus"
+            description: "Multiplies the maximum experience multiplier from focus by 2"
         },
-        resource: trees.trees,
+        resource: trees.logs,
         cost: 1e30
     }));
     const focusUpgrade2 = createUpgrade(() => ({
@@ -980,7 +1011,7 @@ const layer = createLayer(id, () => {
             title: "Focus Buffer",
             description: "Increase elves affected by focus by 1"
         },
-        resource: trees.trees,
+        resource: trees.logs,
         cost: 1e40
     }));
     const focusUpgrade3 = createUpgrade(() => ({
@@ -988,7 +1019,7 @@ const layer = createLayer(id, () => {
             title: "Focus Upgrader",
             description: "Focus can now be rerolled every 10 seconds"
         },
-        resource: trees.trees,
+        resource: trees.logs,
         cost: 1e50
     }));
     const upgrades = { focusUpgrade1, focusUpgrade2, focusUpgrade3 };
@@ -1115,6 +1146,22 @@ const layer = createLayer(id, () => {
 
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
         {
+            title: "Elves affected by Focus",
+            modifier: maximumElvesModifier,
+            base: 3
+        },
+        {
+            title: "Maximum Focus Effect",
+            modifier: focusMaxMultiModifiers,
+            base: 10
+        },
+        {
+            title: "Focus Cooldown",
+            modifier: cooldownModifiers,
+            unit: " secs",
+            base: 15
+        },
+        {
             title: "Global XP Gain",
             modifier: globalXPModifier,
             unit: " XP"
@@ -1227,7 +1274,6 @@ const layer = createLayer(id, () => {
         focusTargets,
         focusCooldown,
         focusTime,
-        
 
         display: jsx(() => (
             <>
