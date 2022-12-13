@@ -457,7 +457,7 @@ export function fixOldSave(
     if (!["0.0", "0.1", "0.2", "0.3", "0.4"].includes(oldVersion ?? "")) {
         return;
     }
-    player.offlineProd = false;
+    /*player.offlineProd = false;
     delete player.layers?.management;
     if ((player.layers?.main as LayerData<typeof main> | undefined)?.days?.[11]) {
         (player.layers!.main as LayerData<typeof main>).days![11].opened = false;
@@ -468,6 +468,6 @@ export function fixOldSave(
     }
     if (player.tabs) {
         player.tabs = player.tabs.filter(l => l !== "management");
-    }
+    }*/
 }
 /* eslint-enable @typescript-eslint/no-unused-vars */

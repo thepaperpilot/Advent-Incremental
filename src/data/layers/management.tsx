@@ -999,7 +999,7 @@ const layer = createLayer(id, () => {
         return {
             wood: schoolFactor.mul(1e21),
             coal: schoolFactor.mul(1e32),
-            paper: schoolFactor.mul(1e19),
+            paper: schoolFactor.mul(1e18),
             boxes: schoolFactor.mul(1e13),
             metalIngots: schoolFactor.mul(1e12),
             cloth: schoolFactor.mul(1e4),
@@ -1063,13 +1063,9 @@ const layer = createLayer(id, () => {
         const classroomFactor = Decimal.add(schools.amount.value, 1).pow(1.5);
         return {
             wood: classroomFactor.mul(1e21),
-            coal: classroomFactor.mul(1e32),
-            paper: classroomFactor.mul(1e19),
+            paper: classroomFactor.mul(1e18),
             boxes: classroomFactor.mul(1e13),
-            metalIngots: classroomFactor.mul(1e12),
-            cloth: classroomFactor.mul(1e4),
-            plastic: classroomFactor.mul(1e6),
-            dye: classroomFactor.mul(10000)
+            metalIngots: classroomFactor.mul(1e12)
         };
     });
 
@@ -1090,38 +1086,25 @@ const layer = createLayer(id, () => {
                     multiplying elves' XP gain by {format(classroomEffect.value)}
                 </div>
                 <div>
-                    Costs {format(classroomCost.value.wood)} logs,{" "}
-                    {format(classroomCost.value.coal)} coal, {format(classroomCost.value.paper)}{" "}
+                    Costs {format(classroomCost.value.wood)} logs,{format(classroomCost.value.paper)}{" "}
                     paper, {format(classroomCost.value.boxes)} boxes,{" "}
-                    {format(classroomCost.value.metalIngots)} metal ingots,{" "}
-                    {format(classroomCost.value.cloth)} cloth, {format(classroomCost.value.plastic)}{" "}
-                    plastic, and requires {format(classroomCost.value.dye)} of red, yellow, and blue
-                    dye
+                    {format(classroomCost.value.metalIngots)} metal ingots
                 </div>
             </>
         )),
         canPurchase(): boolean {
             return (
                 classroomCost.value.wood.lte(trees.logs.value) &&
-                classroomCost.value.coal.lte(coal.coal.value) &&
                 classroomCost.value.paper.lte(paper.paper.value) &&
                 classroomCost.value.boxes.lte(boxes.boxes.value) &&
-                classroomCost.value.metalIngots.lte(metal.metal.value) &&
-                classroomCost.value.cloth.lte(cloth.cloth.value) &&
-                classroomCost.value.plastic.lte(plastic.plastic.value) &&
-                classroomCost.value.dye.lte(dyes.dyes.blue.amount.value) &&
-                classroomCost.value.dye.lte(dyes.dyes.red.amount.value) &&
-                classroomCost.value.dye.lte(dyes.dyes.yellow.amount.value)
+                classroomCost.value.metalIngots.lte(metal.metal.value)
             );
         },
         onPurchase() {
             trees.logs.value = Decimal.sub(trees.logs.value, classroomCost.value.wood);
-            coal.coal.value = Decimal.sub(coal.coal.value, classroomCost.value.coal);
             paper.paper.value = Decimal.sub(paper.paper.value, classroomCost.value.paper);
             boxes.boxes.value = Decimal.sub(boxes.boxes.value, classroomCost.value.boxes);
             metal.metal.value = Decimal.sub(metal.metal.value, classroomCost.value.metalIngots);
-            cloth.cloth.value = Decimal.sub(cloth.cloth.value, classroomCost.value.cloth);
-            plastic.plastic.value = Decimal.sub(plastic.plastic.value, classroomCost.value.plastic);
             this.amount.value = Decimal.add(this.amount.value, 1);
         },
         visibility: computed(() => showIf(classroomUpgrade.bought.value)),
