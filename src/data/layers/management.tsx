@@ -535,7 +535,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Joy Level 1",
-                effectDisplay: "Multiply small fire efficiency by 5."
+                effectDisplay: "Small Fire synergy counts bonfires at reduced rate."
             },
             shouldEarn: () => smallfireElfTraining.level.value >= 1
         })),

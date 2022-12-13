@@ -82,13 +82,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const activeFires = persistent<DecimalSource>(0);
     const fireLogs = computed(() => Decimal.times(activeFires.value, 1000));
-    const fireCoal = computed(() => {
-        let gain = Decimal.times(activeFires.value, 0.1);
-        if (management.elfTraining.smallfireElfTraining.milestones[0].earned.value) {
-            gain = gain.times(5);
-        }
-        return gain;
-    });
+    const fireCoal = computed(() => Decimal.times(activeFires.value, 0.1));
     const fireAsh = computed(() => {
         let gain = Decimal.times(activeFires.value, 50);
         if (management.elfTraining.smallfireElfTraining.milestones[0].earned.value) {
@@ -263,10 +257,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         Decimal.times(
             Decimal.pow(activeDrills.value, oil.row2Upgrades[1].bought.value ? 2 : 1),
             5e7
-        ).times(metal.efficientDrill.bought.value ? 2 : 1)
-        .times(management.elfTraining.smallfireElfTraining.milestones[2].earned.value ? 2 : 1)
-        .times(management.elfTraining.bonfireElfTraining.milestones[2].earned.value ? 2 : 1)
-        .times(management.elfTraining.kilnElfTraining.milestones[2].earned.value ? 2 : 1)
+        )
+            .times(metal.efficientDrill.bought.value ? 2 : 1)
+            .times(management.elfTraining.smallfireElfTraining.milestones[2].earned.value ? 2 : 1)
+            .times(management.elfTraining.bonfireElfTraining.milestones[2].earned.value ? 2 : 1)
+            .times(management.elfTraining.kilnElfTraining.milestones[2].earned.value ? 2 : 1)
     );
     const buildDrill = createBuyable(() => ({
         resource: metal.metal,
@@ -596,7 +591,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: boxes.upgrades.coalUpgrade.bought
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.div(buildFire.amount.value, 10000).add(1),
+            multiplier: () => {
+                let v = buildFire.amount.value;
+                if (management.elfTraining.smallfireElfTraining.milestones[0].earned.value) {
+                    v = Decimal.div(buildBonfire.amount.value, 10).add(v);
+                }
+                return Decimal.div(v, 10000).add(1);
+            },
             description: "Small Fires Synergy",
             enabled: elves.elves.smallFireElf.bought
         })),
@@ -694,7 +695,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: boxes.upgrades.ashUpgrade.bought
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.div(buildFire.amount.value, 1000).add(1),
+            multiplier: () => {
+                let v = buildFire.amount.value;
+                if (management.elfTraining.smallfireElfTraining.milestones[0].earned.value) {
+                    v = Decimal.div(buildBonfire.amount.value, 100).add(v);
+                }
+                return Decimal.div(v, 1000).add(1);
+            },
             description: "Small Fires Synergy",
             enabled: elves.elves.smallFireElf.bought
         })),
