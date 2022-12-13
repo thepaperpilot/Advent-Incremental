@@ -293,7 +293,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createAdditiveModifier(() => ({
             addend: () =>
-                workshop.milestones.extraExpansionMilestone1.earned
+                workshop.milestones.extraExpansionMilestone1.earned.value
                     ? Decimal.pow(1.02, workshop.foundationProgress.value)
                     : Decimal.div(workshop.foundationProgress.value, 5).floor(),
             description: "10% Foundation Completed",
