@@ -1117,6 +1117,9 @@ const layer = createLayer(id, () => {
             </>
         )),
         canPurchase(): boolean {
+            if (Decimal.gte(schools.amount.value, 3) && !main.days[advancedDay - 1].opened.value) {
+                return false;
+            }
             return (
                 schoolCost.value.wood.lte(trees.logs.value) &&
                 schoolCost.value.coal.lte(coal.coal.value) &&
