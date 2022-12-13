@@ -32,6 +32,7 @@ import cloth from "./cloth";
 import plastic from "./plastic";
 import dyes from "./dyes";
 import management from "./management";
+import workshop from "./workshop";
 
 const id = "metal";
 const day = 7;
@@ -81,10 +82,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Glistening Paint",
             enabled: dyes.upgrades.redDyeUpg.bought
         })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () =>
+                Decimal.div(workshop.foundationProgress.value, 10).floor().div(10).add(1),
+            description: "400% Foundation Completed",
+            enabled: workshop.milestones.extraExpansionMilestone2.earned
+        })),
         createExponentialModifier(() => ({
             exponent: 1.1,
-            description: "Mary Level 4",
-            enabled: management.elfTraining.heatedPlanterElfTraining.milestones[3].earned
+            description: "Mary Level 2",
+            enabled: management.elfTraining.heatedPlanterElfTraining.milestones[1].earned
         }))
     ]);
     const computedOrePurity = computed(() => orePurity.apply(0.1));

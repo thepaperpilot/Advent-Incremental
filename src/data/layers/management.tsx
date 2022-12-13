@@ -22,7 +22,7 @@ import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatTime, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render, renderCol, renderGrid } from "util/vue";
-import { computed, ComputedRef, ref, Ref, unref } from "vue";
+import { computed, ComputedRef, ref, Ref, unref, watch } from "vue";
 import elves from "./elves";
 import trees from "./trees";
 import paper from "./paper";
@@ -151,12 +151,15 @@ const layer = createLayer(id, () => {
         );
         const level = computed(() =>
             Decimal.min(
-                Decimal.mul(9, exp.value).div(4000).div(costMulti).add(1).log(5).floor(),
+                Decimal.affordGeometricSeries(exp.value, Decimal.mul(4000, costMulti), 5, 0),
                 schools.amount.value
             ).toNumber()
         );
         const expToNextLevel = computed(() =>
-            Decimal.sub(exp.value, Decimal.pow(5, level.value).sub(1).div(9).mul(4000))
+            Decimal.sub(
+                exp.value,
+                Decimal.sumGeometricSeries(level.value, Decimal.mul(4000, costMulti), 5, 0)
+            )
         );
         const bar = createBar(() => ({
             direction: Direction.Right,
@@ -275,8 +278,7 @@ const layer = createLayer(id, () => {
                 requirement: "Holly Level 3",
                 effectDisplay: jsx(() => (
                     <>
-                        Multiply all cloth actions' effectiveness by <sup>9</sup>
-                        <Sqrt>Cutter amount</Sqrt>.
+                        Multiply all cloth actions' effectiveness by log<sub>10</sub>Cutter amount.
                     </>
                 ))
             },
@@ -449,7 +451,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Mary Level 2",
-                effectDisplay: "Double automatic tree planting speed"
+                effectDisplay: "Metal gain is raised to the 1.1."
             },
             visibility: () => showIf(heatedPlanterElfMilestones[0].earned.value),
             shouldEarn: () => heatedPlanterElfTraining.level.value >= 2
@@ -465,7 +467,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Mary Level 4",
-                effectDisplay: "Metal gain is raised to the 1.1."
+                effectDisplay: "Double automatic tree planting speed"
             },
             visibility: () =>
                 showIf(heatedPlanterElfMilestones[2].earned.value && main.day.value >= 13),
@@ -938,6 +940,7 @@ const layer = createLayer(id, () => {
         focusTime.value = Decimal.sub(focusTime.value, diff).max(0);
         focusCooldown.value = Decimal.sub(focusCooldown.value, diff).max(0);
         if (Decimal.eq(focusTime.value, 0)) {
+            focusTargets.value = {};
             focusMulti.value = Decimal.pow(
                 focusMaxMulti.value,
                 1 - Math.abs(Math.sin((Date.now() / 1000) * 2))
@@ -1040,7 +1043,7 @@ const layer = createLayer(id, () => {
             description: "Multiplies the maximum experience multiplier from focus by 2"
         },
         resource: trees.logs,
-        cost: 1e30
+        cost: 1e25
     }));
     const focusUpgrade2 = createUpgrade(() => ({
         display: {
@@ -1048,7 +1051,7 @@ const layer = createLayer(id, () => {
             description: "Increase elves affected by focus by 1"
         },
         resource: trees.logs,
-        cost: 1e40
+        cost: 1e30
     }));
     const focusUpgrade3 = createUpgrade(() => ({
         display: {
@@ -1056,23 +1059,24 @@ const layer = createLayer(id, () => {
             description: "Focus can now be rerolled every 10 seconds"
         },
         resource: trees.logs,
-        cost: 1e50
+        cost: 1e35
     }));
     const upgrades = [focusUpgrade1, focusUpgrade2, focusUpgrade3];
     // ------------------------------------------------------------------------------- Schools
 
     const schoolCost = computed(() => {
         const schoolFactor = Decimal.pow(10, schools.amount.value);
-        const woodFactor = Decimal.pow(2e4, schools.amount.value);
+        const nerfedSchoolFactor = Decimal.pow(5, schools.amount.value);
+        const woodFactor = Decimal.pow(1e4, schools.amount.value);
         const coalFactor = Decimal.pow(2000, schools.amount.value);
         return {
             wood: woodFactor.mul(1e21),
             coal: coalFactor.mul(1e32),
             paper: coalFactor.mul(1e18),
             boxes: woodFactor.mul(1e13),
-            metalIngots: schoolFactor.mul(1e12),
+            metalIngots: nerfedSchoolFactor.mul(1e12),
             cloth: schoolFactor.mul(1e4),
-            plastic: schoolFactor.mul(1e6),
+            plastic: nerfedSchoolFactor.mul(1e6),
             dye: Decimal.add(schools.amount.value, 1).mul(10000)
         };
     });
@@ -1139,7 +1143,7 @@ const layer = createLayer(id, () => {
     });
 
     const classroomEffect = computed(() => {
-        return Decimal.add(classrooms.amount.value, 1).sqrt();
+        return Decimal.add(classrooms.amount.value, 1).pow(0.9);
     });
 
     const classrooms = createBuyable(() => ({
@@ -1332,7 +1336,9 @@ const layer = createLayer(id, () => {
                 {render(modifiersModal)}
                 {render(dayProgress)}
                 <br />
-                {renderCol(schools, classrooms)} {renderGrid([teaching, classroomUpgrade])}{" "}
+                {renderCol(schools, classrooms)}
+                {renderGrid([teaching, classroomUpgrade])}
+                <Spacer />
                 {renderGrid(upgrades)}
                 {Decimal.gt(schools.amount.value, 0) ? (
                     <>

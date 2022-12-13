@@ -292,7 +292,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: researchUpgrade2.bought
         })),
         createAdditiveModifier(() => ({
-            addend: () => Decimal.div(workshop.foundationProgress.value, 5).floor(),
+            addend: () =>
+                workshop.milestones.extraExpansionMilestone1.earned
+                    ? Decimal.pow(1.02, workshop.foundationProgress.value)
+                    : Decimal.div(workshop.foundationProgress.value, 5).floor(),
             description: "10% Foundation Completed",
             enabled: workshop.milestones.autoCutMilestone1.earned
         })),
@@ -407,14 +410,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: management.elfTraining.planterElfTraining.milestones[0].earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: 2,
-            description: "Mary Level 2",
-            enabled: management.elfTraining.heatedPlanterElfTraining.milestones[1].earned
-        })),
-        createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.pow(trees.value, 0.2).log10().pow_base(2),
             description: "Ivy Level 3",
             enabled: management.elfTraining.planterElfTraining.milestones[2].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Mary Level 4",
+            enabled: management.elfTraining.heatedPlanterElfTraining.milestones[3].earned
         })),
         createAdditiveModifier(() => ({
             addend: () =>

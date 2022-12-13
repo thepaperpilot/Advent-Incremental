@@ -33,6 +33,7 @@ import metal from "./metal";
 import oil from "./oil";
 import dyes from "./dyes";
 import management from "./management";
+import workshop from "./workshop";
 
 const id = "plastic";
 const day = 10;
@@ -262,6 +263,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: dyes.boosts.yellow1,
             description: "Yellow Dye Boost 1",
             enabled: () => Decimal.gte(dyes.dyes.yellow.amount.value, 1)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () =>
+                Decimal.div(workshop.foundationProgress.value, 10).floor().div(10).add(1),
+            description: "800% Foundation Completed",
+            enabled: workshop.milestones.extraExpansionMilestone4.earned
         }))
     ]);
     const computedPlasticGain = computed(() => plasticGain.apply(0));

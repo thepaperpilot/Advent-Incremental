@@ -40,12 +40,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         scaling: addSoftcap(
             addSoftcap(createPolynomialScaling(250, 1.5), 5387, 1 / 1e10),
             1e20,
-            1e9
+            3e8
         ),
         baseResource: trees.logs,
         gainResource: noPersist(foundationProgress),
         roundUpCost: true,
-        buyMax: management.elfTraining.heatedCutterElfTraining.milestones[2].earned,
+        // buyMax: management.elfTraining.expandersElfTraining.milestones[2].earned,
         spend(gain, spent) {
             trees.logs.value = Decimal.sub(trees.logs.value, spent);
         },
@@ -61,7 +61,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const buildFoundation = createClickable(() => ({
         display: jsx(() => (
             <>
-                <b style="font-size: x-large">Build part of the foundation</b>
+                <b style="font-size: x-large">
+                    Build {formatWhole(foundationConversion.actualGain.value)}% of the foundation
+                </b>
                 <br />
                 <br />
                 <span style="font-size: large">
@@ -82,7 +84,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     management.elfTraining.expandersElfTraining.milestones[2].earned.value
             ),
         canClick: () =>
-            Decimal.gte(foundationConversion.actualGain.value, 1) &&
+            Decimal.gte(trees.logs.value, foundationConversion.currentAt.value) &&
             (Decimal.lt(foundationProgress.value, 100) ||
                 management.elfTraining.expandersElfTraining.milestones[2].earned.value),
         onClick() {
@@ -182,7 +184,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         shouldEarn: () => Decimal.gte(foundationProgress.value, 200),
         visibility: () =>
-            showIf(management.elfTraining.expandersElfTraining.milestones[2].earned.value),
+            showIf(
+                logGainMilestone3.earned.value &&
+                    management.elfTraining.expandersElfTraining.milestones[2].earned.value
+            ),
         showPopups: shouldShowPopups
     }));
     const extraExpansionMilestone2 = createMilestone(() => ({
@@ -192,7 +197,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         shouldEarn: () => Decimal.gte(foundationProgress.value, 400),
         visibility: () =>
-            showIf(management.elfTraining.expandersElfTraining.milestones[2].earned.value),
+            showIf(
+                extraExpansionMilestone1.earned.value &&
+                    management.elfTraining.expandersElfTraining.milestones[2].earned.value
+            ),
         showPopups: shouldShowPopups
     }));
     const extraExpansionMilestone3 = createMilestone(() => ({
@@ -202,7 +210,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         shouldEarn: () => Decimal.gte(foundationProgress.value, 600),
         visibility: () =>
-            showIf(management.elfTraining.expandersElfTraining.milestones[2].earned.value),
+            showIf(
+                extraExpansionMilestone2.earned.value &&
+                    management.elfTraining.expandersElfTraining.milestones[2].earned.value
+            ),
         showPopups: shouldShowPopups
     }));
     const extraExpansionMilestone4 = createMilestone(() => ({
@@ -212,7 +223,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         shouldEarn: () => Decimal.gte(foundationProgress.value, 800),
         visibility: () =>
-            showIf(management.elfTraining.expandersElfTraining.milestones[2].earned.value),
+            showIf(
+                extraExpansionMilestone3.earned.value &&
+                    management.elfTraining.expandersElfTraining.milestones[2].earned.value
+            ),
         showPopups: shouldShowPopups
     }));
     const extraExpansionMilestone5 = createMilestone(() => ({
@@ -222,7 +236,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         shouldEarn: () => Decimal.gte(foundationProgress.value, 1000),
         visibility: () =>
-            showIf(management.elfTraining.expandersElfTraining.milestones[2].earned.value),
+            showIf(
+                extraExpansionMilestone4.earned.value &&
+                    management.elfTraining.expandersElfTraining.milestones[2].earned.value
+            ),
         showPopups: shouldShowPopups
     }));
     const milestones = {

@@ -15,7 +15,12 @@ import { createResource, displayResource, Resource } from "features/resources/re
 import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
-import { createExponentialModifier, createSequentialModifier, Modifier } from "game/modifiers";
+import {
+    createExponentialModifier,
+    createMultiplicativeModifier,
+    createSequentialModifier,
+    Modifier
+} from "game/modifiers";
 import { noPersist } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { WithRequired } from "util/common";
@@ -26,6 +31,7 @@ import management from "./management";
 import paper from "./paper";
 import plastic from "./plastic";
 import trees from "./trees";
+import workshop from "./workshop";
 
 export type BoxesBuyable = GenericBuyable & {
     resource: Resource;
@@ -42,6 +48,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const boxes = createResource<DecimalSource>(0, "boxes");
 
     const boxGain = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "1000% Foundation Completed",
+            enabled: workshop.milestones.extraExpansionMilestone5.earned
+        })),
         createExponentialModifier(() => ({
             exponent: 1.1,
             description: "Bell Level 2",
