@@ -585,6 +585,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 )}
                 {renderRow(oreDrill, industrialCrucible, hotterForge)}
             </>
+        )),
+        minimizedDisplay: jsx(() => (
+            <div>
+                {name} - {format(metal.value)} {metal.displayName}
+            </div>
         ))
     };
 });

@@ -384,6 +384,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {renderRow(...Object.values(buyables))}
             </>
+        )),
+        minimizedDisplay: jsx(() => (
+            <div>
+                {name} - {format(boxes.value)} {boxes.displayName}
+            </div>
         ))
     };
 });

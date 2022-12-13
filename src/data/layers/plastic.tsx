@@ -329,6 +329,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     {renderCol(clothTools, clothElf, clothGains)}
                 </Row>
             </>
+        )),
+        minimizedDisplay: jsx(() => (
+            <div>
+                {name} - {format(plastic.value)} {plastic.displayName}
+            </div>
         ))
     };
 });

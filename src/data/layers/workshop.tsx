@@ -19,7 +19,7 @@ import { createResource, displayResource } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
 import { createExponentialModifier, createSequentialModifier } from "game/modifiers";
 import { noPersist } from "game/persistence";
-import Decimal, { DecimalSource, formatWhole } from "util/bignum";
+import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render } from "util/vue";
 import { computed, unref, watchEffect } from "vue";
@@ -294,6 +294,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {milestonesDisplay()}
             </>
+        )),
+        minimizedDisplay: jsx(() => (
+            <div>
+                {name} - {format(foundationProgress.value)} {foundationProgress.displayName}
+            </div>
         ))
     };
 });

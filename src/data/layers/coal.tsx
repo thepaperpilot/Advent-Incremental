@@ -957,6 +957,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {renderGrid(row1upgrades, row2upgrades, row3upgrades)}
                 {renderRow(...row3buyables)}
             </>
+        )),
+        minimizedDisplay: jsx(() => (
+            <div>
+                {name} - {format(coal.value)} {coal.displayName}
+            </div>
         ))
     };
 });

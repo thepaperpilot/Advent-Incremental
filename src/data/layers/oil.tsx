@@ -1074,7 +1074,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     {Decimal.gte(totalOil.value, 50) ? oilMilestonesDisplay() : ""}
                 </>
             );
-        })
+        }),
+        minimizedDisplay: jsx(() => (
+            <div>
+                {name} - {format(oil.value)} {oil.displayName}
+            </div>
+        ))
     };
 });
 

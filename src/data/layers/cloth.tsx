@@ -23,7 +23,7 @@ import {
     createSequentialModifier
 } from "game/modifiers";
 import { noPersist, persistent } from "game/persistence";
-import Decimal, { DecimalSource } from "util/bignum";
+import Decimal, { DecimalSource, format } from "util/bignum";
 import { formatWhole } from "util/break_eternity";
 import { Direction } from "util/common";
 import { render, renderCol, renderRow } from "util/vue";
@@ -331,7 +331,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const paperUpgrades = { paperUpgrade4, paperUpgrade3, paperUpgrade2, paperUpgrade1 };
 
-    const hollyEffect = computed(() => Decimal.add(trees.computedAutoCuttingAmount.value, 1).root(3));
+    const hollyEffect = computed(() =>
+        Decimal.add(trees.computedAutoCuttingAmount.value, 1).root(3)
+    );
     const gingersnapEffect = computed(() => Decimal.add(dyes.dyeSum.value, 10).log10());
 
     const sheepGain = createSequentialModifier(() => [
@@ -557,6 +559,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     {renderCol(...Object.values(paperUpgrades))}
                 </Row>
             </>
+        )),
+        minimizedDisplay: jsx(() => (
+            <div>
+                {name} - {format(cloth.value)} {cloth.displayName}
+            </div>
         ))
     };
 });

@@ -383,6 +383,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {renderCol(...Object.values(books))}
             </>
+        )),
+        minimizedDisplay: jsx(() => (
+            <div>
+                {name} - {format(paper.value)} {paper.displayName}
+            </div>
         ))
     };
 });
