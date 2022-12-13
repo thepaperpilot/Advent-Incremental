@@ -120,16 +120,19 @@ const layer = createLayer(id, () => {
         ...modifiers: Modifier[]
     ) {
         const exp = persistent<DecimalSource>(0);
-        const costMulti = ["Holly","Ivy","Hope","Jack","Mary","Noel","Joy","Faith","Snowball","Star","Bell","Gingersnap"].indexOf(elf.name)+1
-        const expRequiredForNextLevel = computed(() => Decimal.pow(10, level.value).mul(2022).mul(costMulti));
+        var costMulti = ["Holly","Ivy","Hope","Jack","Mary","Noel","Joy","Faith","Snowball","Star","Bell","Gingersnap"].indexOf(elf.name)+1
+        if(elf.name == "Star" || elf.name == "Bell"){
+            costMulti /= 3
+        }
+        const expRequiredForNextLevel = computed(() => Decimal.pow(10, level.value).mul(4000).mul(costMulti));
         const level = computed(() =>
             Decimal.min(
-                Decimal.mul(9, exp.value).div(2022).div(costMulti).add(1).log10().floor(),
+                Decimal.mul(9, exp.value).div(4000).div(costMulti).add(1).log10().floor(),
                 schools.amount.value
             ).toNumber()
         );
         const expToNextLevel = computed(() =>
-            Decimal.sub(exp.value, Decimal.pow(10, level.value).sub(1).div(9).mul(2022))
+            Decimal.sub(exp.value, Decimal.pow(10, level.value).sub(1).div(9).mul(4000))
         );
         const bar = createBar(() => ({
             direction: Direction.Right,
@@ -224,7 +227,7 @@ const layer = createLayer(id, () => {
                 requirement: "Holly Level 1",
                 effectDisplay: jsx(() => (
                     <>
-                        Multiply log gain by <sup>3</sup>
+                        Multiply log gain by <sup>9</sup>
                         <Sqrt>Cutter amount</Sqrt>.
                     </>
                 ))
@@ -244,7 +247,7 @@ const layer = createLayer(id, () => {
                 requirement: "Holly Level 3",
                 effectDisplay: jsx(() => (
                     <>
-                        Multiply all cloth actions' effectiveness by <sup>3</sup>
+                        Multiply all cloth actions' effectiveness by <sup>9</sup>
                         <Sqrt>Cutter amount</Sqrt>.
                     </>
                 ))
@@ -364,7 +367,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Jack Level 1",
-                effectDisplay: "Heated cutters are less expensive."
+                effectDisplay: '"Fahrenheit 451" affects "Heated Cutters" twice.'
             },
             shouldEarn: () => heatedCutterElfTraining.level.value >= 1
         })),
@@ -1023,17 +1026,18 @@ const layer = createLayer(id, () => {
         resource: trees.logs,
         cost: 1e50
     }));
-    const upgrades = { focusUpgrade1, focusUpgrade2, focusUpgrade3 };
+    const upgrades = [ focusUpgrade1, focusUpgrade2, focusUpgrade3 ];
     // ------------------------------------------------------------------------------- Schools
 
     const schoolCost = computed(() => {
         const schoolFactor = Decimal.pow(10, schools.amount.value);
-        const woodFactor = Decimal.pow(1e6, schools.amount.value)
+        const woodFactor = Decimal.pow(2e4, schools.amount.value)
+        const coalFactor = Decimal.pow(2000, schools.amount.value)
         return {
             wood: woodFactor.mul(1e21),
-            coal: schoolFactor.mul(1e32),
-            paper: schoolFactor.mul(1e18),
-            boxes: schoolFactor.mul(1e13),
+            coal: coalFactor.mul(1e32),
+            paper: coalFactor.mul(1e18),
+            boxes: woodFactor.mul(1e13),
             metalIngots: schoolFactor.mul(1e12),
             cloth: schoolFactor.mul(1e4),
             plastic: schoolFactor.mul(1e6),
@@ -1093,7 +1097,7 @@ const layer = createLayer(id, () => {
     }));
 
     const classroomCost = computed(() => {
-        const classroomFactor = Decimal.add(schools.amount.value, 1).pow(1.5);
+        const classroomFactor = Decimal.add(classrooms.amount.value, 1).pow(1.5);
         return {
             wood: classroomFactor.mul(1e21),
             paper: classroomFactor.mul(1e18),
@@ -1295,7 +1299,7 @@ const layer = createLayer(id, () => {
                 {render(modifiersModal)}
                 {render(dayProgress)}
                 <br />
-                {renderCol(schools, classrooms)} {renderGrid([teaching, classroomUpgrade])}
+                {renderCol(schools, classrooms)} {renderGrid([teaching, classroomUpgrade])} {renderGrid(upgrades)}
                 {Decimal.gt(schools.amount.value, 0) ? (
                     <>
                         <br />

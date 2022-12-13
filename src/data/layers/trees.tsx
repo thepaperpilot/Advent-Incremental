@@ -241,6 +241,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             let v = this.amount.value;
             if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
             if (Decimal.gte(v, 1e5)) v = Decimal.pow(v, 2).div(1e5);
+            if (Decimal.gte(v, 1e15)) v = Decimal.pow(v, 10).div(1e135);
             v = Decimal.pow(0.95, paper.books.expandersBook.amount.value).times(v);
             return Decimal.pow(Decimal.add(v, 1), 1.5).times(500);
         },
@@ -483,7 +484,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: dyes.upgrades.blueDyeUpg.bought
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: computed(() => Decimal.add(computedAutoCuttingAmount.value, 1).root(3)),
+            multiplier: computed(() => Decimal.add(computedAutoCuttingAmount.value, 1).root(9)),
             description: "Holly Level 1",
             enabled: management.elfTraining.cutterElfTraining.milestones[0].earned
         })),
