@@ -329,23 +329,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elvesMilestone2.earned
         }))
     ]);
-    const metalCooldown = createSequentialModifier(() => [
-        createMultiplicativeModifier(() => ({
-            multiplier: 2,
-            description: "6 Elves Trained",
-            enabled: elvesMilestone.earned
-        })),
-        createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.times(paper.books.metalBook.amount.value, 0.1).add(1),
-            description: "Physical Metallurgy",
-            enabled: () => Decimal.gt(paper.books.metalBook.amount.value, 0)
-        })),
-        createMultiplicativeModifier(() => ({
-            multiplier: 2,
-            description: "10 Elves Trained",
-            enabled: elvesMilestone2.earned
-        }))
-    ]);
     const heavyDrillCooldown = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -356,6 +339,40 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.times(paper.books.heavyDrillBook.amount.value, 0.1).add(1),
             description: "Deep in the Earth",
             enabled: () => Decimal.gt(paper.books.heavyDrillBook.amount.value, 0)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "10 Elves Trained",
+            enabled: elvesMilestone2.earned
+        }))
+    ]);
+    const oilCooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "6 Elves Trained",
+            enabled: elvesMilestone.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.times(paper.books.oilBook.amount.value, 0.1).add(1),
+            description: "Burning the Midnight Oil",
+            enabled: () => Decimal.gt(paper.books.oilBook.amount.value, 0)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "10 Elves Trained",
+            enabled: elvesMilestone2.earned
+        }))
+    ]);
+    const metalCooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "6 Elves Trained",
+            enabled: elvesMilestone.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.times(paper.books.metalBook.amount.value, 0.1).add(1),
+            description: "Physical Metallurgy",
+            enabled: () => Decimal.gt(paper.books.metalBook.amount.value, 0)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -457,18 +474,25 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visible: management.elfTraining.expandersElfTraining.milestones[3].earned
         },
         {
+            title: "Frosty Auto-Buy Frequency",
+            modifier: heavyDrillCooldown,
+            base: 10,
+            unit: "/s",
+            visible: management.elfTraining.fertilizerElfTraining.milestones[4].earned.value
+        },
+        {
+            title: "Cocoa Auto-Buy Frequency",
+            modifier: oilCooldown,
+            base: 10,
+            unit: "/s",
+            visible: management.elfTraining.heatedCutterElfTraining.milestones[4].earned.value
+        },
+        {
             title: "Twinkle Auto-Buy Frequency",
             modifier: metalCooldown,
             base: 10,
             unit: "/s",
             visible: management.elfTraining.expandersElfTraining.milestones[4].earned
-        },
-        {
-            title: "Frosty Auto-Buy Frequency",
-            modifier: heavyDrillCooldown,
-            base: 10,
-            unit: "/s",
-            visible: management.elfTraining.heatedCutterElfTraining.milestones[4].earned.value
         }
     ]);
     const showModifiersModal = ref(false);
@@ -751,15 +775,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         }
     });
-    const metalElf = createElf({
-        name: "Twinkle",
-        description:
-            "Twinkle will automatically purchase all metal buyables you can afford, without actually spending any resources.",
-        buyable: [metal.oreDrill, metal.industrialCrucible, metal.hotterForge],
-        cooldownModifier: metalCooldown,
-        visibility: () =>
-            showIf(management.elfTraining.expandersElfTraining.milestones[4].earned.value)
-    });
     const heavyDrillElf = createElf({
         name: "Frosty",
         description:
@@ -767,7 +782,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buyable: [oil.buildHeavy, oil.buildHeavy2, oil.buildExtractor],
         cooldownModifier: heavyDrillCooldown,
         visibility: () =>
-            showIf(management.elfTraining.heatedCutterElfTraining.milestones[4].earned.value),
+            showIf(management.elfTraining.fertilizerElfTraining.milestones[4].earned.value),
         hasToggle: true,
         toggleDesc: "Activate auto-purchased oil drills",
         onAutoPurchase(buyable) {
@@ -782,7 +797,39 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         }
     });
-    const managementElves = [miningDrillElf, metalElf, heavyDrillElf];
+    const oilElf = createElf({
+        name: "Cocoa",
+        description:
+            "Cocoa will automatically purchase all oil-using machines you can afford, without actually spending any resources.",
+        buyable: [oil.buildPump, oil.buildBurner, oil.buildSmelter],
+        cooldownModifier: oilCooldown,
+        visibility: () =>
+            showIf(management.elfTraining.heatedCutterElfTraining.milestones[4].earned.value),
+        hasToggle: true,
+        toggleDesc: "Activate auto-purchased oil-using machines",
+        onAutoPurchase(buyable) {
+            if (heavyDrillElf.toggle.value) {
+                if (buyable === oil.buildPump) {
+                    oil.activePump.value = Decimal.add(oil.activePump.value, 1);
+                } else if (buyable === oil.buildBurner) {
+                    oil.activeBurner.value = Decimal.add(oil.activeBurner.value, 1);
+                } else if (buyable === oil.buildSmelter) {
+                    oil.activeSmelter.value = Decimal.add(oil.activeSmelter.value, 1);
+                }
+            }
+        }
+    });
+    const managementElves = [miningDrillElf, heavyDrillElf, oilElf];
+    const metalElf = createElf({
+        name: "Twinkle",
+        description:
+            "Twinkle will automatically purchase all metal buyables you can afford, without actually spending any resources.",
+        buyable: [metal.oreDrill, metal.industrialCrucible, metal.hotterForge],
+        cooldownModifier: metalCooldown,
+        visibility: () =>
+            showIf(management.elfTraining.expandersElfTraining.milestones[4].earned.value)
+    });
+    const managementElves2 = [metalElf];
     const elves = {
         cuttersElf,
         plantersElf,
@@ -797,8 +844,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         boxElf,
         clothElf,
         miningDrillElf,
-        metalElf,
-        heavyDrillElf
+        heavyDrillElf,
+        oilElf,
+        metalElf
     };
     const totalElves = computed(() => Object.values(elves).filter(elf => elf.bought.value).length);
 
@@ -978,7 +1026,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {render(modifiersModal)}
                 <Spacer />
                 <div style="width: 600px">
-                    {renderGrid(treesElves, coalElves, fireElves, plasticElves, managementElves)}
+                    {renderGrid(
+                        treesElves,
+                        coalElves,
+                        fireElves,
+                        plasticElves,
+                        managementElves,
+                        managementElves2
+                    )}
                 </div>
                 {milestonesDisplay()}
             </>

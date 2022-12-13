@@ -38,7 +38,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const paper = createResource<DecimalSource>(0, "paper");
 
     const pulp = createResource<DecimalSource>(
-        computed(() => Decimal.min(Decimal.div(trees.logs.value, 1e9), Decimal.div(coal.ash.value, computedAshCost.value))),
+        computed(() =>
+            Decimal.min(
+                Decimal.div(trees.logs.value, 1e9),
+                Decimal.div(coal.ash.value, computedAshCost.value)
+            )
+        ),
         "pulp"
     );
 
@@ -49,7 +54,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         roundUpCost: true,
         spend(gain, cost) {
             trees.logs.value = Decimal.sub(trees.logs.value, Decimal.times(cost, 1e9));
-            coal.ash.value = Decimal.sub(coal.ash.value, Decimal.times(cost, computedAshCost.value));
+            coal.ash.value = Decimal.sub(
+                coal.ash.value,
+                Decimal.times(cost, computedAshCost.value)
+            );
         },
         gainModifier: paperGain
     }));
@@ -68,7 +76,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     <span style="font-size: large">
                         Cost: {displayResource(trees.logs, cost)} {pulp.displayName} (
                         {formatWhole(Decimal.times(cost, 1e9))} {trees.logs.displayName};{" "}
-                        {formatWhole(Decimal.times(cost, computedAshCost.value))} {coal.ash.displayName})
+                        {formatWhole(Decimal.times(cost, computedAshCost.value))}{" "}
+                        {coal.ash.displayName})
                     </span>
                 </>
             );
@@ -191,19 +200,29 @@ const layer = createLayer(id, function (this: BaseLayer) {
         name: "Drills and Mills",
         elfName: "Peppermint",
         buyableName: "Mining Drill",
-        visibility: () => showIf(management.elfTraining.expandersElfTraining.milestones[3].earned.value)
-    });
-    const metalBook = createBook({
-        name: "Physical Metallurgy",
-        elfName: "Twinkle",
-        buyableName: "Metal Buyables",
-        visibility: () => showIf(management.elfTraining.expandersElfTraining.milestones[4].earned.value)
+        visibility: () =>
+            showIf(management.elfTraining.expandersElfTraining.milestones[3].earned.value)
     });
     const heavyDrillBook = createBook({
         name: "Deep in the Earth",
         elfName: "Frosty",
         buyableName: "Oil Drills",
-        visibility: () => showIf(management.elfTraining.heatedCutterElfTraining.milestones[4].earned.value)
+        visibility: () =>
+            showIf(management.elfTraining.fertilizerElfTraining.milestones[4].earned.value)
+    });
+    const oilBook = createBook({
+        name: "Burning the Midnight Oil",
+        elfName: "Cocoa",
+        buyableName: "Oil-Consuming Machines",
+        visibility: () =>
+            showIf(management.elfTraining.heatedCutterElfTraining.milestones[4].earned.value)
+    });
+    const metalBook = createBook({
+        name: "Physical Metallurgy",
+        elfName: "Twinkle",
+        buyableName: "Metal Buyables",
+        visibility: () =>
+            showIf(management.elfTraining.expandersElfTraining.milestones[4].earned.value)
     });
     const books = {
         cuttersBook,
@@ -219,10 +238,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         boxBook,
         clothBook,
         miningDrillBook,
-        metalBook,
-        heavyDrillBook
+        heavyDrillBook,
+        oilBook,
+        metalBook
     };
-    const sumBooks = computed(() => Object.values(books).reduce((acc, curr) => acc.add(curr.amount.value), new Decimal(0)));
+    const sumBooks = computed(() =>
+        Object.values(books).reduce((acc, curr) => acc.add(curr.amount.value), new Decimal(0))
+    );
 
     const clothUpgrade = createUpgrade(() => ({
         resource: noPersist(paper),
@@ -282,7 +304,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     ]) as WithRequired<Modifier, "description" | "revert">;
     const ashCost = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
-            multiplier: .1,
+            multiplier: 0.1,
             description: "Star Level 2",
             enabled: management.elfTraining.paperElfTraining.milestones[1].earned
         }))

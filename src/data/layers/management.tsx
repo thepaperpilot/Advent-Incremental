@@ -407,7 +407,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Jack Level 5",
-                effectDisplay: "Unlock an elf that autobuys oil buyables."
+                effectDisplay: "Unlock an elf that autobuys oil-using machines."
             },
             visibility: () =>
                 showIf(heatedCutterElfMilestones[3].earned.value && main.day.value >= 13),
