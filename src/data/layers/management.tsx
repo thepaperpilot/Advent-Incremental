@@ -120,15 +120,16 @@ const layer = createLayer(id, () => {
         ...modifiers: Modifier[]
     ) {
         const exp = persistent<DecimalSource>(0);
-        const expRequiredForNextLevel = computed(() => Decimal.pow(10, level.value).mul(1e4));
+        const costMulti = ["Holly","Ivy","Hope","Jack","Mary","Noel","Joy","Faith","Snowball","Star","Bell","Gingersnap"].indexOf(elf.name)+1
+        const expRequiredForNextLevel = computed(() => Decimal.pow(10, level.value).mul(2022).mul(costMulti));
         const level = computed(() =>
             Decimal.min(
-                Decimal.mul(9, exp.value).div(1e4).add(1).log10().floor(),
+                Decimal.mul(9, exp.value).div(2022).div(costMulti).add(1).log10().floor(),
                 schools.amount.value
             ).toNumber()
         );
         const expToNextLevel = computed(() =>
-            Decimal.sub(exp.value, Decimal.pow(10, level.value).sub(1).div(9).mul(1e4))
+            Decimal.sub(exp.value, Decimal.pow(10, level.value).sub(1).div(9).mul(2022))
         );
         const bar = createBar(() => ({
             direction: Direction.Right,
@@ -1027,8 +1028,9 @@ const layer = createLayer(id, () => {
 
     const schoolCost = computed(() => {
         const schoolFactor = Decimal.pow(10, schools.amount.value);
+        const woodFactor = Decimal.pow(1e6, schools.amount.value)
         return {
-            wood: schoolFactor.mul(1e21),
+            wood: woodFactor.mul(1e21),
             coal: schoolFactor.mul(1e32),
             paper: schoolFactor.mul(1e18),
             boxes: schoolFactor.mul(1e13),
