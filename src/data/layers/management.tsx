@@ -22,7 +22,7 @@ import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatTime, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render, renderCol, renderGrid } from "util/vue";
-import { computed, ComputedRef, ref, Ref, unref, watch } from "vue";
+import { computed, ComputedRef, ref, Ref, unref, watch, watchEffect } from "vue";
 import elves from "./elves";
 import trees from "./trees";
 import paper from "./paper";
@@ -146,18 +146,15 @@ const layer = createLayer(id, () => {
         if (elf.name == "Star" || elf.name == "Bell") {
             costMulti /= 3;
         }
-        const costBase = Decimal.mul(4000, costMulti)
-        const expRequiredForNextLevel = computed(() =>
-            Decimal.pow(5, level.value).mul(costBase)
-        );
+        const costBase = Decimal.mul(4000, costMulti);
+        const expRequiredForNextLevel = computed(() => Decimal.pow(5, level.value).mul(costBase));
         const level = computed(() =>
-            Decimal.affordGeometricSeries(exp.value, costBase, 5, 0).min(schools.amount.value).toNumber()
+            Decimal.affordGeometricSeries(exp.value, costBase, 5, 0)
+                .min(schools.amount.value)
+                .toNumber()
         );
         const expToNextLevel = computed(() =>
-            Decimal.sub(
-                exp.value,
-                Decimal.sumGeometricSeries(level.value, costBase, 5, 0)
-            )
+            Decimal.sub(exp.value, Decimal.sumGeometricSeries(level.value, costBase, 5, 0))
         );
         const bar = createBar(() => ({
             direction: Direction.Right,
@@ -934,7 +931,6 @@ const layer = createLayer(id, () => {
                         elf.exp.value
                     );
             }
-
         }
         focusTime.value = Math.max(focusTime.value - diff, 0);
         focusCooldown.value = Math.max(focusCooldown.value - diff, 0);
@@ -991,17 +987,24 @@ const layer = createLayer(id, () => {
         fillStyle: () => ({
             background: focusTime.value > 0 ? color : "#7f7f00",
             opacity: focusTime.value > 0 ? focusTime.value / 10 : 1,
-            transition: "none",
+            transition: "none"
         }),
         progress: () =>
             Decimal.sub(focusMulti.value, 1).div(Decimal.sub(focusMaxMulti.value, 1)).toNumber(),
-        display: jsx(() => <>
-            {format(focusMulti.value)}x
-            {focusTime.value > 0 ? <>
-                {" "}to {Object.keys(focusTargets.value).join(", ")}
-                {" "}for {formatTime(focusTime.value)}</> : ""
-            }
-        </>)
+        display: jsx(() => (
+            <>
+                {format(focusMulti.value)}x
+                {focusTime.value > 0 ? (
+                    <>
+                        {" "}
+                        to {Object.keys(focusTargets.value).join(", ")} for{" "}
+                        {formatTime(focusTime.value)}
+                    </>
+                ) : (
+                    ""
+                )}
+            </>
+        ))
     })) as GenericBar;
 
     const focusButton = createClickable(() => ({
@@ -1300,6 +1303,17 @@ const layer = createLayer(id, () => {
             }}
         />
     ));
+
+    watchEffect(() => {
+        if (main.day.value === day && day12Elves.every(elf => elf.level.value >= 3)) {
+            main.completeDay();
+        } else if (
+            main.day.value === advancedDay &&
+            day13Elves.every(elf => elf.level.value >= 5)
+        ) {
+            main.completeDay();
+        }
+    });
 
     // ------------------------------------------------------------------------------- Return
 
