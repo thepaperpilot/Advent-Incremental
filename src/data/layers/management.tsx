@@ -203,8 +203,6 @@ const layer = createLayer(id, () => {
                 )),
                 description: jsx(() => (
                     <>
-                        Current XP: {format(exp.value)}
-                        <br />
                         {elf.name} can buy buyables {formatWhole(elf.computedAutoBuyCooldown.value)}{" "}
                         times per second, gaining{" "}
                         {Decimal.gte(level.value, schools.amount.value)
