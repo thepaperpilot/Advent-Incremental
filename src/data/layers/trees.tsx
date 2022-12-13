@@ -206,7 +206,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
             if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
             if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
-            if (Decimal.gte(v, 2e30)) v = Decimal.pow(v,10000).div(Decimal.pow(2e30,9999)
+            if (Decimal.gte(v, 2e30)) v = Decimal.pow(v,10000).div(Decimal.pow(2e30,9999));
             v = Decimal.pow(0.95, paper.books.cuttersBook.amount.value).times(v);
             return Decimal.times(100, v).add(200);
         },
@@ -223,7 +223,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
             if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
             if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
-            if (Decimal.gte(v, 2e30)) v = Decimal.pow(v,10000).div(Decimal.pow(2e30,9999)
+            if (Decimal.gte(v, 2e30)) v = Decimal.pow(v,10000).div(Decimal.pow(2e30,9999));
             v = Decimal.pow(0.95, paper.books.plantersBook.amount.value).times(v);
             let cost = Decimal.times(100, v).add(200);
             if (management.elfTraining.planterElfTraining.milestones[3].earned.value) {
