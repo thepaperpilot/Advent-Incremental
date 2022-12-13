@@ -151,12 +151,12 @@ const layer = createLayer(id, () => {
         );
         const level = computed(() =>
             Decimal.min(
-                Decimal.mul(9, exp.value).div(4000).div(costMulti).add(1).log(5).floor(),
+                Decimal.affordGeometricSeries(exp.value, Decimal.mul(4000, costMulti), 5, 0),
                 schools.amount.value
             ).toNumber()
         );
         const expToNextLevel = computed(() =>
-            Decimal.sub(exp.value, Decimal.pow(5, level.value).sub(1).div(9).mul(4000))
+            Decimal.sub(exp.value, Decimal.sumGeometricSeries(level.value, Decimal.mul(4000, costMulti), 5, 0))
         );
         const bar = createBar(() => ({
             direction: Direction.Right,
@@ -934,9 +934,11 @@ const layer = createLayer(id, () => {
                         elf.exp.value
                     );
             }
+
         }
-        focusTime.value = Decimal.sub(focusTime.value, diff).max(0);
-        focusCooldown.value = Decimal.sub(focusCooldown.value, diff).max(0);
+        focusTime.value = Math.max(focusTime.value - diff, 0);
+        focusCooldown.value = Math.max(focusCooldown.value - diff, 0);
+
         if (Decimal.eq(focusTime.value, 0)) {
             focusMulti.value = Decimal.pow(
                 focusMaxMulti.value,
@@ -949,8 +951,8 @@ const layer = createLayer(id, () => {
 
     const focusMulti = persistent<DecimalSource>(1);
     const focusTargets = persistent<Record<string, boolean>>({});
-    const focusCooldown = persistent<DecimalSource>(0);
-    const focusTime = persistent<DecimalSource>(0);
+    const focusCooldown = persistent<number>(0);
+    const focusTime = persistent<number>(0);
 
     const focusMaxMultiModifiers = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
@@ -985,10 +987,20 @@ const layer = createLayer(id, () => {
         height: 25,
         style: `border-radius: 4px 4px 0 0`,
         borderStyle: `border-radius: 4px 4px 0 0`,
-        fillStyle: `background: ${color}; transition: none`,
+        fillStyle: () => ({
+            background: focusTime.value > 0 ? color : "#7f7f00",
+            opacity: focusTime.value > 0 ? focusTime.value / 10 : 1,
+            transition: "none",
+        }),
         progress: () =>
             Decimal.sub(focusMulti.value, 1).div(Decimal.sub(focusMaxMulti.value, 1)).toNumber(),
-        display: jsx(() => <>{format(focusMulti.value)}x</>)
+        display: jsx(() => <>
+            {format(focusMulti.value)}x
+            {focusTime.value > 0 ? <>
+                {" "}to {Object.keys(focusTargets.value).join(", ")}
+                {" "}for {formatTime(focusTime.value)}</> : ""
+            }
+        </>)
     })) as GenericBar;
 
     const focusButton = createClickable(() => ({
@@ -997,7 +1009,7 @@ const layer = createLayer(id, () => {
             description: jsx(() => (
                 <>
                     Motivate elves to focus, multiplying 3 random elves' XP gain by up to{" "}
-                    {format(focusMaxMulti.value)}x, equal to the focus bars' effect.
+                    {format(focusMaxMulti.value)}x for 10 seconds, equal to the focus bars' effect.
                     {Decimal.gte(focusCooldown.value, 0) ? (
                         <>
                             <br />
@@ -1333,7 +1345,6 @@ const layer = createLayer(id, () => {
                 {render(dayProgress)}
                 <br />
                 {renderCol(schools, classrooms)} {renderGrid([teaching, classroomUpgrade])}{" "}
-                {renderGrid(upgrades)}
                 {Decimal.gt(schools.amount.value, 0) ? (
                     <>
                         <br />
@@ -1341,6 +1352,7 @@ const layer = createLayer(id, () => {
                         <br />
                         <br />
                         {render(focusButton)}
+                        {renderGrid(upgrades)}
                         <br />
                         {renderGrid(
                             [focusMeter],
