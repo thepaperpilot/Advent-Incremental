@@ -57,7 +57,7 @@ const layer = createLayer(id, () => {
                   day13Elves.length
                 : 1,
         display: jsx(() =>
-            main.day.value === day ? (
+            main.day.value === day || main.day.value === advancedDay ? (
                 <>
                     {formatWhole(
                         Decimal.times(
