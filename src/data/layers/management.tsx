@@ -1100,7 +1100,7 @@ const layer = createLayer(id, () => {
                 <h3>Build a School</h3>
                 <div>
                     You gotta start somewhere, right? Each school increases the maximum level for
-                    elves by 1, up to {main.day.value == 12 ? 3 : 5}.
+                    elves by 1, maximum of {main.day.value === 12 ? 3 : 5} schools.
                 </div>
                 <div>
                     You have {formatWhole(schools.amount.value)} schools, which are currently
@@ -1117,9 +1117,6 @@ const layer = createLayer(id, () => {
             </>
         )),
         canPurchase(): boolean {
-            if (Decimal.gte(schools.amount.value, 3) && !main.days[advancedDay - 1].opened.value) {
-                return false;
-            }
             return (
                 schoolCost.value.wood.lte(trees.logs.value) &&
                 schoolCost.value.coal.lte(coal.coal.value) &&
@@ -1143,7 +1140,10 @@ const layer = createLayer(id, () => {
             plastic.plastic.value = Decimal.sub(plastic.plastic.value, schoolCost.value.plastic);
             this.amount.value = Decimal.add(this.amount.value, 1);
         },
-        purchaseLimit: 5,
+        purchaseLimit() {
+            if (main.days[advancedDay - 1].opened.value) return 5
+            return 3
+        },
         visibility: computed(() => showIf(teaching.bought.value)),
         style: "width: 600px"
     }));
