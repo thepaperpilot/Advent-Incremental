@@ -18,6 +18,13 @@ export interface Settings {
     theme: Themes;
     /** Whether or not to cap the project at 20 ticks per second. */
     unthrottled: boolean;
+
+    /** Game-specific settings */
+
+    /** Whether to use log for progress toward finishing the day, or use linear. */
+    usingLog: boolean;
+    /** Whether to align modifiers to the unit. */
+    alignUnits: boolean;
 }
 
 const state = reactive<Partial<Settings>>({
@@ -25,7 +32,10 @@ const state = reactive<Partial<Settings>>({
     saves: [],
     showTPS: true,
     theme: Themes.Nordic,
-    unthrottled: false
+    unthrottled: false,
+    
+    usingLog: false,
+    alignUnits: false,
 });
 
 watch(
@@ -57,7 +67,10 @@ export const hardResetSettings = (window.hardResetSettings = () => {
         active: "",
         saves: [],
         showTPS: true,
-        theme: Themes.Nordic
+        theme: Themes.Nordic,
+        
+        usingLog: false,
+        alignUnits: false,
     };
     globalBus.emit("loadSettings", settings);
     Object.assign(state, settings);

@@ -27,7 +27,7 @@ import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatGain, formatLimit, formatWhole } from "util/bignum";
 import { Direction, WithRequired } from "util/common";
 import { render, renderGrid, renderRow } from "util/vue";
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import boxes from "./boxes";
 import cloth from "./cloth";
 import coal from "./coal";
@@ -83,6 +83,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             addend: dyes.boosts.blue1,
             description: "Blue Dye Boost 1",
             enabled: () => Decimal.gte(dyes.dyes.blue.amount.value, 1)
+        })),
+        createAdditiveModifier(() => ({
+            addend: () => Decimal.pow(computedManualCuttingAmount.value, 0.99),
+            description: "Hope Level 1",
+            enabled: management.elfTraining.expandersElfTraining.milestones[0].earned
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const trees = createResource(
@@ -201,6 +206,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
             if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
             if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
+            if (Decimal.gte(v, 2e30)) v = Decimal.pow(v,10000).div(Decimal.pow(2e30,9999));
             v = Decimal.pow(0.95, paper.books.cuttersBook.amount.value).times(v);
             return Decimal.times(100, v).add(200);
         },
@@ -217,8 +223,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
             if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
             if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
+            if (Decimal.gte(v, 2e30)) v = Decimal.pow(v,10000).div(Decimal.pow(2e30,9999));
             v = Decimal.pow(0.95, paper.books.plantersBook.amount.value).times(v);
-            return Decimal.times(100, v).add(200);
+            let cost = Decimal.times(100, v).add(200);
+            if (management.elfTraining.planterElfTraining.milestones[3].earned.value) {
+                cost = Decimal.div(cost, 10);
+            }
+            return cost;
         },
         display: {
             title: "Generic Planters",
@@ -232,6 +243,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             let v = this.amount.value;
             if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
             if (Decimal.gte(v, 1e5)) v = Decimal.pow(v, 2).div(1e5);
+            if (Decimal.gte(v, 1e15)) v = Decimal.pow(v, 10).div(1e135);
             v = Decimal.pow(0.95, paper.books.expandersBook.amount.value).times(v);
             return Decimal.pow(Decimal.add(v, 1), 1.5).times(500);
         },
@@ -282,7 +294,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: researchUpgrade2.bought
         })),
         createAdditiveModifier(() => ({
-            addend: () => Decimal.div(workshop.foundationProgress.value, 5).floor(),
+            addend: () =>
+                Decimal.div(workshop.foundationProgress.value, 5).floor(),
             description: "10% Foundation Completed",
             enabled: workshop.milestones.autoCutMilestone1.earned
         })),
@@ -305,9 +318,28 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 4,
             description: "Lumberjack Jeans",
             enabled: cloth.treesUpgrades.treesUpgrade2.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.pow(1.1, main.day.value),
+            description: "Holly Level 4",
+            enabled: management.elfTraining.cutterElfTraining.milestones[3].earned
+        })),
+        createAdditiveModifier(() => ({
+            addend: () =>
+                Decimal.sub(lastAutoCuttingAmount.value, lastAutoPlantedAmount.value).max(0),
+            description: "Ivy Level 5",
+            enabled: management.elfTraining.planterElfTraining.milestones[4].earned
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAutoCuttingAmount = computed(() => autoCuttingAmount.apply(0));
+    const lastAutoCuttingAmount = ref<DecimalSource>(0);
+    setInterval(
+        () =>
+            watch(computedAutoCuttingAmount, cut => {
+                lastAutoCuttingAmount.value = cut;
+            }),
+        0
+    );
 
     const manualPlantingAmount = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
@@ -378,12 +410,31 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: management.elfTraining.planterElfTraining.milestones[0].earned
         })),
         createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.pow(trees.value, 0.2).log10().pow_base(2),
+            description: "Ivy Level 3",
+            enabled: management.elfTraining.planterElfTraining.milestones[2].earned
+        })),
+        createMultiplicativeModifier(() => ({
             multiplier: 2,
-            description: "Mary Level 2",
-            enabled: management.elfTraining.planterElfTraining.milestones[1].earned
+            description: "Mary Level 4",
+            enabled: management.elfTraining.heatedPlanterElfTraining.milestones[3].earned
+        })),
+        createAdditiveModifier(() => ({
+            addend: () =>
+                Decimal.sub(lastAutoPlantedAmount.value, lastAutoCuttingAmount.value).max(0),
+            description: "Ivy Level 5",
+            enabled: management.elfTraining.planterElfTraining.milestones[4].earned
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAutoPlantingAmount = computed(() => autoPlantingAmount.apply(0));
+    const lastAutoPlantedAmount = ref<DecimalSource>(0);
+    setInterval(
+        () =>
+            watch(computedAutoPlantingAmount, planted => {
+                lastAutoPlantedAmount.value = planted;
+            }),
+        0
+    );
 
     const logGain = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
@@ -397,7 +448,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: researchUpgrade2.bought
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.div(workshop.foundationProgress.value, 20).add(1),
+            multiplier: () => workshop.milestones.extraExpansionMilestone1.earned.value
+                    ? Decimal.pow(1.02, workshop.foundationProgress.value) : Decimal.div(workshop.foundationProgress.value, 20).add(1),
             description: "1% Foundation Completed",
             enabled: workshop.milestones.logGainMilestone1.earned
         })),
@@ -444,9 +496,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: dyes.upgrades.blueDyeUpg.bought
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: computed(() =>
-                Decimal.add(computedAutoCuttingAmount.value, 1).log10().plus(1)
-            ),
+            multiplier: computed(() => Decimal.add(computedAutoCuttingAmount.value, 1).root(9)),
             description: "Holly Level 1",
             enabled: management.elfTraining.cutterElfTraining.milestones[0].earned
         })),
@@ -770,6 +820,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {renderRow(...row1Buyables)}
             </>
+        )),
+        minimizedDisplay: jsx(() => (
+            <div>
+                {name} - {format(logs.value)} {logs.displayName}
+            </div>
         ))
     };
 });

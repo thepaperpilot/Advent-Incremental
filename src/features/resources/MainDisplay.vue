@@ -7,7 +7,7 @@
         >
             <div class="main-display">
                 <span v-if="showPrefix">You have </span>
-                <ResourceVue :resource="resource" :color="color || 'white'" />
+                <ResourceVue :resource="resource" :color="color || 'white'" :style="resourceStyle" />
                 {{ resource.displayName
                 }}<!-- remove whitespace -->
                 <span v-if="effectComponent"
@@ -27,7 +27,7 @@
     >
         <div class="main-display">
             <span v-if="showPrefix">You have </span>
-            <ResourceVue :resource="resource" :color="color || 'white'" />
+            <ResourceVue :resource="resource" :color="color || 'white'" :style="resourceStyle" />
             {{ resource.displayName
             }}<!-- remove whitespace -->
             <span v-if="effectComponent"
@@ -56,6 +56,7 @@ const _props = withDefaults(defineProps<{
     color?: string;
     classes?: Record<string, boolean>;
     style?: StyleValue;
+    resourceStyle?: StyleValue;
     effectDisplay?: CoercableComponent;
     productionDisplay?: CoercableComponent;
     sticky?: boolean

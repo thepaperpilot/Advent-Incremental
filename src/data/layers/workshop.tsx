@@ -8,33 +8,24 @@ import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
 import { createClickable } from "features/clickables/clickable";
 import {
-    Conversion,
+    addSoftcap,
     createIndependentConversion,
-    createPolynomialScaling,
-    ScalingFunction
+    createPolynomialScaling
 } from "features/conversion";
 import { jsx, showIf } from "features/feature";
 import { createHotkey } from "features/hotkey";
 import { createMilestone } from "features/milestones/milestone";
-import { createResource, displayResource, Resource } from "features/resources/resource";
+import { createResource, displayResource } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
+import { createExponentialModifier, createSequentialModifier } from "game/modifiers";
 import { noPersist } from "game/persistence";
-import Decimal, { DecimalSource, formatWhole } from "util/bignum";
+import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render } from "util/vue";
 import { computed, unref, watchEffect } from "vue";
 import elves from "./elves";
-import trees from "./trees";
 import management from "./management";
-
-interface FoundationConversionOptions {
-    scaling: ScalingFunction;
-    baseResource: Resource;
-    gainResource: Resource;
-    roundUpCost: boolean;
-    buyMax: boolean;
-    spend: (gain: DecimalSource, spent: DecimalSource) => void;
-}
+import trees from "./trees";
 
 const id = "workshop";
 const day = 2;
@@ -45,22 +36,34 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const foundationProgress = createResource<DecimalSource>(0, "foundation progress");
 
-    const foundationConversion: Conversion<FoundationConversionOptions> =
-        createIndependentConversion(() => ({
-            scaling: createPolynomialScaling(250, 1.5),
-            baseResource: trees.logs,
-            gainResource: noPersist(foundationProgress),
-            roundUpCost: true,
-            buyMax: false,
-            spend(gain, spent) {
-                trees.logs.value = Decimal.sub(trees.logs.value, spent);
-            }
-        }));
+    const foundationConversion = createIndependentConversion(() => ({
+        scaling: addSoftcap(
+            addSoftcap(createPolynomialScaling(250, 1.5), 5387, 1 / 1e10),
+            1e20,
+            3e8
+        ),
+        baseResource: trees.logs,
+        gainResource: noPersist(foundationProgress),
+        roundUpCost: true,
+        // buyMax: management.elfTraining.expandersElfTraining.milestones[2].earned,
+        spend(gain, spent) {
+            trees.logs.value = Decimal.sub(trees.logs.value, spent);
+        },
+        costModifier: createSequentialModifier(() => [
+            createExponentialModifier(() => ({
+                exponent: 0.95,
+                description: "Holly Level 5",
+                enabled: management.elfTraining.cutterElfTraining.milestones[4].earned
+            }))
+        ])
+    }));
 
     const buildFoundation = createClickable(() => ({
         display: jsx(() => (
             <>
-                <b style="font-size: x-large">Build part of the foundation</b>
+                <b style="font-size: x-large">
+                    Build {formatWhole(foundationConversion.actualGain.value)}% of the foundation
+                </b>
                 <br />
                 <br />
                 <span style="font-size: large">
@@ -75,10 +78,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 </span>
             </>
         )),
-        visibility: () => showIf(Decimal.lt(foundationProgress.value, 100)),
+        visibility: () =>
+            showIf(
+                Decimal.lt(foundationProgress.value, 100) ||
+                    management.elfTraining.expandersElfTraining.milestones[2].earned.value
+            ),
         canClick: () =>
-            Decimal.gte(foundationConversion.actualGain.value, 1) &&
-            Decimal.lt(foundationProgress.value, 100),
+            Decimal.gte(trees.logs.value, foundationConversion.currentAt.value) &&
+            (Decimal.lt(foundationProgress.value, 100) ||
+                management.elfTraining.expandersElfTraining.milestones[2].earned.value),
         onClick() {
             if (!unref(this.canClick)) {
                 return;
@@ -171,52 +179,67 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const extraExpansionMilestone1 = createMilestone(() => ({
         display: {
-            requirement: "120% Foundation Completed",
+            requirement: "200% Foundation Completed",
             effectDisplay: "The 1% milestone is now +2% and multiplicative"
         },
-        shouldEarn: () => Decimal.gte(foundationProgress.value, 120),
+        shouldEarn: () => Decimal.gte(foundationProgress.value, 200),
         visibility: () =>
-            showIf(management.elfTraining.expandersElfTraining.milestones[2].earned.value),
+            showIf(
+                logGainMilestone3.earned.value &&
+                    management.elfTraining.expandersElfTraining.milestones[2].earned.value
+            ),
         showPopups: shouldShowPopups
     }));
     const extraExpansionMilestone2 = createMilestone(() => ({
         display: {
-            requirement: "140% Foundation Completed",
+            requirement: "400% Foundation Completed",
             effectDisplay: "Gain +10% metal for every 10% foundation completed"
         },
-        shouldEarn: () => Decimal.gte(foundationProgress.value, 140),
+        shouldEarn: () => Decimal.gte(foundationProgress.value, 400),
         visibility: () =>
-            showIf(management.elfTraining.expandersElfTraining.milestones[2].earned.value),
+            showIf(
+                extraExpansionMilestone1.earned.value &&
+                    management.elfTraining.expandersElfTraining.milestones[2].earned.value
+            ),
         showPopups: shouldShowPopups
     }));
     const extraExpansionMilestone3 = createMilestone(() => ({
         display: {
-            requirement: "160% Foundation Completed",
+            requirement: "600% Foundation Completed",
             effectDisplay: "Gain +10% oil for every 10% foundation completed"
         },
-        shouldEarn: () => Decimal.gte(foundationProgress.value, 160),
+        shouldEarn: () => Decimal.gte(foundationProgress.value, 600),
         visibility: () =>
-            showIf(management.elfTraining.expandersElfTraining.milestones[2].earned.value),
+            showIf(
+                extraExpansionMilestone2.earned.value &&
+                    management.elfTraining.expandersElfTraining.milestones[2].earned.value
+            ),
         showPopups: shouldShowPopups
     }));
     const extraExpansionMilestone4 = createMilestone(() => ({
         display: {
-            requirement: "180% Foundation Completed",
+            requirement: "800% Foundation Completed",
             effectDisplay: "Gain +10% plastic for every 10% foundation completed"
         },
-        shouldEarn: () => Decimal.gte(foundationProgress.value, 180),
+        shouldEarn: () => Decimal.gte(foundationProgress.value, 800),
         visibility: () =>
-            showIf(management.elfTraining.expandersElfTraining.milestones[2].earned.value),
+            showIf(
+                extraExpansionMilestone3.earned.value &&
+                    management.elfTraining.expandersElfTraining.milestones[2].earned.value
+            ),
         showPopups: shouldShowPopups
     }));
     const extraExpansionMilestone5 = createMilestone(() => ({
         display: {
-            requirement: "200% Foundation Completed",
+            requirement: "1000% Foundation Completed",
             effectDisplay: "Double paper, boxes, and all cloth actions"
         },
-        shouldEarn: () => Decimal.gte(foundationProgress.value, 200),
+        shouldEarn: () => Decimal.gte(foundationProgress.value, 1000),
         visibility: () =>
-            showIf(management.elfTraining.expandersElfTraining.milestones[2].earned.value),
+            showIf(
+                extraExpansionMilestone4.earned.value &&
+                    management.elfTraining.expandersElfTraining.milestones[2].earned.value
+            ),
         showPopups: shouldShowPopups
     }));
     const milestones = {
@@ -280,11 +303,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     </h2>
                     % completed
                 </div>
-                {Decimal.lt(foundationProgress.value, 100) ? <Spacer /> : null}
+                {Decimal.lt(foundationProgress.value, 100) ||
+                management.elfTraining.expandersElfTraining.milestones[2].earned.value ? (
+                    <Spacer />
+                ) : null}
                 {render(buildFoundation)}
                 <Spacer />
                 {milestonesDisplay()}
             </>
+        )),
+        minimizedDisplay: jsx(() => (
+            <div>
+                {name} - {format(foundationProgress.value)} {foundationProgress.displayName}
+            </div>
         ))
     };
 });

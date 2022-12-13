@@ -32,6 +32,8 @@ import boxes from "./boxes";
 import metal from "./metal";
 import oil from "./oil";
 import dyes from "./dyes";
+import management from "./management";
+import workshop from "./workshop";
 
 const id = "plastic";
 const day = 10;
@@ -66,7 +68,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         resource: metal.metal,
         cost() {
             const v = new Decimal(this.amount.value);
-            return Decimal.pow(1.2, v).times(1e7);
+            let cost = Decimal.pow(1.2, v).times(1e7);
+            if (management.elfTraining.fertilizerElfTraining.milestones[3].earned.value) {
+                cost = Decimal.sub(cost, Decimal.pow(plastic.value, 2)).max(0);
+            }
+            return cost;
         },
         display: jsx(() => (
             <>
@@ -257,6 +263,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: dyes.boosts.yellow1,
             description: "Yellow Dye Boost 1",
             enabled: () => Decimal.gte(dyes.dyes.yellow.amount.value, 1)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () =>
+                Decimal.div(workshop.foundationProgress.value, 10).floor().div(10).add(1),
+            description: "800% Foundation Completed",
+            enabled: workshop.milestones.extraExpansionMilestone4.earned
         }))
     ]);
     const computedPlasticGain = computed(() => plasticGain.apply(0));
@@ -299,11 +311,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 {render(trackerDisplay)}
                 <Spacer />
-                <MainDisplay resource={plastic} color={color} style="margin-bottom: 0"  effectDisplay={
+                <MainDisplay
+                    resource={plastic}
+                    color={color}
+                    style="margin-bottom: 0"
+                    effectDisplay={
                         Decimal.gt(computedPlasticGain.value, 0)
                             ? `+${format(computedPlasticGain.value)}/s`
                             : undefined
-                    } />
+                    }
+                />
                 <Spacer />
                 <Column>
                     {render(buildRefinery)}
@@ -319,6 +336,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     {renderCol(clothTools, clothElf, clothGains)}
                 </Row>
             </>
+        )),
+        minimizedDisplay: jsx(() => (
+            <div>
+                {name} - {format(plastic.value)} {plastic.displayName}
+            </div>
         ))
     };
 });

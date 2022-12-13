@@ -4,7 +4,7 @@ import Toggle from "components/fields/Toggle.vue";
 import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
 import { jsx, showIf } from "features/feature";
-import { createResource, trackBest } from "features/resources/resource";
+import { createResource, Resource, trackBest } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { render, renderRow } from "util/vue";
@@ -12,6 +12,7 @@ import { persistent } from "game/persistence";
 import { globalBus } from "game/events";
 import {
     createAdditiveModifier,
+    createExponentialModifier,
     createMultiplicativeModifier,
     createSequentialModifier
 } from "game/modifiers";
@@ -30,6 +31,8 @@ import boxes from "./boxes";
 import cloth from "./cloth";
 import plastic from "./plastic";
 import dyes from "./dyes";
+import management from "./management";
+import workshop from "./workshop";
 
 const id = "metal";
 const day = 7;
@@ -78,6 +81,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.add(cloth.cloth.value, 1).log10().plus(1),
             description: "Glistening Paint",
             enabled: dyes.upgrades.redDyeUpg.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () =>
+                Decimal.div(workshop.foundationProgress.value, 10).floor().div(10).add(1),
+            description: "400% Foundation Completed",
+            enabled: workshop.milestones.extraExpansionMilestone2.earned
+        })),
+        createExponentialModifier(() => ({
+            exponent: 1.1,
+            description: "Mary Level 2",
+            enabled: management.elfTraining.heatedPlanterElfTraining.milestones[1].earned
         }))
     ]);
     const computedOrePurity = computed(() => orePurity.apply(0.1));
@@ -108,6 +122,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.add(plastic.activeRefinery.value, 1).sqrt(),
             description: "De Louvre",
             enabled: dyes.upgrades.redDyeUpg2.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.div(management.totalElfExp.value, 1000).add(1).sqrt(),
+            description: "Mary Level 5",
+            enabled: management.elfTraining.heatedPlanterElfTraining.milestones[4].earned
         }))
     ]);
     const computedAutoSmeltSpeed = computed(() => autoSmeltSpeed.apply(0));
@@ -359,7 +378,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         .gte(10)
             ),
         style: { width: "200px" }
-    })) as GenericBuyable;
+    })) as GenericBuyable & { resource: Resource };
     const industrialCrucible = createBuyable(() => ({
         resource: noPersist(metal),
         cost() {
@@ -382,7 +401,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     Decimal.gte(bestOre.value, 50)
             ),
         style: { width: "200px" }
-    })) as GenericBuyable;
+    })) as GenericBuyable & { resource: Resource };
     const autoSmeltEnabled = persistent<boolean>(true);
     const hotterForge = createBuyable(() => ({
         resource: coal.coal,
@@ -403,7 +422,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () =>
             showIf(Decimal.gte(hotterForge.amount.value, 1) || industrialFurnace.bought.value),
         style: { width: "200px" }
-    })) as GenericBuyable;
+    })) as GenericBuyable & { resource: Resource };
     const hotterForgeEffect = computed(() => Decimal.times(hotterForge.amount.value, 0.25));
 
     globalBus.on("update", diff => {
@@ -573,6 +592,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 )}
                 {renderRow(oreDrill, industrialCrucible, hotterForge)}
             </>
+        )),
+        minimizedDisplay: jsx(() => (
+            <div>
+                {name} - {format(metal.value)} {metal.displayName}
+            </div>
         ))
     };
 });

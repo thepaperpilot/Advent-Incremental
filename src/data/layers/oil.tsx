@@ -35,6 +35,8 @@ import { formatGain } from "util/bignum";
 import plastic from "./plastic";
 import paper from "./paper";
 import dyes from "./dyes";
+import management from "./management";
+import workshop from "./workshop";
 
 const id = "oil";
 const day = 9;
@@ -247,8 +249,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <br />
                 Pump that oil from the ground.
                 <br />
-                Gain oil based on the number of Heavy buildings active and well
-                depth, but coal usage is multiplied by {row2Upgrades[3].bought.value ? 4 : 5}×.
+                Gain oil based on the number of Heavy buildings active and well depth, but coal
+                usage is multiplied by {row2Upgrades[3].bought.value ? 4 : 5}×.
                 <br />
                 <br />
                 Currently:
@@ -718,6 +720,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => coalEffectiveness.value,
             description: "Effectiveness",
             enabled: () => Decimal.lt(coalEffectiveness.value, 1)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () =>
+                Decimal.div(workshop.foundationProgress.value, 10).floor().div(10).add(1),
+            description: "600% Foundation Completed",
+            enabled: workshop.milestones.extraExpansionMilestone3.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.sqrt(management.totalElfLevels.value),
+            description: "Jack Level 4",
+            enabled: management.elfTraining.heatedCutterElfTraining.milestones[3].earned
         }))
     ]);
     const computedOilSpeed = computed(() => oilSpeed.apply(0));
@@ -947,6 +960,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     <MainDisplay
                         resource={oil}
                         color={color}
+                        resourceStyle={{textShadow: 'grey 0px 0px 10px'}}
                         sticky={true}
                         productionDisplay={jsx(() => (
                             <>
@@ -1068,7 +1082,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     {Decimal.gte(totalOil.value, 50) ? oilMilestonesDisplay() : ""}
                 </>
             );
-        })
+        }),
+        minimizedDisplay: jsx(() => (
+            <div>
+                {name} - {format(oil.value)} {oil.displayName}
+            </div>
+        ))
     };
 });
 
