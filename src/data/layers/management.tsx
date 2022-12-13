@@ -1027,7 +1027,7 @@ const layer = createLayer(id, () => {
         },
         canClick: () => Decimal.eq(focusCooldown.value, 0),
         onClick() {
-            focusCooldown.value = cooldown.value;
+            focusCooldown.value = Decimal.fromValue(cooldown.value).toNumber();
             focusTime.value = 10;
             rerollFocusTargets(12, maximumElves.value);
         }
