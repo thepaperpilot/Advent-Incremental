@@ -27,7 +27,11 @@ import paper from "./paper";
 import plastic from "./plastic";
 import trees from "./trees";
 
-export type BoxesBuyable = GenericBuyable & { resource: Resource; freeLevels: ComputedRef<DecimalSource>; totalAmount: ComputedRef<Decimal> };
+export type BoxesBuyable = GenericBuyable & {
+    resource: Resource;
+    freeLevels: ComputedRef<DecimalSource>;
+    totalAmount: ComputedRef<Decimal>;
+};
 
 const id = "boxes";
 const day = 6;
@@ -164,7 +168,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Carry dye in boxes",
             description: "Double all dye gain"
         }
-    }))  as GenericUpgrade;
+    })) as GenericUpgrade;
     const xpUpgrade = createUpgrade(() => ({
         resource: noPersist(boxes),
         cost: 1e18,
@@ -178,7 +182,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const logBoxesBuyable = createBuyable(() => ({
         display: {
             title: "Carry more logs",
-            description: jsx(() => <>Use boxes to carry even more logs, boosting their gain<br /><br /><div>Amount: {formatWhole(logBoxesBuyable.amount.value)}{Decimal.gt(logBoxesBuyable.freeLevels.value, 0) ? <> (+{formatWhole(logBoxesBuyable.freeLevels.value)})</> : null}</div></>),
+            description: jsx(() => (
+                <>
+                    Use boxes to carry even more logs, boosting their gain
+                    <br />
+                    <br />
+                    <div>
+                        Amount: {formatWhole(logBoxesBuyable.amount.value)}
+                        {Decimal.gt(logBoxesBuyable.freeLevels.value, 0) ? (
+                            <> (+{formatWhole(logBoxesBuyable.freeLevels.value)})</>
+                        ) : null}
+                    </div>
+                </>
+            )),
             effectDisplay: jsx(() => (
                 <>{format(Decimal.div(logBoxesBuyable.totalAmount.value, 2).add(1))}x</>
             )),
@@ -195,13 +211,34 @@ const layer = createLayer(id, function (this: BaseLayer) {
             return Decimal.pow(scaling, v).times(100).div(dyes.boosts.orange2.value);
         },
         visibility: () => showIf(logsUpgrade.bought.value),
-        freeLevels: computed(() => management.elfTraining.boxElfTraining.milestones[0].earned.value ? Decimal.max(ashBoxesBuyable.amount.value, 1).sqrt().floor().add(Decimal.max(coalBoxesBuyable.amount.value, 1).sqrt().floor()) : 0),
-        totalAmount: computed(() => Decimal.add(logBoxesBuyable.amount.value, logBoxesBuyable.freeLevels.value))
+        freeLevels: computed(() =>
+            management.elfTraining.boxElfTraining.milestones[0].earned.value
+                ? Decimal.max(ashBoxesBuyable.amount.value, 1)
+                      .sqrt()
+                      .floor()
+                      .add(Decimal.max(coalBoxesBuyable.amount.value, 1).sqrt().floor())
+                : 0
+        ),
+        totalAmount: computed(() =>
+            Decimal.add(logBoxesBuyable.amount.value, logBoxesBuyable.freeLevels.value)
+        )
     })) as BoxesBuyable;
     const ashBoxesBuyable = createBuyable(() => ({
         display: {
             title: "Carry more ash",
-            description: jsx(() => <>Use boxes to carry even more ash, boosting its gain<br /><br /><div>Amount: {formatWhole(ashBoxesBuyable.amount.value)}{Decimal.gt(ashBoxesBuyable.freeLevels.value, 0) ? <> (+{formatWhole(ashBoxesBuyable.freeLevels.value)})</> : null}</div></>),
+            description: jsx(() => (
+                <>
+                    Use boxes to carry even more ash, boosting its gain
+                    <br />
+                    <br />
+                    <div>
+                        Amount: {formatWhole(ashBoxesBuyable.amount.value)}
+                        {Decimal.gt(ashBoxesBuyable.freeLevels.value, 0) ? (
+                            <> (+{formatWhole(ashBoxesBuyable.freeLevels.value)})</>
+                        ) : null}
+                    </div>
+                </>
+            )),
             effectDisplay: jsx(() => (
                 <>{format(Decimal.div(ashBoxesBuyable.totalAmount.value, 2).add(1))}x</>
             )),
@@ -218,13 +255,34 @@ const layer = createLayer(id, function (this: BaseLayer) {
             return Decimal.pow(scaling, v).times(1000).div(dyes.boosts.orange2.value);
         },
         visibility: () => showIf(ashUpgrade.bought.value),
-        freeLevels: computed(() => management.elfTraining.boxElfTraining.milestones[0].earned.value ? Decimal.max(logBoxesBuyable.amount.value, 1).sqrt().floor().add(Decimal.max(coalBoxesBuyable.amount.value, 1).sqrt().floor()) : 0),
-        totalAmount: computed(() => Decimal.add(ashBoxesBuyable.amount.value, ashBoxesBuyable.freeLevels.value))
+        freeLevels: computed(() =>
+            management.elfTraining.boxElfTraining.milestones[0].earned.value
+                ? Decimal.max(logBoxesBuyable.amount.value, 1)
+                      .sqrt()
+                      .floor()
+                      .add(Decimal.max(coalBoxesBuyable.amount.value, 1).sqrt().floor())
+                : 0
+        ),
+        totalAmount: computed(() =>
+            Decimal.add(ashBoxesBuyable.amount.value, ashBoxesBuyable.freeLevels.value)
+        )
     })) as BoxesBuyable;
     const coalBoxesBuyable = createBuyable(() => ({
         display: {
             title: "Carry more coal",
-            description: jsx(() => <>Use boxes to carry even more coal, boosting its gain<br /><br /><div>Amount: {formatWhole(coalBoxesBuyable.amount.value)}{Decimal.gt(coalBoxesBuyable.freeLevels.value, 0) ? <> (+{formatWhole(coalBoxesBuyable.freeLevels.value)})</> : null}</div></>),
+            description: jsx(() => (
+                <>
+                    Use boxes to carry even more coal, boosting its gain
+                    <br />
+                    <br />
+                    <div>
+                        Amount: {formatWhole(coalBoxesBuyable.amount.value)}
+                        {Decimal.gt(coalBoxesBuyable.freeLevels.value, 0) ? (
+                            <> (+{formatWhole(coalBoxesBuyable.freeLevels.value)})</>
+                        ) : null}
+                    </div>
+                </>
+            )),
             effectDisplay: jsx(() => (
                 <>{format(Decimal.div(coalBoxesBuyable.totalAmount.value, 2).add(1))}x</>
             )),
@@ -241,8 +299,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
             return Decimal.pow(scaling, v).times(1000).div(dyes.boosts.orange2.value);
         },
         visibility: () => showIf(coalUpgrade.bought.value),
-        freeLevels: computed(() => management.elfTraining.boxElfTraining.milestones[0].earned.value ? Decimal.max(logBoxesBuyable.amount.value, 1).sqrt().floor().add(Decimal.max(ashBoxesBuyable.amount.value, 1).sqrt().floor()) : 0),
-        totalAmount: computed(() => Decimal.add(coalBoxesBuyable.amount.value, coalBoxesBuyable.freeLevels.value))
+        freeLevels: computed(() =>
+            management.elfTraining.boxElfTraining.milestones[0].earned.value
+                ? Decimal.max(logBoxesBuyable.amount.value, 1)
+                      .sqrt()
+                      .floor()
+                      .add(Decimal.max(ashBoxesBuyable.amount.value, 1).sqrt().floor())
+                : 0
+        ),
+        totalAmount: computed(() =>
+            Decimal.add(coalBoxesBuyable.amount.value, coalBoxesBuyable.freeLevels.value)
+        )
     })) as BoxesBuyable;
     const buyables = { logBoxesBuyable, ashBoxesBuyable, coalBoxesBuyable };
 
@@ -300,6 +367,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         row3Upgrades,
         buyables,
         minWidth: 700,
+        generalTabCollapsed,
         display: jsx(() => (
             <>
                 {render(trackerDisplay)}
@@ -308,7 +376,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {render(makeBoxes)}
                 <Spacer />
-                {renderGrid(Object.values(upgrades), Object.values(row2Upgrades), Object.values(row3Upgrades))}
+                {renderGrid(
+                    Object.values(upgrades),
+                    Object.values(row2Upgrades),
+                    Object.values(row3Upgrades)
+                )}
                 <Spacer />
                 {renderRow(...Object.values(buyables))}
             </>
