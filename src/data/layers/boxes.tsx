@@ -339,7 +339,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         {
             title: "Boxes Gain",
             modifier: boxGain,
-            base: 1
+            base: () => boxesConversion.scaling.currentGain(boxesConversion)
         }
     ]);
     const showModifiersModal = ref(false);
