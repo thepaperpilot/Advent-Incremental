@@ -12,7 +12,12 @@ import { createMilestone, GenericMilestone } from "features/milestones/milestone
 import { createUpgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
 import { createLayer } from "game/layers";
-import { createMultiplicativeModifier, createSequentialModifier, Modifier } from "game/modifiers";
+import {
+    createAdditiveModifier,
+    createMultiplicativeModifier,
+    createSequentialModifier,
+    Modifier
+} from "game/modifiers";
 import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatTime, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
@@ -896,12 +901,11 @@ const layer = createLayer(id, () => {
         }
         focusTime.value = Math.max(focusTime.value - diff, 0);
         focusCooldown.value = Math.max(focusCooldown.value - diff, 0);
-        if (focusTime.value > 0) {
+        if (focusTime.value === 0) {
             focusMulti.value = Decimal.pow(
                 focusMaxMulti.value,
                 1 - Math.abs(Math.sin((Date.now() / 1000) * 2))
             );
-            
         }
     });
 
@@ -912,7 +916,32 @@ const layer = createLayer(id, () => {
     const focusCooldown = persistent<number>(0);
     const focusTime = persistent<number>(0);
 
-    const focusMaxMulti = computed<DecimalSource>(() => focusUpgrade1.bought.value ? 20 : 10);
+    const focusMaxMultiModifiers = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Focus Upgrade 1",
+            enabled: focusUpgrade1.bought
+        }))
+    ]);
+    const maximumElvesModifier = createSequentialModifier(() => [
+        createAdditiveModifier(() => ({
+            addend: 1,
+            description: "Focus Upgrade 2",
+            enabled: focusUpgrade2.bought
+        }))
+    ]);
+
+    const cooldownModifiers = createSequentialModifier(() => [
+        createAdditiveModifier(() => ({
+            addend: -5,
+            description: "Focus Upgrade 3",
+            enabled: focusUpgrade3.bought
+        }))
+    ]);
+
+    const focusMaxMulti = computed(() => focusMaxMultiModifiers.apply(10));
+    const maximumElves = computed(() => maximumElvesModifier.apply(3));
+    const cooldown = computed(() => cooldownModifiers.apply(15));
 
     const focusMeter = createBar(() => ({
         direction: Direction.Right,
@@ -949,9 +978,9 @@ const layer = createLayer(id, () => {
         },
         canClick: () => focusCooldown.value === 0,
         onClick() {
-            focusCooldown.value = focusUpgrade3.bought.value ? 10 : 15;
+            focusCooldown.value = cooldown.value;
             focusTime.value = 10;
-            rerollFocusTargets(12, focusUpgrade2.bought.value ? 4 : 3);
+            rerollFocusTargets(12, maximumElves.value);
         }
     }));
 
@@ -970,7 +999,7 @@ const layer = createLayer(id, () => {
     const focusUpgrade1 = createUpgrade(() => ({
         display: {
             title: "Focus Booster",
-            description: "Double experience multiplier from focus"
+            description: "Multiplies the maximum experience multiplier from focus by 2"
         },
         resource: trees.logs,
         cost: 1e30
@@ -1132,6 +1161,22 @@ const layer = createLayer(id, () => {
 
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
         {
+            title: "Elves affected by Focus",
+            modifier: maximumElvesModifier,
+            base: 3
+        },
+        {
+            title: "Maximum Focus Effect",
+            modifier: focusMaxMultiModifiers,
+            base: 10
+        },
+        {
+            title: "Focus Cooldown",
+            modifier: cooldownModifiers,
+            unit: " secs",
+            base: 15
+        },
+        {
             title: "Global XP Gain",
             modifier: globalXPModifier,
             unit: " XP"
@@ -1244,7 +1289,6 @@ const layer = createLayer(id, () => {
         focusTargets,
         focusCooldown,
         focusTime,
-        
 
         display: jsx(() => (
             <>
