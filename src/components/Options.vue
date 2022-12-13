@@ -3,14 +3,20 @@
         <template v-slot:header>
             <h2>Settings</h2>
             <div class="option-tabs">
-                <button :class="{selected: isTab('behaviour')}" @click="setTab('behaviour')">Behaviour</button>
-                <button :class="{selected: isTab('appearance')}" @click="setTab('appearance')">Appearance</button>
+                <button :class="{ selected: isTab('behaviour') }" @click="setTab('behaviour')">
+                    Behaviour
+                </button>
+                <button :class="{ selected: isTab('appearance') }" @click="setTab('appearance')">
+                    Appearance
+                </button>
             </div>
         </template>
         <template v-slot:body>
             <div v-if="isTab('behaviour')">
                 <Toggle :title="autosaveTitle" v-model="autosave" />
-                <FeedbackButton v-if="!autosave" class="button save-button" @click="save()">Manually save</FeedbackButton>
+                <FeedbackButton v-if="!autosave" class="button save-button" @click="save()"
+                    >Manually save</FeedbackButton
+                >
                 <Toggle v-if="projInfo.enablePausing" :title="isPausedTitle" v-model="isPaused" />
                 <Toggle :title="autoPauseTitle" v-model="autoPause" />
             </div>
@@ -56,11 +62,11 @@ defineExpose({
     }
 });
 
-function isTab (tab: string): boolean {
+function isTab(tab: string): boolean {
     return tab == currentTab.value;
 }
 
-function setTab (tab: string) {
+function setTab(tab: string) {
     currentTab.value = tab;
 }
 
@@ -86,7 +92,6 @@ const isPaused = computed({
     }
 });
 
-
 const autosaveTitle = jsx(() => (
     <span class="option-title">
         Autosave<Tooltip display="Save-specific">*</Tooltip>
@@ -102,7 +107,10 @@ const isPausedTitle = jsx(() => (
 const autoPauseTitle = jsx(() => (
     <span class="option-title">
         Auto-pause<Tooltip display="Save-specific">*</Tooltip>
-        <desc>Automatically pause the game when a day is completed. It is best to keep this on to avoid over-grinding.</desc>
+        <desc>
+            Automatically pause the game when a day is completed. It is best to keep this on to
+            avoid over-grinding.
+        </desc>
     </span>
 ));
 

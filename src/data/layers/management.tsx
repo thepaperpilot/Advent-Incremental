@@ -52,12 +52,13 @@ const layer = createLayer(id, () => {
             main.day.value === day
                 ? day12Elves.reduce((acc, curr) => acc + Math.min(1, curr.level.value / 3), 0) /
                   day12Elves.length
-                : main.day.value === advancedDay
+                : main.day.value === advancedDay && main.days[advancedDay - 1].opened.value
                 ? day13Elves.reduce((acc, curr) => acc + Math.min(1, curr.level.value / 5), 0) /
                   day13Elves.length
                 : 1,
         display: jsx(() =>
-            main.day.value === day || main.day.value === advancedDay ? (
+            main.day.value === day ||
+            (main.day.value === advancedDay && main.days[advancedDay - 1].opened.value) ? (
                 <>
                     {formatWhole(
                         Decimal.times(
@@ -273,7 +274,8 @@ const layer = createLayer(id, () => {
                 requirement: "Holly Level 3",
                 effectDisplay: jsx(() => (
                     <>
-                        Multiply all cloth actions' effectiveness by log<sub>10</sub>(Cutter amount).
+                        Multiply all cloth actions' effectiveness by log<sub>10</sub>(Cutter
+                        amount).
                     </>
                 ))
             },
