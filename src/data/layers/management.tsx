@@ -165,7 +165,7 @@ const layer = createLayer(id, () => {
             createMultiplicativeModifier(() => ({
                 multiplier: focusMulti,
                 description: "Focus Multiplier",
-                enabled: () => focusTime.value > 0 && focusTargets.value[elf.name] == true
+                enabled: () => Decimal.gt(focusTime.value, 0) && focusTargets.value[elf.name] == true
             })),
             ...modifiers
         ]);
@@ -899,9 +899,9 @@ const layer = createLayer(id, () => {
                     );
             }
         }
-        focusTime.value = Math.max(focusTime.value - diff, 0);
-        focusCooldown.value = Math.max(focusCooldown.value - diff, 0);
-        if (focusTime.value === 0) {
+        focusTime.value = Decimal.sub(focusTime.value, diff).max(0)
+        focusCooldown.value = Decimal.sub(focusCooldown.value, diff).max(0)
+        if (Decimal.eq(focusTime.value, 0)) {
             focusMulti.value = Decimal.pow(
                 focusMaxMulti.value,
                 1 - Math.abs(Math.sin((Date.now() / 1000) * 2))
@@ -913,8 +913,8 @@ const layer = createLayer(id, () => {
 
     const focusMulti = persistent<DecimalSource>(1);
     const focusTargets = persistent<Record<string, boolean>>({});
-    const focusCooldown = persistent<number>(0);
-    const focusTime = persistent<number>(0);
+    const focusCooldown = persistent<DecimalSource>(0);
+    const focusTime = persistent<DecimalSource>(0);
 
     const focusMaxMultiModifiers = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
@@ -941,7 +941,7 @@ const layer = createLayer(id, () => {
 
     const focusMaxMulti = computed(() => focusMaxMultiModifiers.apply(10));
     const maximumElves = computed(() => maximumElvesModifier.apply(3));
-    const cooldown = computed(() => cooldownModifiers.apply(15));
+    const cooldown = computed(() => Number(cooldownModifiers.apply(15)));
 
     const focusMeter = createBar(() => ({
         direction: Direction.Right,
@@ -962,7 +962,7 @@ const layer = createLayer(id, () => {
                 <>
                     Motivate elves to focus, multiplying 3 random elves' XP gain by up to{" "}
                     {format(focusMaxMulti.value)}x, equal to the focus bars' effect.
-                    {focusCooldown.value > 0 ? (
+                    {Decimal.gte(focusCooldown.value, 0) ? (
                         <>
                             <br />
                             Reroll cooldown: {formatTime(focusCooldown.value)}
@@ -976,19 +976,21 @@ const layer = createLayer(id, () => {
         style: {
             width: "300px"
         },
-        canClick: () => focusCooldown.value === 0,
+        canClick: () => Decimal.eq(focusCooldown.value, 0),
         onClick() {
             focusCooldown.value = cooldown.value;
             focusTime.value = 10;
+
+            // better choice? this has to be a number
             rerollFocusTargets(12, maximumElves.value);
         }
     }));
 
-    function rerollFocusTargets(range: number, count: number) {
+    function rerollFocusTargets(range: number, count: DecimalSource) {
         let x = 0;
         focusTargets.value = {};
-        count = Math.min(count, range);
-        while (x < count) {
+        const newCount = Decimal.min(count, range)
+        while (newCount.gte(x)) {
             const roll = Object.values(elfTraining)[Math.floor(Math.random() * range)]?.name ?? "";
             if (!focusTargets.value[roll]) {
                 focusTargets.value[roll] = true;
