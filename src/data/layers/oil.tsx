@@ -24,7 +24,8 @@ import metal from "./metal";
 import {
     createSequentialModifier,
     createAdditiveModifier,
-    createMultiplicativeModifier
+    createMultiplicativeModifier,
+    Modifier
 } from "game/modifiers";
 import { main } from "data/projEntry";
 import { globalBus } from "game/events";
@@ -37,6 +38,7 @@ import paper from "./paper";
 import dyes from "./dyes";
 import management from "./management";
 import workshop from "./workshop";
+import { WithRequired } from "util/common";
 
 const id = "oil";
 const day = 9;
@@ -809,7 +811,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Faith Level 4",
             enabled: management.elfTraining.bonfireElfTraining.milestones[3].earned
         }))
-    ]);
+    ]) as WithRequired<Modifier, "description" | "revert">;
     const computedOilSpeed = computed(() => oilSpeed.apply(0));
 
     const oilConsumption = createSequentialModifier(() => [

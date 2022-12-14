@@ -162,8 +162,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () =>
-                Decimal.add(dyes.dyes.red.amount, dyes.dyes.blue.amount)
-                    .add(dyes.dyes.yellow.amount)
+                Decimal.add(dyes.dyes.red.amount.value, dyes.dyes.blue.amount.value)
+                    .add(dyes.dyes.yellow.amount.value)
                     .add(1)
                     .log10(),
             description: "The Ultimate Metal Dye",

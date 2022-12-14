@@ -1153,8 +1153,8 @@ const layer = createLayer(id, () => {
         })),
         createAdditiveModifier(() => ({
             addend() {
-                return Decimal.add(dyes.dyes.orange.amount, dyes.dyes.purple.amount)
-                    .add(dyes.dyes.green.amount)
+                return Decimal.add(dyes.dyes.orange.amount.value, dyes.dyes.purple.amount.value)
+                    .add(dyes.dyes.green.amount.value)
                     .add(1)
                     .cbrt();
             },
