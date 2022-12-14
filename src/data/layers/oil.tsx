@@ -504,7 +504,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 150000,
             display: {
                 title: "Metal Drill Synergy",
-                description: "Increase drill power by +4% per ore Mining Drill owned.",
+                description: "Increase drill power by +4% per Metal Drill owned.",
                 effectDisplay: jsx(() => <>x{format(row1UpgradeEffects[1].value)}</>)
             },
             style: { color: colorText }
@@ -584,7 +584,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             resource: noPersist(oil),
             cost: 500,
             display: {
-                title: "Oil the Mining Drills",
+                title: "Oil the Metal Drills",
                 description:
                     "Double ore mining speed and square the coal drill amount in its effect."
             },

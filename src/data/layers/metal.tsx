@@ -214,7 +214,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const oreAmount = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: () => oreDrill.amount.value,
-            description: "Mining Drills",
+            description: "Metal Drills",
             enabled: () => Decimal.gte(oreDrill.amount.value, 1)
         })),
         createMultiplicativeModifier(() => ({
@@ -247,7 +247,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2.5,
-            description: "Mining Drills",
+            description: "Metal Drills",
             enabled: () => Decimal.gte(oreDrill.amount.value, 1)
         })),
         createMultiplicativeModifier(() => ({
@@ -257,7 +257,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
-            description: "Oil the Mining Drills",
+            description: "Oil the Metal Drills",
             enabled: oil.row2Upgrades[1].bought
         }))
     ]);
@@ -331,7 +331,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         display: {
             title: "Coal Drilling",
             description:
-                "These mining drills are pretty powerful, mining more ore than you can actually smelt. Could be worth making some to mine coal instead"
+                "These metal drills are pretty powerful, mining more ore than you can actually smelt. Could be worth making some to mine coal instead"
         },
         visibility: () =>
             showIf(
@@ -381,7 +381,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             return Decimal.pow(1.15, this.amount.value).times(10);
         },
         display: {
-            title: "Mining Drill",
+            title: "Metal Drill",
             description: "An automated machine to help you mine more ore, faster",
             effectDisplay: jsx(() => (
                 <>
