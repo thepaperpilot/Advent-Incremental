@@ -161,9 +161,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: management.elfTraining.metalElfTraining.milestones[1].earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.add(dyes.dyes.red.amount, dyes.dyes.blue.amount).add(dyes.dyes.yellow.amount).add(1).log10(),
+            multiplier: () =>
+                Decimal.add(dyes.dyes.red.amount, dyes.dyes.blue.amount)
+                    .add(dyes.dyes.yellow.amount)
+                    .add(1)
+                    .log10(),
             description: "The Ultimate Metal Dye",
-            enabled: oil.row3Upgrades[4].bought.value
+            enabled: oil.row3Upgrades[4].bought
         }))
     ]);
     const computedAutoSmeltSpeed = computed(() => autoSmeltSpeed.apply(0));

@@ -1159,7 +1159,7 @@ const layer = createLayer(id, () => {
                     .cbrt();
             },
             description: "Colorful Focus",
-            enabled: oil.row3Upgrades[2].bought.value
+            enabled: oil.row3Upgrades[2].bought
         }))
     ]) as WithRequired<Modifier, "revert" | "description">;
     const maximumElvesModifier = createSequentialModifier(() => [
