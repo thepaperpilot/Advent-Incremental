@@ -33,7 +33,7 @@ import metal from "./metal";
 import paper from "./paper";
 import plastic from "./plastic";
 import trees from "./trees";
-
+import oil from "./oil";
 const id = "management";
 const day = 12;
 const advancedDay = 13;
@@ -1151,7 +1151,12 @@ const layer = createLayer(id, () => {
             multiplier: 2,
             description: "Focus Upgrade 1",
             enabled: focusUpgrade1.bought
-        }))
+        })),
+        createAdditiveModifier(() => ({
+            addend(){return Decimal.add(dyes.dyes.orange.amount, dyes.dyes.purple.amount).add(dyes.dyes.green.amount).add(1).cbrt()},
+            description: "Colorful Focus",
+            enabled: oil.row3Upgrades[2].bought.value
+        })),
     ]);
     const maximumElvesModifier = createSequentialModifier(() => [
         createAdditiveModifier(() => ({

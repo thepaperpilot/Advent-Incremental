@@ -518,7 +518,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 .pow(upgrades.coalUpg.bought.value ? 1.2 : 1)
                 .pow(management.elfTraining.clothElfTraining.milestones[3].earned.value ? 1.1 : 1)
         ),
-        orange2: computed(() => Decimal.add(dyes.orange.amount.value, 1).log2().plus(1)),
+        orange2: computed(() => Decimal.add(dyes.orange.amount.value, 1).log2().plus(1).pow(oil.row3Upgrades[1].bought.value ? 2.5 : 1)),
         green1: computed(() =>
             Decimal.pow(2, Decimal.add(dyes.green.amount.value, 1).log2().sqrt())
                 .pow(upgrades.coalUpg.bought.value ? 1.2 : 1)

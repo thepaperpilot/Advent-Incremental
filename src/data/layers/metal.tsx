@@ -148,6 +148,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.div(management.totalElfExp.value, 1000).add(1).sqrt(),
             description: "Mary Level 5",
             enabled: management.elfTraining.heatedPlanterElfTraining.milestones[4].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(dyes.dyes.red.amount, dyes.dyes.blue.amount).add(dyes.dyes.yellow.amount).add(1).log10(),
+            description: "The Ultimate Metal Dye",
+            enabled: oil.row3Upgrades[4].bought.value
         }))
     ]);
     const computedAutoSmeltSpeed = computed(() => autoSmeltSpeed.apply(0));
