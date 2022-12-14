@@ -27,6 +27,7 @@ import { WithRequired } from "util/common";
 import { render, renderGrid, renderRow } from "util/vue";
 import { computed, ComputedRef, ref, unref } from "vue";
 import dyes from "./dyes";
+import { ElfBuyable } from "./elves";
 import management from "./management";
 import paper from "./paper";
 import plastic from "./plastic";
@@ -34,7 +35,7 @@ import trees from "./trees";
 import workshop from "./workshop";
 import wrappingPaper from "./wrapping-paper";
 
-export type BoxesBuyable = GenericBuyable & {
+export type BoxesBuyable = ElfBuyable & {
     resource: Resource;
     freeLevels: ComputedRef<DecimalSource>;
     totalAmount: ComputedRef<Decimal>;
@@ -231,6 +232,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 .div(dyes.boosts.orange2.value)
                 .div(wrappingPaper.boosts.ocean1.value);
         },
+        inverseCost(x: DecimalSource) {
+            let scaling = 3;
+            if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
+                scaling--;
+            }
+
+            let v = Decimal.mul(x, wrappingPaper.boosts.ocean1.value)
+                .mul(dyes.boosts.orange2.value)
+                .div(100).log(scaling);
+
+            v = v.div(Decimal.pow(0.95, paper.books.boxBook.totalAmount.value));
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+        },
         visibility: () => showIf(logsUpgrade.bought.value),
         freeLevels: computed(() =>
             management.elfTraining.boxElfTraining.milestones[0].earned.value
@@ -275,6 +289,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
             return Decimal.pow(scaling, v).times(1000).div(dyes.boosts.orange2.value);
         },
+        inverseCost(x: DecimalSource) {
+            let scaling = 5;
+            if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
+                scaling--;
+            }
+
+            let v = Decimal.mul(x, dyes.boosts.orange2.value)
+                .div(1000).log(scaling);
+
+            v = v.div(Decimal.pow(0.95, paper.books.boxBook.totalAmount.value));
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+        },
         visibility: () => showIf(ashUpgrade.bought.value),
         freeLevels: computed(() =>
             management.elfTraining.boxElfTraining.milestones[0].earned.value
@@ -318,6 +344,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 scaling--;
             }
             return Decimal.pow(scaling, v).times(1000).div(dyes.boosts.orange2.value);
+        },
+        inverseCost(x: DecimalSource) {
+            let scaling = 7;
+            if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
+                scaling--;
+            }
+
+            let v = Decimal.mul(x, dyes.boosts.orange2.value)
+                .div(1000).log(scaling);
+
+            v = v.div(Decimal.pow(0.95, paper.books.boxBook.totalAmount.value));
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         visibility: () => showIf(coalUpgrade.bought.value),
         freeLevels: computed(() =>
@@ -367,6 +405,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 .div(dyes.boosts.orange2.value)
                 .div(wrappingPaper.boosts.ocean1.value);
         },
+        inverseCost(x: DecimalSource) {
+            let scaling = 10;
+            if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
+                scaling--;
+            }
+
+            let v = Decimal.mul(x, wrappingPaper.boosts.ocean1.value)
+                .mul(dyes.boosts.orange2.value)
+                .div(1e25).log(scaling);
+
+            v = v.div(Decimal.pow(0.95, paper.books.boxBook.totalAmount.value));
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+        },
         visibility: () => showIf(management.elfTraining.boxElfTraining.milestones[3].earned.value),
         freeLevels: computed(() =>
             management.elfTraining.boxElfTraining.milestones[0].earned.value
@@ -411,6 +462,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
             return Decimal.pow(scaling, v).times(1e28).div(dyes.boosts.orange2.value);
         },
+        inverseCost(x: DecimalSource) {
+            let scaling = 15;
+            if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
+                scaling--;
+            }
+
+            let v = Decimal.mul(x, dyes.boosts.orange2.value)
+                .div(1e28).log(scaling);
+
+            v = v.div(Decimal.pow(0.95, paper.books.boxBook.totalAmount.value));
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+        },
         visibility: () => showIf(management.elfTraining.boxElfTraining.milestones[3].earned.value),
         freeLevels: computed(() =>
             management.elfTraining.boxElfTraining.milestones[0].earned.value
@@ -454,6 +517,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 scaling--;
             }
             return Decimal.pow(scaling, v).times(1000).div(dyes.boosts.orange2.value);
+        },
+        inverseCost(x: DecimalSource) {
+            let scaling = 20;
+            if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
+                scaling--;
+            }
+
+            let v = Decimal.mul(x, dyes.boosts.orange2.value)
+                .div(1000).log(scaling);
+
+            v = v.div(Decimal.pow(0.95, paper.books.boxBook.totalAmount.value));
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         visibility: () => showIf(management.elfTraining.boxElfTraining.milestones[3].earned.value),
         freeLevels: computed(() =>

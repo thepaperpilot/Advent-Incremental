@@ -33,7 +33,7 @@ import { render, renderGrid, renderRow } from "util/vue";
 import { computed, ref, unref } from "vue";
 import boxes from "./boxes";
 import cloth from "./cloth";
-import elves from "./elves";
+import elves, { ElfBuyable } from "./elves";
 import metal from "./metal";
 import oil from "./oil";
 import paper from "./paper";
@@ -103,6 +103,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             v = Decimal.pow(0.95, paper.books.smallFireBook.totalAmount.value).times(v);
             return v.pow(1.5).times(1e4);
         },
+        inverseCost(x: DecimalSource) {
+            let v = Decimal.div(x, 1e4).root(1.5);
+            v = v.div(Decimal.pow(0.95, paper.books.smallFireBook.totalAmount.value));
+            if (Decimal.gte(v, 10000)) v = Decimal.mul(v, 10000).root(2);
+            if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(2);
+            v = v.sub(Decimal.times(buildBonfire.amount.value, unref(buildBonfire.cost!)));
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+        },
         display: jsx(() => (
             <>
                 <h3>Small Fire</h3>
@@ -126,7 +134,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             color: colorText,
             width: "160px"
         }
-    })) as GenericBuyable & { resource: Resource };
+    })) as ElfBuyable & { resource: Resource };
 
     const {
         min: minFire,
@@ -160,6 +168,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost() {
             return Decimal.pow(0.95, paper.books.bonfireBook.totalAmount.value).times(10);
         },
+        inverseCost(x: DecimalSource) {
+            return Decimal.div(x, Decimal.pow(0.95, paper.books.bonfireBook.totalAmount.value).times(10)).floor();
+        },
         display: jsx(() => (
             <>
                 <h3>Bonfire</h3>
@@ -185,7 +196,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             width: "160px"
         },
         visibility: () => showIf(unlockBonfire.bought.value)
-    })) as GenericBuyable & { resource: Resource };
+    })) as ElfBuyable & { resource: Resource };
     const {
         min: minBonfire,
         max: maxBonfire,
@@ -220,6 +231,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
             v = Decimal.pow(0.95, paper.books.kilnBook.totalAmount.value).times(v);
             return Decimal.pow(1.1, v).times(1e7);
         },
+        inverseCost(x: DecimalSource) {
+            let v = Decimal.div(x, 1e7).log(1.1);
+            v = v.div(Decimal.pow(0.95, paper.books.kilnBook.totalAmount.value));
+            if (Decimal.gte(v, 10000)) v = Decimal.mul(v, 10000).root(2);
+            if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(2);
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+        },
         display: jsx(() => (
             <>
                 <h3>Charcoal Kiln</h3>
@@ -244,7 +262,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             width: "160px"
         },
         visibility: () => showIf(unlockKiln.bought.value)
-    })) as GenericBuyable & { resource: Resource };
+    })) as ElfBuyable & { resource: Resource };
     const {
         min: minKiln,
         max: maxKiln,
@@ -281,6 +299,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
             return cost;
         },
+        inverseCost(x: DecimalSource) {
+            if (management.elfTraining.coalDrillElfTraining.milestones[2].earned.value) {
+                x = Decimal.div(x, 10);
+            }
+            if (management.elfTraining.fertilizerElfTraining.milestones[2].earned.value) {
+                x = Decimal.div(x, Decimal.add(trees.totalLogs.value, Math.E).ln());
+            }
+            let v = Decimal.div(x, 10).log(1.15);
+            v = v.div(Decimal.pow(0.95, paper.books.coalDrillBook.totalAmount.value));
+            if (Decimal.gte(v, 10000)) v = Decimal.mul(v, 10000).root(2);
+            if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(2);
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+        },
         display: jsx(() => (
             <>
                 <h3>Coal Drill</h3>
@@ -303,7 +334,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             width: "160px"
         },
         visibility: () => showIf(metal.coalDrill.bought.value)
-    })) as GenericBuyable & { resource: Resource };
+    })) as ElfBuyable & { resource: Resource };
     const {
         max: maxDrill,
         min: minDrill,
@@ -470,6 +501,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
             v = v.div(wrappingPaper.boosts.rainbow1.value);
             return Decimal.add(v, 1).pow(2.5).times(10);
         },
+        inverseCost(x: DecimalSource) {
+            let v = Decimal.div(x, 10).root(2.5).sub(1);
+            v = v.mul(wrappingPaper.boosts.rainbow1.value);
+            if (management.elfTraining.heatedCutterElfTraining.milestones[0].earned.value) {
+                v = v.div(Decimal.pow(0.95, paper.books.heatedCuttersBook.totalAmount.value));
+            }
+            v = v.div(Decimal.pow(0.95, paper.books.heatedCuttersBook.totalAmount.value));
+            if (Decimal.gte(v, 2e6)) v = Decimal.mul(v, 2e6).root(2);
+            if (Decimal.gte(v, 200)) v = Decimal.mul(v, 200).root(2);
+            if (Decimal.gte(v, 50)) v = Decimal.mul(v, 50).root(2);
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+        },
         display: {
             title: "Heated Cutters",
             description: "Even warmer cutters cut down trees faster",
@@ -479,7 +522,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: { color: colorText },
         visibility: () => showIf(warmerCutters.bought.value)
-    })) as GenericBuyable & { display: { title: string }; resource: Resource };
+    })) as ElfBuyable & { display: { title: string }; resource: Resource };
     const heatedPlanters = createBuyable(() => ({
         resource: noPersist(coal),
         cost() {
@@ -494,6 +537,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
             v = v.div(wrappingPaper.boosts.rainbow1.value);
             return Decimal.add(v, 1).pow(2.5).times(10);
         },
+        inverseCost(x: DecimalSource) {
+            let v = Decimal.div(x, 10).root(2.5).sub(1);
+            v = v.mul(wrappingPaper.boosts.rainbow1.value);
+            if (management.elfTraining.heatedPlanterElfTraining.milestones[0].earned.value) {
+                v = v.div(Decimal.pow(0.95, paper.books.heatedPlantersBook.totalAmount.value));
+            }
+            v = v.div(Decimal.pow(0.95, paper.books.heatedPlantersBook.totalAmount.value));
+            if (Decimal.gte(v, 2e6)) v = Decimal.mul(v, 2e6).root(2);
+            if (Decimal.gte(v, 200)) v = Decimal.mul(v, 200).root(2);
+            if (Decimal.gte(v, 50)) v = Decimal.mul(v, 50).root(2);
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+        },
         display: {
             title: "Heated Planters",
             description: "Even warmer planters plant trees faster",
@@ -503,7 +558,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: { color: colorText },
         visibility: () => showIf(warmerPlanters.bought.value)
-    })) as GenericBuyable & { display: { title: string }; resource: Resource };
+    })) as ElfBuyable & { display: { title: string }; resource: Resource };
     const moreFertilizer = createBuyable(() => ({
         resource: noPersist(ash),
         cost() {
@@ -518,6 +573,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
             v = v.div(wrappingPaper.boosts.rainbow1.value);
             return Decimal.add(v, 1).pow(1.5).times(50000);
         },
+        inverseCost(x: DecimalSource) {
+            let v = Decimal.div(x, 50000).root(1.5).sub(1);
+            v = v.mul(wrappingPaper.boosts.rainbow1.value);
+            if (management.elfTraining.fertilizerElfTraining.milestones[0].earned.value) {
+                v = v.div(Decimal.pow(0.95, paper.books.fertilizerBook.totalAmount.value));
+            }
+            v = v.div(Decimal.pow(0.95, paper.books.fertilizerBook.totalAmount.value));
+            if (Decimal.gte(v, 2e6)) v = Decimal.mul(v, 2e6).root(2);
+            if (Decimal.gte(v, 200)) v = Decimal.mul(v, 200).root(2);
+            if (Decimal.gte(v, 50)) v = Decimal.mul(v, 50).root(2);
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+        },
         display: {
             title: "Fertilized Soil",
             description: "More fertilizer helps trees grow bigger",
@@ -527,7 +594,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: { color: colorText },
         visibility: () => showIf(basicFertilizer.bought.value)
-    })) as GenericBuyable & { display: { title: string }; resource: Resource };
+    })) as ElfBuyable & { display: { title: string }; resource: Resource };
     const row3buyables = [heatedCutters, heatedPlanters, moreFertilizer];
 
     const heatedCutterEffect = createSequentialModifier(() => [

@@ -34,6 +34,7 @@ import dyes from "./dyes";
 import management from "./management";
 import workshop from "./workshop";
 import paper from "./paper";
+import { ElfBuyable } from "./elves";
 
 const id = "metal";
 const day = 7;
@@ -415,6 +416,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
             return cost;
         },
+        inverseCost(x: DecimalSource) {
+            if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
+                x = Decimal.mul(x, 10);
+            }
+            if (management.elfTraining.clothElfTraining.milestones[4].earned.value) {
+                x = Decimal.mul(x, Decimal.add(oil.depth.value, 1).sqrt());
+            }
+            let v = Decimal.div(x, 10).log(1.15);
+            v = v.div(Decimal.pow(0.95, paper.books.metalBook.totalAmount.value));
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+        },
         display: {
             title: "Metal Drill",
             description: "An automated machine to help you mine more ore, faster",
@@ -433,7 +445,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         .gte(10)
             ),
         style: { width: "200px" }
-    })) as GenericBuyable & { resource: Resource };
+    })) as ElfBuyable & { resource: Resource };
     const industrialCrucible = createBuyable(() => ({
         resource: noPersist(metal),
         cost() {
@@ -447,6 +459,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 cost = Decimal.div(cost, 10);
             }
             return cost;
+        },
+        inverseCost(x: DecimalSource) {
+            if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
+                x = Decimal.mul(x, 10);
+            }
+            if (management.elfTraining.clothElfTraining.milestones[4].earned.value) {
+                x = Decimal.mul(x, Decimal.add(oil.depth.value, 1).sqrt());
+            }
+            let v = Decimal.div(x, 10).log(1.15).div(10);
+            v = v.div(Decimal.pow(0.95, paper.books.metalBook.totalAmount.value));
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         display: {
             title: "Industrial Crucible",
@@ -465,7 +488,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     Decimal.gte(bestOre.value, 50)
             ),
         style: { width: "200px" }
-    })) as GenericBuyable & { resource: Resource };
+    })) as ElfBuyable & { resource: Resource };
     const autoSmeltEnabled = persistent<boolean>(true);
     const hotterForge = createBuyable(() => ({
         resource: coal.coal,
@@ -481,6 +504,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
             return cost;
         },
+        inverseCost(x: DecimalSource) {
+            if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
+                x = Decimal.mul(x, 10);
+            }
+            if (management.elfTraining.clothElfTraining.milestones[4].earned.value) {
+                x = Decimal.mul(x, Decimal.add(oil.depth.value, 1).sqrt());
+            }
+            let v = Decimal.div(x, 1e12).log(10);
+            v = v.div(Decimal.pow(0.95, paper.books.metalBook.totalAmount.value));
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+        },
         display: {
             title: "Hotter Forges",
             description:
@@ -495,7 +529,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () =>
             showIf(Decimal.gte(hotterForge.amount.value, 1) || industrialFurnace.bought.value),
         style: { width: "200px" }
-    })) as GenericBuyable & { resource: Resource };
+    })) as ElfBuyable & { resource: Resource };
     const hotterForgeEffect = computed(() => Decimal.times(hotterForge.amount.value, 0.25));
 
     globalBus.on("update", diff => {

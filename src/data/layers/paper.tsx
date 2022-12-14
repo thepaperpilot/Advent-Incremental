@@ -23,7 +23,7 @@ import { render, renderCol, renderRow } from "util/vue";
 import { computed, ComputedRef, ref, unref } from "vue";
 import cloth from "./cloth";
 import coal from "./coal";
-import elves from "./elves";
+import elves, { ElfBuyable } from "./elves";
 import plastic from "./plastic";
 import trees from "./trees";
 import dyes from "./dyes";
@@ -131,6 +131,28 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 }
                 return cost;
             },
+            inverseCost(x: DecimalSource) {
+                if (bookUpgrade.bought.value) {
+                    x = Decimal.div(x, 10);
+                }
+                if (management.elfTraining.paperElfTraining.milestones[0].earned.value) {
+                    x = Decimal.div(x, sumBooks.value.max(1));
+                }
+                
+                let scaling = 5;
+                if (management.elfTraining.paperElfTraining.milestones[0].earned.value) {
+                    scaling--;
+                }
+
+                let v = Decimal.div(x, 10).log(scaling);
+
+                v = v.div(Decimal.pow(0.95, paperBook.totalAmount.value));
+                if (Decimal.gte(v, 10000)) v = Decimal.mul(v, 10000).root(2);
+                if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(2);
+                if (options.elfName === "Star" || options.elfName === "Bell") v = Decimal.root(v, 2);
+
+                return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+            },
             style: "width: 600px",
             freeLevels: computed(() =>
                 management.elfTraining.paperElfTraining.milestones[4].earned.value
@@ -138,7 +160,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     : 0
             ),
             totalAmount: computed(() => Decimal.add(buyable.amount.value, buyable.freeLevels.value))
-        })) as GenericBuyable & {
+        })) as ElfBuyable & {
             resource: Resource;
             freeLevels: ComputedRef<DecimalSource>;
             totalAmount: ComputedRef<DecimalSource>;

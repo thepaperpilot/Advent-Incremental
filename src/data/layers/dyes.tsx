@@ -32,12 +32,13 @@ import trees from "./trees";
 import wrappingPaper from "./wrapping-paper";
 import paper from "./paper";
 import boxes from "./boxes";
+import { ElfBuyable } from "./elves";
 
 interface Dye {
     name: string;
     amount: Resource<DecimalSource> &
         Persistent<DecimalSource> & { [NonPersistent]: Resource<DecimalSource> };
-    buyable: GenericBuyable;
+    buyable: ElfBuyable;
     toGenerate: WithRequired<Modifier, "description" | "revert">;
     computedToGenerate: ComputedRef<DecimalSource>;
     display: JSXFunction;
@@ -184,7 +185,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }) as WithRequired<Modifier, "description" | "revert">;
         const computedToGenerate = computed(() => toGenerate.apply(0));
 
-        const buyable: GenericBuyable = createBuyable(() => {
+        const buyable: ElfBuyable = createBuyable(() => {
             const costs = convertComputable(options.costs);
             return {
                 ...options,
@@ -242,6 +243,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     if (Decimal.gte(v, 10)) v = Decimal.pow(v, 2).div(5); // intentional price jump
                     v = Decimal.mul(v, Decimal.pow(0.95, paper.books.dyeBook.totalAmount.value));
                     return Decimal.div(v, 10).plus(1);
+                },
+                inverseCostPre(x: DecimalSource) {
+                    let v = Decimal.sub(x, 1).mul(10);
+                    v = v.div(Decimal.pow(0.95, paper.books.dyeBook.totalAmount.value));
+                    if (Decimal.gte(v, 10)) v = Decimal.mul(v, 5).root(2);
+                    if (Decimal.gte(v, 25)) v = Decimal.mul(v, 20).root(2);
+                    return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+                },
+                inverseCost() {
+                    if (unref(buyable.visibility) != Visibility.Visible) return Decimal.dZero;
+                    return unref(costs).reduce((pre, c) =>
+                        Decimal.min(this.inverseCostPre(Decimal.div(c.res.value, unref(c.base)).root(unref(c.root ?? 1))), pre)
+                    , Decimal.dInf);
                 },
                 canPurchase: computed((cost?: DecimalSource) => {
                     if (unref(buyable.visibility) != Visibility.Visible) return false;

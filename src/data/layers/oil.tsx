@@ -39,6 +39,7 @@ import dyes from "./dyes";
 import management from "./management";
 import workshop from "./workshop";
 import { WithRequired } from "util/common";
+import { ElfBuyable } from "./elves";
 
 const id = "oil";
 const day = 9;
@@ -104,6 +105,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             v = Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value).times(v);
             return Decimal.pow(1.3, v).times(2.5e4);
         },
+        inverseCost(x: DecimalSource) {
+            let v = Decimal.div(x, 2.5e4).log(1.3);
+            v = v.div(Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value));
+            if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(4);
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+        },
         display: jsx(() => (
             <>
                 <h3>Heavy Drill</h3>
@@ -134,7 +141,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             color: colorText,
             width: "160px"
         }
-    })) as GenericBuyable & { resource: Resource };
+    })) as ElfBuyable & { resource: Resource };
     const {
         min: minHeavy,
         max: maxHeavy,
@@ -161,6 +168,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 4).div(50);
             v = Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value).times(v);
             return Decimal.pow(2, v).times(1e5);
+        },
+        inverseCost(x: DecimalSource) {
+            let v = Decimal.div(x, 1e5).log(2);
+            v = v.div(Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value));
+            if (Decimal.gte(v, 50)) v = Decimal.mul(v, 50).root(4);
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         display: jsx(() => (
             <>
@@ -195,7 +208,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             color: colorText,
             width: "160px"
         }
-    })) as GenericBuyable & { resource: Resource };
+    })) as ElfBuyable & { resource: Resource };
     const {
         min: minHeavy2,
         max: maxHeavy2,
@@ -217,6 +230,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 100)) v = Decimal.pow(v, 4).div(100);
             v = Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value).times(v);
             return Decimal.pow(8, v).times(2e5);
+        },
+        inverseCost(x: DecimalSource) {
+            let v = Decimal.div(x, 2e5).log(8);
+            v = v.div(Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value));
+            if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(4);
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         display: jsx(() => (
             <>
@@ -244,7 +263,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             color: colorText,
             width: "160px"
         }
-    })) as GenericBuyable & { resource: Resource };
+    })) as ElfBuyable & { resource: Resource };
     const {
         min: minExtractor,
         max: maxExtractor,
@@ -288,6 +307,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
             return price;
         },
+        inverseCost(x: DecimalSource) {
+            if (management.elfTraining.heavyDrillElfTraining.milestones[1].earned.value) {
+                x = Decimal.mul(x, 10);
+            }
+            if (row2Upgrades[4].bought.value) {
+                x = Decimal.mul(x, Decimal.add(totalOil.value, 1).root(6));
+            }
+            let v = Decimal.div(x, 2e6).log(16);
+            v = v.div(Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value));
+            if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(4);
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+        },
         display: jsx(() => (
             <>
                 <h3>Oil Pump</h3>
@@ -313,7 +344,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             color: colorText,
             width: "160px"
         }
-    })) as GenericBuyable & { resource: Resource };
+    })) as ElfBuyable & { resource: Resource };
     const {
         max: maxPump,
         min: minPump,
@@ -342,6 +373,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 100)) v = Decimal.pow(v, 4).div(100);
             v = Decimal.pow(0.95, paper.books.oilBook.totalAmount.value).times(v);
             return Decimal.pow(2, v).times(50);
+        },
+        inverseCost(x: DecimalSource) {
+            let v = Decimal.div(x, 50).log(2);
+            v = v.div(Decimal.pow(0.95, paper.books.oilBook.totalAmount.value));
+            if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(4);
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         display: jsx(() => (
             <>
@@ -375,7 +412,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             color: colorText,
             width: "160px"
         }
-    })) as GenericBuyable & { resource: Resource };
+    })) as ElfBuyable & { resource: Resource };
     const {
         max: maxBurner,
         min: minBurner,
@@ -402,6 +439,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 price = price.div(Decimal.add(totalOil.value, 1).root(6));
             return price;
         },
+        inverseCost(x: DecimalSource) {
+            if (row2Upgrades[4].bought.value) {
+                x = Decimal.mul(x, Decimal.add(totalOil.value, 1).root(6));
+            }
+            let v = Decimal.div(x, 1e7).log(10);
+            v = v.div(Decimal.pow(0.95, paper.books.oilBook.totalAmount.value));
+            if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(4);
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+        },
         display: jsx(() => (
             <>
                 <h3>Oil Smelter</h3>
@@ -426,7 +472,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             color: colorText,
             width: "160px"
         }
-    })) as GenericBuyable & { resource: Resource };
+    })) as ElfBuyable & { resource: Resource };
 
     const {
         max: maxSmelter,
