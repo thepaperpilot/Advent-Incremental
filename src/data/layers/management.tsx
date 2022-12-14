@@ -796,7 +796,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Gingersnap Level 4",
-                effectDisplay: "Raise secondary dyes' first effects to the 1.1"
+                effectDisplay: "Raise secondary dyes' first effects to the 1.1 but reset primary dyes"
             },
             visibility: () => showIf(clothElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => clothElfTraining.level.value >= 4,

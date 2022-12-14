@@ -294,7 +294,34 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const upgrades = { clothUpgrade, drillingUpgrade, oilUpgrade };
-
+    const ashUpgrade = createUpgrade(() => ({
+        resource: noPersist(paper),
+        cost: 1e36,
+        visibility: () => showIf(management.elfTraining.heavyDrillElfTraining.milestones[4].earned.value),
+        display: {
+            title: "Paper burning",
+            description: "Paper adds to ash gain after all other modifiers"
+        }
+    }));
+    const bookUpgrade = createUpgrade(() => ({
+        resource: noPersist(paper),
+        cost: 1e40,
+        visibility: () => showIf(management.elfTraining.heavyDrillElfTraining.milestones[4].earned.value),
+        display: {
+            title: "Book Cheapener",
+            description: "Books are less expensive"
+        }
+    }));
+    const classroomUpgrade = createUpgrade(() => ({
+        resource: noPersist(paper),
+        cost: 1e44,
+        visibility: () => showIf(management.elfTraining.heavyDrillElfTraining.milestones[4].earned.value),
+        display: {
+            title: "Classroom Supplies",
+            description: "Classrooms' effect is raised to the 1.1"
+        }
+    }));
+    const upgrades2 = { ashUpgrade, bookUpgrade, classroomUpgrade };
     const paperGain = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -399,6 +426,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         paperConversion,
         books,
         upgrades,
+        upgrades2,
         generalTabCollapsed,
         minWidth: 700,
         display: jsx(() => (
