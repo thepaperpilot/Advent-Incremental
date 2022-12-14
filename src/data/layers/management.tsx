@@ -1271,7 +1271,7 @@ const layer = createLayer(id, () => {
                 <h3>Build a School</h3>
                 <div>
                     You gotta start somewhere, right? Each school increases the maximum level for
-                    elves by 1, maximum of {main.day.value === 12 ? 3 : 5} schools.
+                    elves by 1, maximum of {main.days[13].opened ? 5 : 3} schools.
                 </div>
                 <div>
                     You have {formatWhole(schools.amount.value)} schools, which are currently
