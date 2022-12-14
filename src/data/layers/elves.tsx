@@ -116,9 +116,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elvesMilestone.earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.times(paper.books.cuttersBook.amount.value, 0.1).add(1),
+            multiplier: () => Decimal.times(paper.books.cuttersBook.totalAmount.value, 0.1).add(1),
             description: "Now You're Logging!",
-            enabled: () => Decimal.gt(paper.books.cuttersBook.amount.value, 0)
+            enabled: () => Decimal.gt(paper.books.cuttersBook.totalAmount.value, 0)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -133,9 +133,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elvesMilestone.earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.times(paper.books.plantersBook.amount.value, 0.1).add(1),
+            multiplier: () => Decimal.times(paper.books.plantersBook.totalAmount.value, 0.1).add(1),
             description: "The Man Who Planted Trees",
-            enabled: () => Decimal.gt(paper.books.plantersBook.amount.value, 0)
+            enabled: () => Decimal.gt(paper.books.plantersBook.totalAmount.value, 0)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -150,9 +150,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elvesMilestone.earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.times(paper.books.expandersBook.amount.value, 0.1).add(1),
+            multiplier: () =>
+                Decimal.times(paper.books.expandersBook.totalAmount.value, 0.1).add(1),
             description: "Logjam",
-            enabled: () => Decimal.gt(paper.books.expandersBook.amount.value, 0)
+            enabled: () => Decimal.gt(paper.books.expandersBook.totalAmount.value, 0)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -167,9 +168,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elvesMilestone.earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.times(paper.books.heatedCuttersBook.amount.value, 0.1).add(1),
+            multiplier: () =>
+                Decimal.times(paper.books.heatedCuttersBook.totalAmount.value, 0.1).add(1),
             description: "Fahrenheit 451",
-            enabled: () => Decimal.gt(paper.books.heatedCuttersBook.amount.value, 0)
+            enabled: () => Decimal.gt(paper.books.heatedCuttersBook.totalAmount.value, 0)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -185,9 +187,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () =>
-                Decimal.times(paper.books.heatedPlantersBook.amount.value, 0.1).add(1),
+                Decimal.times(paper.books.heatedPlantersBook.totalAmount.value, 0.1).add(1),
             description: "Tillamook Burn Country",
-            enabled: () => Decimal.gt(paper.books.heatedPlantersBook.amount.value, 0)
+            enabled: () => Decimal.gt(paper.books.heatedPlantersBook.totalAmount.value, 0)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -202,9 +204,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elvesMilestone.earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.times(paper.books.fertilizerBook.amount.value, 0.1).add(1),
+            multiplier: () =>
+                Decimal.times(paper.books.fertilizerBook.totalAmount.value, 0.1).add(1),
             description: "The Garden Tree's Handbook",
-            enabled: () => Decimal.gt(paper.books.fertilizerBook.amount.value, 0)
+            enabled: () => Decimal.gt(paper.books.fertilizerBook.totalAmount.value, 0)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -219,9 +222,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elvesMilestone.earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.times(paper.books.smallFireBook.amount.value, 0.1).add(1),
+            multiplier: () =>
+                Decimal.times(paper.books.smallFireBook.totalAmount.value, 0.1).add(1),
             description: "Firestarter",
-            enabled: () => Decimal.gt(paper.books.smallFireBook.amount.value, 0)
+            enabled: () => Decimal.gt(paper.books.smallFireBook.totalAmount.value, 0)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -236,9 +240,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elvesMilestone.earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.times(paper.books.bonfireBook.amount.value, 0.1).add(1),
+            multiplier: () => Decimal.times(paper.books.bonfireBook.totalAmount.value, 0.1).add(1),
             description: "An Arsonist's Guide to Writer's Homes in New England",
-            enabled: () => Decimal.gt(paper.books.bonfireBook.amount.value, 0)
+            enabled: () => Decimal.gt(paper.books.bonfireBook.totalAmount.value, 0)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -253,9 +257,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elvesMilestone.earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.times(paper.books.kilnBook.amount.value, 0.1).add(1),
+            multiplier: () => Decimal.times(paper.books.kilnBook.totalAmount.value, 0.1).add(1),
             description: "Little Fires Everywhere",
-            enabled: () => Decimal.gt(paper.books.kilnBook.amount.value, 0)
+            enabled: () => Decimal.gt(paper.books.kilnBook.totalAmount.value, 0)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -270,9 +274,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elvesMilestone.earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.times(paper.books.paperBook.amount.value, 0.1).add(1),
+            multiplier: () => Decimal.times(paper.books.paperBook.totalAmount.value, 0.1).add(1),
             description: "The Book Thief",
-            enabled: () => Decimal.gt(paper.books.paperBook.amount.value, 0)
+            enabled: () => Decimal.gt(paper.books.paperBook.totalAmount.value, 0)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -287,9 +291,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elvesMilestone.earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.times(paper.books.boxBook.amount.value, 0.1).add(1),
+            multiplier: () => Decimal.times(paper.books.boxBook.totalAmount.value, 0.1).add(1),
             description: "Not a box",
-            enabled: () => Decimal.gt(paper.books.boxBook.amount.value, 0)
+            enabled: () => Decimal.gt(paper.books.boxBook.totalAmount.value, 0)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -304,9 +308,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elvesMilestone.earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.times(paper.books.clothBook.amount.value, 0.1).add(1),
+            multiplier: () => Decimal.times(paper.books.clothBook.totalAmount.value, 0.1).add(1),
             description: "Fuzzy Bee and Friends",
-            enabled: () => Decimal.gt(paper.books.clothBook.amount.value, 0)
+            enabled: () => Decimal.gt(paper.books.clothBook.totalAmount.value, 0)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -321,9 +325,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elvesMilestone.earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.times(paper.books.coalDrillBook.amount.value, 0.1).add(1),
+            multiplier: () =>
+                Decimal.times(paper.books.coalDrillBook.totalAmount.value, 0.1).add(1),
             description: "Drills and Mills",
-            enabled: () => Decimal.gt(paper.books.coalDrillBook.amount.value, 0)
+            enabled: () => Decimal.gt(paper.books.coalDrillBook.totalAmount.value, 0)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -338,9 +343,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elvesMilestone.earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.times(paper.books.heavyDrillBook.amount.value, 0.1).add(1),
+            multiplier: () =>
+                Decimal.times(paper.books.heavyDrillBook.totalAmount.value, 0.1).add(1),
             description: "Deep in the Earth",
-            enabled: () => Decimal.gt(paper.books.heavyDrillBook.amount.value, 0)
+            enabled: () => Decimal.gt(paper.books.heavyDrillBook.totalAmount.value, 0)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -355,9 +361,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elvesMilestone.earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.times(paper.books.oilBook.amount.value, 0.1).add(1),
+            multiplier: () => Decimal.times(paper.books.oilBook.totalAmount.value, 0.1).add(1),
             description: "Burning the Midnight Oil",
-            enabled: () => Decimal.gt(paper.books.oilBook.amount.value, 0)
+            enabled: () => Decimal.gt(paper.books.oilBook.totalAmount.value, 0)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -372,9 +378,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elvesMilestone.earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.times(paper.books.metalBook.amount.value, 0.1).add(1),
+            multiplier: () => Decimal.times(paper.books.metalBook.totalAmount.value, 0.1).add(1),
             description: "Physical Metallurgy",
-            enabled: () => Decimal.gt(paper.books.metalBook.amount.value, 0)
+            enabled: () => Decimal.gt(paper.books.metalBook.totalAmount.value, 0)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -518,7 +524,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
     ));
 
     const trainingCost = computed(() => {
-        let cost = Decimal.pow(Decimal.sub(4, wrappingPaper.boosts.jazzy1.value), totalElves.value).times(1e6);
+        let cost = Decimal.pow(
+            Decimal.sub(4, wrappingPaper.boosts.jazzy1.value),
+            totalElves.value
+        ).times(1e6);
         if (Decimal.gte(totalElves.value, 9)) {
             cost = Decimal.times(cost, 1e15);
         }
@@ -562,9 +571,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                             if (
                                 options.customCost && buyable.resource
                                     ? Decimal.gte(
-                                        buyable.resource.value,
-                                        options.customCost(buyable.amount.value)
-                                    ) : unref(buyable.canPurchase)
+                                          buyable.resource.value,
+                                          options.customCost(buyable.amount.value)
+                                      )
+                                    : unref(buyable.canPurchase)
                             ) {
                                 buyable.amount.value = Decimal.add(buyable.amount.value, 1);
                                 buyProgress.value = Decimal.sub(buyProgress.value, cooldown);
@@ -845,8 +855,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             "Carol will automatically purchase all dyes you can afford, without actually spending any resources.",
         buyable: Object.values(dyes.dyes).map(dye => dye.buyable),
         cooldownModifier: dyeCooldown, // Note: Buy max will be unlocked at this point
-        visibility: () =>
-            showIf(wrappingPaper.milestones.unlockDyeElf.earned.value)
+        visibility: () => showIf(wrappingPaper.milestones.unlockDyeElf.earned.value)
     });
     const wrappingPaperElves = [dyeElf];
     const elves = {
@@ -866,7 +875,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         heavyDrillElf,
         oilElf,
         metalElf,
-        dyeElf,
+        dyeElf
     };
     const totalElves = computed(() => Object.values(elves).filter(elf => elf.bought.value).length);
 

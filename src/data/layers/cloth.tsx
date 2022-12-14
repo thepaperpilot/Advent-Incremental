@@ -184,7 +184,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost() {
             let v = this.amount.value;
             if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
-            v = Decimal.pow(0.95, paper.books.clothBook.amount.value).times(v);
+            v = Decimal.pow(0.95, paper.books.clothBook.totalAmount.value).times(v);
             return Decimal.pow(1.5, v).times(1e14);
         },
         display: {
@@ -198,7 +198,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost() {
             let v = this.amount.value;
             if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
-            v = Decimal.pow(0.95, paper.books.clothBook.amount.value).times(v);
+            v = Decimal.pow(0.95, paper.books.clothBook.totalAmount.value).times(v);
             return Decimal.pow(1.4, v).times(10000);
         },
         display: {
@@ -212,7 +212,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost() {
             let v = this.amount.value;
             if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
-            v = Decimal.pow(0.95, paper.books.clothBook.amount.value).times(v);
+            v = Decimal.pow(0.95, paper.books.clothBook.totalAmount.value).times(v);
             return Decimal.pow(1.3, v).times(1000000);
         },
         display: {

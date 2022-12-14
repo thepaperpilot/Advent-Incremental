@@ -207,8 +207,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
             if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
             if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
-            if (Decimal.gte(v, 2e30)) v = Decimal.pow(v,10000).div(Decimal.pow(2e30,9999));
-            v = Decimal.pow(0.95, paper.books.cuttersBook.amount.value).times(v);
+            if (Decimal.gte(v, 2e30)) v = Decimal.pow(v, 10000).div(Decimal.pow(2e30, 9999));
+            v = Decimal.pow(0.95, paper.books.cuttersBook.totalAmount.value).times(v);
             return Decimal.times(100, v).add(200);
         },
         display: {
@@ -224,8 +224,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
             if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
             if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
-            if (Decimal.gte(v, 2e30)) v = Decimal.pow(v,10000).div(Decimal.pow(2e30,9999));
-            v = Decimal.pow(0.95, paper.books.plantersBook.amount.value).times(v);
+            if (Decimal.gte(v, 2e30)) v = Decimal.pow(v, 10000).div(Decimal.pow(2e30, 9999));
+            v = Decimal.pow(0.95, paper.books.plantersBook.totalAmount.value).times(v);
             let cost = Decimal.times(100, v).add(200);
             if (management.elfTraining.planterElfTraining.milestones[3].earned.value) {
                 cost = Decimal.div(cost, 10);
@@ -245,7 +245,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
             if (Decimal.gte(v, 1e5)) v = Decimal.pow(v, 2).div(1e5);
             if (Decimal.gte(v, 1e15)) v = Decimal.pow(v, 10).div(1e135);
-            v = Decimal.pow(0.95, paper.books.expandersBook.amount.value).times(v);
+            v = Decimal.pow(0.95, paper.books.expandersBook.totalAmount.value).times(v);
             return Decimal.pow(Decimal.add(v, 1), 1.5).times(500);
         },
         display: {
@@ -295,8 +295,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: researchUpgrade2.bought
         })),
         createAdditiveModifier(() => ({
-            addend: () =>
-                Decimal.div(workshop.foundationProgress.value, 5).floor(),
+            addend: () => Decimal.div(workshop.foundationProgress.value, 5).floor(),
             description: "10% Foundation Completed",
             enabled: workshop.milestones.autoCutMilestone1.earned
         })),
@@ -449,8 +448,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: researchUpgrade2.bought
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => workshop.milestones.extraExpansionMilestone1.earned.value
-                    ? Decimal.pow(1.02, workshop.foundationProgress.value) : Decimal.div(workshop.foundationProgress.value, 20).add(1),
+            multiplier: () =>
+                workshop.milestones.extraExpansionMilestone1.earned.value
+                    ? Decimal.pow(1.02, workshop.foundationProgress.value)
+                    : Decimal.div(workshop.foundationProgress.value, 20).add(1),
             description: "1% Foundation Completed",
             enabled: workshop.milestones.logGainMilestone1.earned
         })),

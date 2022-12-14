@@ -84,6 +84,9 @@ const layer = createLayer(id, () => {
     const totalElfExp = computed(() =>
         Object.values(elfTraining).reduce((acc, curr) => acc.add(curr.exp.value), new Decimal(0))
     );
+    const level5Elves = computed(
+        () => Object.values(elfTraining).filter(elf => elf.level.value >= 5).length
+    );
 
     // ------------------------------------------------------------------------------- Upgrades
 
@@ -847,7 +850,8 @@ const layer = createLayer(id, () => {
                 requirement: "Peppermint Level 4",
                 effectDisplay: "Unlock 3 coal upgrades"
             },
-            visibility: () => showIf(coalDrillElfMilestones[2].earned.value && main.day.value >= 13),
+            visibility: () =>
+                showIf(coalDrillElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => coalDrillElfTraining.level.value >= 4
         })),
         createMilestone(() => ({
@@ -855,7 +859,8 @@ const layer = createLayer(id, () => {
                 requirement: "Peppermint Level 5",
                 effectDisplay: "Well depth boosts coal gain more"
             },
-            visibility: () => showIf(coalDrillElfMilestones[3].earned.value && main.day.value >= 13),
+            visibility: () =>
+                showIf(coalDrillElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => coalDrillElfTraining.level.value >= 5
         }))
     ] as Array<GenericMilestone>;
@@ -970,7 +975,8 @@ const layer = createLayer(id, () => {
                 requirement: "Frosty Level 4",
                 effectDisplay: "Heavy drill's ln is now log2.5"
             },
-            visibility: () => showIf(heavyDrillElfMilestones[2].earned.value && main.day.value >= 13),
+            visibility: () =>
+                showIf(heavyDrillElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => heavyDrillElfTraining.level.value >= 4
         })),
         createMilestone(() => ({
@@ -978,7 +984,8 @@ const layer = createLayer(id, () => {
                 requirement: "Frosty Level 5",
                 effectDisplay: "Unlock another row of paper upgrades"
             },
-            visibility: () => showIf(heavyDrillElfMilestones[3].earned.value && main.day.value >= 13),
+            visibility: () =>
+                showIf(heavyDrillElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => heavyDrillElfTraining.level.value >= 5
         }))
     ] as Array<GenericMilestone>;
@@ -1034,11 +1041,22 @@ const layer = createLayer(id, () => {
     const boxElfTraining = createElfTraining(elves.elves.boxElf, boxElfMilestones);
     const clothElfTraining = createElfTraining(elves.elves.clothElf, clothElfMilestones);
     const plasticElfTraining = [paperElfTraining, boxElfTraining, clothElfTraining];
-    const coalDrillElfTraining = createElfTraining(elves.elves.coalDrillElf, coalDrillElfMilestones);
+    const coalDrillElfTraining = createElfTraining(
+        elves.elves.coalDrillElf,
+        coalDrillElfMilestones
+    );
     const metalElfTraining = createElfTraining(elves.elves.metalElf, metalElfMilestones);
     const oilElfTraining = createElfTraining(elves.elves.oilElf, oilElfMilestones);
-    const heavyDrillElfTraining = createElfTraining(elves.elves.heavyDrillElf, heavyDrillElfMilestones);
-    const row5Elves = [coalDrillElfTraining, metalElfTraining, oilElfTraining, heavyDrillElfTraining]
+    const heavyDrillElfTraining = createElfTraining(
+        elves.elves.heavyDrillElf,
+        heavyDrillElfMilestones
+    );
+    const row5Elves = [
+        coalDrillElfTraining,
+        metalElfTraining,
+        oilElfTraining,
+        heavyDrillElfTraining
+    ];
     const elfTraining = {
         cutterElfTraining,
         planterElfTraining,
@@ -1312,8 +1330,8 @@ const layer = createLayer(id, () => {
             this.amount.value = Decimal.add(this.amount.value, 1);
         },
         purchaseLimit() {
-            if (main.days[advancedDay - 1].opened.value) return 5
-            return 3
+            if (main.days[advancedDay - 1].opened.value) return 5;
+            return 3;
         },
         visibility: computed(() => showIf(teaching.bought.value)),
         style: "width: 600px"
@@ -1502,6 +1520,7 @@ const layer = createLayer(id, () => {
         elfTraining,
         totalElfLevels,
         totalElfExp,
+        level5Elves,
         currentShown,
         generalTabCollapsed,
 

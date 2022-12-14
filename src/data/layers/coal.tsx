@@ -99,7 +99,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             );
             if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
             if (Decimal.gte(v, 10000)) v = Decimal.pow(v, 2).div(10000);
-            v = Decimal.pow(0.95, paper.books.smallFireBook.amount.value).times(v);
+            v = Decimal.pow(0.95, paper.books.smallFireBook.totalAmount.value).times(v);
             return v.pow(1.5).times(1e4);
         },
         display: jsx(() => (
@@ -157,7 +157,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const buildBonfire = createBuyable(() => ({
         resource: fireResource,
         cost() {
-            return Decimal.pow(0.95, paper.books.bonfireBook.amount.value).times(10);
+            return Decimal.pow(0.95, paper.books.bonfireBook.totalAmount.value).times(10);
         },
         display: jsx(() => (
             <>
@@ -216,7 +216,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             let v = this.amount.value;
             if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
             if (Decimal.gte(v, 10000)) v = Decimal.pow(v, 2).div(10000);
-            v = Decimal.pow(0.95, paper.books.kilnBook.amount.value).times(v);
+            v = Decimal.pow(0.95, paper.books.kilnBook.totalAmount.value).times(v);
             return Decimal.pow(1.1, v).times(1e7);
         },
         display: jsx(() => (
@@ -270,7 +270,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             let v = this.amount.value;
             if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
             if (Decimal.gte(v, 10000)) v = Decimal.pow(v, 2).div(10000);
-            // v = Decimal.pow(0.95, paper.books.drillBook.amount.value).times(v);
+            v = Decimal.pow(0.95, paper.books.coalDrillBook.totalAmount.value).times(v);
             let cost = Decimal.pow(1.15, v).times(10);
             if (management.elfTraining.fertilizerElfTraining.milestones[2].earned.value) {
                 cost = cost.div(Decimal.add(trees.totalLogs.value, Math.E).ln());
@@ -426,9 +426,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
             if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
             if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
-            v = Decimal.pow(0.95, paper.books.heatedCuttersBook.amount.value).times(v);
+            v = Decimal.pow(0.95, paper.books.heatedCuttersBook.totalAmount.value).times(v);
             if (management.elfTraining.heatedCutterElfTraining.milestones[0].earned.value) {
-                v = Decimal.pow(0.95, paper.books.heatedCuttersBook.amount.value).times(v);
+                v = Decimal.pow(0.95, paper.books.heatedCuttersBook.totalAmount.value).times(v);
             }
             v = v.div(wrappingPaper.boosts.rainbow1.value);
             return Decimal.add(v, 1).pow(2.5).times(10);
@@ -450,9 +450,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
             if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
             if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
-            v = Decimal.pow(0.95, paper.books.heatedPlantersBook.amount.value).times(v);
+            v = Decimal.pow(0.95, paper.books.heatedPlantersBook.totalAmount.value).times(v);
             if (management.elfTraining.heatedPlanterElfTraining.milestones[0].earned.value) {
-                v = Decimal.pow(0.95, paper.books.heatedPlantersBook.amount.value).times(v);
+                v = Decimal.pow(0.95, paper.books.heatedPlantersBook.totalAmount.value).times(v);
             }
             v = v.div(wrappingPaper.boosts.rainbow1.value);
             return Decimal.add(v, 1).pow(2.5).times(10);
@@ -474,9 +474,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
             if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
             if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
-            v = Decimal.pow(0.95, paper.books.fertilizerBook.amount.value).times(v);
+            v = Decimal.pow(0.95, paper.books.fertilizerBook.totalAmount.value).times(v);
             if (management.elfTraining.fertilizerElfTraining.milestones[1].earned.value) {
-                v = Decimal.pow(0.95, paper.books.fertilizerBook.amount.value).times(v);
+                v = Decimal.pow(0.95, paper.books.fertilizerBook.totalAmount.value).times(v);
             }
             v = v.div(wrappingPaper.boosts.rainbow1.value);
             return Decimal.add(v, 1).pow(1.5).times(50000);
@@ -889,8 +889,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <MainDisplay
                     resource={coal}
                     color={colorCoal}
-                    style={{marginBottom: 0}}
-                    resourceStyle={{textShadow: 'grey 0px 0px 10px'}}
+                    style={{ marginBottom: 0 }}
+                    resourceStyle={{ textShadow: "grey 0px 0px 10px" }}
                     effectDisplay={
                         Decimal.gt(computedCoalGain.value, 0)
                             ? `+${format(computedCoalGain.value)}/s`

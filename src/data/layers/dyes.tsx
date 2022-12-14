@@ -90,52 +90,72 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 }))
             ];
             if (options.color === "red" || options.color === "yellow") {
-                modifiers.push(createMultiplicativeModifier(() => ({
-                    multiplier: boosts.orange1,
-                    description: "Orange Dye Boost 1"
-                })));
+                modifiers.push(
+                    createMultiplicativeModifier(() => ({
+                        multiplier: boosts.orange1,
+                        description: "Orange Dye Boost 1"
+                    }))
+                );
             }
             if (options.color == "yellow" || options.color == "blue") {
-                modifiers.push(createMultiplicativeModifier(() => ({
-                    multiplier: boosts.green1,
-                    description: "Green Dye Boost 1"
-                })));
+                modifiers.push(
+                    createMultiplicativeModifier(() => ({
+                        multiplier: boosts.green1,
+                        description: "Green Dye Boost 1"
+                    }))
+                );
             }
             if (options.color == "red" || options.color == "blue") {
-                modifiers.push(createMultiplicativeModifier(() => ({
-                    multiplier: boosts.purple1,
-                    description: "Purple Dye Boost 1"
-                })));
+                modifiers.push(
+                    createMultiplicativeModifier(() => ({
+                        multiplier: boosts.purple1,
+                        description: "Purple Dye Boost 1"
+                    }))
+                );
             }
             if (options.color == "red" || options.color == "yellow" || options.color == "blue") {
-                modifiers.push(createMultiplicativeModifier(() => ({
-                    multiplier: 2,
-                    description: "Wetter Dyes",
-                    enabled: upgrades.yellowDyeUpg.bought
-                })));
-                modifiers.push(createMultiplicativeModifier(() => ({
-                    multiplier: () => Decimal.add(cloth.cloth.value, Math.E).ln(),
-                    description: "Gingersnap Level 1",
-                    enabled: management.elfTraining.clothElfTraining.milestones[0].earned
-                })));
-                modifiers.push(createMultiplicativeModifier(() => ({
-                    multiplier: 2,
-                    description: "Wrapping Paper Milestone 1",
-                    enabled: wrappingPaper.milestones.primaryBoost.earned
-                })));
+                modifiers.push(
+                    createMultiplicativeModifier(() => ({
+                        multiplier: 2,
+                        description: "Wetter Dyes",
+                        enabled: upgrades.yellowDyeUpg.bought
+                    }))
+                );
+                modifiers.push(
+                    createMultiplicativeModifier(() => ({
+                        multiplier: () => Decimal.add(cloth.cloth.value, Math.E).ln(),
+                        description: "Gingersnap Level 1",
+                        enabled: management.elfTraining.clothElfTraining.milestones[0].earned
+                    }))
+                );
+                modifiers.push(
+                    createMultiplicativeModifier(() => ({
+                        multiplier: 2,
+                        description: "Wrapping Paper Milestone 1",
+                        enabled: wrappingPaper.milestones.primaryBoost.earned
+                    }))
+                );
             }
-            if (options.color == "orange" || options.color == "green" || options.color == "purple") {
-                modifiers.push(createMultiplicativeModifier(() => ({
-                    multiplier: 2,
-                    description: "Wrapping Paper Milestone 2",
-                    enabled: wrappingPaper.milestones.secondaryBoost.earned
-                })));   
+            if (
+                options.color == "orange" ||
+                options.color == "green" ||
+                options.color == "purple"
+            ) {
+                modifiers.push(
+                    createMultiplicativeModifier(() => ({
+                        multiplier: 2,
+                        description: "Wrapping Paper Milestone 2",
+                        enabled: wrappingPaper.milestones.secondaryBoost.earned
+                    }))
+                );
             }
-            modifiers.push(createMultiplicativeModifier(() => ({
-                multiplier: 2,
-                description: "Gingersnap Level 3",
-                enabled: management.elfTraining.clothElfTraining.milestones[2].earned
-            })))
+            modifiers.push(
+                createMultiplicativeModifier(() => ({
+                    multiplier: 2,
+                    description: "Gingersnap Level 3",
+                    enabled: management.elfTraining.clothElfTraining.milestones[2].earned
+                }))
+            );
             return modifiers;
         }) as WithRequired<Modifier, "description" | "revert">;
         const computedToGenerate = computed(() => toGenerate.apply(0));
@@ -196,7 +216,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     let v = buyable.amount.value;
                     if (Decimal.gte(v, 25)) v = Decimal.pow(v, 2).div(20); // intentional price jump #2
                     if (Decimal.gte(v, 10)) v = Decimal.pow(v, 2).div(5); // intentional price jump
-                    v = Decimal.mul(v, Decimal.pow(0.95, paper.books.dyeBook.amount.value))
+                    v = Decimal.mul(v, Decimal.pow(0.95, paper.books.dyeBook.totalAmount.value));
                     return Decimal.div(v, 10).plus(1);
                 },
                 canPurchase: computed((cost?: DecimalSource) => {

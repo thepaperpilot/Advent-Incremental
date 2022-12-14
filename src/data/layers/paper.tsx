@@ -20,7 +20,7 @@ import { noPersist } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { WithRequired } from "util/common";
 import { render, renderCol, renderRow } from "util/vue";
-import { computed, ref, unref } from "vue";
+import { computed, ComputedRef, ref, unref } from "vue";
 import cloth from "./cloth";
 import coal from "./coal";
 import elves from "./elves";
@@ -104,8 +104,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: `Print a copy of "${options.name}", which ${options.elfName} will use to improve their skills! Each copy printed will reduce the "${options.buyableName}" price scaling by 0.95x and make ${options.elfName} purchase +10% faster!`,
                 effectDisplay: jsx(() => (
                     <>
-                        {format(Decimal.pow(0.95, buyable.amount.value))}x price scaling,{" "}
-                        {format(Decimal.div(buyable.amount.value, 10).add(1))}x auto-purchase speed
+                        {format(Decimal.pow(0.95, buyable.totalAmount.value))}x price scaling,{" "}
+                        {format(Decimal.div(buyable.totalAmount.value, 10).add(1))}x auto-purchase
+                        speed
                     </>
                 )),
                 showAmount: false
@@ -116,7 +117,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 if (options.elfName === "Star" || options.elfName === "Bell") v = Decimal.pow(v, 2);
                 if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
                 if (Decimal.gte(v, 10000)) v = Decimal.pow(v, 2).div(10000);
-                v = Decimal.pow(0.95, paperBook.amount.value).times(v);
+                v = Decimal.pow(0.95, paperBook.totalAmount.value).times(v);
                 let scaling = 5;
                 if (management.elfTraining.paperElfTraining.milestones[0].earned.value) {
                     scaling--;
@@ -127,8 +128,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 }
                 return cost;
             },
-            style: "width: 600px"
-        })) as GenericBuyable & { resource: Resource };
+            style: "width: 600px",
+            freeLevels: computed(() =>
+                management.elfTraining.paperElfTraining.milestones[4].earned.value
+                    ? Decimal.times(5, management.level5Elves.value)
+                    : 0
+            ),
+            totalAmount: computed(() => Decimal.add(buyable.amount.value, buyable.freeLevels.value))
+        })) as GenericBuyable & {
+            resource: Resource;
+            freeLevels: ComputedRef<DecimalSource>;
+            totalAmount: ComputedRef<DecimalSource>;
+        };
         return buyable;
     }
 
@@ -230,8 +241,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         name: "Arts and Crafts",
         elfName: "Carol",
         buyableName: "Dye Buyables",
-        visibility: () =>
-            showIf(elves.elves.dyeElf.bought.value)
+        visibility: () => showIf(elves.elves.dyeElf.bought.value)
     });
     const books = {
         cuttersBook,
