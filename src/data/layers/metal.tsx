@@ -381,7 +381,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost() {
             let v = new Decimal(this.amount.value);
             v = Decimal.pow(0.95, paper.books.metalBook.totalAmount.value).times(v);
-            return Decimal.pow(1.15, v).times(10);
+            let cost = Decimal.pow(1.15, v).times(10);
+            if (management.elfTraining.clothElfTraining.milestones[4].earned.value) {
+                cost = Decimal.div(cost, Decimal.add(oil.depth.value, 1).sqrt());
+            }
+            return cost;
         },
         display: {
             title: "Metal Drill",
@@ -407,7 +411,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost() {
             let v = new Decimal(this.amount.value);
             v = Decimal.pow(0.95, paper.books.metalBook.totalAmount.value).times(v);
-            return Decimal.pow(1.15, Decimal.times(v, 10)).times(10);
+            let cost = Decimal.pow(1.15, Decimal.times(v, 10)).times(10);
+            if (management.elfTraining.clothElfTraining.milestones[4].earned.value) {
+                cost = Decimal.div(cost, Decimal.add(oil.depth.value, 1).sqrt());
+            }
+            return cost;
         },
         display: {
             title: "Industrial Crucible",
@@ -433,7 +441,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost() {
             let v = new Decimal(this.amount.value);
             v = Decimal.pow(0.95, paper.books.metalBook.totalAmount.value).times(v);
-            return Decimal.pow(10, v).times(1e12);
+            let cost = Decimal.pow(10, v).times(1e12);
+            if (management.elfTraining.clothElfTraining.milestones[4].earned.value) {
+                cost = Decimal.div(cost, Decimal.add(oil.depth.value, 1).sqrt());
+            }
+            return cost;
         },
         display: {
             title: "Hotter Forges",

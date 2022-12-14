@@ -490,15 +490,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         blue1: computed(() => Decimal.add(dyes.blue.amount.value, 1).log2().sqrt().times(5e6)),
 
         orange1: computed(() =>
-            Decimal.pow(2, Decimal.add(dyes.orange.amount.value, 1).log2().sqrt()).pow(
-                upgrades.coalUpg.bought.value ? 1.2 : 1
-            )
+            Decimal.pow(2, Decimal.add(dyes.orange.amount.value, 1).log2().sqrt())
+                .pow(upgrades.coalUpg.bought.value ? 1.2 : 1)
+                .pow(management.elfTraining.clothElfTraining.milestones[3].earned.value ? 1.1 : 1)
         ),
         orange2: computed(() => Decimal.add(dyes.orange.amount.value, 1).log2().plus(1)),
         green1: computed(() =>
-            Decimal.pow(2, Decimal.add(dyes.green.amount.value, 1).log2().sqrt()).pow(
-                upgrades.coalUpg.bought.value ? 1.2 : 1
-            )
+            Decimal.pow(2, Decimal.add(dyes.green.amount.value, 1).log2().sqrt())
+                .pow(upgrades.coalUpg.bought.value ? 1.2 : 1)
+                .pow(management.elfTraining.clothElfTraining.milestones[3].earned.value ? 1.1 : 1)
         ),
         green2: computed(() =>
             Decimal.add(dyes.green.amount.value, 1)
@@ -507,9 +507,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 .pow(upgrades.coalUpg.bought.value ? 2 : 1)
         ),
         purple1: computed(() =>
-            Decimal.pow(2, Decimal.add(dyes.purple.amount.value, 1).log2().sqrt()).pow(
-                upgrades.coalUpg.bought.value ? 1.2 : 1
-            )
+            Decimal.pow(2, Decimal.add(dyes.purple.amount.value, 1).log2().sqrt())
+                .pow(upgrades.coalUpg.bought.value ? 1.2 : 1)
+                .pow(management.elfTraining.clothElfTraining.milestones[3].earned.value ? 1.1 : 1)
         ),
         purple2: computed(() => Decimal.add(dyes.purple.amount.value, 1).log2().plus(1))
     };
