@@ -113,8 +113,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             resource: noPersist(paper),
             cost() {
-                let v = this.amount.value;
-                if (options.elfName === "Star" && Decimal.gte(v, 10)) v = Decimal.pow(10, v.div(10));
+                let v = buyable.amount.value;
+                if (options.elfName === "Star" && Decimal.gte(v, 10))
+                    v = Decimal.pow(10, Decimal.div(v, 10));
                 if (options.elfName === "Star" || options.elfName === "Bell") v = Decimal.pow(v, 2);
                 if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
                 if (Decimal.gte(v, 10000)) v = Decimal.pow(v, 2).div(10000);
@@ -139,7 +140,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 if (management.elfTraining.paperElfTraining.milestones[0].earned.value) {
                     x = Decimal.div(x, sumBooks.value.max(1));
                 }
-                
+
                 let scaling = 5;
                 if (management.elfTraining.paperElfTraining.milestones[0].earned.value) {
                     scaling--;
@@ -150,8 +151,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 v = v.div(Decimal.pow(0.95, paperBook.totalAmount.value));
                 if (Decimal.gte(v, 10000)) v = Decimal.mul(v, 10000).root(2);
                 if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(2);
-                if (options.elfName === "Star" || options.elfName === "Bell") v = Decimal.root(v, 2);
-if (options.elfName === "Star" && Decimal.gte(v, 10)) v=v.mul(10).log10();
+                if (options.elfName === "Star" || options.elfName === "Bell")
+                    v = Decimal.root(v, 2);
+                if (options.elfName === "Star" && Decimal.gte(v, 10)) v = v.mul(10).log10();
                 return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
             },
             style: "width: 600px",
