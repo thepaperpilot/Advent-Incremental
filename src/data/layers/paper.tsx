@@ -299,7 +299,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost: 1e36,
         visibility: () => showIf(management.elfTraining.heavyDrillElfTraining.milestones[4].earned.value),
         display: {
-            title: "Paper burning",
+            title: "Paper Burning",
             description: "Paper adds to ash gain after all other modifiers"
         }
     }));
