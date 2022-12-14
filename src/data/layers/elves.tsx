@@ -718,9 +718,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () => showIf(boxes.upgrades.logsUpgrade.bought.value),
         hasToggle: true,
         toggleDesc: "Activate auto-purchased small fires",
-        onAutoPurchase() {
+        onAutoPurchase(_, amount) {
             if (smallFireElf.toggle.value) {
-                coal.activeFires.value = Decimal.add(coal.activeFires.value, 1);
+                coal.activeFires.value = Decimal.add(coal.activeFires.value, amount);
             }
         },
         onPurchase() {
@@ -741,7 +741,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             coal.activeFires.value = Decimal.sub(coal.activeFires.value, spent).max(0);
             coal.buildFire.amount.value = Decimal.sub(coal.buildFire.amount.value, spent).max(0);
             if (bonfireElf.toggle.value) {
-                coal.activeBonfires.value = Decimal.add(coal.activeBonfires.value, 1);
+                coal.activeBonfires.value = Decimal.add(coal.activeBonfires.value, amount);
             }
         },
         onPurchase() {
