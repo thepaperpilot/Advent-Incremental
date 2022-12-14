@@ -147,7 +147,12 @@ const layer = createLayer(id, () => {
                 "Snowball",
                 "Star",
                 "Bell",
-                "Gingersnap"
+                "Gingersnap",
+                "Peppermint",
+                "Frosty",
+                "Cocoa",
+                "Twinkle",
+                "Carol"
             ].indexOf(elf.name) + 1;
         if (elf.name == "Star" || elf.name == "Bell") {
             costMulti /= 3;
