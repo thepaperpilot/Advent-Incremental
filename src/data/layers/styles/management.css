@@ -1,0 +1,21 @@
+@keyframes focused-focus-bar {
+    from {
+        background: 0 0 / 28px 28px repeat
+            repeating-linear-gradient(-45deg, red, red 10px, green 10px, green 20px);
+    }
+    to {
+        background: 28px 0px / 28px 28px repeat
+            repeating-linear-gradient(-45deg, red, red 10px, green 10px, green 20px);
+    }
+}
+
+@keyframes focused-xp-bar {
+    from {
+        background: 0 0 / 28px 28px repeat
+            repeating-linear-gradient(-45deg, yellow, yellow 10px, lime 10px, lime 20px);
+    }
+    to {
+        background: 28px 0px / 28px 28px repeat
+            repeating-linear-gradient(-45deg, yellow, yellow 10px, lime 10px, lime 20px);
+    }
+}

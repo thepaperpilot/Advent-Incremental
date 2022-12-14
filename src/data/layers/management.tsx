@@ -34,6 +34,9 @@ import paper from "./paper";
 import plastic from "./plastic";
 import trees from "./trees";
 import oil from "./oil";
+
+import "./styles/management.css";
+
 const id = "management";
 const day = 12;
 const advancedDay = 13;
@@ -175,18 +178,24 @@ const layer = createLayer(id, () => {
         const bar = createBar(() => ({
             direction: Direction.Right,
             width: 160,
-            height: 12,
+            height: 14,
             style: () => ({
                 "margin-top": "8px",
-                "box-shadow": focusTargets.value[elf.name]
-                    ? "0 0 12px " + (currentShown.value == elf.name ? "black" : "white")
+                "background": color,
+                "box-shadow": 
+                    currentShown.value == elf.name ? "0 0 12px black"
+                    : focusTargets.value[elf.name] ? "0 0 12px white"
                     : ""
             }),
-            baseStyle: "margin-top: 0",
-            fillStyle: () =>
-                focusTargets.value[elf.name]
-                    ? "margin-top: 0; transition-duration: 0s;"
-                    : "margin-top: 0; transition-duration: 0s; background-color: var(--bought)",
+            baseStyle: "margin-top: -1px",
+            fillStyle: () => ({
+                "margin-top": "-1px",
+                "transition-duration": "0s",
+                "background": "white",
+                "animation": focusTargets.value[elf.name]
+                    ? ".5s focused-xp-bar linear infinite"
+                    : "",
+            }),
             borderStyle: () =>
                 Decimal.gte(level.value, schools.amount.value) ? "border-color: red" : "",
             progress: () => Decimal.div(expToNextLevel.value, expRequiredForNextLevel.value),
@@ -1218,6 +1227,7 @@ const layer = createLayer(id, () => {
         borderStyle: `border-radius: 4px 4px 0 0`,
         fillStyle: () => ({
             background: focusTime.value > 0 ? color : "#7f7f00",
+            animation: focusTime.value > 0 ? "1s focused-focus-bar linear infinite" : "",
             opacity: focusTime.value > 0 ? focusTime.value / 10 : 1,
             transition: "none"
         }),
