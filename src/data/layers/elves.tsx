@@ -110,6 +110,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     coal.betterFertilizer.bought.value = true;
                     coal.unlockKiln.bought.value = true;
                     coal.efficientSmelther.bought.value = true;
+                    coal.arsonistAssistance.bought.value = true;
+                    coal.refinedCoal.bought.value = true;
+                    coal.coloredFire.bought.value = true;
                 }
             });
         }
