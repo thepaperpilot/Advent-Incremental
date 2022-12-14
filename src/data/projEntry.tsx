@@ -30,6 +30,7 @@ import paper from "./layers/paper";
 import plastic from "./layers/plastic";
 import trees from "./layers/trees";
 import workshop from "./layers/workshop";
+import factory from "./layers/factory"
 import wrappingPaper from "./layers/wrapping-paper";
 import boxesSymbol from "./symbols/cardboardBox.png";
 import clothSymbol from "./symbols/cloth.png";
@@ -331,7 +332,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 20,
             shouldNotify: false,
-            layer: null, // "presents"
+            layer: "factory", // "presents"
             symbol: "",
             story: "",
             completedStory: ""
@@ -441,7 +442,8 @@ export const getInitialLayers = (
     plastic,
     dyes,
     wrappingPaper,
-    management
+    management,
+    factory
 ];
 
 /**
