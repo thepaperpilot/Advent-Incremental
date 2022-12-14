@@ -507,7 +507,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Noel Level 3",
-                effectDisplay: "Divide the mining drill cost by ln(Total logs + e)"
+                effectDisplay: "Divide the coal drill cost by ln(Total logs + e)"
             },
             visibility: () => showIf(fertilizerElfMilestones[1].earned.value),
             shouldEarn: () => fertilizerElfTraining.level.value >= 3
