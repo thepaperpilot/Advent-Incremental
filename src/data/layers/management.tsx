@@ -7,7 +7,7 @@ import { main } from "data/projEntry";
 import { createBar, GenericBar } from "features/bars/bar";
 import { createBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
-import { jsx, showIf } from "features/feature";
+import { jsx, showIf, Visibility } from "features/feature";
 import { createMilestone, GenericMilestone } from "features/milestones/milestone";
 import { createUpgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
@@ -21,6 +21,7 @@ import {
 import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatTime, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
+import { ProcessedComputable } from "util/computed";
 import { render, renderCol, renderGrid } from "util/vue";
 import { computed, ComputedRef, ref, Ref, unref, watchEffect } from "vue";
 import boxes from "./boxes";
@@ -127,6 +128,7 @@ const layer = createLayer(id, () => {
             name: string;
             computedAutoBuyCooldown: ComputedRef<DecimalSource>;
             amountOfTimesDone: Ref<number>;
+            visibility: ProcessedComputable<Visibility>;
         },
         milestones: Array<GenericMilestone>,
         ...modifiers: Modifier[]
@@ -235,6 +237,7 @@ const layer = createLayer(id, () => {
             canClick() {
                 return currentShown.value !== elf.name;
             },
+            visibility: elf.visibility,
             name: elf.name,
             state,
             displayMilestone,
