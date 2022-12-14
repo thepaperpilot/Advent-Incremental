@@ -198,10 +198,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buyableName: "Cloth Buyables",
         visibility: () => showIf(elves.elves.clothElf.bought.value)
     });
-    const miningDrillBook = createBook({
+    const coalDrillBook = createBook({
         name: "Drills and Mills",
         elfName: "Peppermint",
-        buyableName: "Mining Drill",
+        buyableName: "Coal Drill",
         visibility: () =>
             showIf(management.elfTraining.expandersElfTraining.milestones[3].earned.value)
     });
@@ -246,7 +246,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         paperBook,
         boxBook,
         clothBook,
-        miningDrillBook,
+        coalDrillBook,
         heavyDrillBook,
         oilBook,
         metalBook,

@@ -822,7 +822,88 @@ const layer = createLayer(id, () => {
             shouldEarn: () => clothElfTraining.level.value >= 5
         }))
     ] as Array<GenericMilestone>;
-
+    const coalDrillElfMilestones = [
+        createMilestone(() => ({
+            display: {
+                requirement: "Peppermint Level 1",
+                effectDisplay: "The mining drill exponent is increased from 2 to 2.5"
+            },
+            shouldEarn: () => coalDrillElfTraining.level.value >= 1
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Peppermint Level 2",
+                effectDisplay: "Coal boosts its own gain"
+            },
+            visibility: () => showIf(coalDrillElfMilestones[0].earned.value),
+            shouldEarn: () => coalDrillElfTraining.level.value >= 2
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Peppermint Level 3",
+                effectDisplay: "The coal drill cost is decreased"
+            },
+            visibility: () => showIf(coalDrillElfMilestones[1].earned.value),
+            shouldEarn: () => coalDrillElfTraining.level.value >= 3
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Peppermint Level 4",
+                effectDisplay: "Unlock another row of coal upgrades"
+            },
+            visibility: () => showIf(coalDrillElfMilestones[2].earned.value && main.day.value >= 13),
+            shouldEarn: () => coalDrillElfTraining.level.value >= 4
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Peppermint Level 5",
+                effectDisplay: "Well depth boosts coal gain more"
+            },
+            visibility: () => showIf(coalDrillElfMilestones[3].earned.value && main.day.value >= 13),
+            shouldEarn: () => coalDrillElfTraining.level.value >= 5
+        }))
+    ] as Array<GenericMilestone>;
+    const metalElfMilestones = [
+        createMilestone(() => ({
+            display: {
+                requirement: "Twinkle Level 1",
+                effectDisplay: "Schools multiply metal gain per ore"
+            },
+            shouldEarn: () => metalElfTraining.level.value >= 1
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Twinkle Level 2",
+                effectDisplay: "Each Twinkle level multiplies auto smelting speed by 1.25"
+            },
+            visibility: () => showIf(metalElfMilestones[0].earned.value),
+            shouldEarn: () => metalElfTraining.level.value >= 2
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Twinkle Level 3",
+                effectDisplay: "Auto smelting purity is tripled."
+            },
+            visibility: () => showIf(metalElfMilestones[1].earned.value),
+            shouldEarn: () => metalElfTraining.level.value >= 3
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Twinkle Level 4",
+                effectDisplay: "All metal buyables are cheaper"
+            },
+            visibility: () => showIf(metalElfMilestones[2].earned.value && main.day.value >= 13),
+            shouldEarn: () => metalElfTraining.level.value >= 4
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Twinkle Level 5",
+                effectDisplay: "Unlock another row of metal upgrades"
+            },
+            visibility: () => showIf(metalElfMilestones[3].earned.value && main.day.value >= 13),
+            shouldEarn: () => metalElfTraining.level.value >= 5
+        }))
+    ] as Array<GenericMilestone>;
     // ------------------------------------------------------------------------------- Milestone display
 
     const currentShown = persistent<string>("Holly");
@@ -875,7 +956,9 @@ const layer = createLayer(id, () => {
     const boxElfTraining = createElfTraining(elves.elves.boxElf, boxElfMilestones);
     const clothElfTraining = createElfTraining(elves.elves.clothElf, clothElfMilestones);
     const plasticElfTraining = [paperElfTraining, boxElfTraining, clothElfTraining];
-
+    const coalDrillElfTraining = createElfTraining(elves.elves.coalDrillElf, coalDrillElfMilestones);
+    const metalElfTraining = createElfTraining(elves.elves.metalElf, metalElfMilestones);
+    const row5Elves = [coalDrillElfTraining, metalElfTraining]
     const elfTraining = {
         cutterElfTraining,
         planterElfTraining,
@@ -888,7 +971,9 @@ const layer = createLayer(id, () => {
         kilnElfTraining,
         paperElfTraining,
         boxElfTraining,
-        clothElfTraining
+        clothElfTraining,
+        coalDrillElfTraining,
+        metalElfTraining
     };
     const day12Elves = [
         cutterElfTraining,
@@ -916,7 +1001,9 @@ const layer = createLayer(id, () => {
         kilnElfTraining,
         paperElfTraining,
         boxElfTraining,
-        clothElfTraining
+        clothElfTraining,
+        coalDrillElfTraining,
+        metalElfTraining
     ];
 
     // ------------------------------------------------------------------------------- Update
@@ -1380,7 +1467,8 @@ const layer = createLayer(id, () => {
                             treeElfTraining,
                             coalElfTraining,
                             fireElfTraining,
-                            plasticElfTraining
+                            plasticElfTraining,
+                            row5Elves
                         )}
                         <Spacer />
                         {currentElfDisplay()}

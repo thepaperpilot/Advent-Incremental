@@ -269,6 +269,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 Decimal.div(workshop.foundationProgress.value, 10).floor().div(10).add(1),
             description: "800% Foundation Completed",
             enabled: workshop.milestones.extraExpansionMilestone4.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(oil.buildExtractor.amount.value, 1).sqrt(),
+            description: "Snowball Level 4",
+            enabled: management.elfTraining.kilnElfTraining.milestones[3].earned
         }))
     ]);
     const computedPlasticGain = computed(() => plasticGain.apply(0));

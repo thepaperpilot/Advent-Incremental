@@ -494,7 +494,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 1e18,
             display: {
                 title: "Coal Drill Synergy",
-                description: "Increase drill power by +4% per coal Mining Drill owned.",
+                description: "Increase drill power by +4% per Coal Drill owned.",
                 effectDisplay: jsx(() => <>x{format(row1UpgradeEffects[0].value)}</>)
             },
             style: { color: colorText }
@@ -504,7 +504,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 150000,
             display: {
                 title: "Metal Drill Synergy",
-                description: "Increase drill power by +4% per ore Mining Drill owned.",
+                description: "Increase drill power by +4% per Metal Drill owned.",
                 effectDisplay: jsx(() => <>x{format(row1UpgradeEffects[1].value)}</>)
             },
             style: { color: colorText }
@@ -584,7 +584,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             resource: noPersist(oil),
             cost: 500,
             display: {
-                title: "Oil the Mining Drills",
+                title: "Oil the Metal Drills",
                 description:
                     "Double ore mining speed and square the coal drill amount in its effect."
             },
@@ -731,6 +731,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.sqrt(management.totalElfLevels.value),
             description: "Jack Level 4",
             enabled: management.elfTraining.heatedCutterElfTraining.milestones[3].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(buildHeavy2.amount.value, 1).sqrt(),
+            description: "Faith Level 4",
+            enabled: management.elfTraining.bonfireElfTraining.milestones[3].earned
         }))
     ]);
     const computedOilSpeed = computed(() => oilSpeed.apply(0));
@@ -960,7 +965,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     <MainDisplay
                         resource={oil}
                         color={color}
-                        resourceStyle={{textShadow: 'grey 0px 0px 10px'}}
+                        resourceStyle={{ textShadow: "grey 0px 0px 10px" }}
                         sticky={true}
                         productionDisplay={jsx(() => (
                             <>

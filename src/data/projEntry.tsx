@@ -32,7 +32,7 @@ import oilSymbol from "./symbols/oil.png";
 import plasticSymbol from "./symbols/plastic.png";
 import dyesSymbol from "./symbols/dyes.png";
 import managementSymbol from "./symbols/elfManagement.png";
-import wrappingPaperSybol from "./symbols/wrappingPaper.png";
+import wrappingPaperSymbol from "./symbols/wrappingPaper.png";
 import coal from "./layers/coal";
 import elves from "./layers/elves";
 import paper from "./layers/paper";
@@ -288,8 +288,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 15,
             shouldNotify: false,
-            layer: "wrappingPaper",
-            symbol: wrappingPaperSybol,
+            layer: null, // "wrapping paper"
+            symbol: wrappingPaperSymbol,
             story: "You'll need to produce wrapping paper so the presents can be wrapped. The elves are getting a bit bored of their boring old workstations, so you decide to let them decorate with some wrapping paper.",
             completedStory: "You've produced enough wrapping paper, and the elves are happy with their new workstations. However, some will need more than just wrapping paper to decorate."
         })),

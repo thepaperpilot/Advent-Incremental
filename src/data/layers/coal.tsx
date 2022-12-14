@@ -279,7 +279,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         display: jsx(() => (
             <>
-                <h3>Mining Drill</h3>
+                <h3>Coal Drill</h3>
                 <br />
                 Dig through the ground to find 50,000,000 coal
                 <br />
@@ -579,7 +579,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             addend() {
                 return drillCoal.value;
             },
-            description: "Mining Drills",
+            description: "Coal Drills",
             enabled() {
                 return Decimal.gt(activeDrills.value, 0);
             }
