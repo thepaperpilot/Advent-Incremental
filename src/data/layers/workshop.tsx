@@ -94,7 +94,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     management.elfTraining.expandersElfTraining.milestones[2].earned.value
             ),
         canClick: () =>
-            Decimal.gte(trees.logs.value, foundationConversion.currentAt.value) &&
+            Decimal.gte(trees.logs.value, foundationConversion.nextAt.value) &&
             (Decimal.lt(foundationProgress.value, 100) ||
                 management.elfTraining.expandersElfTraining.milestones[2].earned.value),
         onClick() {
