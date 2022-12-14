@@ -121,7 +121,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 if (Decimal.gte(v, 10000)) v = Decimal.pow(v, 2).div(10000);
                 v = Decimal.pow(0.95, paperBook.totalAmount.value).times(v);
                 let scaling = 5;
-                if (management.elfTraining.paperElfTraining.milestones[0].earned.value) {
+                if (management.elfTraining.paperElfTraining.milestones[2].earned.value) {
                     scaling--;
                 }
                 let cost = Decimal.pow(scaling, v).times(10);
@@ -142,7 +142,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 }
 
                 let scaling = 5;
-                if (management.elfTraining.paperElfTraining.milestones[0].earned.value) {
+                if (management.elfTraining.paperElfTraining.milestones[2].earned.value) {
                     scaling--;
                 }
 
