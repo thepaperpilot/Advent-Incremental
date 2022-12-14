@@ -759,7 +759,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () => showIf(plastic.elfUpgrades.clothElf.bought.value)
     });
     const plasticElves = [paperElf, boxElf, clothElf];
-    const miningDrillElf = createElf({
+    const coalDrillElf = createElf({
         name: "Peppermint",
         description:
             "Peppermint will automatically purchase all mining drills you can afford, without actually spending any resources.",
@@ -819,7 +819,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         }
     });
-    const managementElves = [miningDrillElf, heavyDrillElf, oilElf];
+    const managementElves = [coalDrillElf, heavyDrillElf, oilElf];
     const metalElf = createElf({
         name: "Twinkle",
         description:
