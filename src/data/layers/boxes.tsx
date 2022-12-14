@@ -324,7 +324,139 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )
     })) as BoxesBuyable;
     const buyables = { logBoxesBuyable, ashBoxesBuyable, coalBoxesBuyable };
-
+    const oreBoxesBuyable = createBuyable(() => ({
+        display: {
+            title: "Carry more ore",
+            description: jsx(() => (
+                <>
+                    Use boxes to carry even more ore, boosting their gain
+                    <br />
+                    <br />
+                    <div>
+                        Amount: {formatWhole(oreBoxesBuyable.amount.value)}
+                        {Decimal.gt(oreBoxesBuyable.freeLevels.value, 0) ? (
+                            <> (+{formatWhole(oreBoxesBuyable.freeLevels.value)})</>
+                        ) : null}
+                    </div>
+                </>
+            )),
+            effectDisplay: jsx(() => (
+                <>{format(Decimal.div(oreBoxesBuyable.totalAmount.value, 2).add(1))}x</>
+            )),
+            showAmount: false
+        },
+        resource: noPersist(boxes),
+        cost() {
+            let v = this.amount.value;
+            v = Decimal.pow(0.95, paper.books.boxBook.amount.value).times(v);
+            let scaling = 10;
+            if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
+                scaling--;
+            }
+            return Decimal.pow(scaling, v).times(1e25).div(dyes.boosts.orange2.value).div(wrappingPaper.boosts.ocean1.value);
+        },
+        visibility: () => showIf(management.elfTraining.boxElfTraining.milestones[3].earned.value),
+        freeLevels: computed(() =>
+            management.elfTraining.boxElfTraining.milestones[0].earned.value
+                ? Decimal.max(metalBoxesBuyable.amount.value, 1)
+                      .sqrt()
+                      .floor()
+                      .add(Decimal.max(plasticBoxesBuyable.amount.value, 1).sqrt().floor())
+                : 0
+        ),
+        totalAmount: computed(() =>
+            Decimal.add(oreBoxesBuyable.amount.value, oreBoxesBuyable.freeLevels.value)
+        )
+    })) as BoxesBuyable;
+    const metalBoxesBuyable = createBuyable(() => ({
+        display: {
+            title: "Carry more metal",
+            description: jsx(() => (
+                <>
+                    Use boxes to carry even more metal, boosting its gain
+                    <br />
+                    <br />
+                    <div>
+                        Amount: {formatWhole(metalBoxesBuyable.amount.value)}
+                        {Decimal.gt(metalBoxesBuyable.freeLevels.value, 0) ? (
+                            <> (+{formatWhole(metalBoxesBuyable.freeLevels.value)})</>
+                        ) : null}
+                    </div>
+                </>
+            )),
+            effectDisplay: jsx(() => (
+                <>{format(Decimal.div(metalBoxesBuyable.totalAmount.value, 2).add(1))}x</>
+            )),
+            showAmount: false
+        },
+        resource: noPersist(boxes),
+        cost() {
+            let v = this.amount.value;
+            v = Decimal.pow(0.95, paper.books.boxBook.amount.value).times(v);
+            let scaling = 15;
+            if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
+                scaling--;
+            }
+            return Decimal.pow(scaling, v).times(1e28).div(dyes.boosts.orange2.value);
+        },
+        visibility: () => showIf(management.elfTraining.boxElfTraining.milestones[3].earned.value),
+        freeLevels: computed(() =>
+            management.elfTraining.boxElfTraining.milestones[0].earned.value
+                ? Decimal.max(oreBoxesBuyable.amount.value, 1)
+                      .sqrt()
+                      .floor()
+                      .add(Decimal.max(plasticBoxesBuyable.amount.value, 1).sqrt().floor())
+                : 0
+        ),
+        totalAmount: computed(() =>
+            Decimal.add(metalBoxesBuyable.amount.value, metalBoxesBuyable.freeLevels.value)
+        )
+    })) as BoxesBuyable;
+    const plasticBoxesBuyable = createBuyable(() => ({
+        display: {
+            title: "Carry more plastic",
+            description: jsx(() => (
+                <>
+                    Use boxes to carry even more plastic, boosting its gain
+                    <br />
+                    <br />
+                    <div>
+                        Amount: {formatWhole(plasticBoxesBuyable.amount.value)}
+                        {Decimal.gt(plasticBoxesBuyable.freeLevels.value, 0) ? (
+                            <> (+{formatWhole(plasticBoxesBuyable.freeLevels.value)})</>
+                        ) : null}
+                    </div>
+                </>
+            )),
+            effectDisplay: jsx(() => (
+                <>{format(Decimal.div(plasticBoxesBuyable.totalAmount.value, 2).add(1))}x</>
+            )),
+            showAmount: false
+        },
+        resource: noPersist(boxes),
+        cost() {
+            let v = this.amount.value;
+            v = Decimal.pow(0.95, paper.books.boxBook.amount.value).times(v);
+            let scaling = 20;
+            if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
+                scaling--;
+            }
+            return Decimal.pow(scaling, v).times(1000).div(dyes.boosts.orange2.value);
+        },
+        visibility: () => showIf(management.elfTraining.boxElfTraining.milestones[3].earned.value),
+        freeLevels: computed(() =>
+            management.elfTraining.boxElfTraining.milestones[0].earned.value
+                ? Decimal.max(oreBoxesBuyable.amount.value, 1)
+                      .sqrt()
+                      .floor()
+                      .add(Decimal.max(metalBoxesBuyable.amount.value, 1).sqrt().floor())
+                : 0
+        ),
+        totalAmount: computed(() =>
+            Decimal.add(plasticBoxesBuyable.amount.value, plasticBoxesBuyable.freeLevels.value)
+        )
+    })) as BoxesBuyable;
+    const buyables2 = { oreBoxesBuyable, metalBoxesBuyable, plasticBoxesBuyable };
     globalBus.on("update", diff => {
         if (Decimal.lt(main.day.value, day)) {
             return;
@@ -378,6 +510,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         row2Upgrades,
         row3Upgrades,
         buyables,
+        buyables2,
         minWidth: 700,
         generalTabCollapsed,
         display: jsx(() => (

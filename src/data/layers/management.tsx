@@ -147,7 +147,7 @@ const layer = createLayer(id, () => {
         if (elf.name == "Star" || elf.name == "Bell") {
             costMulti /= 3;
         }
-        const costBase = Decimal.mul(4000, costMulti);
+        const costBase = Decimal.mul(paperElfMilestones[3].earned.value ? 2000 : 4000, costMulti);
         const expRequiredForNextLevel = computed(() => Decimal.pow(5, level.value).mul(costBase));
         const level = computed(() =>
             Decimal.affordGeometricSeries(exp.value, costBase, 5, 0)
@@ -507,7 +507,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Noel Level 3",
-                effectDisplay: "Divide the mining drill cost by ln(Total logs + e)"
+                effectDisplay: "Divide the coal drill cost by ln(Total logs + e)"
             },
             visibility: () => showIf(fertilizerElfMilestones[1].earned.value),
             shouldEarn: () => fertilizerElfTraining.level.value >= 3
@@ -687,11 +687,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Star Level 4",
-                effectDisplay: jsx(() => (
-                    <>
-                        Multiply XP requirements by 0.95<sup>(total books)</sup>
-                    </>
-                ))
+                effectDisplay: "Halve xp requirements"
             },
             visibility: () => showIf(paperElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => paperElfTraining.level.value >= 4
@@ -849,7 +845,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Peppermint Level 4",
-                effectDisplay: "Unlock another row of coal upgrades"
+                effectDisplay: "Unlock 3 coal upgrades"
             },
             visibility: () => showIf(coalDrillElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => coalDrillElfTraining.level.value >= 4
@@ -902,6 +898,88 @@ const layer = createLayer(id, () => {
             },
             visibility: () => showIf(metalElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => metalElfTraining.level.value >= 5
+        }))
+    ] as Array<GenericMilestone>;
+    const oilElfMilestones = [
+        createMilestone(() => ({
+            display: {
+                requirement: "Cocoa Level 1",
+                effectDisplay: "The depth boost to oil gain is better"
+            },
+            shouldEarn: () => oilElfTraining.level.value >= 1
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Cocoa Level 2",
+                effectDisplay: "Total oil gained boosts drill power"
+            },
+            visibility: () => showIf(oilElfMilestones[0].earned.value),
+            shouldEarn: () => oilElfTraining.level.value >= 2
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Cocoa Level 3",
+                effectDisplay: "Double drill power and oil gain"
+            },
+            visibility: () => showIf(oilElfMilestones[1].earned.value),
+            shouldEarn: () => oilElfTraining.level.value >= 3
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Cocoa Level 4",
+                effectDisplay: "Plastics are produced 5x faster but cost 5x as much oil"
+            },
+            visibility: () => showIf(oilElfMilestones[2].earned.value && main.day.value >= 13),
+            shouldEarn: () => oilElfTraining.level.value >= 4
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Cocoa Level 5",
+                effectDisplay: "Unlock another row of oil upgrades"
+            },
+            visibility: () => showIf(oilElfMilestones[3].earned.value && main.day.value >= 13),
+            shouldEarn: () => oilElfTraining.level.value >= 5
+        }))
+    ] as Array<GenericMilestone>;
+    const heavyDrillElfMilestones = [
+        createMilestone(() => ({
+            display: {
+                requirement: "Frosty Level 1",
+                effectDisplay: "Oil boosts Star and Bell's xp gain"
+            },
+            shouldEarn: () => heavyDrillElfTraining.level.value >= 1
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Frosty Level 2",
+                effectDisplay: "Oil pumps are cheaper"
+            },
+            visibility: () => showIf(heavyDrillElfMilestones[0].earned.value),
+            shouldEarn: () => heavyDrillElfTraining.level.value >= 2
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Frosty Level 3",
+                effectDisplay: "Oil burners act like there are ^1.5 of them"
+            },
+            visibility: () => showIf(heavyDrillElfMilestones[1].earned.value),
+            shouldEarn: () => heavyDrillElfTraining.level.value >= 3
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Frosty Level 4",
+                effectDisplay: "Heavy drill's ln is now log2.5"
+            },
+            visibility: () => showIf(heavyDrillElfMilestones[2].earned.value && main.day.value >= 13),
+            shouldEarn: () => heavyDrillElfTraining.level.value >= 4
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Frosty Level 5",
+                effectDisplay: "Unlock another row of paper upgrades"
+            },
+            visibility: () => showIf(heavyDrillElfMilestones[3].earned.value && main.day.value >= 13),
+            shouldEarn: () => heavyDrillElfTraining.level.value >= 5
         }))
     ] as Array<GenericMilestone>;
     // ------------------------------------------------------------------------------- Milestone display
@@ -958,7 +1036,9 @@ const layer = createLayer(id, () => {
     const plasticElfTraining = [paperElfTraining, boxElfTraining, clothElfTraining];
     const coalDrillElfTraining = createElfTraining(elves.elves.coalDrillElf, coalDrillElfMilestones);
     const metalElfTraining = createElfTraining(elves.elves.metalElf, metalElfMilestones);
-    const row5Elves = [coalDrillElfTraining, metalElfTraining]
+    const oilElfTraining = createElfTraining(elves.elves.oilElf, oilElfMilestones);
+    const heavyDrillElfTraining = createElfTraining(elves.elves.heavyDrillElf, heavyDrillElfMilestones);
+    const row5Elves = [coalDrillElfTraining, metalElfTraining, oilElfTraining, heavyDrillElfTraining]
     const elfTraining = {
         cutterElfTraining,
         planterElfTraining,
@@ -973,7 +1053,9 @@ const layer = createLayer(id, () => {
         boxElfTraining,
         clothElfTraining,
         coalDrillElfTraining,
-        metalElfTraining
+        metalElfTraining,
+        oilElfTraining,
+        heavyDrillElfTraining
     };
     const day12Elves = [
         cutterElfTraining,
@@ -1003,7 +1085,9 @@ const layer = createLayer(id, () => {
         boxElfTraining,
         clothElfTraining,
         coalDrillElfTraining,
-        metalElfTraining
+        metalElfTraining,
+        oilElfTraining,
+        heavyDrillElfTraining
     ];
 
     // ------------------------------------------------------------------------------- Update
@@ -1187,7 +1271,7 @@ const layer = createLayer(id, () => {
                 <h3>Build a School</h3>
                 <div>
                     You gotta start somewhere, right? Each school increases the maximum level for
-                    elves by 1, maximum of {main.day.value === 12 ? 3 : 5} schools.
+                    elves by 1, maximum of {main.days[13].opened ? 5 : 3} schools.
                 </div>
                 <div>
                     You have {formatWhole(schools.amount.value)} schools, which are currently
