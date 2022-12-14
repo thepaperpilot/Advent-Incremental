@@ -126,7 +126,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 if (management.elfTraining.paperElfTraining.milestones[0].earned.value) {
                     cost = Decimal.div(cost, sumBooks.value.max(1));
                 }
-                if (bookUpgrade.bought){
+                if (bookUpgrade.bought.value) {
                     cost = cost.div(10);
                 }
                 return cost;
