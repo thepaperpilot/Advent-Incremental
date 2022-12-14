@@ -629,7 +629,59 @@ const layer = createLayer(id, function (this: BaseLayer) {
             style: { color: colorText }
         }))
     ];
-
+    const row3Upgrades = [
+        createUpgrade(() => ({
+            resource: noPersist(oil),
+            cost: 1e11,
+            display: {
+                title: "Dye Synergy I",
+                description: "Red dye boosts yellow dye gain *(log(x)^0.75)"
+            },
+            visibility: () => showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
+            style: { color: colorText }
+        })),
+        createUpgrade(() => ({
+            resource: noPersist(oil),
+            cost: 1e12,
+            display: {
+                title: "Orange-colored boxes",
+                description:
+                    "Orange dye's 2nd effect is raised to the 2.5"
+            },
+            visibility: () => showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
+            style: { color: colorText }
+        })),
+        createUpgrade(() => ({
+            resource: noPersist(oil),
+            cost: 1e13,
+            display: {
+                title: "Colorful Focus",
+                description: "Sum of secondary dyes increases max focus multiplier by cbrt(x)"
+            },
+            visibility: () => showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
+            style: { color: colorText }
+        })),
+        createUpgrade(() => ({
+            resource: noPersist(oil),
+            cost: 1e14,
+            display: {
+                title: "Dye Synergy II",
+                description: "Blue dye boosts red dye gain *log(x)"
+            },
+            visibility: () => showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
+            style: { color: colorText }
+        })),
+        createUpgrade(() => ({
+            resource: noPersist(oil),
+            cost: 1e15,
+            display: {
+                title: "The Ultimate Metal Dye",
+                description: "Product of primary dyes makes all metal costs cheaper"
+            },
+            visibility: () => showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
+            style: { color: colorText }
+        }))
+    ];
     const coalConsumption = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: () => Decimal.negate(heavyCoal.value),
@@ -938,6 +990,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
         row1Upgrades,
         row2Upgrades,
+        row3Upgrades,
 
         minWidth: 700,
 
