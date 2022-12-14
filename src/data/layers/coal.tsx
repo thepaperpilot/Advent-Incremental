@@ -804,9 +804,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: management.elfTraining.kilnElfTraining.milestones[1].earned
         })),
         createAdditiveModifier(() => ({
-            addend(){return paper.paper.value},
+            addend: paper.paper,
             description: "Paper Burning",
-            enabled: paper.ashUpgrade.bought
+            enabled: paper.upgrades2.ashUpgrade.bought
         }))
     ]);
     const computedAshGain = computed(() => ashGain.apply(0));
