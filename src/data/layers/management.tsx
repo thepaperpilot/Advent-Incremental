@@ -1257,6 +1257,34 @@ const layer = createLayer(id, () => {
         cost: 1e35
     }));
     const upgrades = [focusUpgrade1, focusUpgrade2, focusUpgrade3];
+    const focusUpgrade4 = createUpgrade(() => ({
+        display: {
+            title: "Focus Improver",
+            description: "Square root the focus multiplier exponent"
+        },
+        resource: trees.logs,
+        visibility: () => showIf(elfTraining.metalElfTraining.milestones[4].earned.value),
+        cost: 1e40
+    }));
+    const focusUpgrade5 = createUpgrade(() => ({
+        display: {
+            title: "Focus Focuser",
+            description: "The bar moves slower when it's closer to the right and faster when it's closer to the left"
+        },
+        resource: trees.logs,
+        visibility: () => showIf(elfTraining.metalElfTraining.milestones[4].earned.value),
+        cost: 1e45
+    }));
+    const focusUpgrade6 = createUpgrade(() => ({
+        display: {
+            title: "Focus Doubler",
+            description: "Focus now applies to 6 elves."
+        },
+        resource: trees.logs,
+        visibility: () => showIf(elfTraining.metalElfTraining.milestones[4].earned.value),
+        cost: 1e50
+    }));
+    const upgrades2 = [focusUpgrade4, focusUpgrade5, focusUpgrade6];
     // ------------------------------------------------------------------------------- Schools
 
     const schoolCost = computed(() => {
@@ -1524,6 +1552,7 @@ const layer = createLayer(id, () => {
 
         focusMultiplier: focusMulti,
         upgrades,
+        upgrades2,
         focusTargets,
         focusCooldown,
         focusTime,
