@@ -1354,7 +1354,8 @@ const layer = createLayer(id, () => {
                 schoolCost.value.plastic.lte(plastic.plastic.value) &&
                 schoolCost.value.dye.lte(dyes.dyes.blue.amount.value) &&
                 schoolCost.value.dye.lte(dyes.dyes.red.amount.value) &&
-                schoolCost.value.dye.lte(dyes.dyes.yellow.amount.value)
+                schoolCost.value.dye.lte(dyes.dyes.yellow.amount.value) &&
+                Decimal.lt(schools.amount.value, unref(schools.purchaseLimit))
             );
         },
         onPurchase() {
