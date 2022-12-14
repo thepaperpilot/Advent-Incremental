@@ -84,7 +84,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const activeHeavy = persistent<DecimalSource>(0);
     const heavyCoal = computed(() =>
-        Decimal.times(Decimal.pow(activeHeavy.value, heavy2Power.value).pow(2), 1e14)
+        Decimal.times(
+            Decimal.pow(activeHeavy.value, heavy2Power.value).pow(
+                management.elfTraining.coalDrillElfTraining.milestones[0].earned.value ? 2.5 : 2
+            ),
+            1e14
+        )
     );
     const heavyPower = computed(() =>
         Decimal.times(Decimal.pow(activeHeavy.value, heavy2Power.value), 1)
@@ -102,8 +107,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <br />
                 A large drill specialized at deep mining.
                 <br />
-                Consumes 1e14*(Heavy Drills amount)<sup>2</sup> coal/sec for (Heavy Drills amount)
-                drill power.
+                Consumes 1e14*(Heavy Drills amount)
+                <sup>
+                    {management.elfTraining.coalDrillElfTraining.milestones[0].earned.value
+                        ? 2.5
+                        : 2}
+                </sup>{" "}
+                coal/sec for (Heavy Drills amount) drill power.
                 <br />
                 <br />
                 Currently:
@@ -676,7 +686,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 1e15,
             display: {
                 title: "The Ultimate Metal Dye",
-                description: "Product of primary dyes makes all metal costs cheaper"
+                description: "Product of primary dyes makes everything that costs metal cost less metal"
             },
             visibility: () => showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
             style: { color: colorText }
