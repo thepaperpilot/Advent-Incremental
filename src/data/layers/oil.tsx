@@ -92,7 +92,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const buildHeavy = createBuyable(() => ({
         resource: metal.metal,
         cost() {
-            const v = new Decimal(this.amount.value);
+            let v = new Decimal(this.amount.value);
+            v = Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value).times(v);
             return Decimal.pow(1.3, v).times(2.5e4);
         },
         display: jsx(() => (
@@ -135,7 +136,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const buildHeavy2 = createBuyable(() => ({
         resource: metal.metal,
         cost() {
-            const v = new Decimal(this.amount.value);
+            let v = new Decimal(this.amount.value);
+            v = Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value).times(v);
             return Decimal.pow(2, v).times(1e5);
         },
         display: jsx(() => (
@@ -181,7 +183,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const buildExtractor = createBuyable(() => ({
         resource: metal.metal,
         cost() {
-            const v = new Decimal(this.amount.value);
+            let v = new Decimal(this.amount.value);
+            v = Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value).times(v);
             return Decimal.pow(8, v).times(2e5);
         },
         display: jsx(() => (
@@ -237,7 +240,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const buildPump = createBuyable(() => ({
         resource: metal.metal,
         cost() {
-            const v = new Decimal(this.amount.value);
+            let v = new Decimal(this.amount.value);
+            v = Decimal.pow(0.95, paper.books.oilBook.totalAmount.value).times(v);
             let price = Decimal.pow(16, v).times(2e6);
             if (row2Upgrades[4].bought.value)
                 price = price.div(Decimal.add(totalOil.value, 1).root(6));
@@ -286,7 +290,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const buildBurner = createBuyable(() => ({
         resource: noPersist(oil),
         cost() {
-            const v = new Decimal(this.amount.value);
+            let v = new Decimal(this.amount.value);
+            v = Decimal.pow(0.95, paper.books.oilBook.totalAmount.value).times(v);
             return Decimal.pow(2, v).times(50);
         },
         display: jsx(() => (
@@ -338,7 +343,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const buildSmelter = createBuyable(() => ({
         resource: metal.metal,
         cost() {
-            const v = new Decimal(this.amount.value);
+            let v = new Decimal(this.amount.value);
+            v = Decimal.pow(0.95, paper.books.oilBook.totalAmount.value).times(v);
             let price = Decimal.pow(10, v).times(1e7);
             if (row2Upgrades[4].bought.value)
                 price = price.div(Decimal.add(totalOil.value, 1).root(6));
