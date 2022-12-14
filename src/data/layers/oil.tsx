@@ -144,7 +144,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         active: activeHeavy
     });
     const activeHeavy2 = persistent<DecimalSource>(0);
-    const heavy2Power = computed(() => Decimal.add(activeHeavy2.value, Math.E).ln());
+    const heavy2Power = computed(() => {
+        let power = Decimal.add(activeHeavy2.value, Math.E);
+        if (management.elfTraining.heavyDrillElfTraining.milestones[3].earned.value) {
+            power = power.log(2.5);
+        } else {
+            power = power.ln();
+        }
+        return power;
+    });
     const buildHeavy2 = createBuyable(() => ({
         resource: metal.metal,
         cost() {
@@ -158,7 +166,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <br />
                 Attach extra drills to Heavy Drills to make them faster
                 <br />
-                Raise amount of effective Heavy Drills by ^ln(Heavy Drill Drill amount + e).
+                Raise amount of effective Heavy Drills by ^
+                {management.elfTraining.heavyDrillElfTraining.milestones[3].earned.value ? (
+                    <>
+                        log<sub>2.5</sub>
+                    </>
+                ) : (
+                    <>ln</>
+                )}
+                (Heavy Drill Drill amount + e).
                 <br />
                 (also affects coal consumption).
                 <br />
@@ -260,8 +276,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             let v = new Decimal(this.amount.value);
             v = Decimal.pow(0.95, paper.books.oilBook.totalAmount.value).times(v);
             let price = Decimal.pow(16, v).times(2e6);
-            if (row2Upgrades[4].bought.value)
+            if (row2Upgrades[4].bought.value) {
                 price = price.div(Decimal.add(totalOil.value, 1).root(6));
+            }
+            if (management.elfTraining.heavyDrillElfTraining.milestones[1].earned.value) {
+                price = price.div(10);
+            }
             return price;
         },
         display: jsx(() => (
@@ -301,9 +321,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
 
     const activeBurner = persistent<DecimalSource>(0);
-    const burnerOil = computed(() => Decimal.pow(activeBurner.value, 2));
-    const burnerCoal = computed(() => Decimal.pow(activeBurner.value, 3).mul(1e19));
-    const burnerMetal = computed(() => Decimal.add(activeBurner.value, 1));
+    const effectiveBurners = computed(() => {
+        let burners = activeBurner.value;
+        if (management.elfTraining.heavyDrillElfTraining.milestones[2].earned.value) {
+            burners = Decimal.pow(burners, 1.5);
+        }
+        return burners;
+    });
+    const burnerOil = computed(() => Decimal.pow(effectiveBurners.value, 2));
+    const burnerCoal = computed(() => Decimal.pow(effectiveBurners.value, 3).mul(1e19));
+    const burnerMetal = computed(() => Decimal.add(effectiveBurners.value, 1));
     const buildBurner = createBuyable(() => ({
         resource: noPersist(oil),
         cost() {
@@ -1011,6 +1038,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         activePump,
         buildPump,
         activeBurner,
+        effectiveBurners,
         buildBurner,
         activeSmelter,
         buildSmelter,

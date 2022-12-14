@@ -962,7 +962,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Frosty Level 2",
-                effectDisplay: "Oil pumps are cheaper"
+                effectDisplay: "Oil pumps are 10x cheaper"
             },
             visibility: () => showIf(heavyDrillElfMilestones[0].earned.value),
             shouldEarn: () => heavyDrillElfTraining.level.value >= 2
@@ -978,7 +978,11 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Frosty Level 4",
-                effectDisplay: "Heavy drill's ln is now log2.5"
+                effectDisplay: jsx(() => (
+                    <>
+                        Heavy drill drill's ln is now log<sub>2.5</sub>
+                    </>
+                ))
             },
             visibility: () =>
                 showIf(heavyDrillElfMilestones[2].earned.value && main.day.value >= 13),
@@ -1042,8 +1046,24 @@ const layer = createLayer(id, () => {
     const kilnElfTraining = createElfTraining(elves.elves.kilnElf, kilnElfMilestones);
     const fireElfTraining = [smallfireElfTraining, bonfireElfTraining, kilnElfTraining];
 
-    const paperElfTraining = createElfTraining(elves.elves.paperElf, paperElfMilestones);
-    const boxElfTraining = createElfTraining(elves.elves.boxElf, boxElfMilestones);
+    const paperElfTraining = createElfTraining(
+        elves.elves.paperElf,
+        paperElfMilestones,
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(oil.oil.value, 1).log10(),
+            description: "Frosty Level 1",
+            enabled: heavyDrillElfMilestones[0].earned
+        }))
+    );
+    const boxElfTraining = createElfTraining(
+        elves.elves.boxElf,
+        boxElfMilestones,
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(oil.oil.value, 1).log10(),
+            description: "Frosty Level 1",
+            enabled: heavyDrillElfMilestones[0].earned
+        }))
+    );
     const clothElfTraining = createElfTraining(elves.elves.clothElf, clothElfMilestones);
     const plasticElfTraining = [paperElfTraining, boxElfTraining, clothElfTraining];
     const coalDrillElfTraining = createElfTraining(
