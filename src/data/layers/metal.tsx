@@ -33,6 +33,7 @@ import plastic from "./plastic";
 import dyes from "./dyes";
 import management from "./management";
 import workshop from "./workshop";
+import paper from "./paper";
 
 const id = "metal";
 const day = 7;
@@ -378,7 +379,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const oreDrill = createBuyable(() => ({
         resource: noPersist(metal),
         cost() {
-            return Decimal.pow(1.15, this.amount.value).times(10);
+            let v = new Decimal(this.amount.value);
+            v = Decimal.pow(0.95, paper.books.metalBook.totalAmount.value).times(v);
+            return Decimal.pow(1.15, v).times(10);
         },
         display: {
             title: "Metal Drill",
@@ -402,7 +405,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const industrialCrucible = createBuyable(() => ({
         resource: noPersist(metal),
         cost() {
-            return Decimal.pow(1.15, Decimal.times(this.amount.value, 10)).times(10);
+            let v = new Decimal(this.amount.value);
+            v = Decimal.pow(0.95, paper.books.metalBook.totalAmount.value).times(v);
+            return Decimal.pow(1.15, Decimal.times(v, 10)).times(10);
         },
         display: {
             title: "Industrial Crucible",
@@ -426,7 +431,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const hotterForge = createBuyable(() => ({
         resource: coal.coal,
         cost() {
-            return Decimal.pow(10, this.amount.value).times(1e12);
+            let v = new Decimal(this.amount.value);
+            v = Decimal.pow(0.95, paper.books.metalBook.totalAmount.value).times(v);
+            return Decimal.pow(10, v).times(1e12);
         },
         display: {
             title: "Hotter Forges",
