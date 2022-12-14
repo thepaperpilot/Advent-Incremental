@@ -8,7 +8,7 @@ import {
 } from "features/feature";
 import { BaseLayer, createLayer, GenericLayer, layers } from "game/layers";
 import { persistent } from "game/persistence";
-import type { LayerData, PlayerData } from "game/player";
+import type { PlayerData } from "game/player";
 import player from "game/player";
 import { format, formatTime } from "util/bignum";
 import { Computable, convertComputable, ProcessedComputable } from "util/computed";
@@ -18,32 +18,33 @@ import type { Ref } from "vue";
 import { computed, ref, unref } from "vue";
 import "./advent.css";
 import Day from "./Day.vue";
+import boxes from "./layers/boxes";
+import cloth from "./layers/cloth";
+import coal from "./layers/coal";
+import dyes from "./layers/dyes";
+import elves from "./layers/elves";
+import management from "./layers/management";
+import metal from "./layers/metal";
+import oil from "./layers/oil";
+import paper from "./layers/paper";
+import plastic from "./layers/plastic";
 import trees from "./layers/trees";
 import workshop from "./layers/workshop";
-import treeSymbol from "./symbols/tree.png";
-import workshopSymbol from "./symbols/sws.png";
-import coalSymbol from "./symbols/coal.png";
-import elfSymbol from "./symbols/elf.png";
-import paperSymbol from "./symbols/paperStacks.png";
-import boxesSymbol from "./symbols/cardboardBox.png";
-import metalSymbol from "./symbols/metal.png";
-import clothSymbol from "./symbols/cloth.png";
-import oilSymbol from "./symbols/oil.png";
-import plasticSymbol from "./symbols/plastic.png";
-import dyesSymbol from "./symbols/dyes.png";
-import managementSymbol from "./symbols/elfManagement.png";
-import wrappingPaperSymbol from "./symbols/wrappingPaper.png";
-import coal from "./layers/coal";
-import elves from "./layers/elves";
-import paper from "./layers/paper";
-import boxes from "./layers/boxes";
-import metal from "./layers/metal";
-import cloth from "./layers/cloth";
-import oil from "./layers/oil";
-import plastic from "./layers/plastic";
-import dyes from "./layers/dyes";
-import management from "./layers/management";
 import wrappingPaper from "./layers/wrapping-paper";
+import boxesSymbol from "./symbols/cardboardBox.png";
+import clothSymbol from "./symbols/cloth.png";
+import coalSymbol from "./symbols/coal.png";
+import dyesSymbol from "./symbols/dyes.png";
+import elfSymbol from "./symbols/elf.png";
+import managementSymbol from "./symbols/elfManagement.png";
+import metalSymbol from "./symbols/metal.png";
+import oilSymbol from "./symbols/oil.png";
+import paperSymbol from "./symbols/paperStacks.png";
+import plasticSymbol from "./symbols/plastic.png";
+import workshopSymbol from "./symbols/sws.png";
+import treeSymbol from "./symbols/tree.png";
+import advManagementSymbol from "./symbols/workshopMansion.png";
+import wrappingPaperSymbol from "./symbols/wrappingPaper.png";
 
 export interface Day extends VueFeature {
     day: number;
@@ -272,8 +273,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 13,
             shouldNotify: false,
-            layer: null, // "management" (advanced)
-            symbol: "",
+            layer: "management",
+            symbol: advManagementSymbol,
             story: "So after a good night's rest you decide that maybe making these elves able to do all the work for you isn't something to be scared of, but rather encouraged. Let's spend another day continuing to train them up and really get this place spinning. They are Santa's elves after all, they're supposed to be able to run everything without you!",
             completedStory:
                 "The elves are doing an incredible job, and Santa does not seem keen on firing you - Score! Now you can get to work on guiding this properly trained highly functional group of hard workers to make Christmas as great as possible. Good Job!"
