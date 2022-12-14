@@ -1152,11 +1152,16 @@ const layer = createLayer(id, () => {
             enabled: focusUpgrade1.bought
         })),
         createAdditiveModifier(() => ({
-            addend(){return Decimal.add(dyes.dyes.orange.amount, dyes.dyes.purple.amount).add(dyes.dyes.green.amount).add(1).cbrt()},
+            addend() {
+                return Decimal.add(dyes.dyes.orange.amount, dyes.dyes.purple.amount)
+                    .add(dyes.dyes.green.amount)
+                    .add(1)
+                    .cbrt();
+            },
             description: "Colorful Focus",
             enabled: oil.row3Upgrades[2].bought.value
-        })),
-    ]);
+        }))
+    ]) as WithRequired<Modifier, "revert" | "description">;
     const maximumElvesModifier = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: 1,
