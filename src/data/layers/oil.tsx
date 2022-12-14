@@ -494,7 +494,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 1e18,
             display: {
                 title: "Coal Drill Synergy",
-                description: "Increase drill power by +4% per coal Mining Drill owned.",
+                description: "Increase drill power by +4% per Coal Drill owned.",
                 effectDisplay: jsx(() => <>x{format(row1UpgradeEffects[0].value)}</>)
             },
             style: { color: colorText }

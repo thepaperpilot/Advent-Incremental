@@ -312,16 +312,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elvesMilestone2.earned
         }))
     ]);
-    const miningDrillCooldown = createSequentialModifier(() => [
+    const coalDrillCooldown = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
             multiplier: 2,
             description: "6 Elves Trained",
             enabled: elvesMilestone.earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.times(paper.books.miningDrillBook.amount.value, 0.1).add(1),
+            multiplier: () => Decimal.times(paper.books.coalDrillBook.amount.value, 0.1).add(1),
             description: "Drills and Mills",
-            enabled: () => Decimal.gt(paper.books.miningDrillBook.amount.value, 0)
+            enabled: () => Decimal.gt(paper.books.coalDrillBook.amount.value, 0)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -468,7 +468,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         {
             title: "Peppermint Auto-Buy Frequency",
-            modifier: miningDrillCooldown,
+            modifier: coalDrillCooldown,
             base: 10,
             unit: "/s",
             visible: management.elfTraining.expandersElfTraining.milestones[3].earned
@@ -762,15 +762,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const coalDrillElf = createElf({
         name: "Peppermint",
         description:
-            "Peppermint will automatically purchase all mining drills you can afford, without actually spending any resources.",
+            "Peppermint will automatically purchase all coal drills you can afford, without actually spending any resources.",
         buyable: coal.buildDrill,
-        cooldownModifier: miningDrillCooldown,
+        cooldownModifier: coalDrillCooldown,
         visibility: () =>
             showIf(management.elfTraining.expandersElfTraining.milestones[3].earned.value),
         hasToggle: true,
-        toggleDesc: "Activate auto-purchased mining drills",
+        toggleDesc: "Activate auto-purchased coal drills",
         onAutoPurchase() {
-            if (miningDrillElf.toggle.value) {
+            if (coalDrillElf.toggle.value) {
                 coal.activeDrills.value = Decimal.add(coal.activeDrills.value, 1);
             }
         }
@@ -843,7 +843,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         paperElf,
         boxElf,
         clothElf,
-        miningDrillElf,
+        coalDrillElf,
         heavyDrillElf,
         oilElf,
         metalElf
