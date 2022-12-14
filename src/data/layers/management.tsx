@@ -896,7 +896,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Twinkle Level 5",
-                effectDisplay: "Unlock another row of metal upgrades"
+                effectDisplay: "Unlock another row of focus upgrades"
             },
             visibility: () => showIf(metalElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => metalElfTraining.level.value >= 5
