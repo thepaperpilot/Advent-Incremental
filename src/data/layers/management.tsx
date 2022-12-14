@@ -147,7 +147,7 @@ const layer = createLayer(id, () => {
         if (elf.name == "Star" || elf.name == "Bell") {
             costMulti /= 3;
         }
-        const costBase = Decimal.mul(4000, costMulti);
+        const costBase = Decimal.mul(paperElfMilestones[3].earned.value ? 2000 : 4000, costMulti);
         const expRequiredForNextLevel = computed(() => Decimal.pow(5, level.value).mul(costBase));
         const level = computed(() =>
             Decimal.affordGeometricSeries(exp.value, costBase, 5, 0)
@@ -687,11 +687,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Star Level 4",
-                effectDisplay: jsx(() => (
-                    <>
-                        Multiply XP requirements by 0.95<sup>(total books)</sup>
-                    </>
-                ))
+                effectDisplay: "Halve xp requirements"
             },
             visibility: () => showIf(paperElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => paperElfTraining.level.value >= 4
