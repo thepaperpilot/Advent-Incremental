@@ -117,6 +117,11 @@ const layer = createLayer(id, () => {
             multiplier: classroomEffect,
             description: "Classroom Effect",
             enabled: classroomUpgrade.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Carry experience in boxes???",
+            enabled: boxes.row3Upgrades.xpUpgrade.bought
         }))
     ]);
     const globalXPModifierComputed = computed(() => globalXPModifier.apply(1));
@@ -1277,7 +1282,8 @@ const layer = createLayer(id, () => {
     const focusUpgrade5 = createUpgrade(() => ({
         display: {
             title: "Focus Focuser",
-            description: "The bar moves slower when it's closer to the right and faster when it's closer to the left"
+            description:
+                "The bar moves slower when it's closer to the right and faster when it's closer to the left"
         },
         resource: trees.logs,
         visibility: () => showIf(elfTraining.metalElfTraining.milestones[4].earned.value),

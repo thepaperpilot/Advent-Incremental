@@ -28,6 +28,7 @@ import { formatWhole } from "util/break_eternity";
 import { Direction } from "util/common";
 import { render, renderCol, renderRow } from "util/vue";
 import { computed, ref } from "vue";
+import boxes from "./boxes";
 import dyes from "./dyes";
 import management from "./management";
 import metal from "./metal";
@@ -366,6 +367,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "1000% Foundation Completed",
             enabled: workshop.milestones.extraExpansionMilestone5.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Carry cloth in boxes",
+            enabled: boxes.row3Upgrades.clothUpgrade.bought
         }))
     ]);
     const computedSheepGain = computed(() => sheepGain.apply(1));
@@ -401,6 +407,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "1000% Foundation Completed",
             enabled: workshop.milestones.extraExpansionMilestone5.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Carry cloth in boxes",
+            enabled: boxes.row3Upgrades.clothUpgrade.bought
         }))
     ]);
     const computedShearingAmount = computed(() => shearingAmount.apply(1));
@@ -436,6 +447,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "1000% Foundation Completed",
             enabled: workshop.milestones.extraExpansionMilestone5.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Carry cloth in boxes",
+            enabled: boxes.row3Upgrades.clothUpgrade.bought
         }))
     ]);
     const computedSpinningAmount = computed(() => spinningAmount.apply(1));

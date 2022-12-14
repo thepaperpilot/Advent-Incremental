@@ -31,6 +31,7 @@ import oil from "./oil";
 import trees from "./trees";
 import wrappingPaper from "./wrapping-paper";
 import paper from "./paper";
+import boxes from "./boxes";
 
 interface Dye {
     name: string;
@@ -154,6 +155,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     multiplier: 2,
                     description: "Gingersnap Level 3",
                     enabled: management.elfTraining.clothElfTraining.milestones[2].earned
+                }))
+            );
+            modifiers.push(
+                createMultiplicativeModifier(() => ({
+                    multiplier: 2,
+                    description: "Carry dye in boxes",
+                    enabled: boxes.row3Upgrades.dyeUpgrade.bought
                 }))
             );
             return modifiers;
