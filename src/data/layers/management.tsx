@@ -183,7 +183,10 @@ const layer = createLayer(id, () => {
                     : ""
             }),
             baseStyle: "margin-top: 0",
-            fillStyle: "margin-top: 0; transition-duration: 0s",
+            fillStyle: () =>
+                focusTargets.value[elf.name]
+                    ? "margin-top: 0; transition-duration: 0s;"
+                    : "margin-top: 0; transition-duration: 0s; background-color: var(--bought)",
             borderStyle: () =>
                 Decimal.gte(level.value, schools.amount.value) ? "border-color: red" : "",
             progress: () => Decimal.div(expToNextLevel.value, expRequiredForNextLevel.value),
@@ -239,7 +242,7 @@ const layer = createLayer(id, () => {
             },
             style: () => ({
                 width: "190px",
-                background: currentShown.value == elf.name ? "var(--foreground)" : ""
+                background: currentShown.value == elf.name ? "var(--accent2)" : ""
             }),
             onClick() {
                 currentShown.value = elf.name;
