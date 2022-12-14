@@ -12,7 +12,7 @@ import { createCumulativeConversion, createPolynomialScaling } from "features/co
 import { jsx, showIf } from "features/feature";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource, displayResource, Resource } from "features/resources/resource";
-import { createUpgrade } from "features/upgrades/upgrade";
+import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier, Modifier } from "game/modifiers";
@@ -300,16 +300,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const ashUpgrade = createUpgrade(() => ({
         resource: noPersist(paper),
         cost: 1e36,
-        visibility: () => showIf(management.elfTraining.heavyDrillElfTraining.milestones[4].earned.value),
+        visibility: () =>
+            showIf(management.elfTraining.heavyDrillElfTraining.milestones[4].earned.value),
         display: {
             title: "Paper Burning",
             description: "Paper adds to ash gain after all other modifiers"
         }
-    }));
+    })) as GenericUpgrade;
     const bookUpgrade = createUpgrade(() => ({
         resource: noPersist(paper),
         cost: 1e40,
-        visibility: () => showIf(management.elfTraining.heavyDrillElfTraining.milestones[4].earned.value),
+        visibility: () =>
+            showIf(management.elfTraining.heavyDrillElfTraining.milestones[4].earned.value),
         display: {
             title: "Book Cheapener",
             description: "Books are less expensive"
@@ -318,7 +320,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const classroomUpgrade = createUpgrade(() => ({
         resource: noPersist(paper),
         cost: 1e44,
-        visibility: () => showIf(management.elfTraining.heavyDrillElfTraining.milestones[4].earned.value),
+        visibility: () =>
+            showIf(management.elfTraining.heavyDrillElfTraining.milestones[4].earned.value),
         display: {
             title: "Classroom Supplies",
             description: "Classrooms' effect is raised to the 1.1"
@@ -368,7 +371,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Star Level 2",
             enabled: management.elfTraining.paperElfTraining.milestones[1].earned
         }))
-    ]);
+    ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAshCost = computed(() => ashCost.apply(1e6));
 
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [

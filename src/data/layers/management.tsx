@@ -20,7 +20,7 @@ import {
 } from "game/modifiers";
 import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatTime, formatWhole } from "util/bignum";
-import { Direction } from "util/common";
+import { Direction, WithRequired } from "util/common";
 import { ProcessedComputable } from "util/computed";
 import { render, renderCol, renderGrid } from "util/vue";
 import { computed, ComputedRef, ref, Ref, unref, watchEffect } from "vue";
@@ -123,7 +123,7 @@ const layer = createLayer(id, () => {
             description: "Carry experience in boxes???",
             enabled: boxes.row3Upgrades.xpUpgrade.bought
         }))
-    ]);
+    ]) as WithRequired<Modifier, "description" | "revert">;
     const globalXPModifierComputed = computed(() => globalXPModifier.apply(1));
 
     // ------------------------------------------------------------------------------- Training core function
@@ -1131,7 +1131,10 @@ const layer = createLayer(id, () => {
             focusTargets.value = {};
             focusMulti.value = Decimal.pow(
                 focusMaxMulti.value,
-                Decimal.pow(1 - Math.abs(Math.sin((Date.now() / 1000) * 2)), focusUpgrade4.bought ? 0.5 : 1)
+                Decimal.pow(
+                    1 - Math.abs(Math.sin((Date.now() / 1000) * 2)),
+                    focusUpgrade4.bought ? 0.5 : 1
+                )
             );
         }
     });
@@ -1383,7 +1386,9 @@ const layer = createLayer(id, () => {
     });
 
     const classroomEffect = computed(() => {
-        return Decimal.add(classrooms.amount.value, 1).pow(0.9).pow(paper.classroomUpgrade.bought.value ? 1.1 : 1);
+        return Decimal.add(classrooms.amount.value, 1)
+            .pow(0.9)
+            .pow(paper.upgrades2.classroomUpgrade.bought.value ? 1.1 : 1);
     });
 
     const classrooms = createBuyable(() => ({
