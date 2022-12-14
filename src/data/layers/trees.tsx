@@ -27,7 +27,7 @@ import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatGain, formatLimit, formatWhole } from "util/bignum";
 import { Direction, WithRequired } from "util/common";
 import { render, renderGrid, renderRow } from "util/vue";
-import { computed, ref, watch } from "vue";
+import { computed, ref } from "vue";
 import boxes from "./boxes";
 import cloth from "./cloth";
 import coal from "./coal";
@@ -53,6 +53,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const saplings = createResource<DecimalSource>(0, "saplings");
 
     const ema = ref<DecimalSource>(0);
+
+    const lastAutoCuttingAmount = ref<DecimalSource>(0);
+    const lastAutoPlantedAmount = ref<DecimalSource>(0);
 
     const totalTrees = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
@@ -326,20 +329,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createAdditiveModifier(() => ({
             addend: () =>
-                Decimal.sub(lastAutoCuttingAmount.value, lastAutoPlantedAmount.value).max(0),
+                Decimal.sub(lastAutoPlantedAmount.value, lastAutoCuttingAmount.value).max(0),
             description: "Ivy Level 5",
             enabled: management.elfTraining.planterElfTraining.milestones[4].earned
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAutoCuttingAmount = computed(() => autoCuttingAmount.apply(0));
-    const lastAutoCuttingAmount = ref<DecimalSource>(0);
-    setInterval(
-        () =>
-            watch(computedAutoCuttingAmount, cut => {
-                lastAutoCuttingAmount.value = cut;
-            }),
-        0
-    );
 
     const manualPlantingAmount = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
@@ -421,20 +416,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createAdditiveModifier(() => ({
             addend: () =>
-                Decimal.sub(lastAutoPlantedAmount.value, lastAutoCuttingAmount.value).max(0),
+                Decimal.sub(lastAutoCuttingAmount.value, lastAutoPlantedAmount.value).max(0),
             description: "Ivy Level 5",
             enabled: management.elfTraining.planterElfTraining.milestones[4].earned
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAutoPlantingAmount = computed(() => autoPlantingAmount.apply(0));
-    const lastAutoPlantedAmount = ref<DecimalSource>(0);
-    setInterval(
-        () =>
-            watch(computedAutoPlantingAmount, planted => {
-                lastAutoPlantedAmount.value = planted;
-            }),
-        0
-    );
 
     const logGain = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
@@ -710,6 +697,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 plantTree.onClick();
             }
         }
+
+        const plantingAmount = Decimal.sub(
+            computedAutoPlantingAmount.value,
+            Decimal.sub(lastAutoCuttingAmount.value, lastAutoPlantedAmount.value).max(0)
+        );
+        const cuttingAmount = Decimal.sub(
+            computedAutoCuttingAmount.value,
+            Decimal.sub(lastAutoPlantedAmount.value, lastAutoCuttingAmount.value).max(0)
+        );
+        lastAutoPlantedAmount.value = plantingAmount;
+        lastAutoCuttingAmount.value = cuttingAmount;
 
         const amountCut = Decimal.min(
             trees.value,

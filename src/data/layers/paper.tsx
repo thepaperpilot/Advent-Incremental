@@ -17,7 +17,7 @@ import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier, Modifier } from "game/modifiers";
 import { noPersist } from "game/persistence";
-import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
+import Decimal, { DecimalSource, format, formatSmall, formatWhole } from "util/bignum";
 import { WithRequired } from "util/common";
 import { render, renderCol, renderRow } from "util/vue";
 import { computed, ComputedRef, ref, unref } from "vue";
@@ -104,7 +104,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: `Print a copy of "${options.name}", which ${options.elfName} will use to improve their skills! Each copy printed will reduce the "${options.buyableName}" price scaling by 0.95x and make ${options.elfName} purchase +10% faster!`,
                 effectDisplay: jsx(() => (
                     <>
-                        {format(Decimal.pow(0.95, buyable.totalAmount.value))}x price scaling,{" "}
+                        {formatSmall(Decimal.pow(0.95, buyable.totalAmount.value))}x price scaling,{" "}
                         {format(Decimal.div(buyable.totalAmount.value, 10).add(1))}x auto-purchase
                         speed
                     </>

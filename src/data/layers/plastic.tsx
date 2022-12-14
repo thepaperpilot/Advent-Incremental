@@ -278,7 +278,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: workshop.milestones.extraExpansionMilestone4.earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.add(oil.buildExtractor.amount.value, 1).sqrt(),
+            multiplier: () => Decimal.add(oil.buildExtractor.amount.value, 1),
             description: "Snowball Level 4",
             enabled: management.elfTraining.kilnElfTraining.milestones[3].earned
         }))
