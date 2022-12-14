@@ -888,7 +888,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Twinkle Level 3",
-                effectDisplay: "Auto smelting purity is tripled."
+                effectDisplay: "Auto smelting multi is tripled."
             },
             visibility: () => showIf(metalElfMilestones[1].earned.value),
             shouldEarn: () => metalElfTraining.level.value >= 3
@@ -896,7 +896,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Twinkle Level 4",
-                effectDisplay: "All metal buyables are cheaper"
+                effectDisplay: "All metal machines are 10x cheaper"
             },
             visibility: () => showIf(metalElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => metalElfTraining.level.value >= 4
@@ -1129,13 +1129,12 @@ const layer = createLayer(id, () => {
 
         if (Decimal.eq(focusTime.value, 0)) {
             focusTargets.value = {};
-            focusMulti.value = Decimal.pow(
-                focusMaxMulti.value,
-                Decimal.pow(
-                    1 - Math.abs(Math.sin((Date.now() / 1000) * 2)),
-                    focusUpgrade4.bought ? 0.5 : 1
-                )
-            );
+            const speed = focusUpgrade5.bought.value ? 2000 : 1000;
+            let stoppedAt = 1 - Math.abs(Math.sin((Date.now() / speed) * 2));
+            if (focusUpgrade4.bought.value) {
+                stoppedAt = 1 - (1 - stoppedAt) ** 2;
+            }
+            focusMulti.value = Decimal.pow(focusMaxMulti.value, stoppedAt);
         }
     });
 
@@ -1286,7 +1285,8 @@ const layer = createLayer(id, () => {
     const focusUpgrade4 = createUpgrade(() => ({
         display: {
             title: "Focus Improver",
-            description: "Square root the focus multiplier exponent"
+            description:
+                "The bar moves slower when it's closer to the right and faster when it's closer to the left"
         },
         resource: trees.logs,
         visibility: () => showIf(elfTraining.metalElfTraining.milestones[4].earned.value),
@@ -1295,8 +1295,7 @@ const layer = createLayer(id, () => {
     const focusUpgrade5 = createUpgrade(() => ({
         display: {
             title: "Focus Focuser",
-            description:
-                "The bar moves slower when it's closer to the right and faster when it's closer to the left"
+            description: "The bar moves 2x slower"
         },
         resource: trees.logs,
         visibility: () => showIf(elfTraining.metalElfTraining.milestones[4].earned.value),

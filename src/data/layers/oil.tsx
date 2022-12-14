@@ -611,7 +611,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 1500,
             display: {
                 title: "Blaster Burner",
-                description: "The Oil Burner can now increase your metal gain."
+                description: "The Oil Burner can now increase your auto smelting multi."
             },
             style: { color: colorText }
         })),
@@ -647,7 +647,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 title: "Dye Synergy I",
                 description: "Red dye boosts yellow dye gain *(log(x)^0.75)"
             },
-            visibility: () => showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
+            visibility: () =>
+                showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
             style: { color: colorText }
         })),
         createUpgrade(() => ({
@@ -655,10 +656,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 1e12,
             display: {
                 title: "Orange-colored boxes",
-                description:
-                    "Orange dye's 2nd effect is raised to the 2.5"
+                description: "Orange dye's 2nd effect is raised to the 2.5"
             },
-            visibility: () => showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
+            visibility: () =>
+                showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
             style: { color: colorText }
         })),
         createUpgrade(() => ({
@@ -668,7 +669,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 title: "Colorful Focus",
                 description: "Sum of secondary dyes increases max focus multiplier by cbrt(x)"
             },
-            visibility: () => showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
+            visibility: () =>
+                showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
             style: { color: colorText }
         })),
         createUpgrade(() => ({
@@ -678,7 +680,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 title: "Dye Synergy II",
                 description: "Blue dye boosts red dye gain *log(x)"
             },
-            visibility: () => showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
+            visibility: () =>
+                showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
             style: { color: colorText }
         })),
         createUpgrade(() => ({
@@ -688,7 +691,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 title: "The Ultimate Metal Dye",
                 description: "Sum of primary dyes boosts auto smelt speed"
             },
-            visibility: () => showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
+            visibility: () =>
+                showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
             style: { color: colorText }
         }))
     ];

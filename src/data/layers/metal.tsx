@@ -94,6 +94,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Joy Level 4",
             enabled: management.elfTraining.smallfireElfTraining.milestones[3].earned
         })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(management.schools.amount.value, 1),
+            description: "Twinkle Level 1",
+            enabled: management.elfTraining.metalElfTraining.milestones[0].earned
+        })),
         createExponentialModifier(() => ({
             exponent: 1.1,
             description: "Mary Level 2",
@@ -150,6 +155,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: management.elfTraining.heatedPlanterElfTraining.milestones[4].earned
         })),
         createMultiplicativeModifier(() => ({
+            multiplier: () =>
+                Decimal.pow(1.25, management.elfTraining.metalElfTraining.level.value),
+            description: "Twinkle Level 2",
+            enabled: management.elfTraining.metalElfTraining.milestones[1].earned
+        })),
+        createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.add(dyes.dyes.red.amount, dyes.dyes.blue.amount).add(dyes.dyes.yellow.amount).add(1).log10(),
             description: "The Ultimate Metal Dye",
             enabled: oil.row3Upgrades[4].bought.value
@@ -167,6 +178,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 Decimal.add(oil.activeBurner.value, 1).mul(oil.oilEffectiveness.value),
             description: "Blaster Burner",
             enabled: oil.row2Upgrades[2].bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 3,
+            description: "Twinkle Level 3",
+            enabled: management.elfTraining.metalElfTraining.milestones[2].earned
         }))
     ]);
     const computedAutoSmeltMulti = computed(() => autoSmeltMulti.apply(1));
@@ -390,6 +406,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (management.elfTraining.clothElfTraining.milestones[4].earned.value) {
                 cost = Decimal.div(cost, Decimal.add(oil.depth.value, 1).sqrt());
             }
+            if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
+                cost = Decimal.div(cost, 10);
+            }
             return cost;
         },
         display: {
@@ -420,6 +439,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (management.elfTraining.clothElfTraining.milestones[4].earned.value) {
                 cost = Decimal.div(cost, Decimal.add(oil.depth.value, 1).sqrt());
             }
+            if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
+                cost = Decimal.div(cost, 10);
+            }
             return cost;
         },
         display: {
@@ -449,6 +471,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             let cost = Decimal.pow(10, v).times(1e12);
             if (management.elfTraining.clothElfTraining.milestones[4].earned.value) {
                 cost = Decimal.div(cost, Decimal.add(oil.depth.value, 1).sqrt());
+            }
+            if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
+                cost = Decimal.div(cost, 10);
             }
             return cost;
         },
