@@ -1232,7 +1232,12 @@ const layer = createLayer(id, () => {
         onClick() {
             focusCooldown.value = Decimal.fromValue(cooldown.value).toNumber();
             focusTime.value = 10;
-            rerollFocusTargets(12, maximumElves.value);
+            rerollFocusTargets(
+                Object.values(elfTraining).filter(
+                    elf => unref(elf.visibility) === Visibility.Visible
+                ).length,
+                maximumElves.value
+            );
         }
     }));
 
