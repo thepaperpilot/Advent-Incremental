@@ -14,6 +14,8 @@ import { format } from "util/bignum";
 import { createCollapsibleModifierSections, setUpDailyProgressTracker, createCollapsibleMilestones } from "data/common";
 import Modal from "components/Modal.vue";
 import { createMilestone } from "features/milestones/milestone";
+import { createClickable } from "features/clickables/clickable";
+import { main } from "../projEntry";
 
 const id = "wrappingPaper";
 const day = 15;
@@ -347,6 +349,19 @@ const layer = createLayer (id, () => {
     const { collapseMilestones, display: milestonesDisplay } =
     createCollapsibleMilestones(milestones);
 
+    const enterMasteryButton = createClickable(() => ({
+        display: jsx(() => {
+            return (
+                <>{
+                    main.isMastery.value ? "Leave Mastery" : "Enter Mastery"
+                }</>
+            )
+        }),
+        onClick () {
+            main.toggleMastery();
+        }
+    }))
+
 
     return {
         name,
@@ -361,7 +376,7 @@ const layer = createLayer (id, () => {
                     {renderRow(wrappingPaper.sunshine.display, wrappingPaper.ocean.display, wrappingPaper.beach.display)}
                     {renderRow(wrappingPaper.sunshine.buyable, wrappingPaper.ocean.buyable, wrappingPaper.beach.buyable)}
                     <Spacer />
-                    button goes here
+                    {render(enterMasteryButton)}
                     <Spacer />
                     {milestonesDisplay()}
                 </div>

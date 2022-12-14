@@ -44,6 +44,7 @@ import plastic from "./layers/plastic";
 import dyes from "./layers/dyes";
 import management from "./layers/management";
 import wrappingPaper from "./layers/wrapping-paper";
+import { createReset } from "features/reset";
 
 export interface Day extends VueFeature {
     day: number;
@@ -56,6 +57,20 @@ export interface Day extends VueFeature {
     shouldNotify: ProcessedComputable<boolean>;
 }
 
+const masterableLayers = [
+    trees,
+    workshop,
+    coal,
+    elves,
+    paper,
+    boxes,
+    metal,
+    cloth,
+    oil,
+    plastic,
+    dyes
+]
+
 export const main = createLayer("main", function (this: BaseLayer) {
     const day = persistent<number>(1);
     const timeUntilNewDay = computed(
@@ -66,6 +81,25 @@ export const main = createLayer("main", function (this: BaseLayer) {
     const loreScene = ref<number>(-1);
     const loreTitle = ref<string>("");
     const loreBody = ref<CoercableComponent | undefined>();
+
+    const isMastery = persistent<boolean>(false);
+    const cachedSaves = persistent<Record<string, string>>({});
+    const toggleMastery = () => {
+        isMastery.value = !isMastery.value;
+        for (let layer of masterableLayers) {
+            const stringSave = JSON.stringify(layer, (key, value) => unref(value));
+            if (cachedSaves.value[layer.name]) {
+                Object.assign(layer, JSON.parse(cachedSaves.value[layer.name]));
+            } else {
+                // hacky but only occurs once, to create a new layer for mastery
+                const reset = createReset(() => ({
+                    thingsToReset: [layer],
+                }));
+                reset.reset();
+                cachedSaves.value[layer.name] = stringSave;
+            }
+        }
+    }
 
     function createDay(
         optionsFunc: () => {
@@ -79,6 +113,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
     ): Day {
         const opened = persistent<boolean>(false);
         const recentlyUpdated = persistent<boolean>(false);
+        const cachedSaves = persistent<string[]>([]);
+        const getLayer = computed(() => player.layers[optionsFunc().layer ?? "trees"]) // Probably a better way to do this
 
         return createLazyProxy(() => {
             const day = optionsFunc();
@@ -103,7 +139,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
                         shouldNotify,
                         story,
                         completedStory,
-                        recentlyUpdated
+                        recentlyUpdated,
                     } = this;
 
                     return {
@@ -288,7 +324,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 15,
             shouldNotify: false,
-            layer: null, // "wrappingPaper"
+            layer: "wrappingPaper",
             symbol: wrappingPaperSymbol,
             story: "You'll need to produce wrapping paper so the presents can be wrapped. The elves are getting a bit bored of their boring old workstations, so you decide to let them decorate with some wrapping paper.",
             completedStory: "You've produced enough wrapping paper, and the elves are happy with their new workstations. However, some will need more than just wrapping paper to decorate."
@@ -388,6 +424,9 @@ export const main = createLayer("main", function (this: BaseLayer) {
         showLoreModal,
         completeDay,
         minWidth: 700,
+        isMastery,
+        toggleMastery,
+        
         display: jsx(() => (
             <>
                 {player.devSpeed === 0 ? <div>Game Paused</div> : null}
