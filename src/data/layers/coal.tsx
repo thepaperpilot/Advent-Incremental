@@ -169,7 +169,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             return Decimal.pow(0.95, paper.books.bonfireBook.totalAmount.value).times(10);
         },
         inverseCost(x: DecimalSource) {
-            return Decimal.div(x, Decimal.pow(0.95, paper.books.bonfireBook.totalAmount.value).times(10)).floor();
+            return Decimal.div(
+                x,
+                Decimal.pow(0.95, paper.books.bonfireBook.totalAmount.value).times(10)
+            ).floor();
         },
         display: jsx(() => (
             <>
@@ -301,10 +304,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         inverseCost(x: DecimalSource) {
             if (management.elfTraining.coalDrillElfTraining.milestones[2].earned.value) {
-                x = Decimal.div(x, 10);
+                x = Decimal.mul(x, 10);
             }
             if (management.elfTraining.fertilizerElfTraining.milestones[2].earned.value) {
-                x = Decimal.div(x, Decimal.add(trees.totalLogs.value, Math.E).ln());
+                x = Decimal.mul(x, Decimal.add(trees.totalLogs.value, Math.E).ln());
             }
             let v = Decimal.div(x, 10).log(1.15);
             v = v.div(Decimal.pow(0.95, paper.books.coalDrillBook.totalAmount.value));
