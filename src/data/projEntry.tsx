@@ -289,7 +289,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
             day: 15,
             shouldNotify: false,
             layer: null, // "wrapping paper"
-            symbol: wrappingPaperSybol,
+            symbol: wrappingPaperSymbol,
             story: "You'll need to produce wrapping paper so the presents can be wrapped. The elves are getting a bit bored of their boring old workstations, so you decide to let them decorate with some wrapping paper.",
             completedStory: "You've produced enough wrapping paper, and the elves are happy with their new workstations. However, some will need more than just wrapping paper to decorate."
         })),
