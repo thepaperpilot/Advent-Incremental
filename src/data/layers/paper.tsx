@@ -153,7 +153,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(2);
                 if (options.elfName === "Star" || options.elfName === "Bell")
                     v = Decimal.root(v, 2);
-                if (options.elfName === "Star" && Decimal.gte(v, 10)) v = v.mul(10).log10();
+                if (options.elfName === "Star" && Decimal.gte(v, 10)) v = v.log10().mul(10);
                 return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
             },
             style: "width: 600px",
