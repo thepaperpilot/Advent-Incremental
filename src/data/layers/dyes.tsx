@@ -30,6 +30,7 @@ import management from "./management";
 import oil from "./oil";
 import trees from "./trees";
 import wrappingPaper from "./wrapping-paper";
+import paper from "./paper";
 
 interface Dye {
     name: string;
@@ -195,6 +196,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     let v = buyable.amount.value;
                     if (Decimal.gte(v, 25)) v = Decimal.pow(v, 2).div(20); // intentional price jump #2
                     if (Decimal.gte(v, 10)) v = Decimal.pow(v, 2).div(5); // intentional price jump
+                    v = Decimal.mul(v, Decimal.pow(0.95, paper.books.dyeBook.amount.value))
                     return Decimal.div(v, 10).plus(1);
                 },
                 canPurchase: computed((cost?: DecimalSource) => {
@@ -208,17 +210,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 }),
                 onPurchase(cost?: DecimalSource) {
                     const trueCost = cost ?? unref(buyable.cost) ?? Decimal.dInf;
-                    unref(costs).forEach(c => {
-                        c.res.value = Decimal.sub(
-                            c.res.value,
-                            Decimal.pow(trueCost, unref(c.root ?? 1)).times(unref(c.base))
-                        );
-                    });
 
                     amount.value = Decimal.add(amount.value, computedToGenerate.value);
                     buyable.amount.value = Decimal.add(buyable.amount.value, 1);
 
-                    options.dyesToReset.forEach(dye => dye.reset());
+                    if (!wrappingPaper.milestones.secondaryNoReset.earned) {
+                        unref(costs).forEach(c => {
+                            c.res.value = Decimal.sub(
+                                c.res.value,
+                                Decimal.pow(trueCost, unref(c.root ?? 1)).times(unref(c.base))
+                            );
+                        });
+                        options.dyesToReset.forEach(dye => dye.reset());
+                    }
                 }
             };
         });

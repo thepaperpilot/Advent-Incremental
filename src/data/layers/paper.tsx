@@ -29,6 +29,7 @@ import trees from "./trees";
 import dyes from "./dyes";
 import management from "./management";
 import workshop from "./workshop";
+import wrappingPaper from "./wrapping-paper";
 
 const id = "paper";
 const day = 5;
@@ -225,6 +226,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () =>
             showIf(management.elfTraining.expandersElfTraining.milestones[4].earned.value)
     });
+    const dyeBook = createBook({
+        name: "Arts and Crafts",
+        elfName: "Carol",
+        buyableName: "Dye Buyables",
+        visibility: () =>
+            showIf(elves.elves.dyeElf.bought.value)
+    });
     const books = {
         cuttersBook,
         plantersBook,
@@ -241,7 +249,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         coalDrillBook,
         heavyDrillBook,
         oilBook,
-        metalBook
+        metalBook,
+        dyeBook
     };
     const sumBooks = computed(() =>
         Object.values(books).reduce((acc, curr) => acc.add(curr.amount.value), new Decimal(0))
@@ -306,6 +315,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "1000% Foundation Completed",
             enabled: workshop.milestones.extraExpansionMilestone5.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: wrappingPaper.boosts.sunshine1,
+            description: "Sunshine Wrapping Paper",
+            enabled: () => Decimal.gte(wrappingPaper.boosts.sunshine1.value, 2)
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const ashCost = createSequentialModifier(() => [

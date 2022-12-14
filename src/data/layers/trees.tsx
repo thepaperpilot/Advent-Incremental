@@ -36,6 +36,7 @@ import elves from "./elves";
 import management from "./management";
 import paper from "./paper";
 import workshop from "./workshop";
+import wrappingPaper from "./wrapping-paper";
 const id = "trees";
 const day = 1;
 
@@ -504,6 +505,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.sqrt(management.totalElfLevels.value),
             description: "Noel Level 1",
             enabled: management.elfTraining.fertilizerElfTraining.milestones[0].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: wrappingPaper.boosts.christmas1,
+            description: "Christmas Wrapping Paper",
+            enabled: computed(() => Decimal.gt(wrappingPaper.boosts.christmas1.value, 1))
         })),
         createExponentialModifier(() => ({
             exponent: 1.2,

@@ -40,6 +40,7 @@ import paper from "./paper";
 import trees from "./trees";
 import dyes from "./dyes";
 import management from "./management";
+import wrappingPaper from "./wrapping-paper";
 
 interface BetterFertilizerUpgOptions {
     canAfford: () => boolean;
@@ -429,6 +430,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (management.elfTraining.heatedCutterElfTraining.milestones[0].earned.value) {
                 v = Decimal.pow(0.95, paper.books.heatedCuttersBook.amount.value).times(v);
             }
+            v = v.div(wrappingPaper.boosts.rainbow1.value);
             return Decimal.add(v, 1).pow(2.5).times(10);
         },
         display: {
@@ -452,6 +454,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (management.elfTraining.heatedPlanterElfTraining.milestones[0].earned.value) {
                 v = Decimal.pow(0.95, paper.books.heatedPlantersBook.amount.value).times(v);
             }
+            v = v.div(wrappingPaper.boosts.rainbow1.value);
             return Decimal.add(v, 1).pow(2.5).times(10);
         },
         display: {
@@ -475,6 +478,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (management.elfTraining.fertilizerElfTraining.milestones[1].earned.value) {
                 v = Decimal.pow(0.95, paper.books.fertilizerBook.amount.value).times(v);
             }
+            v = v.div(wrappingPaper.boosts.rainbow1.value);
             return Decimal.add(v, 1).pow(1.5).times(50000);
         },
         display: {

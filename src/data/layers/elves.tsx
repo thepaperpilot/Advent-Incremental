@@ -35,6 +35,8 @@ import paper from "./paper";
 import plastic from "./plastic";
 import trees from "./trees";
 import workshop from "./workshop";
+import wrappingPaper from "./wrapping-paper";
+import dyes from "./dyes";
 
 const id = "elves";
 const day = 4;
@@ -381,6 +383,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     ]);
 
+    const dyeCooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: Infinity,
+            description: "Dye",
+            enabled: () => true
+        }))
+    ]);
+
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
         {
             title: "Holly Auto-Buy Frequency",
@@ -508,7 +518,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     ));
 
     const trainingCost = computed(() => {
-        let cost = Decimal.pow(4, totalElves.value).times(1e6);
+        let cost = Decimal.pow(Decimal.sub(4, wrappingPaper.boosts.jazzy1.value), totalElves.value).times(1e6);
         if (Decimal.gte(totalElves.value, 9)) {
             cost = Decimal.times(cost, 1e15);
         }
@@ -520,13 +530,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
             name: string;
             description: string;
             buyable:
-                | (GenericBuyable & { resource: Resource })
-                | (GenericBuyable & { resource: Resource })[];
+                | (GenericBuyable & { resource?: Resource })
+                | (GenericBuyable & { resource?: Resource })[];
             cooldownModifier: Modifier;
             customCost?: (amount: DecimalSource) => DecimalSource;
             hasToggle?: boolean;
             toggleDesc?: string;
-            onAutoPurchase?: (buyable: GenericBuyable & { resource: Resource }) => void;
+            onAutoPurchase?: (buyable: GenericBuyable & { resource?: Resource }) => void;
             onPurchase?: VoidFunction; // Will get overriden by the custom onpurchase, but that's fine
             canBuy?: Computable<boolean>;
             buyMax?: Computable<boolean>;
@@ -550,12 +560,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     buyable => {
                         while (buyMax ? true : Decimal.gte(buyProgress.value, cooldown)) {
                             if (
-                                options.customCost == undefined
-                                    ? unref(buyable.canPurchase)
-                                    : Decimal.gte(
-                                          buyable.resource.value,
-                                          options.customCost(buyable.amount.value)
-                                      )
+                                options.customCost && buyable.resource
+                                    ? Decimal.gte(
+                                        buyable.resource.value,
+                                        options.customCost(buyable.amount.value)
+                                    ) : unref(buyable.canPurchase)
                             ) {
                                 buyable.amount.value = Decimal.add(buyable.amount.value, 1);
                                 buyProgress.value = Decimal.sub(buyProgress.value, cooldown);
@@ -830,6 +839,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             showIf(management.elfTraining.expandersElfTraining.milestones[4].earned.value)
     });
     const managementElves2 = [metalElf];
+    const dyeElf = createElf({
+        name: "Carol",
+        description:
+            "Carol will automatically purchase all dyes you can afford, without actually spending any resources.",
+        buyable: Object.values(dyes.dyes).map(dye => dye.buyable),
+        cooldownModifier: dyeCooldown, // Note: Buy max will be unlocked at this point
+        visibility: () =>
+            showIf(wrappingPaper.milestones.unlockDyeElf.earned.value)
+    });
+    const wrappingPaperElves = [dyeElf];
     const elves = {
         cuttersElf,
         plantersElf,
@@ -846,7 +865,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         coalDrillElf,
         heavyDrillElf,
         oilElf,
-        metalElf
+        metalElf,
+        dyeElf,
     };
     const totalElves = computed(() => Object.values(elves).filter(elf => elf.bought.value).length);
 
@@ -1032,7 +1052,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         fireElves,
                         plasticElves,
                         managementElves,
-                        managementElves2
+                        managementElves2.concat(wrappingPaperElves)
                     )}
                 </div>
                 {milestonesDisplay()}

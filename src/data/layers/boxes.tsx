@@ -32,6 +32,7 @@ import paper from "./paper";
 import plastic from "./plastic";
 import trees from "./trees";
 import workshop from "./workshop";
+import wrappingPaper from "./wrapping-paper"
 
 export type BoxesBuyable = GenericBuyable & {
     resource: Resource;
@@ -219,7 +220,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
                 scaling--;
             }
-            return Decimal.pow(scaling, v).times(100).div(dyes.boosts.orange2.value);
+            return Decimal.pow(scaling, v).times(100).div(dyes.boosts.orange2.value).div(wrappingPaper.boosts.ocean1.value);
         },
         visibility: () => showIf(logsUpgrade.bought.value),
         freeLevels: computed(() =>
