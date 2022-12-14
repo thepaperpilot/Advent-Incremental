@@ -88,6 +88,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "400% Foundation Completed",
             enabled: workshop.milestones.extraExpansionMilestone2.earned
         })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(oil.buildHeavy.amount.value, 1).sqrt(),
+            description: "Joy Level 4",
+            enabled: management.elfTraining.smallfireElfTraining.milestones[3].earned
+        })),
         createExponentialModifier(() => ({
             exponent: 1.1,
             description: "Mary Level 2",
@@ -101,6 +106,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
             addend: () => Decimal.times(industrialCrucible.amount.value, 10),
             description: "Industrial Crucibles",
             enabled: () => Decimal.gte(industrialCrucible.amount.value, 1)
+        })),
+        createExponentialModifier(() => ({
+            exponent: 1.1,
+            description: "Joy Level 5",
+            enabled: management.elfTraining.smallfireElfTraining.milestones[4].earned
+        })),
+        createExponentialModifier(() => ({
+            exponent: 1.1,
+            description: "Faith Level 5",
+            enabled: management.elfTraining.bonfireElfTraining.milestones[4].earned
+        })),
+        createExponentialModifier(() => ({
+            exponent: 1.1,
+            description: "Snowball Level 5",
+            enabled: management.elfTraining.kilnElfTraining.milestones[4].earned
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
