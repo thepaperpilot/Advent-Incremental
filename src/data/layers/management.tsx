@@ -1051,12 +1051,8 @@ const layer = createLayer(id, () => {
         elves.elves.heavyDrillElf,
         heavyDrillElfMilestones
     );
-    const row5Elves = [
-        coalDrillElfTraining,
-        metalElfTraining,
-        oilElfTraining,
-        heavyDrillElfTraining
-    ];
+    const row5Elves = [coalDrillElfTraining, heavyDrillElfTraining, oilElfTraining];
+    const row6Elves = [metalElfTraining];
     const elfTraining = {
         cutterElfTraining,
         planterElfTraining,
@@ -1571,7 +1567,8 @@ const layer = createLayer(id, () => {
                             coalElfTraining,
                             fireElfTraining,
                             plasticElfTraining,
-                            row5Elves
+                            row5Elves,
+                            row6Elves
                         )}
                         <Spacer />
                         {currentElfDisplay()}
