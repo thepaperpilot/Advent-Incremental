@@ -40,7 +40,7 @@ import dyes from "./dyes";
 
 export interface ElfBuyable extends GenericBuyable {
     /** The inverse function of the cost formula, used to calculate the maximum amount that can be bought by elves. */
-    inverseCost: (x?: DecimalSource) => DecimalSource
+    inverseCost: (x?: DecimalSource) => DecimalSource;
 }
 
 const id = "elves";
@@ -538,7 +538,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost = Decimal.times(cost, 1e15);
         }
         if (Decimal.gte(totalElves.value, 12)) {
-            cost = Decimal.times(cost, 1e18);
+            cost = Decimal.times(cost, 1e15);
         }
         return cost;
     });
@@ -553,7 +553,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cooldownModifier: Modifier;
             hasToggle?: boolean;
             toggleDesc?: string;
-            onAutoPurchase?: (buyable: ElfBuyable & { resource?: Resource }, amount: DecimalSource) => void;
+            onAutoPurchase?: (
+                buyable: ElfBuyable & { resource?: Resource },
+                amount: DecimalSource
+            ) => void;
             onPurchase?: VoidFunction; // Will get overriden by the custom onpurchase, but that's fine
             canBuy?: Computable<boolean>;
             buyMax?: Computable<boolean>;
@@ -583,7 +586,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 (isArray(options.buyable) ? options.buyable : [options.buyable]).forEach(
                     buyable => {
                         const buyAmount = Decimal.min(
-                            Decimal.sub(buyable.inverseCost(buyable.resource?.value), buyable.amount.value), 
+                            Decimal.sub(
+                                buyable.inverseCost(buyable.resource?.value),
+                                buyable.amount.value
+                            ),
                             maxBuyAmount
                         );
 

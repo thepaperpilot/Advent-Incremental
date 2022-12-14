@@ -117,7 +117,7 @@ const layer = createLayer(id, () => {
         display: {
             title: "Advanced Training",
             description:
-                "Time for some advanced training! Now that all the elves know the basics, you have a foundation you can truly build off of. Everyone seems to be learning 10x as quickly!"
+                "Time for some advanced training! Now that all the elves know the basics, you have a foundation you can truly build off of. Everyone seems to be learning twice as quickly!"
         },
         visibility: () =>
             showIf(main.day.value >= advancedDay && main.days[advancedDay - 1].opened.value),
@@ -132,7 +132,7 @@ const layer = createLayer(id, () => {
             enabled: classroomUpgrade.bought
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: 10,
+            multiplier: 2,
             description: "Advanced Training",
             enabled: advancedUpgrade.bought
         })),
@@ -196,20 +196,20 @@ const layer = createLayer(id, () => {
             height: 14,
             style: () => ({
                 "margin-top": "8px",
-                "background": color,
-                "box-shadow": 
-                    currentShown.value == elf.name ? "0 0 12px black"
-                    : focusTargets.value[elf.name] ? "0 0 12px white"
-                    : ""
+                background: color,
+                "box-shadow":
+                    currentShown.value == elf.name
+                        ? "0 0 12px black"
+                        : focusTargets.value[elf.name]
+                        ? "0 0 12px white"
+                        : ""
             }),
             baseStyle: "margin-top: -1px",
             fillStyle: () => ({
                 "margin-top": "-1px",
                 "transition-duration": "0s",
-                "background": "white",
-                "animation": focusTargets.value[elf.name]
-                    ? ".5s focused-xp-bar linear infinite"
-                    : "",
+                background: "white",
+                animation: focusTargets.value[elf.name] ? ".5s focused-xp-bar linear infinite" : ""
             }),
             borderStyle: () =>
                 Decimal.gte(level.value, schools.amount.value) ? "border-color: red" : "",
@@ -1368,7 +1368,7 @@ const layer = createLayer(id, () => {
 
     const schoolCost = computed(() => {
         const schoolFactor = Decimal.pow(10, schools.amount.value);
-        const nerfedSchoolFactor = Decimal.pow(5, schools.amount.value);
+        const nerfedSchoolFactor = Decimal.pow(4, schools.amount.value);
         let woodFactor = Decimal.pow(2e4, Decimal.pow(schools.amount.value, 0.75));
         if (Decimal.gte(schools.amount.value, 4)) {
             woodFactor = woodFactor.div(1e3);
