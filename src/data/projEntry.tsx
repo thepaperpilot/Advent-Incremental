@@ -32,7 +32,7 @@ import oilSymbol from "./symbols/oil.png";
 import plasticSymbol from "./symbols/plastic.png";
 import dyesSymbol from "./symbols/dyes.png";
 import managementSymbol from "./symbols/elfManagement.png";
-import wrappingPaperSybol from "./symbols/wrappingPaper.png";
+import wrappingPaperSymbol from "./symbols/wrappingPaper.png";
 import coal from "./layers/coal";
 import elves from "./layers/elves";
 import paper from "./layers/paper";
