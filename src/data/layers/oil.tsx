@@ -676,7 +676,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 1e15,
             display: {
                 title: "The Ultimate Metal Dye",
-                description: "Product of primary dyes makes all metal costs cheaper"
+                description: "Product of primary dyes makes everything that costs metal cost less metal"
             },
             visibility: () => showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
             style: { color: colorText }
