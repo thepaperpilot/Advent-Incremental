@@ -180,15 +180,19 @@ const layer = createLayer(id, () => {
         if (elf.name == "Star" || elf.name == "Bell") {
             costMulti /= 3;
         }
-        const costBase = Decimal.mul(paperElfMilestones[3].earned.value ? 2000 : 4000, costMulti);
-        const expRequiredForNextLevel = computed(() => Decimal.pow(5, level.value).mul(costBase));
+        const costBase = computed(() => {
+            return Decimal.mul(paperElfMilestones[3].earned.value ? 2000 : 4000, costMulti);
+        });
+        const expRequiredForNextLevel = computed(() =>
+            Decimal.pow(5, level.value).mul(costBase.value)
+        )
         const level = computed(() =>
-            Decimal.affordGeometricSeries(exp.value, costBase, 5, 0)
+            Decimal.affordGeometricSeries(exp.value, costBase.value, 5, 0)
                 .min(schools.amount.value)
                 .toNumber()
         );
         const expToNextLevel = computed(() =>
-            Decimal.sub(exp.value, Decimal.sumGeometricSeries(level.value, costBase, 5, 0))
+            Decimal.sub(exp.value, Decimal.sumGeometricSeries(level.value, costBase.value, 5, 0))
         );
         const bar = createBar(() => ({
             direction: Direction.Right,

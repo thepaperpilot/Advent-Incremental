@@ -589,7 +589,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                             Decimal.sub(
                                 buyable.inverseCost(buyable.resource?.value),
                                 buyable.amount.value
-                            ),
+                            ).add(1),
                             maxBuyAmount
                         );
 
