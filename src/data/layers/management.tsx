@@ -1121,7 +1121,7 @@ const layer = createLayer(id, () => {
             focusTargets.value = {};
             focusMulti.value = Decimal.pow(
                 focusMaxMulti.value,
-                1 - Math.abs(Math.sin((Date.now() / 1000) * 2))
+                Decimal.pow(1 - Math.abs(Math.sin((Date.now() / 1000) * 2)), focusUpgrade4.bought ? 0.5 : 1)
             );
         }
     });
@@ -1145,6 +1145,11 @@ const layer = createLayer(id, () => {
             addend: 1,
             description: "Focus Upgrade 2",
             enabled: focusUpgrade2.bought
+        })),
+        createAdditiveModifier(() => ({
+            addend: 1,
+            description: "Focus Upgrade 6",
+            enabled: focusUpgrade6.bought
         }))
     ]);
 
