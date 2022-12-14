@@ -41,6 +41,7 @@ import trees from "./trees";
 import dyes from "./dyes";
 import management from "./management";
 import wrappingPaper from "./wrapping-paper";
+import plastic from "./plastic";
 
 interface BetterFertilizerUpgOptions {
     canAfford: () => boolean;
@@ -275,6 +276,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (management.elfTraining.fertilizerElfTraining.milestones[2].earned.value) {
                 cost = cost.div(Decimal.add(trees.totalLogs.value, Math.E).ln());
             }
+            if (management.elfTraining.coalDrillElfTraining.milestones[2].earned.value) {
+                cost = cost.div(10);
+            }
             return cost;
         },
         display: jsx(() => (
@@ -417,7 +421,40 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: { color: colorText },
         visibility: () => showIf(oil.depthMilestones[4].earned.value)
     }));
-    const row3upgrades = [efficientSmelther];
+    const arsonistAssistance = createUpgrade(() => ({
+        resource: noPersist(coal),
+        cost: 1e45,
+        display: {
+            title: "Arsonist Assistance",
+            description: "Every elf at or above level 5 doubles ash gain"
+        },
+        style: { color: colorText },
+        visibility: () =>
+            showIf(management.elfTraining.coalDrillElfTraining.milestones[3].earned.value)
+    }));
+    const refinedCoal = createUpgrade(() => ({
+        resource: noPersist(coal),
+        cost: 1e50,
+        display: {
+            title: "Refined Coal",
+            description: "Refineries boost coal gain"
+        },
+        style: { color: colorText },
+        visibility: () =>
+            showIf(management.elfTraining.coalDrillElfTraining.milestones[3].earned.value)
+    }));
+    const coloredFire = createUpgrade(() => ({
+        resource: noPersist(coal),
+        cost: 1e55,
+        display: {
+            title: "Colored Fire",
+            description: "Green dye also affects small fire synergy"
+        },
+        style: { color: colorText },
+        visibility: () =>
+            showIf(management.elfTraining.coalDrillElfTraining.milestones[3].earned.value)
+    }));
+    const row3upgrades = [efficientSmelther, arsonistAssistance, refinedCoal, coloredFire];
 
     const heatedCutters = createBuyable(() => ({
         resource: noPersist(coal),
@@ -600,7 +637,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 if (management.elfTraining.smallfireElfTraining.milestones[0].earned.value) {
                     v = Decimal.div(buildBonfire.amount.value, 10).add(v);
                 }
-                return Decimal.div(v, 10000).add(1);
+                let multi = Decimal.div(v, 10000).add(1);
+                if (coloredFire.bought.value) {
+                    multi = Decimal.add(multi, dyes.dyes.green.amount.value);
+                }
+                return multi;
             },
             description: "Small Fires Synergy",
             enabled: elves.elves.smallFireElf.bought
@@ -643,7 +684,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             supportLowNumbers: true
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.mul(oil.depth.value, 0.25).add(1),
+            multiplier: () =>
+                Decimal.mul(oil.depth.value, 0.25)
+                    .pow(
+                        management.elfTraining.coalDrillElfTraining.milestones[4].earned.value
+                            ? 1.5
+                            : 1
+                    )
+                    .add(1),
             description: "5m Well Depth",
             enabled: oil.depthMilestones[0].earned
         })),
@@ -651,6 +699,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: oil.extractorCoal,
             description: "Heavy Extractor",
             enabled: () => Decimal.gt(oil.activeExtractor.value, 0)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: Decimal.add(coal.value, 1).log10().add(1).sqrt(),
+            description: "Peppermint Level 2",
+            enabled: management.elfTraining.coalDrillElfTraining.milestones[1].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: Decimal.add(plastic.buildRefinery.amount.value, 1).sqrt(),
+            description: "Refined Coal",
+            enabled: refinedCoal.bought
         })),
         createExponentialModifier(() => ({
             exponent: 1.05,
@@ -724,6 +782,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 4,
             description: "Mining boots",
             enabled: cloth.metalUpgrades.metalUpgrade1.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.pow(2, management.level5Elves.value),
+            description: "Arson Assistance",
+            enabled: arsonistAssistance.bought
         })),
         createExponentialModifier(() => ({
             exponent: 1.1,
@@ -874,6 +937,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         betterFertilizer,
         unlockKiln,
         efficientSmelther,
+        arsonistAssistance,
+        refinedCoal,
+        coloredFire,
         heatedCutters,
         heatedPlanters,
         moreFertilizer,

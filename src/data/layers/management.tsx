@@ -801,12 +801,10 @@ const layer = createLayer(id, () => {
             visibility: () => showIf(clothElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => clothElfTraining.level.value >= 4,
             onComplete() {
-                (["red", "yellow", "blue"] as const).forEach(
-                    dyeColor => {
-                        dyes.dyes[dyeColor].amount.value = 0;
-                        dyes.dyes[dyeColor].buyable.amount.value = 0;
-                    }
-                );
+                (["red", "yellow", "blue"] as const).forEach(dyeColor => {
+                    dyes.dyes[dyeColor].amount.value = 0;
+                    dyes.dyes[dyeColor].buyable.amount.value = 0;
+                });
             }
         })),
         createMilestone(() => ({
@@ -837,7 +835,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Peppermint Level 3",
-                effectDisplay: "The coal drill cost is decreased"
+                effectDisplay: "The coal drill cost is 10x cheaper"
             },
             visibility: () => showIf(coalDrillElfMilestones[1].earned.value),
             shouldEarn: () => coalDrillElfTraining.level.value >= 3
@@ -854,7 +852,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Peppermint Level 5",
-                effectDisplay: "Well depth boosts coal gain more"
+                effectDisplay: "Well depth boosts coal gain an additional half time"
             },
             visibility: () =>
                 showIf(coalDrillElfMilestones[3].earned.value && main.day.value >= 13),
