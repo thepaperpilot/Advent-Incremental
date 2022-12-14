@@ -516,7 +516,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
                 scaling--;
             }
-            return Decimal.pow(scaling, v).times(1000).div(dyes.boosts.orange2.value);
+            return Decimal.pow(scaling, v).times(1e31).div(dyes.boosts.orange2.value);
         },
         inverseCost(x: DecimalSource) {
             let scaling = 20;
@@ -525,7 +525,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
 
             let v = Decimal.mul(x, dyes.boosts.orange2.value)
-                .div(1000).log(scaling);
+                .div(1e31).log(scaling);
 
             v = v.div(Decimal.pow(0.95, paper.books.boxBook.totalAmount.value));
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
