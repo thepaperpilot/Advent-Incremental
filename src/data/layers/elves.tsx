@@ -531,6 +531,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         if (Decimal.gte(totalElves.value, 9)) {
             cost = Decimal.times(cost, 1e15);
         }
+        if (Decimal.gte(totalElves.value, 12)) {
+            cost = Decimal.times(cost, 1e18);
+        }
         return cost;
     });
 
@@ -808,10 +811,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (heavyDrillElf.toggle.value) {
                 if (buyable === oil.buildHeavy) {
                     oil.activeHeavy.value = Decimal.add(oil.activeHeavy.value, 1);
-                } else if (buyable === oil.buildHeavy) {
-                    oil.activeHeavy.value = Decimal.add(oil.activeHeavy.value, 1);
-                } else if (buyable === oil.buildHeavy) {
-                    oil.activeHeavy.value = Decimal.add(oil.activeHeavy.value, 1);
+                } else if (buyable === oil.buildHeavy2) {
+                    oil.activeHeavy2.value = Decimal.add(oil.activeHeavy2.value, 1);
+                } else if (buyable === oil.buildExtractor) {
+                    oil.activeExtractor.value = Decimal.add(oil.activeExtractor.value, 1);
                 }
             }
         }

@@ -1,11 +1,10 @@
 import Spacer from "components/layout/Spacer.vue";
-import Fraction from "components/math/Fraction.vue";
 import Sqrt from "components/math/Sqrt.vue";
 import Modal from "components/Modal.vue";
 import { createCollapsibleMilestones, createCollapsibleModifierSections } from "data/common";
 import { main } from "data/projEntry";
 import { createBar, GenericBar } from "features/bars/bar";
-import { createBuyable } from "features/buyable";
+import { createBuyable, GenericBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf, Visibility } from "features/feature";
 import { createMilestone, GenericMilestone } from "features/milestones/milestone";
@@ -21,7 +20,6 @@ import {
 import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatTime, formatWhole } from "util/bignum";
 import { Direction, WithRequired } from "util/common";
-import { ProcessedComputable } from "util/computed";
 import { render, renderCol, renderGrid } from "util/vue";
 import { computed, ComputedRef, ref, Ref, unref, watchEffect } from "vue";
 import boxes from "./boxes";
@@ -30,10 +28,10 @@ import coal from "./coal";
 import dyes from "./dyes";
 import elves from "./elves";
 import metal from "./metal";
+import oil from "./oil";
 import paper from "./paper";
 import plastic from "./plastic";
 import trees from "./trees";
-import oil from "./oil";
 
 import "./styles/management.css";
 
@@ -115,11 +113,28 @@ const layer = createLayer(id, () => {
         style: "width: 150px",
         cost: 1e13
     }));
+    const advancedUpgrade = createUpgrade(() => ({
+        display: {
+            title: "Advanced Training",
+            description:
+                "Time for some advanced training! Now that all the elves know the basics, you have a foundation you can truly build off of. Everyone seems to be learning 10x as quickly!"
+        },
+        visibility: () =>
+            showIf(main.day.value >= advancedDay && main.days[advancedDay - 1].opened.value),
+        resource: boxes.boxes,
+        style: "width: 150px",
+        cost: 1e26
+    }));
     const globalXPModifier = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
             multiplier: classroomEffect,
             description: "Classroom Effect",
             enabled: classroomUpgrade.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 10,
+            description: "Advanced Training",
+            enabled: advancedUpgrade.bought
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -136,7 +151,7 @@ const layer = createLayer(id, () => {
             name: string;
             computedAutoBuyCooldown: ComputedRef<DecimalSource>;
             amountOfTimesDone: Ref<number>;
-            visibility: ProcessedComputable<Visibility>;
+            bought: Ref<boolean>;
         },
         milestones: Array<GenericMilestone>,
         ...modifiers: Modifier[]
@@ -259,7 +274,7 @@ const layer = createLayer(id, () => {
             canClick() {
                 return currentShown.value !== elf.name;
             },
-            visibility: elf.visibility,
+            visibility: () => showIf(elf.bought.value),
             name: elf.name,
             state,
             displayMilestone,
@@ -321,7 +336,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Holly Level 5",
-                effectDisplay: "Raise workshop expansion cost by 0.95"
+                effectDisplay: "Raise workshop expansion cost by 0.99"
             },
             visibility: () => showIf(cutterElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => cutterElfTraining.level.value >= 5
@@ -560,7 +575,7 @@ const layer = createLayer(id, () => {
             },
             visibility: () =>
                 showIf(fertilizerElfMilestones[3].earned.value && main.day.value >= 13),
-            shouldEarn: () => heatedPlanterElfTraining.level.value >= 5
+            shouldEarn: () => fertilizerElfTraining.level.value >= 5
         }))
     ] as Array<GenericMilestone>;
     const smallfireElfMilestones = [
@@ -1222,7 +1237,7 @@ const layer = createLayer(id, () => {
     const focusMeter = createBar(() => ({
         direction: Direction.Right,
         width: 566,
-        height: 25,
+        height: 50,
         style: `border-radius: 4px 4px 0 0`,
         borderStyle: `border-radius: 4px 4px 0 0`,
         fillStyle: () => ({
@@ -1354,7 +1369,10 @@ const layer = createLayer(id, () => {
     const schoolCost = computed(() => {
         const schoolFactor = Decimal.pow(10, schools.amount.value);
         const nerfedSchoolFactor = Decimal.pow(5, schools.amount.value);
-        const woodFactor = Decimal.pow(2e4, Decimal.pow(schools.amount.value, 0.75));
+        let woodFactor = Decimal.pow(2e4, Decimal.pow(schools.amount.value, 0.75));
+        if (Decimal.gte(schools.amount.value, 4)) {
+            woodFactor = woodFactor.div(1e3);
+        }
         const coalFactor = Decimal.pow(2000, schools.amount.value);
         return {
             wood: woodFactor.mul(1e21),
@@ -1380,14 +1398,17 @@ const layer = createLayer(id, () => {
                     You have {formatWhole(schools.amount.value)} schools, which are currently
                     letting elves learn up to level {formatWhole(schools.amount.value)}.
                 </div>
-                <div>
-                    Costs {format(schoolCost.value.wood)} logs, {format(schoolCost.value.coal)}{" "}
-                    coal, {format(schoolCost.value.paper)} paper, {format(schoolCost.value.boxes)}{" "}
-                    boxes, {format(schoolCost.value.metalIngots)} metal ingots,{" "}
-                    {format(schoolCost.value.cloth)} cloth, {format(schoolCost.value.plastic)}{" "}
-                    plastic, and requires {format(schoolCost.value.dye)} of red, yellow, and blue
-                    dye
-                </div>
+                {Decimal.lt(schools.amount.value, unref(schools.purchaseLimit)) ? (
+                    <div>
+                        Costs {format(schoolCost.value.wood)} logs, {format(schoolCost.value.coal)}{" "}
+                        coal, {format(schoolCost.value.paper)} paper,{" "}
+                        {format(schoolCost.value.boxes)} boxes,{" "}
+                        {format(schoolCost.value.metalIngots)} metal ingots,{" "}
+                        {format(schoolCost.value.cloth)} cloth, {format(schoolCost.value.plastic)}{" "}
+                        plastic, and requires {format(schoolCost.value.dye)} of red, yellow, and
+                        blue dye
+                    </div>
+                ) : null}
             </>
         )),
         canPurchase(): boolean {
@@ -1421,7 +1442,7 @@ const layer = createLayer(id, () => {
         },
         visibility: computed(() => showIf(teaching.bought.value)),
         style: "width: 600px"
-    }));
+    })) as GenericBuyable;
 
     const classroomCost = computed(() => {
         const classroomFactor = Decimal.add(classrooms.amount.value, 1).pow(1.5);
@@ -1616,6 +1637,7 @@ const layer = createLayer(id, () => {
         schools,
         classrooms,
         classroomUpgrade,
+        advancedUpgrade,
 
         focusMultiplier: focusMulti,
         upgrades,
@@ -1643,7 +1665,7 @@ const layer = createLayer(id, () => {
                 {render(dayProgress)}
                 <br />
                 {renderCol(schools, classrooms)}
-                {renderGrid([teaching, classroomUpgrade])}
+                {renderGrid([teaching, classroomUpgrade, advancedUpgrade])}
                 <Spacer />
                 {Decimal.gt(schools.amount.value, 0) ? (
                     <>

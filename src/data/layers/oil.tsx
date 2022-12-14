@@ -32,7 +32,7 @@ import { globalBus } from "game/events";
 import coal from "./coal";
 import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
 import { createMilestone, GenericMilestone } from "features/milestones/milestone";
-import { formatGain } from "util/bignum";
+import { formatGain, formatSmall } from "util/bignum";
 import plastic from "./plastic";
 import paper from "./paper";
 import dyes from "./dyes";
@@ -100,6 +100,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         resource: metal.metal,
         cost() {
             let v = new Decimal(this.amount.value);
+            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 4).div(100);
             v = Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value).times(v);
             return Decimal.pow(1.3, v).times(2.5e4);
         },
@@ -157,6 +158,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         resource: metal.metal,
         cost() {
             let v = new Decimal(this.amount.value);
+            if (Decimal.gte(v, 50)) v = Decimal.pow(v, 4).div(50);
             v = Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value).times(v);
             return Decimal.pow(2, v).times(1e5);
         },
@@ -212,6 +214,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         resource: metal.metal,
         cost() {
             let v = new Decimal(this.amount.value);
+            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 4).div(100);
             v = Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value).times(v);
             return Decimal.pow(8, v).times(2e5);
         },
@@ -225,7 +228,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <br />
                 <br />
                 Currently:
-                <br />×{format(extractorPower.value)} drill power
+                <br />×{formatSmall(extractorPower.value)} drill power
                 <br />×{format(extractorCoal.value)} coal/sec
                 <br />×{format(extractorOre.value)} ore/sec
                 <br />
@@ -274,6 +277,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         resource: metal.metal,
         cost() {
             let v = new Decimal(this.amount.value);
+            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 4).div(100);
             v = Decimal.pow(0.95, paper.books.oilBook.totalAmount.value).times(v);
             let price = Decimal.pow(16, v).times(2e6);
             if (row2Upgrades[4].bought.value) {
@@ -335,6 +339,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         resource: noPersist(oil),
         cost() {
             let v = new Decimal(this.amount.value);
+            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 4).div(100);
             v = Decimal.pow(0.95, paper.books.oilBook.totalAmount.value).times(v);
             return Decimal.pow(2, v).times(50);
         },
@@ -388,6 +393,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         resource: metal.metal,
         cost() {
             let v = new Decimal(this.amount.value);
+            if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
+            if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
+            if (Decimal.gte(v, 1e4)) v = Decimal.pow(v, 2).div(1e4);
             v = Decimal.pow(0.95, paper.books.oilBook.totalAmount.value).times(v);
             let price = Decimal.pow(10, v).times(1e7);
             if (row2Upgrades[4].bought.value)
