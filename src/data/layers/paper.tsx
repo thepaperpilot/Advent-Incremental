@@ -135,10 +135,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             inverseCost(x: DecimalSource) {
                 if (bookUpgrade.bought.value) {
-                    x = Decimal.div(x, 10);
+                    x = Decimal.mul(x, 10);
                 }
                 if (management.elfTraining.paperElfTraining.milestones[0].earned.value) {
-                    x = Decimal.div(x, sumBooks.value.max(1));
+                    x = Decimal.mul(x, sumBooks.value.max(1));
                 }
 
                 let scaling = 5;
