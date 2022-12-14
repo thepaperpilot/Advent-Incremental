@@ -27,7 +27,7 @@ import {
 import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { render, renderCol, renderRow } from "util/vue";
-import { computed, ref, unref } from "vue";
+import { computed, ComputedRef, ref, unref } from "vue";
 import boxes from "./boxes";
 import metal from "./metal";
 import oil from "./oil";
@@ -63,7 +63,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
     ));
 
     const activeRefinery = persistent<DecimalSource>(0);
-    const oilCost = computed(() => Decimal.times(activeRefinery.value, 100));
+    const oilCost = computed(() =>
+        Decimal.times(activeRefinery.value, 100).times(
+            management.elfTraining.oilElfTraining.milestones[3].earned.value ? 5 : 1
+        )
+    ) as ComputedRef<DecimalSource>;
     const buildRefinery = createBuyable(() => ({
         resource: metal.metal,
         cost() {
@@ -230,7 +234,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const plasticGain = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
-            addend: activeRefinery,
+            addend: () =>
+                management.elfTraining.oilElfTraining.milestones[3].earned.value
+                    ? Decimal.times(activeRefinery.value, 5)
+                    : activeRefinery.value,
             description: "Oil Refinery",
             enabled: () => Decimal.gt(activeRefinery.value, 0)
         })),

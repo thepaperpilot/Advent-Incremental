@@ -246,7 +246,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             .mul(activeHeavy.value)
             .mul(Decimal.add(activeHeavy2.value, 1))
             .mul(activeExtractor.value)
-            .mul(depth.value)
+            .mul(
+                Decimal.pow(
+                    depth.value,
+                    management.elfTraining.oilElfTraining.milestones[0].earned.value ? 1.2 : 1
+                )
+            )
             .div(1e5)
     );
     const buildPump = createBuyable(() => ({
@@ -753,6 +758,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: paper.upgrades.drillingUpgrade.bought
         })),
         createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(totalOil.value, 1).log10().add(1),
+            description: "Cocoa Level 2",
+            enabled: management.elfTraining.oilElfTraining.milestones[1].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Cocoa Level 3",
+            enabled: management.elfTraining.oilElfTraining.milestones[2].earned
+        })),
+        createMultiplicativeModifier(() => ({
             multiplier: () => coalEffectiveness.value,
             description: "Effectiveness",
             enabled: () => Decimal.lt(coalEffectiveness.value, 1)
@@ -810,6 +825,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.add(buildHeavy2.amount.value, 1).sqrt(),
             description: "Faith Level 4",
             enabled: management.elfTraining.bonfireElfTraining.milestones[3].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Cocoa Level 3",
+            enabled: management.elfTraining.oilElfTraining.milestones[2].earned
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedOilSpeed = computed(() => oilSpeed.apply(0));
@@ -1022,6 +1042,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
             if (oilMilestones[1].earned.value) {
                 upgrades.push(row2Upgrades);
+            }
+            if (management.elfTraining.oilElfTraining.milestones[4].earned.value) {
+                upgrades.push(row3Upgrades);
             }
             return (
                 <>
