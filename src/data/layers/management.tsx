@@ -796,23 +796,12 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Gingersnap Level 4",
-                effectDisplay: jsx(() => (
-                    <>
-                        Multiply ALL dye gain by{" "}
-                        <Fraction>
-                            <div>
-                                <Sqrt>classrooms</Sqrt>
-                            </div>
-                            <div>2</div>
-                        </Fraction>
-                        +1, but reset all dyes.
-                    </>
-                ))
+                effectDisplay: "Raise secondary dyes' first effects to the 1.1"
             },
             visibility: () => showIf(clothElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => clothElfTraining.level.value >= 4,
             onComplete() {
-                (["red", "yellow", "blue", "orange", "green", "purple"] as const).forEach(
+                (["red", "yellow", "blue"] as const).forEach(
                     dyeColor => {
                         dyes.dyes[dyeColor].amount.value = 0;
                         dyes.dyes[dyeColor].buyable.amount.value = 0;
