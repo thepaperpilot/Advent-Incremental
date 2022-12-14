@@ -234,7 +234,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     amount.value = Decimal.add(amount.value, computedToGenerate.value);
                     buyable.amount.value = Decimal.add(buyable.amount.value, 1);
 
-                    if (!wrappingPaper.milestones.secondaryNoReset.earned) {
+                    if (!wrappingPaper.milestones.secondaryNoReset.earned.value) {
                         unref(costs).forEach(c => {
                             c.res.value = Decimal.sub(
                                 c.res.value,
