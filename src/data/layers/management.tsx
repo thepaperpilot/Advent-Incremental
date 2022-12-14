@@ -845,7 +845,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Peppermint Level 4",
-                effectDisplay: "Unlock another row of coal upgrades"
+                effectDisplay: "Unlock 3 coal upgrades"
             },
             visibility: () => showIf(coalDrillElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => coalDrillElfTraining.level.value >= 4
