@@ -17,7 +17,7 @@ import { createHotkey } from "features/hotkey";
 import { createMilestone } from "features/milestones/milestone";
 import { createResource, displayResource } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
-import { createExponentialModifier, createSequentialModifier } from "game/modifiers";
+import { createExponentialModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import { noPersist } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
@@ -26,6 +26,7 @@ import { computed, unref, watchEffect } from "vue";
 import elves from "./elves";
 import management from "./management";
 import trees from "./trees";
+import wrappingPaper from "./wrapping-paper";
 
 const id = "workshop";
 const day = 2;
@@ -50,8 +51,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
             trees.logs.value = Decimal.sub(trees.logs.value, spent);
         },
         costModifier: createSequentialModifier(() => [
+            createMultiplicativeModifier(() => ({
+                multiplier: computed(() => wrappingPaper.boosts.beach1.value),
+                description: "Beach Wrapping Paper",
+                enabled: computed(() => Decimal.gt(wrappingPaper.boosts.beach1.value,1))
+            })),
             createExponentialModifier(() => ({
-                exponent: 0.95,
+                exponent: 0.95, // Needs fixing
                 description: "Holly Level 5",
                 enabled: management.elfTraining.cutterElfTraining.milestones[4].earned
             }))

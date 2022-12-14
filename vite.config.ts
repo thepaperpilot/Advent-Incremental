@@ -19,7 +19,6 @@ export default defineConfig({
             }
         }
     },
-    server: { hmr: { clientPort: process.env.CODESPACES ? 443 : undefined } },
     resolve: {
         alias: {
             vue: "vue/dist/vue.esm-bundler.js"
