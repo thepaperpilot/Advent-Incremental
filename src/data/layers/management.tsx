@@ -523,7 +523,7 @@ const layer = createLayer(id, () => {
                 requirement: "Mary Level 5",
                 effectDisplay: jsx(() => (
                     <>
-                        Auto smelting speed is multiplied by <Sqrt>total XP/1000</Sqrt>.
+                        Auto smelting speed is multiplied by <Sqrt>total XP/1e6</Sqrt>.
                     </>
                 ))
             },
