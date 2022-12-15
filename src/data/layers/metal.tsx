@@ -181,7 +181,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: () =>
                 Decimal.add(oil.effectiveBurners.value, 1).mul(oil.oilEffectiveness.value),
-            description: "Blaster Burner",
+            description: "Oil Burner",
             enabled: oil.row2Upgrades[2].bought
         })),
         createMultiplicativeModifier(() => ({
