@@ -138,6 +138,11 @@ const layer = createLayer(id, () => {
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
+            description: "Star Level 4",
+            enabled: paperElfMilestones[3].earned.value
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
             description: "Carry experience in boxes???",
             enabled: boxes.row3Upgrades.xpUpgrade.bought
         }))
@@ -180,19 +185,15 @@ const layer = createLayer(id, () => {
         if (elf.name == "Star" || elf.name == "Bell") {
             costMulti /= 3;
         }
-        const costBase = computed(() => {
-            return Decimal.mul(paperElfMilestones[3].earned.value ? 2000 : 4000, costMulti);
-        });
-        const expRequiredForNextLevel = computed(() =>
-            Decimal.pow(5, level.value).mul(costBase.value)
-        );
+        const costBase = 4000 * costMulti;
+        const expRequiredForNextLevel = computed(() => Decimal.pow(5, level.value).mul(costBase));
         const level = computed(() =>
-            Decimal.affordGeometricSeries(exp.value, costBase.value, 5, 0)
+            Decimal.affordGeometricSeries(exp.value, costBase, 5, 0)
                 .min(schools.amount.value)
                 .toNumber()
         );
         const expToNextLevel = computed(() =>
-            Decimal.sub(exp.value, Decimal.sumGeometricSeries(level.value, costBase.value, 5, 0))
+            Decimal.sub(exp.value, Decimal.sumGeometricSeries(level.value, costBase, 5, 0))
         );
         const bar = createBar(() => ({
             direction: Direction.Right,
@@ -340,7 +341,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Holly Level 5",
-                effectDisplay: "Raise workshop expansion cost by 0.99"
+                effectDisplay: "Unlock an elf that autobuys oil drills and extractors."
             },
             visibility: () => showIf(cutterElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => cutterElfTraining.level.value >= 5
@@ -431,7 +432,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Hope Level 5",
-                effectDisplay: "Unlock an elf that autobuys metal buyables."
+                effectDisplay: "Raise workshop expansion cost by 0.99"
             },
             visibility: () => showIf(expanderElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => expandersElfTraining.level.value >= 5
@@ -575,7 +576,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Noel Level 5",
-                effectDisplay: "Unlock an elf that autobuys drills and extractors"
+                effectDisplay: "Unlock an elf that autobuys metal buyables"
             },
             visibility: () =>
                 showIf(fertilizerElfMilestones[3].earned.value && main.day.value >= 13),
@@ -734,7 +735,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Star Level 4",
-                effectDisplay: "Halve xp requirements"
+                effectDisplay: "Double all elf xp gain"
             },
             visibility: () => showIf(paperElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => paperElfTraining.level.value >= 4
@@ -742,7 +743,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Star Level 5",
-                effectDisplay: "Gain 5 free books for all elves that are at level 5 or above."
+                effectDisplay: "Gain 5 free books for all prior elves that are at level 5 or above."
             },
             visibility: () => showIf(paperElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => paperElfTraining.level.value >= 5
