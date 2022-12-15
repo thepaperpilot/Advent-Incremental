@@ -13,10 +13,13 @@
         </template>
         <template v-slot:body>
             <div v-if="isTab('behaviour')">
-                <Toggle :title="autosaveTitle" v-model="autosave" />
-                <FeedbackButton v-if="!autosave" class="button save-button" @click="save()"
-                    >Manually save</FeedbackButton
-                >
+                <div v-if="canAutoSave">
+                    <Toggle :title="autosaveTitle" v-model="autosave" />
+                    <FeedbackButton v-if="!autosave" class="button save-button" @click="save()"
+                        >Manually save</FeedbackButton
+                    >
+                </div>
+                <div style="text-align: center" v-else>Auto-saving disabled while between days</div>
                 <Toggle v-if="projInfo.enablePausing" :title="isPausedTitle" v-model="isPaused" />
             </div>
             <div v-if="isTab('appearance')">
@@ -45,6 +48,7 @@ import { computed, ref, toRefs } from "vue";
 import Select from "./fields/Select.vue";
 import Toggle from "./fields/Toggle.vue";
 import FeedbackButton from "./fields/FeedbackButton.vue";
+import { layers } from "game/layers";
 
 const isOpen = ref(false);
 
@@ -90,6 +94,10 @@ const isPaused = computed({
         player.devSpeed = value ? 0 : null;
     }
 });
+
+const canAutoSave = computed(
+    () => (layers as any).main.days[(layers as any).main.day.value - 1].opened.value
+);
 
 const autosaveTitle = jsx(() => (
     <span class="option-title">
