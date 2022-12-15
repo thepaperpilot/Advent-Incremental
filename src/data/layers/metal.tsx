@@ -408,7 +408,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             let v = new Decimal(this.amount.value);
             v = Decimal.pow(0.95, paper.books.metalBook.totalAmount.value).times(v);
             let cost = Decimal.pow(1.15, v).times(10);
-            if (management.elfTraining.clothElfTraining.milestones[4].earned.value) {
+            if (management.elfTraining.metalElfTraining.milestones[4].earned.value) {
                 cost = Decimal.div(cost, Decimal.add(oil.depth.value, 1).sqrt());
             }
             if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
@@ -420,7 +420,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
                 x = Decimal.mul(x, 10);
             }
-            if (management.elfTraining.clothElfTraining.milestones[4].earned.value) {
+            if (management.elfTraining.metalElfTraining.milestones[4].earned.value) {
                 x = Decimal.mul(x, Decimal.add(oil.depth.value, 1).sqrt());
             }
             let v = Decimal.div(x, 10).log(1.15);
@@ -452,7 +452,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             let v = new Decimal(this.amount.value);
             v = Decimal.pow(0.95, paper.books.metalBook.totalAmount.value).times(v);
             let cost = Decimal.pow(1.15, Decimal.times(v, 10)).times(10);
-            if (management.elfTraining.clothElfTraining.milestones[4].earned.value) {
+            if (management.elfTraining.metalElfTraining.milestones[4].earned.value) {
                 cost = Decimal.div(cost, Decimal.add(oil.depth.value, 1).sqrt());
             }
             if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
@@ -464,7 +464,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
                 x = Decimal.mul(x, 10);
             }
-            if (management.elfTraining.clothElfTraining.milestones[4].earned.value) {
+            if (management.elfTraining.metalElfTraining.milestones[4].earned.value) {
                 x = Decimal.mul(x, Decimal.add(oil.depth.value, 1).sqrt());
             }
             let v = Decimal.div(x, 10).log(1.15).div(10);
@@ -496,7 +496,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             let v = new Decimal(this.amount.value);
             v = Decimal.pow(0.95, paper.books.metalBook.totalAmount.value).times(v);
             let cost = Decimal.pow(10, v).times(1e12);
-            if (management.elfTraining.clothElfTraining.milestones[4].earned.value) {
+            if (management.elfTraining.metalElfTraining.milestones[4].earned.value) {
                 cost = Decimal.div(cost, Decimal.add(oil.depth.value, 1).sqrt());
             }
             if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
@@ -508,7 +508,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
                 x = Decimal.mul(x, 10);
             }
-            if (management.elfTraining.clothElfTraining.milestones[4].earned.value) {
+            if (management.elfTraining.metalElfTraining.milestones[4].earned.value) {
                 x = Decimal.mul(x, Decimal.add(oil.depth.value, 1).sqrt());
             }
             let v = Decimal.div(x, 1e12).log(10);

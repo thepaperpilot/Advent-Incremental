@@ -848,11 +848,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Gingersnap Level 5",
-                effectDisplay: jsx(() => (
-                    <>
-                        <Sqrt>Well depth</Sqrt> divides metal machine costs
-                    </>
-                ))
+                effectDisplay: "Unlock another row of focus upgrades"
             },
             visibility: () => showIf(clothElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => clothElfTraining.level.value >= 5
@@ -936,7 +932,11 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Twinkle Level 5",
-                effectDisplay: "Unlock another row of focus upgrades"
+                effectDisplay: jsx(() => (
+                    <>
+                        <Sqrt>Well depth</Sqrt> divides metal machine costs
+                    </>
+                ))
             },
             visibility: () => showIf(metalElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => metalElfTraining.level.value >= 5
@@ -1349,7 +1349,7 @@ const layer = createLayer(id, () => {
                 "The bar moves slower when it's closer to the right and faster when it's closer to the left"
         },
         resource: trees.logs,
-        visibility: () => showIf(elfTraining.metalElfTraining.milestones[4].earned.value),
+        visibility: () => showIf(elfTraining.clothElfTraining.milestones[4].earned.value),
         cost: 1e40
     }));
     const focusUpgrade5 = createUpgrade(() => ({
@@ -1358,7 +1358,7 @@ const layer = createLayer(id, () => {
             description: "The bar moves 2x slower"
         },
         resource: trees.logs,
-        visibility: () => showIf(elfTraining.metalElfTraining.milestones[4].earned.value),
+        visibility: () => showIf(elfTraining.clothElfTraining.milestones[4].earned.value),
         cost: 1e45
     }));
     const focusUpgrade6 = createUpgrade(() => ({
@@ -1367,7 +1367,7 @@ const layer = createLayer(id, () => {
             description: "Focus now applies to 6 elves."
         },
         resource: trees.logs,
-        visibility: () => showIf(elfTraining.metalElfTraining.milestones[4].earned.value),
+        visibility: () => showIf(elfTraining.clothElfTraining.milestones[4].earned.value),
         cost: 1e50
     }));
     const upgrades2 = [focusUpgrade4, focusUpgrade5, focusUpgrade6];
