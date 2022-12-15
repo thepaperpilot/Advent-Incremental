@@ -390,7 +390,8 @@ const layer = createLayer (id, () => {
         generalTabCollapsed,
         boosts,
         milestones,
-        collapseMilestones
+        collapseMilestones,
+        minWidth: 700
     }
 })
 
