@@ -370,7 +370,7 @@ const layer = createLayer(id, () => {
                     <>
                         Auto planting speed is multiplied by 2
                         <sup>
-                            (log<sub>10</sub>(logs)<sup>0.2</sup>)
+                            (log<sub>10</sub>(trees<sup>0.2</sup>))
                         </sup>
                     </>
                 ))
