@@ -15,11 +15,13 @@
             <div v-if="isTab('behaviour')">
                 <div v-if="canAutoSave">
                     <Toggle :title="autosaveTitle" v-model="autosave" />
-                    <FeedbackButton v-if="!autosave" class="button save-button" @click="save()"
-                        >Manually save</FeedbackButton
-                    >
+                    <FeedbackButton v-if="!autosave" class="button save-button" @click="save()">
+                        Manually save
+                    </FeedbackButton>
                 </div>
-                <div style="text-align: center" v-else>Auto-saving disabled while between days</div>
+                <div style="text-align: center" v-else>
+                    Auto-saving is disabled while between days
+                </div>
                 <Toggle v-if="projInfo.enablePausing" :title="isPausedTitle" v-model="isPaused" />
             </div>
             <div v-if="isTab('appearance')">

@@ -1,7 +1,8 @@
 <template>
     <div class="layer-container" :style="{ '--layer-color': unref(color) }">
         <button v-if="showGoBack" class="goBack" @click="goBack">❌</button>
-        <button class="layer-tab minimized" v-if="minimized.value" @click="minimized.value = false">
+
+        <button class="layer-tab minimized" v-if="minimized" @click="setMinimized(false)">
             <component v-if="minimizedComponent" :is="minimizedComponent" />
             <div v-else>{{ unref(name) }}</div>
         </button>
@@ -10,7 +11,8 @@
                 <component :is="component" />
             </Context>
         </div>
-        <button v-if="unref(minimizable)" class="minimize" @click="minimized.value = true">
+
+        <button v-if="unref(minimizable)" class="minimize" @click="setMinimized(true)">
             ▼
         </button>
     </div>
@@ -63,7 +65,7 @@ export default defineComponent({
         }
     },
     setup(props) {
-        const { display, index, minimized, minWidth, tab, minimizedDisplay } = toRefs(props);
+        const { display, index, minimized, minWidth, tab, minimizedDisplay, name } = toRefs(props);
 
         const component = computeComponent(display);
         const minimizedComponent = computeOptionalComponent(minimizedDisplay);
@@ -75,23 +77,28 @@ export default defineComponent({
             player.tabs.splice(unref(props.index), 1);
         }
 
+        function setMinimized(min: boolean) {
+            minimized.value = min;
+        }
+
         nextTick(() => updateTab(minimized.value, unref(minWidth.value)));
-        watch([minimized, wrapRef(minWidth)], ([minimized, minWidth]) =>
-            updateTab(minimized, minWidth)
-        );
+        watch([name, minimized, wrapRef(minWidth)], ([name, minimized, minWidth]) => {
+            updateTab(minimized, minWidth);
+        });
 
         function updateNodes(nodes: Record<string, FeatureNode | undefined>) {
             props.nodes.value = nodes;
         }
 
-        function updateTab(minimized: boolean, minWidth: number | string) {
+        function updateTab(min: boolean, minWidth: number | string) {
+            minimized.value = min;
             const width =
                 typeof minWidth === "number" || Number.isNaN(parseInt(minWidth))
                     ? minWidth + "px"
                     : minWidth;
             const tabValue = tab.value();
             if (tabValue != undefined) {
-                if (minimized) {
+                if (min) {
                     tabValue.style.flexGrow = "0";
                     tabValue.style.flexShrink = "0";
                     tabValue.style.width = "60px";
@@ -107,13 +114,17 @@ export default defineComponent({
             }
         }
 
+
         return {
             component,
             minimizedComponent,
             showGoBack,
             updateNodes,
             unref,
-            goBack
+            goBack,
+            setMinimized,
+            minimized,
+            minWidth,
         };
     }
 });
@@ -162,6 +173,7 @@ export default defineComponent({
 .layer-tab.minimized > * {
     margin: 0;
     writing-mode: vertical-rl;
+    text-align: left;
     padding-left: 10px;
     width: 50px;
 }
