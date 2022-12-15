@@ -1,5 +1,6 @@
 import projInfo from "data/projInfo.json";
 import { globalBus } from "game/events";
+import { layers } from "game/layers";
 import type { Player, PlayerData } from "game/player";
 import player, { stringifySave } from "game/player";
 import settings, { loadSettings } from "game/settings";
@@ -126,12 +127,18 @@ export async function loadSave(playerObj: Partial<PlayerData>): Promise<void> {
 }
 
 setInterval(() => {
-    if (player.autosave) {
+    if (
+        player.autosave &&
+        (layers as any).main.days[(layers as any).main.day.value - 1].opened.value
+    ) {
         save();
     }
 }, 1000);
 window.onbeforeunload = () => {
-    if (player.autosave) {
+    if (
+        player.autosave &&
+        (layers as any).main.days[(layers as any).main.day.value - 1].opened.value
+    ) {
         save();
     }
 };

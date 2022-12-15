@@ -895,7 +895,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const metalElf = createElf({
         name: "Twinkle",
         description:
-            "Twinkle will automatically purchase all metal buyables you can afford, without actually spending any resources.",
+            "Twinkle will automatically purchase all metal machines you can afford, without actually spending any resources.",
         buyable: [metal.oreDrill, metal.industrialCrucible, metal.hotterForge],
         cooldownModifier: metalCooldown,
         visibility: () =>

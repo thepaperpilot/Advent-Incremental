@@ -8,6 +8,7 @@ import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
 import { createClickable } from "features/clickables/clickable";
 import {
+    addHardcap,
     addSoftcap,
     createIndependentConversion,
     createPolynomialScaling
@@ -42,10 +43,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const foundationProgress = createResource<DecimalSource>(0, "foundation progress");
 
     const foundationConversion = createIndependentConversion(() => ({
-        scaling: addSoftcap(
-            addSoftcap(createPolynomialScaling(250, 1.5), 5387, 1 / 1e10),
-            1e20,
-            3e8
+        // note: 5423 is a magic number. Don't touch this or it'll self-destruct.
+        scaling: addHardcap(
+            addSoftcap(addSoftcap(createPolynomialScaling(250, 1.5), 5423, 1 / 1e10), 1e20, 3e8),
+            computed(() =>
+                management.elfTraining.expandersElfTraining.milestones[2].earned.value ? 1000 : 100
+            )
         ),
         baseResource: trees.logs,
         gainResource: noPersist(foundationProgress),
@@ -90,13 +93,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
         visibility: () =>
             showIf(
-                Decimal.lt(foundationProgress.value, 100) ||
+                Decimal.lt(
+                    foundationProgress.value,
                     management.elfTraining.expandersElfTraining.milestones[2].earned.value
+                        ? 1000
+                        : 100
+                )
             ),
         canClick: () =>
             Decimal.gte(trees.logs.value, foundationConversion.nextAt.value) &&
-            (Decimal.lt(foundationProgress.value, 100) ||
-                management.elfTraining.expandersElfTraining.milestones[2].earned.value),
+            Decimal.lt(
+                foundationProgress.value,
+                management.elfTraining.expandersElfTraining.milestones[2].earned.value ? 1000 : 100
+            ),
         onClick() {
             if (!unref(this.canClick)) {
                 return;
@@ -324,7 +333,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
         minimizedDisplay: jsx(() => (
             <div>
-                {name} - {format(foundationProgress.value)} {foundationProgress.displayName}
+                {name} - {format(foundationProgress.value)}% {foundationProgress.displayName}
             </div>
         ))
     };

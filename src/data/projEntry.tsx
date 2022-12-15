@@ -8,11 +8,12 @@ import {
 } from "features/feature";
 import { BaseLayer, createLayer, GenericLayer, layers } from "game/layers";
 import { persistent } from "game/persistence";
-import type { PlayerData } from "game/player";
+import type { LayerData, PlayerData } from "game/player";
 import player from "game/player";
-import { format, formatTime } from "util/bignum";
+import Decimal, { format, formatTime } from "util/bignum";
 import { Computable, convertComputable, ProcessedComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
+import { save } from "util/save";
 import { renderRow, VueFeature } from "util/vue";
 import type { Ref } from "vue";
 import { computed, ref, unref } from "vue";
@@ -23,6 +24,7 @@ import cloth from "./layers/cloth";
 import coal from "./layers/coal";
 import dyes from "./layers/dyes";
 import elves from "./layers/elves";
+import letters from "./layers/letters";
 import management from "./layers/management";
 import metal from "./layers/metal";
 import oil from "./layers/oil";
@@ -38,6 +40,7 @@ import coalSymbol from "./symbols/coal.png";
 import dyesSymbol from "./symbols/dyes.png";
 import elfSymbol from "./symbols/elf.png";
 import managementSymbol from "./symbols/elfManagement.png";
+import lettersSymbol from "./symbols/letterbox.png";
 import metalSymbol from "./symbols/metal.png";
 import oilSymbol from "./symbols/oil.png";
 import paperSymbol from "./symbols/paperStacks.png";
@@ -260,7 +263,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
             symbol: dyesSymbol,
             story: "To make toys, we're going to need some color to make them look nice and enticing! We can't just give kids clear toys after all! To add some color to our toys, we'll need some dyes!",
             completedStory:
-                "After all that effort, you finally have a rainbow of dyes to choose from! Now the children won't be able to resist the toys you have to offer, once you get them made of course..."
+                "After all that effort, you finally have a rainbow of dyes to choose from! Now the children won't be able to resist the toys you have to offer, once you get them made of course... Good Job!"
         })),
         createDay(() => ({
             day: 12,
@@ -283,10 +286,11 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 14,
             shouldNotify: false,
-            layer: null, // "letters to santa"
-            symbol: "",
-            story: "",
-            completedStory: ""
+            layer: "letters",
+            symbol: lettersSymbol,
+            story: "Fully prepared to start working on presents, you realize you don't actually know what to make! You ask Santa and he points at a massive pile of letters hiding just off-camera. Those are all the letters to Santa that need to be processed, sorted, and categorized appropriately so every kid gets what they need!",
+            completedStory:
+                "The letters are sorted! You have a slight feeling you may have rushed a little, and suddenly understand why sometimes you don't get everything you asked Santa for every year, or even the occasional bad gift. You sympathetically pat Santa on the back as you head to bed for the day. Good Job!"
         })),
         createDay(() => ({
             day: 15,
@@ -379,6 +383,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         day.value++;
         main.minimized.value = false;
         if (player.autoPause) player.devSpeed = 0;
+        save();
     }
 
     return {
@@ -443,7 +448,8 @@ export const getInitialLayers = (
     dyes,
     wrappingPaper,
     management,
-    factory
+    factory,
+    letters
 ];
 
 /**
@@ -466,6 +472,14 @@ export function fixOldSave(
 ): void {
     if (!["0.0", "0.1", "0.2", "0.3", "0.4"].includes(oldVersion ?? "")) {
         return;
+    }
+    if ((player.layers?.workshop as LayerData<typeof workshop> | undefined)?.foundationProgress) {
+        (player.layers?.workshop as LayerData<typeof workshop> | undefined)!.foundationProgress =
+            Decimal.min(
+                (player.layers!.workshop as LayerData<typeof workshop> | undefined)!
+                    .foundationProgress!,
+                1000
+            );
     }
     /*player.offlineProd = false;
     delete player.layers?.management;
