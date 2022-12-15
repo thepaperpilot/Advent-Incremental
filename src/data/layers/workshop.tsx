@@ -43,8 +43,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const foundationProgress = createResource<DecimalSource>(0, "foundation progress");
 
     const foundationConversion = createIndependentConversion(() => ({
+        // note: 5423 is a magic number. Don't touch this or it'll self-destruct.
         scaling: addHardcap(
-            addSoftcap(addSoftcap(createPolynomialScaling(250, 1.5), 5387, 1 / 1e10), 1e20, 3e8),
+            addSoftcap(addSoftcap(createPolynomialScaling(250, 1.5), 5423, 1 / 1e10), 1e20, 3e8),
             computed(() =>
                 management.elfTraining.expandersElfTraining.milestones[2].earned.value ? 1000 : 100
             )
