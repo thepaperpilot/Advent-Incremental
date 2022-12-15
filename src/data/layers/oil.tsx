@@ -318,7 +318,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 x = Decimal.mul(x, Decimal.add(totalOil.value, 1).root(6));
             }
             let v = Decimal.div(x, 2e6).log(16);
-            v = v.div(Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value));
+            v = v.div(Decimal.pow(0.95, paper.books.oilBook.totalAmount.value));
             if (Decimal.gte(v, 10)) v = Decimal.mul(v, 10 ** 3).root(4);
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
