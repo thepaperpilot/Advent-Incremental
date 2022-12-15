@@ -326,7 +326,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
         minimizedDisplay: jsx(() => (
             <div>
-                {name} - {format(foundationProgress.value)} {foundationProgress.displayName}
+                {name} - {format(foundationProgress.value)}% {foundationProgress.displayName}
             </div>
         ))
     };
