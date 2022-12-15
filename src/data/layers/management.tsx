@@ -185,7 +185,7 @@ const layer = createLayer(id, () => {
         });
         const expRequiredForNextLevel = computed(() =>
             Decimal.pow(5, level.value).mul(costBase.value)
-        )
+        );
         const level = computed(() =>
             Decimal.affordGeometricSeries(exp.value, costBase.value, 5, 0)
                 .min(schools.amount.value)
@@ -1396,7 +1396,8 @@ const layer = createLayer(id, () => {
                 <h3>Build a School</h3>
                 <div>
                     You gotta start somewhere, right? Each school increases the maximum level for
-                    elves by 1, maximum of {main.days[13].opened.value ? 5 : 3} schools.
+                    elves by 1, maximum of {main.days[advancedDay - 1].opened.value ? 5 : 3}{" "}
+                    schools.
                 </div>
                 <div>
                     You have {formatWhole(schools.amount.value)} schools, which are currently
