@@ -629,7 +629,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     description: jsx(() => (
                         <>
                             {options.description}
-                            {upgrade.bought.value ? null : (
+                            {(upgrade.bought.value && (!["Peppermint", "Twinkle", "Cocoa", "Frosty"].includes(options.name))) ? null : (
                                 <>
                                     {" "}
                                     Training this elf will require resetting all your progress from
@@ -652,7 +652,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 style: "width: 190px",
                 onPurchase() {
                     options.onPurchase?.();
-                    elfReset.reset();
+                    if(!["Peppermint", "Twinkle", "Cocoa", "Frosty"].includes(options.name)){
+                    elfReset.reset();}
                 }
             };
         }) as GenericUpgrade & {
