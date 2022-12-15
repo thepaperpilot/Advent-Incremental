@@ -11,7 +11,7 @@ import { main } from "data/projEntry";
 import { createBar, GenericBar } from "features/bars/bar";
 import { GenericBuyable } from "features/buyable";
 import { ClickableOptions } from "features/clickables/clickable";
-import { jsx, showIf } from "features/feature";
+import { jsx, showIf, Visibility } from "features/feature";
 import { createMilestone } from "features/milestones/milestone";
 import { createReset } from "features/reset";
 import { Resource } from "features/resources/resource";
@@ -588,6 +588,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
                 (isArray(options.buyable) ? options.buyable : [options.buyable]).forEach(
                     buyable => {
+                        if (unref(buyable.visibility) !== Visibility.Visible) {
+                            return;
+                        }
                         const buyAmount = Decimal.min(
                             Decimal.sub(
                                 buyable.inverseCost(buyable.resource?.value),
