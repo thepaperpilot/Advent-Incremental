@@ -813,7 +813,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         name: "Bell",
         description:
             "Bell will automatically purchase all box buyables you can afford, without actually spending any boxes.",
-        buyable: Object.values(boxes.buyables),
+        buyable: [...Object.values(boxes.buyables), ...Object.values(boxes.buyables2)],
         cooldownModifier: boxCooldown,
         visibility: () => showIf(plastic.elfUpgrades.boxElf.bought.value)
     });
