@@ -428,8 +428,8 @@ const layer = createLayer(id, () => {
             visibility: () => showIf(expanderElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => expandersElfTraining.level.value >= 4,
             onComplete() {
-                main.days[4].recentlyUpdated.value = true;
-            },
+                main.days[3].recentlyUpdated.value = true;
+            }
         })),
         createMilestone(() => ({
             display: {
@@ -486,8 +486,8 @@ const layer = createLayer(id, () => {
                 showIf(heatedCutterElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => heatedCutterElfTraining.level.value >= 5,
             onComplete() {
-                main.days[4].recentlyUpdated.value = true;
-            },
+                main.days[3].recentlyUpdated.value = true;
+            }
         }))
     ] as Array<GenericMilestone>;
     const heatedPlanterElfMilestones = [
@@ -587,8 +587,8 @@ const layer = createLayer(id, () => {
                 showIf(fertilizerElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => fertilizerElfTraining.level.value >= 5,
             onComplete() {
-                main.days[4].recentlyUpdated.value = true;
-            },
+                main.days[3].recentlyUpdated.value = true;
+            }
         }))
     ] as Array<GenericMilestone>;
     const smallfireElfMilestones = [
@@ -793,8 +793,8 @@ const layer = createLayer(id, () => {
             visibility: () => showIf(boxElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => boxElfTraining.level.value >= 4,
             onComplete() {
-                main.days[6].recentlyUpdated.value = true;
-            },
+                main.days[5].recentlyUpdated.value = true;
+            }
         })),
         createMilestone(() => ({
             display: {
@@ -804,8 +804,8 @@ const layer = createLayer(id, () => {
             visibility: () => showIf(boxElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => boxElfTraining.level.value >= 5,
             onComplete() {
-                main.days[6].recentlyUpdated.value = true;
-            },
+                main.days[5].recentlyUpdated.value = true;
+            }
         }))
     ] as Array<GenericMilestone>;
     const clothElfMilestones = [
@@ -868,7 +868,7 @@ const layer = createLayer(id, () => {
             shouldEarn: () => clothElfTraining.level.value >= 5,
             onComplete() {
                 main.days[12].recentlyUpdated.value = true;
-            },
+            }
         }))
     ] as Array<GenericMilestone>;
     const coalDrillElfMilestones = [
@@ -904,8 +904,8 @@ const layer = createLayer(id, () => {
                 showIf(coalDrillElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => coalDrillElfTraining.level.value >= 4,
             onComplete() {
-                main.days[3].recentlyUpdated.value = true;
-            },
+                main.days[2].recentlyUpdated.value = true;
+            }
         })),
         createMilestone(() => ({
             display: {
@@ -1002,8 +1002,8 @@ const layer = createLayer(id, () => {
             visibility: () => showIf(oilElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => oilElfTraining.level.value >= 5,
             onComplete() {
-                main.days[9].recentlyUpdated.value = true;
-            },
+                main.days[8].recentlyUpdated.value = true;
+            }
         }))
     ] as Array<GenericMilestone>;
     const heavyDrillElfMilestones = [
@@ -1052,8 +1052,8 @@ const layer = createLayer(id, () => {
                 showIf(heavyDrillElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => heavyDrillElfTraining.level.value >= 5,
             onComplete() {
-                main.days[5].recentlyUpdated.value = true;
-            },
+                main.days[4].recentlyUpdated.value = true;
+            }
         }))
     ] as Array<GenericMilestone>;
     // ------------------------------------------------------------------------------- Milestone display
