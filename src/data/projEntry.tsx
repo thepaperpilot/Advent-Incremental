@@ -23,6 +23,7 @@ import cloth from "./layers/cloth";
 import coal from "./layers/coal";
 import dyes from "./layers/dyes";
 import elves from "./layers/elves";
+import letters from "./layers/letters";
 import management from "./layers/management";
 import metal from "./layers/metal";
 import oil from "./layers/oil";
@@ -37,6 +38,7 @@ import coalSymbol from "./symbols/coal.png";
 import dyesSymbol from "./symbols/dyes.png";
 import elfSymbol from "./symbols/elf.png";
 import managementSymbol from "./symbols/elfManagement.png";
+import lettersSymbol from "./symbols/letterbox.png";
 import metalSymbol from "./symbols/metal.png";
 import oilSymbol from "./symbols/oil.png";
 import paperSymbol from "./symbols/paperStacks.png";
@@ -282,10 +284,11 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 14,
             shouldNotify: false,
-            layer: null, // "letters to santa"
-            symbol: "",
-            story: "",
-            completedStory: ""
+            layer: "letters",
+            symbol: lettersSymbol,
+            story: "Fully prepared to start working on presents, you realize you don't actually know what to make! You ask Santa and he points at a massive pile of letters hiding just off-camera. Those are all the letters to Santa that need to be processed, sorted, and categorized appropriately so every kid gets what they need!",
+            completedStory:
+                "The letters are sorted! You have a slight feeling you may have rushed a little, and suddenly understand why sometimes you don't get everything you asked Santa for every year, or even the occasional bad gift. You sympathetically pat Santa on the back as you head to bed for the day. Good Job!"
         })),
         createDay(() => ({
             day: 15,
@@ -441,7 +444,8 @@ export const getInitialLayers = (
     plastic,
     dyes,
     wrappingPaper,
-    management
+    management,
+    letters
 ];
 
 /**
