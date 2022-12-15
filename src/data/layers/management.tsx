@@ -1689,7 +1689,7 @@ const layer = createLayer(id, () => {
                         <br />
                         <br />
                         {render(focusButton)}
-                        {renderGrid(upgrades)}
+                        {renderGrid(upgrades, upgrades2)}
                         <br />
                         {renderGrid(
                             [focusMeter],
