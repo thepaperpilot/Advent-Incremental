@@ -1455,7 +1455,7 @@ const layer = createLayer(id, () => {
     const classroomCost = computed(() => {
         var v = classrooms.amount.value;
         if(Decimal.gte(v,100)) v=Decimal.pow(v,2).div(100)
-        if(Decimal.gte(v,10000)) v=Decimal.pow(v,8).div(1e28)
+        if(Decimal.gte(v,1e4)) v=Decimal.pow(v,8).div(1e28)
         const classroomFactor = Decimal.add(v, 1).pow(1.5);
         return {
             wood: classroomFactor.mul(1e21),
@@ -1466,9 +1466,13 @@ const layer = createLayer(id, () => {
     });
 
     const classroomEffect = computed(() => {
-        return Decimal.add(classrooms.amount.value, 1)
+        var eff = Decimal.add(classrooms.amount.value, 1)
             .pow(0.9)
             .pow(paper.upgrades2.classroomUpgrade.bought.value ? 1.1 : 1);
+        if(eff.gte(100)){
+            eff = eff.sqrt().mul(10)
+        }
+        return eff
     });
 
     const classrooms = createBuyable(() => ({
