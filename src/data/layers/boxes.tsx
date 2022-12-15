@@ -166,7 +166,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const row2Upgrades = { oreUpgrade, metalUpgrade, plasticUpgrade };
     const clothUpgrade = createUpgrade(() => ({
         resource: noPersist(boxes),
-        cost: 1e16,
+        cost: 1e28,
         visibility: () => showIf(management.elfTraining.boxElfTraining.milestones[4].earned.value),
         display: {
             title: "Carry cloth in boxes",
@@ -175,11 +175,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
     })) as GenericUpgrade;
     const dyeUpgrade = createUpgrade(() => ({
         resource: noPersist(boxes),
-        cost: 1e17,
+        cost: 1e29,
         visibility: () => showIf(management.elfTraining.boxElfTraining.milestones[4].earned.value),
         display: {
             title: "Carry dye in boxes",
-            description: "Double all dye gain"
+            description: "Double all dye gain but reset all dyes"
         },
         onPurchase() {
             (["red", "yellow", "blue", "orange", "green", "purple"] as const).forEach(dyeColor => {
@@ -190,7 +190,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     })) as GenericUpgrade;
     const xpUpgrade = createUpgrade(() => ({
         resource: noPersist(boxes),
-        cost: 1e18,
+        cost: 1e30,
         visibility: () => showIf(management.elfTraining.boxElfTraining.milestones[4].earned.value),
         display: {
             title: "Carry experience in boxes???",
@@ -240,7 +240,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
             let v = Decimal.mul(x, wrappingPaper.boosts.ocean1.value)
                 .mul(dyes.boosts.orange2.value)
-                .div(100).log(scaling);
+                .div(100)
+                .log(scaling);
 
             v = v.div(Decimal.pow(0.95, paper.books.boxBook.totalAmount.value));
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
@@ -295,8 +296,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 scaling--;
             }
 
-            let v = Decimal.mul(x, dyes.boosts.orange2.value)
-                .div(1000).log(scaling);
+            let v = Decimal.mul(x, dyes.boosts.orange2.value).div(1000).log(scaling);
 
             v = v.div(Decimal.pow(0.95, paper.books.boxBook.totalAmount.value));
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
@@ -351,8 +351,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 scaling--;
             }
 
-            let v = Decimal.mul(x, dyes.boosts.orange2.value)
-                .div(1000).log(scaling);
+            let v = Decimal.mul(x, dyes.boosts.orange2.value).div(1000).log(scaling);
 
             v = v.div(Decimal.pow(0.95, paper.books.boxBook.totalAmount.value));
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
@@ -413,7 +412,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
             let v = Decimal.mul(x, wrappingPaper.boosts.ocean1.value)
                 .mul(dyes.boosts.orange2.value)
-                .div(1e25).log(scaling);
+                .div(1e25)
+                .log(scaling);
 
             v = v.div(Decimal.pow(0.95, paper.books.boxBook.totalAmount.value));
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
@@ -468,8 +468,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 scaling--;
             }
 
-            let v = Decimal.mul(x, dyes.boosts.orange2.value)
-                .div(1e28).log(scaling);
+            let v = Decimal.mul(x, dyes.boosts.orange2.value).div(1e28).log(scaling);
 
             v = v.div(Decimal.pow(0.95, paper.books.boxBook.totalAmount.value));
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
@@ -524,8 +523,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 scaling--;
             }
 
-            let v = Decimal.mul(x, dyes.boosts.orange2.value)
-                .div(1e31).log(scaling);
+            let v = Decimal.mul(x, dyes.boosts.orange2.value).div(1e31).log(scaling);
 
             v = v.div(Decimal.pow(0.95, paper.books.boxBook.totalAmount.value));
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
@@ -614,7 +612,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     Object.values(row3Upgrades)
                 )}
                 <Spacer />
-                {renderRow(...Object.values(buyables))}
+                {renderGrid(Object.values(buyables), Object.values(buyables2))}
             </>
         )),
         minimizedDisplay: jsx(() => (

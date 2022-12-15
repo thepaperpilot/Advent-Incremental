@@ -210,14 +210,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
             if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
             if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
-            if (Decimal.gte(v, 2e30)) v = Decimal.pow(v, 10000).div(Decimal.pow(2e30, 9999));
+            if (Decimal.gte(v, 2e30)) v = Decimal.pow(v, 10).div(Decimal.pow(2e30, 9));
             v = Decimal.pow(0.95, paper.books.cuttersBook.totalAmount.value).times(v);
             return Decimal.times(100, v).add(200);
         },
         inverseCost(x: DecimalSource) {
             let v = Decimal.sub(x, 200).div(100);
             v = v.div(Decimal.pow(0.95, paper.books.cuttersBook.totalAmount.value));
-            if (Decimal.gte(v, 2e30)) v = Decimal.mul(v, Decimal.pow(2e30, 9999)).root(10000);
+            if (Decimal.gte(v, 2e30)) v = Decimal.mul(v, Decimal.pow(2e30, 9)).root(10);
             if (Decimal.gte(v, 2e6)) v = Decimal.mul(v, 2e6).root(2);
             if (Decimal.gte(v, 200)) v = Decimal.mul(v, 200).root(2);
             if (Decimal.gte(v, 50)) v = Decimal.mul(v, 50).root(2);
@@ -236,7 +236,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
             if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
             if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
-            if (Decimal.gte(v, 2e30)) v = Decimal.pow(v, 10000).div(Decimal.pow(2e30, 9999));
+            if (Decimal.gte(v, 2e30)) v = Decimal.pow(v, 10).div(Decimal.pow(2e30, 9));
             v = Decimal.pow(0.95, paper.books.plantersBook.totalAmount.value).times(v);
             let cost = Decimal.times(100, v).add(200);
             if (management.elfTraining.planterElfTraining.milestones[3].earned.value) {
@@ -250,7 +250,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
             let v = Decimal.sub(x, 200).div(100);
             v = v.div(Decimal.pow(0.95, paper.books.plantersBook.totalAmount.value));
-            if (Decimal.gte(v, 2e30)) v = Decimal.mul(v, Decimal.pow(2e30, 9999)).root(10000);
+            if (Decimal.gte(v, 2e30)) v = Decimal.mul(v, Decimal.pow(2e30, 9)).root(10);
             if (Decimal.gte(v, 2e6)) v = Decimal.mul(v, 2e6).root(2);
             if (Decimal.gte(v, 200)) v = Decimal.mul(v, 200).root(2);
             if (Decimal.gte(v, 50)) v = Decimal.mul(v, 50).root(2);
@@ -434,7 +434,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: management.elfTraining.planterElfTraining.milestones[0].earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.pow(trees.value, 0.2).log10().pow_base(2),
+            multiplier: () => Decimal.pow(trees.value, 0.2).max(1).log10().pow_base(2),
             description: "Ivy Level 3",
             enabled: management.elfTraining.planterElfTraining.milestones[2].earned
         })),
@@ -541,8 +541,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         width: 100,
         height: 10,
         style: "margin-top: 8px",
-        baseStyle: "margin-top: 0",
-        fillStyle: "margin-top: 0; transition-duration: 0s",
+        baseStyle: "margin-top: -1px",
+        fillStyle: "margin-top: -1px; transition-duration: 0s",
         progress: () => Decimal.div(manualCutProgress.value, computedManualCuttingCooldown.value)
     }));
 
@@ -593,8 +593,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         width: 100,
         height: 10,
         style: "margin-top: 8px",
-        baseStyle: "margin-top: 0",
-        fillStyle: "margin-top: 0; transition-duration: 0s",
+        baseStyle: "margin-top: -1px",
+        fillStyle: "margin-top: -1px; transition-duration: 0s",
         progress: () => Decimal.div(manualPlantProgress.value, computedManualPlantingCooldown.value)
     }));
     const plantTree = createClickable(() => ({
@@ -735,8 +735,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             computedAutoCuttingAmount.value,
             Decimal.sub(lastAutoPlantedAmount.value, lastAutoCuttingAmount.value).max(0)
         );
-        lastAutoPlantedAmount.value = plantingAmount;
-        lastAutoCuttingAmount.value = cuttingAmount;
+        lastAutoPlantedAmount.value = Decimal.isNaN(plantingAmount) ? 0 : plantingAmount;
+        lastAutoCuttingAmount.value = Decimal.isNaN(cuttingAmount) ? 0 : cuttingAmount;
 
         const amountCut = Decimal.min(
             trees.value,
