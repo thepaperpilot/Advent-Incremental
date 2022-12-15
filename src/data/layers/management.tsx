@@ -1455,7 +1455,7 @@ const layer = createLayer(id, () => {
     const classroomCost = computed(() => {
         var v = classrooms.amount.value;
         if(Decimal.gte(v,100)) v=Decimal.pow(v,2).div(100)
-        if(Decimal.gte(v,10000)) v=Decimal.pow(v,4).div(1e12)
+        if(Decimal.gte(v,10000)) v=Decimal.pow(v,8).div(1e28)
         const classroomFactor = Decimal.add(v, 1).pow(1.5);
         return {
             wood: classroomFactor.mul(1e21),
