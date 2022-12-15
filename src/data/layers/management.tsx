@@ -123,7 +123,7 @@ const layer = createLayer(id, () => {
             showIf(main.day.value >= advancedDay && main.days[advancedDay - 1].opened.value),
         resource: boxes.boxes,
         style: "width: 150px",
-        cost: 1e26
+        cost: 1e25
     }));
     const globalXPModifier = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
@@ -135,6 +135,11 @@ const layer = createLayer(id, () => {
             multiplier: 2,
             description: "Advanced Training",
             enabled: advancedUpgrade.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Star Level 4",
+            enabled: paperElfMilestones[3].earned.value
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -180,19 +185,15 @@ const layer = createLayer(id, () => {
         if (elf.name == "Star" || elf.name == "Bell") {
             costMulti /= 3;
         }
-        const costBase = computed(() => {
-            return Decimal.mul(paperElfMilestones[3].earned.value ? 2000 : 4000, costMulti);
-        });
-        const expRequiredForNextLevel = computed(() =>
-            Decimal.pow(5, level.value).mul(costBase.value)
-        );
+        const costBase = 4000 * costMulti;
+        const expRequiredForNextLevel = computed(() => Decimal.pow(5, level.value).mul(costBase));
         const level = computed(() =>
-            Decimal.affordGeometricSeries(exp.value, costBase.value, 5, 0)
+            Decimal.affordGeometricSeries(exp.value, costBase, 5, 0)
                 .min(schools.amount.value)
                 .toNumber()
         );
         const expToNextLevel = computed(() =>
-            Decimal.sub(exp.value, Decimal.sumGeometricSeries(level.value, costBase.value, 5, 0))
+            Decimal.sub(exp.value, Decimal.sumGeometricSeries(level.value, costBase, 5, 0))
         );
         const bar = createBar(() => ({
             direction: Direction.Right,
@@ -340,7 +341,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Holly Level 5",
-                effectDisplay: "Raise workshop expansion cost by 0.99"
+                effectDisplay: "Unlock an elf that autobuys oil drills and extractors."
             },
             visibility: () => showIf(cutterElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => cutterElfTraining.level.value >= 5
@@ -369,7 +370,7 @@ const layer = createLayer(id, () => {
                     <>
                         Auto planting speed is multiplied by 2
                         <sup>
-                            (log<sub>10</sub>(logs)<sup>0.2</sup>)
+                            (log<sub>10</sub>(trees<sup>0.2</sup>))
                         </sup>
                     </>
                 ))
@@ -414,8 +415,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Hope Level 3",
-                effectDisplay:
-                    "The workshop can be expanded past 100%, but costs scale faster. It also buys max now."
+                effectDisplay: "The workshop can be expanded past 100%, but costs scale faster."
             },
             visibility: () => showIf(expanderElfMilestones[1].earned.value),
             shouldEarn: () => expandersElfTraining.level.value >= 3
@@ -431,7 +431,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Hope Level 5",
-                effectDisplay: "Unlock an elf that autobuys metal buyables."
+                effectDisplay: "Raise workshop expansion cost by 0.99"
             },
             visibility: () => showIf(expanderElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => expandersElfTraining.level.value >= 5
@@ -456,7 +456,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Jack Level 3",
-                effectDisplay: "Jack now buys max."
+                effectDisplay: "Jack and Joy now buy max."
             },
             visibility: () => showIf(heatedCutterElfMilestones[1].earned.value),
             shouldEarn: () => heatedCutterElfTraining.level.value >= 3
@@ -503,7 +503,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Mary Level 3",
-                effectDisplay: "Mary now buys max."
+                effectDisplay: "Mary and Faith now buy max."
             },
             visibility: () => showIf(heatedPlanterElfMilestones[1].earned.value),
             shouldEarn: () => heatedPlanterElfTraining.level.value >= 3
@@ -522,7 +522,7 @@ const layer = createLayer(id, () => {
                 requirement: "Mary Level 5",
                 effectDisplay: jsx(() => (
                     <>
-                        Auto smelting speed is multiplied by <Sqrt>total XP/1000</Sqrt>.
+                        Auto smelting speed is multiplied by <Sqrt>total XP/1e6</Sqrt>.
                     </>
                 ))
             },
@@ -575,7 +575,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Noel Level 5",
-                effectDisplay: "Unlock an elf that autobuys drills and extractors"
+                effectDisplay: "Unlock an elf that autobuys metal buyables"
             },
             visibility: () =>
                 showIf(fertilizerElfMilestones[3].earned.value && main.day.value >= 13),
@@ -734,7 +734,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Star Level 4",
-                effectDisplay: "Halve xp requirements"
+                effectDisplay: "Double all elf xp gain"
             },
             visibility: () => showIf(paperElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => paperElfTraining.level.value >= 4
@@ -742,7 +742,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Star Level 5",
-                effectDisplay: "Gain 5 free books for all elves that are at level 5 or above."
+                effectDisplay: "Gain 5 free books for all prior elves that are at level 5 or above."
             },
             visibility: () => showIf(paperElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => paperElfTraining.level.value >= 5
@@ -847,11 +847,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Gingersnap Level 5",
-                effectDisplay: jsx(() => (
-                    <>
-                        <Sqrt>Well depth</Sqrt> divides metal machine costs
-                    </>
-                ))
+                effectDisplay: "Unlock another row of focus upgrades"
             },
             visibility: () => showIf(clothElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => clothElfTraining.level.value >= 5
@@ -935,7 +931,11 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Twinkle Level 5",
-                effectDisplay: "Unlock another row of focus upgrades"
+                effectDisplay: jsx(() => (
+                    <>
+                        <Sqrt>Well depth</Sqrt> divides metal machine costs
+                    </>
+                ))
             },
             visibility: () => showIf(metalElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => metalElfTraining.level.value >= 5
@@ -1273,8 +1273,9 @@ const layer = createLayer(id, () => {
             title: "Focus",
             description: jsx(() => (
                 <>
-                    Motivate elves to focus, multiplying 3 random elves' XP gain by up to{" "}
-                    {format(focusMaxMulti.value)}x for 10 seconds, equal to the focus bar's effect.
+                    Motivate elves to focus, multiplying {formatWhole(maximumElves.value)} random
+                    elves' XP gain by up to {format(focusMaxMulti.value)}x for 10 seconds, equal to
+                    the focus bar's effect.
                     {Decimal.gte(focusCooldown.value, 0) ? (
                         <>
                             <br />
@@ -1307,8 +1308,9 @@ const layer = createLayer(id, () => {
         focusTargets.value = {};
         const newCount = Decimal.min(count, range);
         while (newCount.gt(x)) {
-            const roll = Object.values(elfTraining)[Math.floor(Math.random() * range)]?.name ?? "";
-            if (!focusTargets.value[roll]) {
+            const elf = Object.values(elfTraining)[Math.floor(Math.random() * range)];
+            const roll = elf?.name ?? "";
+            if (!focusTargets.value[roll] && unref(elf.visibility) === Visibility.Visible) {
                 focusTargets.value[roll] = true;
                 x++;
             }
@@ -1328,7 +1330,7 @@ const layer = createLayer(id, () => {
             description: "Increase elves affected by focus by 1"
         },
         resource: trees.logs,
-        cost: 1e30
+        cost: 1e28
     }));
     const focusUpgrade3 = createUpgrade(() => ({
         display: {
@@ -1336,7 +1338,7 @@ const layer = createLayer(id, () => {
             description: "Focus can now be rerolled every 10 seconds"
         },
         resource: trees.logs,
-        cost: 1e35
+        cost: 1e31
     }));
     const upgrades = [focusUpgrade1, focusUpgrade2, focusUpgrade3];
     const focusUpgrade4 = createUpgrade(() => ({
@@ -1346,8 +1348,8 @@ const layer = createLayer(id, () => {
                 "The bar moves slower when it's closer to the right and faster when it's closer to the left"
         },
         resource: trees.logs,
-        visibility: () => showIf(elfTraining.metalElfTraining.milestones[4].earned.value),
-        cost: 1e40
+        visibility: () => showIf(elfTraining.clothElfTraining.milestones[4].earned.value),
+        cost: 1e34
     }));
     const focusUpgrade5 = createUpgrade(() => ({
         display: {
@@ -1355,8 +1357,8 @@ const layer = createLayer(id, () => {
             description: "The bar moves 2x slower"
         },
         resource: trees.logs,
-        visibility: () => showIf(elfTraining.metalElfTraining.milestones[4].earned.value),
-        cost: 1e45
+        visibility: () => showIf(elfTraining.clothElfTraining.milestones[4].earned.value),
+        cost: 1e35
     }));
     const focusUpgrade6 = createUpgrade(() => ({
         display: {
@@ -1364,8 +1366,8 @@ const layer = createLayer(id, () => {
             description: "Focus now applies to 6 elves."
         },
         resource: trees.logs,
-        visibility: () => showIf(elfTraining.metalElfTraining.milestones[4].earned.value),
-        cost: 1e50
+        visibility: () => showIf(elfTraining.clothElfTraining.milestones[4].earned.value),
+        cost: 1e36
     }));
     const upgrades2 = [focusUpgrade4, focusUpgrade5, focusUpgrade6];
     // ------------------------------------------------------------------------------- Schools
@@ -1450,7 +1452,10 @@ const layer = createLayer(id, () => {
     })) as GenericBuyable;
 
     const classroomCost = computed(() => {
-        const classroomFactor = Decimal.add(classrooms.amount.value, 1).pow(1.5);
+        let v = classrooms.amount.value;
+        if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
+        if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
+        const classroomFactor = Decimal.add(v, 1).pow(1.5);
         return {
             wood: classroomFactor.mul(1e21),
             paper: classroomFactor.mul(1e18),
@@ -1679,7 +1684,7 @@ const layer = createLayer(id, () => {
                         <br />
                         <br />
                         {render(focusButton)}
-                        {renderGrid(upgrades)}
+                        {renderGrid(upgrades, upgrades2)}
                         <br />
                         {renderGrid(
                             [focusMeter],

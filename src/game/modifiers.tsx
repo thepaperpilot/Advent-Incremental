@@ -3,14 +3,13 @@ import type { CoercableComponent } from "features/feature";
 import { jsx } from "features/feature";
 import settings from "game/settings";
 import type { DecimalSource } from "util/bignum";
-import Decimal, { format } from "util/bignum";
+import Decimal, { formatSmall } from "util/bignum";
 import type { WithRequired } from "util/common";
 import type { Computable, ProcessedComputable } from "util/computed";
 import { convertComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { renderJSX } from "util/vue";
 import { computed, unref } from "vue";
-import player from "./player";
 
 /**
  * An object that can be used to apply or unapply some modification to a number.
@@ -87,7 +86,7 @@ export function createAdditiveModifier<T extends AdditiveModifierOptions>(
                               ) : null}
                               <span class="modifier-amount">
                                   {Decimal.gte(unref(processedAddend), 0) ? "+" : ""}
-                                  {format(unref(processedAddend))}
+                                  {formatSmall(unref(processedAddend))}
                               </span>
                           </div>
                       ))
@@ -134,7 +133,7 @@ export function createMultiplicativeModifier<T extends MultiplicativeModifierOpt
                                   </span>
                               ) : null}
                               <span class="modifier-amount">
-                                  ×{format(unref(processedMultiplier))}
+                                  ×{formatSmall(unref(processedMultiplier))}
                               </span>
                           </div>
                       ))
@@ -204,7 +203,7 @@ export function createExponentialModifier<T extends ExponentialModifierOptions>(
                                   </span>
                               ) : null}
                               <span class="modifier-amount">
-                                  ^{format(unref(processedExponent))}
+                                  ^{formatSmall(unref(processedExponent))}
                               </span>
                           </div>
                       ))
@@ -274,7 +273,7 @@ export function createModifierSection(
     baseText: CoercableComponent = "Base"
 ) {
     return (
-        <div style={{"--unit": settings.alignUnits ? "'" + unit + "'" : ""}}>
+        <div style={{ "--unit": settings.alignUnits ? "'" + unit + "'" : "" }}>
             <h3>
                 {title}
                 {subtitle ? <span class="subtitle"> ({subtitle})</span> : null}
@@ -283,7 +282,7 @@ export function createModifierSection(
             <div class="modifier-container">
                 <span class="modifier-description">{renderJSX(baseText)}</span>
                 <span class="modifier-amount">
-                    {format(base)}
+                    {formatSmall(base)}
                     {unit}
                 </span>
             </div>
@@ -292,7 +291,7 @@ export function createModifierSection(
             <div class="modifier-container">
                 <span class="modifier-description">Total</span>
                 <span class="modifier-amount">
-                    {format(modifier.apply(base))}
+                    {formatSmall(modifier.apply(base))}
                     {unit}
                 </span>
             </div>

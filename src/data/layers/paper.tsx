@@ -19,7 +19,7 @@ import { createMultiplicativeModifier, createSequentialModifier, Modifier } from
 import { noPersist } from "game/persistence";
 import Decimal, { DecimalSource, format, formatSmall, formatWhole } from "util/bignum";
 import { WithRequired } from "util/common";
-import { render, renderCol, renderRow } from "util/vue";
+import { render, renderCol, renderGrid, renderRow } from "util/vue";
 import { computed, ComputedRef, ref, unref } from "vue";
 import cloth from "./cloth";
 import coal from "./coal";
@@ -125,8 +125,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     scaling--;
                 }
                 let cost = Decimal.pow(scaling, v).times(10);
-                if(["Peppermint", "Twinkle", "Cocoa", "Frosty"].includes(options.elfName)){
-                    cost = cost.mul(1e31)
+                if (["Peppermint", "Twinkle", "Cocoa", "Frosty"].includes(options.elfName)) {
+                    cost = cost.mul(1e31);
                 }
                 if (management.elfTraining.paperElfTraining.milestones[0].earned.value) {
                     cost = Decimal.div(cost, sumBooks.value.max(1));
@@ -149,9 +149,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     scaling--;
                 }
 
-                let v = Decimal.div(x, 10)
-                if(["Peppermint", "Twinkle", "Cocoa", "Frosty"].includes(options.elfName)){
-                    v = v.div(1e31)
+                let v = Decimal.div(x, 10);
+                if (["Peppermint", "Twinkle", "Cocoa", "Frosty"].includes(options.elfName)) {
+                    v = v.div(1e31);
                 }
                 v = v.log(scaling);
 
@@ -165,8 +165,23 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             style: "width: 600px",
             freeLevels: computed(() =>
-                management.elfTraining.paperElfTraining.milestones[4].earned.value
-                    ? Decimal.times(5, management.level5Elves.value)
+                management.elfTraining.paperElfTraining.milestones[4].earned.value &&
+                Decimal.gte(
+                    Object.values(management.elfTraining).find(
+                        training => training.name === options.elfName
+                    )?.level.value ?? 0,
+                    5
+                ) &&
+                ![
+                    "Star",
+                    "Bell",
+                    "Gingersnap",
+                    "Peppermint",
+                    "Twinkle",
+                    "Cocoa",
+                    "Frosty"
+                ].includes(options.elfName)
+                    ? 5
                     : 0
             ),
             totalAmount: computed(() => Decimal.add(buyable.amount.value, buyable.freeLevels.value))
@@ -248,29 +263,25 @@ const layer = createLayer(id, function (this: BaseLayer) {
         name: "Drills and Mills",
         elfName: "Peppermint",
         buyableName: "Coal Drill",
-        visibility: () =>
-            showIf(management.elfTraining.expandersElfTraining.milestones[3].earned.value)
+        visibility: () => showIf(elves.elves.coalDrillElf.bought.value)
     });
     const heavyDrillBook = createBook({
         name: "Deep in the Earth",
         elfName: "Frosty",
         buyableName: "Oil Drills",
-        visibility: () =>
-            showIf(management.elfTraining.fertilizerElfTraining.milestones[4].earned.value)
+        visibility: () => showIf(elves.elves.heavyDrillElf.bought.value)
     });
     const oilBook = createBook({
         name: "Burning the Midnight Oil",
         elfName: "Cocoa",
         buyableName: "Oil-Consuming Machines",
-        visibility: () =>
-            showIf(management.elfTraining.heatedCutterElfTraining.milestones[4].earned.value)
+        visibility: () => showIf(elves.elves.oilElf.bought.value)
     });
     const metalBook = createBook({
         name: "Physical Metallurgy",
         elfName: "Twinkle",
         buyableName: "Metal Buyables",
-        visibility: () =>
-            showIf(management.elfTraining.expandersElfTraining.milestones[4].earned.value)
+        visibility: () => showIf(elves.elves.metalElf.bought.value)
     });
     const dyeBook = createBook({
         name: "Arts and Crafts",
@@ -341,7 +352,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     })) as GenericUpgrade;
     const bookUpgrade = createUpgrade(() => ({
         resource: noPersist(paper),
-        cost: 1e40,
+        cost: 1e38,
         visibility: () =>
             showIf(management.elfTraining.heavyDrillElfTraining.milestones[4].earned.value),
         display: {
@@ -351,7 +362,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const classroomUpgrade = createUpgrade(() => ({
         resource: noPersist(paper),
-        cost: 1e44,
+        cost: 1e40,
         visibility: () =>
             showIf(management.elfTraining.heavyDrillElfTraining.milestones[4].earned.value),
         display: {
@@ -475,7 +486,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {render(makePaper)}
                 <Spacer />
-                {renderRow(...Object.values(upgrades))}
+                {renderGrid(Object.values(upgrades), Object.values(upgrades2))}
                 <Spacer />
                 {renderCol(...Object.values(books))}
             </>

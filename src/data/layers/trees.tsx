@@ -434,7 +434,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: management.elfTraining.planterElfTraining.milestones[0].earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.pow(trees.value, 0.2).log10().pow_base(2),
+            multiplier: () => Decimal.pow(trees.value, 0.2).max(1).log10().pow_base(2),
             description: "Ivy Level 3",
             enabled: management.elfTraining.planterElfTraining.milestones[2].earned
         })),
@@ -541,8 +541,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         width: 100,
         height: 10,
         style: "margin-top: 8px",
-        baseStyle: "margin-top: 0",
-        fillStyle: "margin-top: 0; transition-duration: 0s",
+        baseStyle: "margin-top: -1px",
+        fillStyle: "margin-top: -1px; transition-duration: 0s",
         progress: () => Decimal.div(manualCutProgress.value, computedManualCuttingCooldown.value)
     }));
 
@@ -593,8 +593,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         width: 100,
         height: 10,
         style: "margin-top: 8px",
-        baseStyle: "margin-top: 0",
-        fillStyle: "margin-top: 0; transition-duration: 0s",
+        baseStyle: "margin-top: -1px",
+        fillStyle: "margin-top: -1px; transition-duration: 0s",
         progress: () => Decimal.div(manualPlantProgress.value, computedManualPlantingCooldown.value)
     }));
     const plantTree = createClickable(() => ({
@@ -735,8 +735,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             computedAutoCuttingAmount.value,
             Decimal.sub(lastAutoPlantedAmount.value, lastAutoCuttingAmount.value).max(0)
         );
-        lastAutoPlantedAmount.value = plantingAmount;
-        lastAutoCuttingAmount.value = cuttingAmount;
+        lastAutoPlantedAmount.value = Decimal.isNaN(plantingAmount) ? 0 : plantingAmount;
+        lastAutoCuttingAmount.value = Decimal.isNaN(cuttingAmount) ? 0 : cuttingAmount;
 
         const amountCut = Decimal.min(
             trees.value,
