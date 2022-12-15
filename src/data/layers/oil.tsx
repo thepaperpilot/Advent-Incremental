@@ -139,7 +139,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: {
             color: colorText,
-            width: "160px"
+            width: "160px",
+            flexGrow: 1
         }
     })) as ElfBuyable & { resource: Resource };
     const {
@@ -206,7 +207,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: {
             color: colorText,
-            width: "160px"
+            width: "160px",
+            flexGrow: 1
         }
     })) as ElfBuyable & { resource: Resource };
     const {
@@ -228,14 +230,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost() {
             let v = new Decimal(this.amount.value);
             if (Decimal.gte(v, 10)) v = Decimal.pow(v, 4).div(10 ** 3);
-            if (Decimal.gte(v, 1e3)) v = Decimal.pow(v, 4).div(1e3 ** 3);
             v = Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value).times(v);
             return Decimal.pow(8, v).times(2e5);
         },
         inverseCost(x: DecimalSource) {
             let v = Decimal.div(x, 2e5).log(8);
             v = v.div(Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value));
-            if (Decimal.gte(v, 1e3)) v = Decimal.mul(v, 1e3 ** 3).root(4);
             if (Decimal.gte(v, 10)) v = Decimal.mul(v, 10 ** 3).root(4);
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
@@ -263,7 +263,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: {
             color: colorText,
-            width: "160px"
+            width: "160px",
+            flexGrow: 1
         }
     })) as ElfBuyable & { resource: Resource };
     const {
@@ -298,7 +299,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         resource: metal.metal,
         cost() {
             let v = new Decimal(this.amount.value);
-            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 4).div(100);
+            if (Decimal.gte(v, 10)) v = Decimal.pow(v, 4).div(10 ** 3);
             v = Decimal.pow(0.95, paper.books.oilBook.totalAmount.value).times(v);
             let price = Decimal.pow(16, v).times(2e6);
             if (row2Upgrades[4].bought.value) {
@@ -317,8 +318,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 x = Decimal.mul(x, Decimal.add(totalOil.value, 1).root(6));
             }
             let v = Decimal.div(x, 2e6).log(16);
-            v = v.div(Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value));
-            if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(4);
+            v = v.div(Decimal.pow(0.95, paper.books.oilBook.totalAmount.value));
+            if (Decimal.gte(v, 10)) v = Decimal.mul(v, 10 ** 3).root(4);
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         display: jsx(() => (
@@ -344,7 +345,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: {
             color: colorText,
-            width: "160px"
+            width: "160px",
+            flexGrow: 1
         }
     })) as ElfBuyable & { resource: Resource };
     const {
@@ -372,14 +374,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         resource: noPersist(oil),
         cost() {
             let v = new Decimal(this.amount.value);
-            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 4).div(100);
+            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 4).div(100 ** 3);
             v = Decimal.pow(0.95, paper.books.oilBook.totalAmount.value).times(v);
             return Decimal.pow(2, v).times(50);
         },
         inverseCost(x: DecimalSource) {
             let v = Decimal.div(x, 50).log(2);
             v = v.div(Decimal.pow(0.95, paper.books.oilBook.totalAmount.value));
-            if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(4);
+            if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100 ** 3).root(4);
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         display: jsx(() => (
@@ -412,7 +414,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: {
             color: colorText,
-            width: "160px"
+            width: "160px",
+            flexGrow: 1
         }
     })) as ElfBuyable & { resource: Resource };
     const {
@@ -472,7 +475,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: {
             color: colorText,
-            width: "160px"
+            width: "160px",
+            flexGrow: 1
         }
     })) as ElfBuyable & { resource: Resource };
 
@@ -732,7 +736,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const row3Upgrades = [
         createUpgrade(() => ({
             resource: noPersist(oil),
-            cost: 1e11,
+            cost: 1e13,
             display: {
                 title: "Dye Synergy I",
                 description: "Red dye boosts yellow dye gain *(log(x)^0.75)"
@@ -743,7 +747,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createUpgrade(() => ({
             resource: noPersist(oil),
-            cost: 1e12,
+            cost: 1e14,
             display: {
                 title: "Orange-colored boxes",
                 description: "Orange dye's 2nd effect is raised to the 2.5"
@@ -754,7 +758,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createUpgrade(() => ({
             resource: noPersist(oil),
-            cost: 1e13,
+            cost: 1e15,
             display: {
                 title: "Colorful Focus",
                 description: "Sum of secondary dyes increases max focus multiplier by cbrt(x)"
@@ -765,7 +769,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createUpgrade(() => ({
             resource: noPersist(oil),
-            cost: 1e14,
+            cost: 1e16,
             display: {
                 title: "Dye Synergy II",
                 description: "Blue dye boosts red dye gain *log(x)"
@@ -776,7 +780,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createUpgrade(() => ({
             resource: noPersist(oil),
-            cost: 1e15,
+            cost: 1e17,
             display: {
                 title: "The Ultimate Metal Dye",
                 description: "Sum of primary dyes boosts auto smelt speed"

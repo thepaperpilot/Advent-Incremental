@@ -89,6 +89,23 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const elfReset = createReset(() => ({
         thingsToReset: [trees, workshop, coal],
         onReset() {
+            const coalUpgrades = [
+                "warmerCutters",
+                "warmerPlanters",
+                "basicFertilizer",
+                "unlockBonfire",
+                "dedicatedCutters",
+                "dedicatedPlanters",
+                "betterFertilizer",
+                "unlockKiln",
+                "efficientSmelther",
+                "arsonistAssistance",
+                "refinedCoal",
+                "coloredFire"
+            ];
+            const upgradeValues = coalUpgrades.map(
+                upg => ((coal as any)[upg] as GenericUpgrade).bought.value
+            );
             setTimeout(() => {
                 if (treeUpgradesMilestone.earned.value) {
                     trees.row1Upgrades.forEach(upg => (upg.bought.value = true));
@@ -101,6 +118,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     workshop.foundationProgress.value = 100;
                 }
                 if (coalUpgradesMilestone.earned.value) {
+                    coalUpgrades.forEach(
+                        (upg, i) =>
+                            (((coal as any)[upg] as GenericUpgrade).bought.value = upgradeValues[i])
+                    );
                     coal.warmerCutters.bought.value = true;
                     coal.warmerPlanters.bought.value = true;
                     coal.basicFertilizer.bought.value = true;
@@ -503,7 +524,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             modifier: heavyDrillCooldown,
             base: 10,
             unit: "/s",
-            visible: management.elfTraining.fertilizerElfTraining.milestones[4].earned.value
+            visible: management.elfTraining.cutterElfTraining.milestones[4].earned.value
         },
         {
             title: "Cocoa Auto-Buy Frequency",
@@ -517,7 +538,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             modifier: metalCooldown,
             base: 10,
             unit: "/s",
-            visible: management.elfTraining.expandersElfTraining.milestones[4].earned
+            visible: management.elfTraining.fertilizerElfTraining.milestones[4].earned
         }
     ]);
     const showModifiersModal = ref(false);
@@ -563,6 +584,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             onPurchase?: VoidFunction; // Will get overriden by the custom onpurchase, but that's fine
             canBuy?: Computable<boolean>;
             buyMax?: Computable<boolean>;
+            independent?: Computable<boolean>; // Whether or not the cost is independent of the current buyable amount
         } & Partial<ClickableOptions>
     ) {
         const buyProgress = persistent<DecimalSource>(0);
@@ -573,6 +595,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
         const isActive = convertComputable(options.canBuy ?? true);
         const buyMax = convertComputable(options.buyMax ?? false);
+        const independent = convertComputable(options.independent ?? false);
 
         function update(diff: number) {
             if (upgrade.bought.value && unref(isActive)) {
@@ -594,7 +617,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         const buyAmount = Decimal.min(
                             Decimal.sub(
                                 buyable.inverseCost(buyable.resource?.value),
-                                buyable.amount.value
+                                unref(independent) ? 0 : buyable.amount.value
                             ).add(1),
                             maxBuyAmount
                         );
@@ -629,7 +652,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     description: jsx(() => (
                         <>
                             {options.description}
-                            {upgrade.bought.value ? null : (
+                            {upgrade.bought.value ||
+                            ["Peppermint", "Twinkle", "Cocoa", "Frosty"].includes(
+                                options.name
+                            ) ? null : (
                                 <>
                                     {" "}
                                     Training this elf will require resetting all your progress from
@@ -652,7 +678,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 style: "width: 190px",
                 onPurchase() {
                     options.onPurchase?.();
-                    elfReset.reset();
+                    if (!["Peppermint", "Twinkle", "Cocoa", "Frosty"].includes(options.name)) {
+                        elfReset.reset();
+                    }
                 }
             };
         }) as GenericUpgrade & {
@@ -721,6 +749,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             "Joy will automatically purchase small fires you can afford, without actually spending any logs. You can toggle whether or not to enable the purchased small fires automatically. Small fires will start giving a boost to ash and coal gain.",
         buyable: coal.buildFire,
         cooldownModifier: smallFireCooldown,
+        buyMax: () => management.elfTraining.heatedCutterElfTraining.milestones[2].earned.value,
         visibility: () => showIf(boxes.upgrades.logsUpgrade.bought.value),
         hasToggle: true,
         toggleDesc: "Activate auto-purchased small fires",
@@ -739,6 +768,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             "Faith will automatically purchase bonfires you can afford. You can toggle whether or not to enable the purchased bonfires automatically. Bonfires will start giving a boost to ash and coal gain.",
         buyable: coal.buildBonfire,
         cooldownModifier: bonfireCooldown,
+        buyMax: () => management.elfTraining.heatedPlanterElfTraining.milestones[2].earned.value,
         visibility: () => showIf(boxes.upgrades.ashUpgrade.bought.value),
         hasToggle: true,
         toggleDesc: "Activate auto-purchased bonfires",
@@ -753,7 +783,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         onPurchase() {
             main.days[4].recentlyUpdated.value = true;
         },
-        canBuy: coal.unlockBonfire.bought
+        canBuy: coal.unlockBonfire.bought,
+        independent: true
     });
     const kilnElf = createElf({
         name: "Snowball",
@@ -787,7 +818,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         name: "Bell",
         description:
             "Bell will automatically purchase all box buyables you can afford, without actually spending any boxes.",
-        buyable: Object.values(boxes.buyables),
+        buyable: [...Object.values(boxes.buyables), ...Object.values(boxes.buyables2)],
         cooldownModifier: boxCooldown,
         visibility: () => showIf(plastic.elfUpgrades.boxElf.bought.value)
     });
@@ -823,7 +854,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buyable: [oil.buildHeavy, oil.buildHeavy2, oil.buildExtractor],
         cooldownModifier: heavyDrillCooldown,
         visibility: () =>
-            showIf(management.elfTraining.fertilizerElfTraining.milestones[4].earned.value),
+            showIf(management.elfTraining.cutterElfTraining.milestones[4].earned.value),
         hasToggle: true,
         toggleDesc: "Activate auto-purchased oil drills",
         onAutoPurchase(buyable, amount) {
@@ -868,7 +899,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buyable: [metal.oreDrill, metal.industrialCrucible, metal.hotterForge],
         cooldownModifier: metalCooldown,
         visibility: () =>
-            showIf(management.elfTraining.expandersElfTraining.milestones[4].earned.value)
+            showIf(management.elfTraining.fertilizerElfTraining.milestones[4].earned.value)
     });
     const managementElves2 = [metalElf];
     const dyeElf = createElf({

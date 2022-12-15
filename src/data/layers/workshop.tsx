@@ -62,8 +62,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             })),
             createExponentialModifier(() => ({
                 exponent: 1 / 0.99,
-                description: "Holly Level 5",
-                enabled: management.elfTraining.cutterElfTraining.milestones[4].earned
+                description: "Hope Level 5",
+                enabled: management.elfTraining.expandersElfTraining.milestones[4].earned
             }))
         ])
     }));
