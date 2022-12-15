@@ -175,7 +175,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     })) as GenericUpgrade;
     const dyeUpgrade = createUpgrade(() => ({
         resource: noPersist(boxes),
-        cost: 1e39,
+        cost: 1e29,
         visibility: () => showIf(management.elfTraining.boxElfTraining.milestones[4].earned.value),
         display: {
             title: "Carry dye in boxes",
