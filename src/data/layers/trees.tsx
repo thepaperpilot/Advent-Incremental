@@ -210,14 +210,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
             if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
             if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
-            if (Decimal.gte(v, 2e30)) v = Decimal.pow(v, 10000).div(Decimal.pow(2e30, 9999));
+            if (Decimal.gte(v, 2e30)) v = Decimal.pow(v, 10).div(Decimal.pow(2e30, 9));
             v = Decimal.pow(0.95, paper.books.cuttersBook.totalAmount.value).times(v);
             return Decimal.times(100, v).add(200);
         },
         inverseCost(x: DecimalSource) {
             let v = Decimal.sub(x, 200).div(100);
             v = v.div(Decimal.pow(0.95, paper.books.cuttersBook.totalAmount.value));
-            if (Decimal.gte(v, 2e30)) v = Decimal.mul(v, Decimal.pow(2e30, 9999)).root(10000);
+            if (Decimal.gte(v, 2e30)) v = Decimal.mul(v, Decimal.pow(2e30, 9)).root(10);
             if (Decimal.gte(v, 2e6)) v = Decimal.mul(v, 2e6).root(2);
             if (Decimal.gte(v, 200)) v = Decimal.mul(v, 200).root(2);
             if (Decimal.gte(v, 50)) v = Decimal.mul(v, 50).root(2);
@@ -236,7 +236,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
             if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
             if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
-            if (Decimal.gte(v, 2e30)) v = Decimal.pow(v, 10000).div(Decimal.pow(2e30, 9999));
+            if (Decimal.gte(v, 2e30)) v = Decimal.pow(v, 10).div(Decimal.pow(2e30, 9));
             v = Decimal.pow(0.95, paper.books.plantersBook.totalAmount.value).times(v);
             let cost = Decimal.times(100, v).add(200);
             if (management.elfTraining.planterElfTraining.milestones[3].earned.value) {
@@ -250,7 +250,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
             let v = Decimal.sub(x, 200).div(100);
             v = v.div(Decimal.pow(0.95, paper.books.plantersBook.totalAmount.value));
-            if (Decimal.gte(v, 2e30)) v = Decimal.mul(v, Decimal.pow(2e30, 9999)).root(10000);
+            if (Decimal.gte(v, 2e30)) v = Decimal.mul(v, Decimal.pow(2e30, 9)).root(10);
             if (Decimal.gte(v, 2e6)) v = Decimal.mul(v, 2e6).root(2);
             if (Decimal.gte(v, 200)) v = Decimal.mul(v, 200).root(2);
             if (Decimal.gte(v, 50)) v = Decimal.mul(v, 50).root(2);
