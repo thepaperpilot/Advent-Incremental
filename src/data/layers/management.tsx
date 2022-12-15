@@ -123,7 +123,7 @@ const layer = createLayer(id, () => {
             showIf(main.day.value >= advancedDay && main.days[advancedDay - 1].opened.value),
         resource: boxes.boxes,
         style: "width: 150px",
-        cost: 1e26
+        cost: 1e25
     }));
     const globalXPModifier = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
