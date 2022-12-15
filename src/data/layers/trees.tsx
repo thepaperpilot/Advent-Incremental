@@ -735,8 +735,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             computedAutoCuttingAmount.value,
             Decimal.sub(lastAutoPlantedAmount.value, lastAutoCuttingAmount.value).max(0)
         );
-        lastAutoPlantedAmount.value = plantingAmount;
-        lastAutoCuttingAmount.value = cuttingAmount;
+        lastAutoPlantedAmount.value = Decimal.isNaN(plantingAmount) ? 0 : plantingAmount;
+        lastAutoCuttingAmount.value = Decimal.isNaN(cuttingAmount) ? 0 : cuttingAmount;
 
         const amountCut = Decimal.min(
             trees.value,
