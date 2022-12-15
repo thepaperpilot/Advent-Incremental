@@ -166,6 +166,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             style: "width: 600px",
             freeLevels: computed(() =>
                 management.elfTraining.paperElfTraining.milestones[4].earned.value &&
+                Decimal.gte(
+                    Object.values(management.elfTraining).find(
+                        training => training.name === options.elfName
+                    )?.level.value ?? 0,
+                    5
+                ) &&
                 ![
                     "Star",
                     "Bell",
@@ -175,7 +181,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     "Cocoa",
                     "Frosty"
                 ].includes(options.elfName)
-                    ? Decimal.times(5, management.level5Elves.value)
+                    ? 5
                     : 0
             ),
             totalAmount: computed(() => Decimal.add(buyable.amount.value, buyable.freeLevels.value))
