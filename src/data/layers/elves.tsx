@@ -650,8 +650,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     description: jsx(() => (
                         <>
                             {options.description}
-                            {upgrade.bought.value &&
-                            !["Peppermint", "Twinkle", "Cocoa", "Frosty"].includes(
+                            {upgrade.bought.value ||
+                            ["Peppermint", "Twinkle", "Cocoa", "Frosty"].includes(
                                 options.name
                             ) ? null : (
                                 <>
