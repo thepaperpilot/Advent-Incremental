@@ -793,6 +793,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     });
 
+    const mastery = {
+        logs: createResource<DecimalSource>(0,'logs'),
+        saplings: createResource<DecimalSource>(0,'saplings'),
+        
+    }
+
     return {
         name,
         color: colorBright,
