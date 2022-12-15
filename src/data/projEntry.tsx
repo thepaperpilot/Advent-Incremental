@@ -13,6 +13,7 @@ import player from "game/player";
 import Decimal, { format, formatTime } from "util/bignum";
 import { Computable, convertComputable, ProcessedComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
+import { save } from "util/save";
 import { renderRow, VueFeature } from "util/vue";
 import type { Ref } from "vue";
 import { computed, ref, unref } from "vue";
@@ -381,6 +382,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         day.value++;
         main.minimized.value = false;
         if (player.autoPause) player.devSpeed = 0;
+        save();
     }
 
     return {
