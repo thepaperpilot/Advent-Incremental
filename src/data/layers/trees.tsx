@@ -541,8 +541,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         width: 100,
         height: 10,
         style: "margin-top: 8px",
-        baseStyle: "margin-top: 0",
-        fillStyle: "margin-top: 0; transition-duration: 0s",
+        baseStyle: "margin-top: -1px",
+        fillStyle: "margin-top: -1px; transition-duration: 0s",
         progress: () => Decimal.div(manualCutProgress.value, computedManualCuttingCooldown.value)
     }));
 
@@ -593,8 +593,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         width: 100,
         height: 10,
         style: "margin-top: 8px",
-        baseStyle: "margin-top: 0",
-        fillStyle: "margin-top: 0; transition-duration: 0s",
+        baseStyle: "margin-top: -1px",
+        fillStyle: "margin-top: -1px; transition-duration: 0s",
         progress: () => Decimal.div(manualPlantProgress.value, computedManualPlantingCooldown.value)
     }));
     const plantTree = createClickable(() => ({
