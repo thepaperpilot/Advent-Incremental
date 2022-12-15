@@ -415,8 +415,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Hope Level 3",
-                effectDisplay:
-                    "The workshop can be expanded past 100%, but costs scale faster. It also buys max now."
+                effectDisplay: "The workshop can be expanded past 100%, but costs scale faster."
             },
             visibility: () => showIf(expanderElfMilestones[1].earned.value),
             shouldEarn: () => expandersElfTraining.level.value >= 3
@@ -457,7 +456,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Jack Level 3",
-                effectDisplay: "Jack now buys max."
+                effectDisplay: "Jack and Joy now buy max."
             },
             visibility: () => showIf(heatedCutterElfMilestones[1].earned.value),
             shouldEarn: () => heatedCutterElfTraining.level.value >= 3
@@ -504,7 +503,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Mary Level 3",
-                effectDisplay: "Mary now buys max."
+                effectDisplay: "Mary and Faith now buy max."
             },
             visibility: () => showIf(heatedPlanterElfMilestones[1].earned.value),
             shouldEarn: () => heatedPlanterElfTraining.level.value >= 3

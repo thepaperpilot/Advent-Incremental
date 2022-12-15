@@ -584,6 +584,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             onPurchase?: VoidFunction; // Will get overriden by the custom onpurchase, but that's fine
             canBuy?: Computable<boolean>;
             buyMax?: Computable<boolean>;
+            independent?: Computable<boolean>; // Whether or not the cost is independent of the current buyable amount
         } & Partial<ClickableOptions>
     ) {
         const buyProgress = persistent<DecimalSource>(0);
@@ -594,6 +595,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
         const isActive = convertComputable(options.canBuy ?? true);
         const buyMax = convertComputable(options.buyMax ?? false);
+        const independent = convertComputable(options.independent ?? false);
 
         function update(diff: number) {
             if (upgrade.bought.value && unref(isActive)) {
@@ -615,7 +617,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         const buyAmount = Decimal.min(
                             Decimal.sub(
                                 buyable.inverseCost(buyable.resource?.value),
-                                buyable.amount.value
+                                unref(independent) ? 0 : buyable.amount.value
                             ).add(1),
                             maxBuyAmount
                         );
@@ -747,6 +749,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             "Joy will automatically purchase small fires you can afford, without actually spending any logs. You can toggle whether or not to enable the purchased small fires automatically. Small fires will start giving a boost to ash and coal gain.",
         buyable: coal.buildFire,
         cooldownModifier: smallFireCooldown,
+        buyMax: () => management.elfTraining.heatedCutterElfTraining.milestones[2].earned.value,
         visibility: () => showIf(boxes.upgrades.logsUpgrade.bought.value),
         hasToggle: true,
         toggleDesc: "Activate auto-purchased small fires",
@@ -765,6 +768,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             "Faith will automatically purchase bonfires you can afford. You can toggle whether or not to enable the purchased bonfires automatically. Bonfires will start giving a boost to ash and coal gain.",
         buyable: coal.buildBonfire,
         cooldownModifier: bonfireCooldown,
+        buyMax: () => management.elfTraining.heatedPlanterElfTraining.milestones[2].earned.value,
         visibility: () => showIf(boxes.upgrades.ashUpgrade.bought.value),
         hasToggle: true,
         toggleDesc: "Activate auto-purchased bonfires",
@@ -779,7 +783,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         onPurchase() {
             main.days[4].recentlyUpdated.value = true;
         },
-        canBuy: coal.unlockBonfire.bought
+        canBuy: coal.unlockBonfire.bought,
+        independent: true
     });
     const kilnElf = createElf({
         name: "Snowball",
