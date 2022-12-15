@@ -91,21 +91,25 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     description: `${options.name} Chambers`
                 }))
             ];
-            if (options.color === "yellow" && oil.row3Upgrades[0].bought.value){
+            if (options.color === "yellow" && oil.row3Upgrades[0].bought.value) {
                 modifiers.push(
                     createMultiplicativeModifier(() => ({
-                        multiplier(){return Decimal.add(dyes.red.amount.value,1).log10().pow(0.75)},
+                        multiplier() {
+                            return Decimal.add(dyes.red.amount.value, 1).log10().pow(0.75);
+                        },
                         description: "Dye Synergy I"
                     }))
-                )
+                );
             }
-            if (options.color === "red" && oil.row3Upgrades[3].bought.value){
+            if (options.color === "red" && oil.row3Upgrades[3].bought.value) {
                 modifiers.push(
                     createMultiplicativeModifier(() => ({
-                        multiplier(){return Decimal.add(dyes.blue.amount.value,1).log10()},
+                        multiplier() {
+                            return Decimal.add(dyes.blue.amount.value, 1).log10();
+                        },
                         description: "Dye Synergy II"
                     }))
-                )
+                );
             }
             if (options.color === "red" || options.color === "yellow") {
                 modifiers.push(
@@ -253,9 +257,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 },
                 inverseCost() {
                     if (unref(buyable.visibility) != Visibility.Visible) return Decimal.dZero;
-                    return unref(costs).reduce((pre, c) =>
-                        Decimal.min(this.inverseCostPre(Decimal.div(c.res.value, unref(c.base)).root(unref(c.root ?? 1))), pre)
-                    , Decimal.dInf);
+                    return unref(costs).reduce(
+                        (pre, c) =>
+                            Decimal.min(
+                                this.inverseCostPre(
+                                    Decimal.div(c.res.value, unref(c.base)).root(unref(c.root ?? 1))
+                                ),
+                                pre
+                            ),
+                        Decimal.dInf
+                    );
                 },
                 canPurchase: computed((cost?: DecimalSource) => {
                     if (unref(buyable.visibility) != Visibility.Visible) return false;
@@ -532,7 +543,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 .pow(upgrades.coalUpg.bought.value ? 1.2 : 1)
                 .pow(management.elfTraining.clothElfTraining.milestones[3].earned.value ? 1.1 : 1)
         ),
-        orange2: computed(() => Decimal.add(dyes.orange.amount.value, 1).log2().plus(1).pow(oil.row3Upgrades[1].bought.value ? 2.5 : 1)),
+        orange2: computed(() =>
+            Decimal.add(dyes.orange.amount.value, 1)
+                .log2()
+                .plus(1)
+                .pow(oil.row3Upgrades[1].bought.value ? 2.5 : 1)
+        ),
         green1: computed(() =>
             Decimal.pow(2, Decimal.add(dyes.green.amount.value, 1).log2().sqrt())
                 .pow(upgrades.coalUpg.bought.value ? 1.2 : 1)
@@ -742,6 +758,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         ),
         "Sum of Dyes"
     );
+    const secondaryDyeSum = computed(() =>
+        [dyes.orange, dyes.green, dyes.purple].reduce(
+            (acc, curr) => acc.add(curr.amount.value),
+            new Decimal(0)
+        )
+    );
 
     const { total: totalDyeSum, trackerDisplay } = setUpDailyProgressTracker({
         resource: dyeSum,
@@ -764,6 +786,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         dyeSum,
         boosts,
         totalDyeSum,
+        secondaryDyeSum,
         minWidth: 700,
         generalTabCollapsed,
         upgrades,

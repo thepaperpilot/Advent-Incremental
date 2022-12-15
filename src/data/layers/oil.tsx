@@ -741,7 +741,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 1e13,
             display: {
                 title: "Dye Synergy I",
-                description: "Red dye boosts yellow dye gain *(log(x)^0.75)"
+                description: "Red dye boosts yellow dye gain by (log(x)^0.75)"
             },
             visibility: () =>
                 showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
@@ -762,8 +762,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
             resource: noPersist(oil),
             cost: 1e15,
             display: {
-                title: "Colorful Focus",
-                description: "Sum of secondary dyes increases max focus multiplier by cbrt(x)"
+                title: "Colorful Plastic",
+                description: jsx(() => (
+                    <>
+                        Sum of secondary dyes increases plastic gain by <sup>3</sup>
+                        <Sqrt>x</Sqrt>
+                    </>
+                ))
             },
             visibility: () =>
                 showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
@@ -774,7 +779,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 1e16,
             display: {
                 title: "Dye Synergy II",
-                description: "Blue dye boosts red dye gain *log(x)"
+                description: "Blue dye boosts red dye gain by log(x)"
             },
             visibility: () =>
                 showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),

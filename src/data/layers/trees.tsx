@@ -532,6 +532,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             exponent: 1.2,
             description: "100% Foundation Completed",
             enabled: workshop.milestones.logGainMilestone3.earned
+        })),
+        createExponentialModifier(() => ({
+            exponent: 1.05,
+            description: "Un-Processing",
+            enabled: paper.upgrades2.treeUpgrade.bought
         }))
     ]);
 
