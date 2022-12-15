@@ -429,7 +429,7 @@ const layer = createLayer(id, () => {
             shouldEarn: () => expandersElfTraining.level.value >= 4,
             onComplete() {
                 main.days[4].recentlyUpdated.value = true;
-            },
+            }
         })),
         createMilestone(() => ({
             display: {
@@ -487,7 +487,7 @@ const layer = createLayer(id, () => {
             shouldEarn: () => heatedCutterElfTraining.level.value >= 5,
             onComplete() {
                 main.days[4].recentlyUpdated.value = true;
-            },
+            }
         }))
     ] as Array<GenericMilestone>;
     const heatedPlanterElfMilestones = [
@@ -588,7 +588,7 @@ const layer = createLayer(id, () => {
             shouldEarn: () => fertilizerElfTraining.level.value >= 5,
             onComplete() {
                 main.days[4].recentlyUpdated.value = true;
-            },
+            }
         }))
     ] as Array<GenericMilestone>;
     const smallfireElfMilestones = [
@@ -794,7 +794,7 @@ const layer = createLayer(id, () => {
             shouldEarn: () => boxElfTraining.level.value >= 4,
             onComplete() {
                 main.days[6].recentlyUpdated.value = true;
-            },
+            }
         })),
         createMilestone(() => ({
             display: {
@@ -805,7 +805,7 @@ const layer = createLayer(id, () => {
             shouldEarn: () => boxElfTraining.level.value >= 5,
             onComplete() {
                 main.days[6].recentlyUpdated.value = true;
-            },
+            }
         }))
     ] as Array<GenericMilestone>;
     const clothElfMilestones = [
@@ -868,7 +868,7 @@ const layer = createLayer(id, () => {
             shouldEarn: () => clothElfTraining.level.value >= 5,
             onComplete() {
                 main.days[12].recentlyUpdated.value = true;
-            },
+            }
         }))
     ] as Array<GenericMilestone>;
     const coalDrillElfMilestones = [
@@ -905,7 +905,7 @@ const layer = createLayer(id, () => {
             shouldEarn: () => coalDrillElfTraining.level.value >= 4,
             onComplete() {
                 main.days[3].recentlyUpdated.value = true;
-            },
+            }
         })),
         createMilestone(() => ({
             display: {
@@ -1003,7 +1003,7 @@ const layer = createLayer(id, () => {
             shouldEarn: () => oilElfTraining.level.value >= 5,
             onComplete() {
                 main.days[9].recentlyUpdated.value = true;
-            },
+            }
         }))
     ] as Array<GenericMilestone>;
     const heavyDrillElfMilestones = [
@@ -1053,7 +1053,7 @@ const layer = createLayer(id, () => {
             shouldEarn: () => heavyDrillElfTraining.level.value >= 5,
             onComplete() {
                 main.days[5].recentlyUpdated.value = true;
-            },
+            }
         }))
     ] as Array<GenericMilestone>;
     // ------------------------------------------------------------------------------- Milestone display
@@ -1492,9 +1492,7 @@ const layer = createLayer(id, () => {
     });
 
     const classroomEffect = computed(() => {
-        return Decimal.add(classrooms.amount.value, 1)
-            .pow(0.9)
-            .pow(paper.upgrades2.classroomUpgrade.bought.value ? 1.1 : 1);
+        return Decimal.add(classrooms.amount.value, 1).pow(0.9);
     });
 
     const classrooms = createBuyable(() => ({
