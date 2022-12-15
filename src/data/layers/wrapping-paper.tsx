@@ -50,7 +50,7 @@ interface WrappingPaperOptions {
 
 const layer = createLayer (id, () => {
     const name = "Wrapping Paper";
-    const color = "white"; // todo: change
+    const color = "gold"; // todo: change
 
     const createWrappingPaper = (options: WrappingPaperOptions & Partial<BuyableOptions>) => {
         const getCost: Computable<{
@@ -353,12 +353,15 @@ const layer = createLayer (id, () => {
         display: jsx(() => {
             return (
                 <>{
-                    main.isMastery.value ? "Leave Mastery" : "Enter Mastery"
+                    main.isMastery.value ? "Stop Decorating" : "Begin Decoration"
                 }</>
             )
         }),
         onClick () {
             main.toggleMastery();
+        },
+        style: {
+            backgroundColor: "gold"
         }
     }))
 

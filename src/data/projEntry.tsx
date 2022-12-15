@@ -83,22 +83,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
     const loreBody = ref<CoercableComponent | undefined>();
 
     const isMastery = persistent<boolean>(false);
-    const cachedSaves = persistent<Record<string, string>>({});
     const toggleMastery = () => {
         isMastery.value = !isMastery.value;
-        for (let layer of masterableLayers) {
-            const stringSave = JSON.stringify(layer, (key, value) => unref(value));
-            if (cachedSaves.value[layer.name]) {
-                Object.assign(layer, JSON.parse(cachedSaves.value[layer.name]));
-            } else {
-                // hacky but only occurs once, to create a new layer for mastery
-                const reset = createReset(() => ({
-                    thingsToReset: [layer],
-                }));
-                reset.reset();
-                cachedSaves.value[layer.name] = stringSave;
-            }
-        }
     }
 
     function createDay(
@@ -113,8 +99,6 @@ export const main = createLayer("main", function (this: BaseLayer) {
     ): Day {
         const opened = persistent<boolean>(false);
         const recentlyUpdated = persistent<boolean>(false);
-        const cachedSaves = persistent<string[]>([]);
-        const getLayer = computed(() => player.layers[optionsFunc().layer ?? "trees"]) // Probably a better way to do this
 
         return createLazyProxy(() => {
             const day = optionsFunc();
@@ -426,7 +410,6 @@ export const main = createLayer("main", function (this: BaseLayer) {
         minWidth: 700,
         isMastery,
         toggleMastery,
-        
         display: jsx(() => (
             <>
                 {player.devSpeed === 0 ? <div>Game Paused</div> : null}
