@@ -877,7 +877,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             "Carol will automatically purchase all dyes you can afford, without actually spending any resources.",
         buyable: Object.values(dyes.dyes).map(dye => dye.buyable),
         cooldownModifier: dyeCooldown, // Note: Buy max will be unlocked at this point
-        visibility: () => showIf(wrappingPaper.milestones.unlockDyeElf.earned.value)
+        visibility: () => showIf(wrappingPaper.milestones.unlockDyeElf.earned.value),
+        buyMax: true
     });
     const wrappingPaperElves = [dyeElf];
     const elves = {
