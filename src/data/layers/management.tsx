@@ -423,7 +423,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Hope Level 4",
-                effectDisplay: "Unlock an elf that autobuys mining drills."
+                effectDisplay: "Unlock an elf that autobuys coal drills."
             },
             visibility: () => showIf(expanderElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => expandersElfTraining.level.value >= 4
@@ -601,7 +601,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Joy Level 3",
-                effectDisplay: "Mining drill is 2x more powerful"
+                effectDisplay: "Coal drill is 2x more powerful"
             },
             visibility: () => showIf(smallfireElfMilestones[1].earned.value),
             shouldEarn: () => smallfireElfTraining.level.value >= 3
@@ -644,7 +644,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Faith Level 3",
-                effectDisplay: "Mining drill is 2x more powerful"
+                effectDisplay: "Coal drill is 2x more powerful"
             },
             visibility: () => showIf(bonfireElfMilestones[1].earned.value),
             shouldEarn: () => bonfireElfTraining.level.value >= 3
@@ -685,7 +685,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Snowball Level 3",
-                effectDisplay: "Mining drill is 2x more powerful"
+                effectDisplay: "Coal drill is 2x more powerful"
             },
             visibility: () => showIf(kilnElfMilestones[1].earned.value),
             shouldEarn: () => kilnElfTraining.level.value >= 3
@@ -861,7 +861,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Peppermint Level 1",
-                effectDisplay: "The mining drill exponent is increased from 2 to 2.5"
+                effectDisplay: "The coal drill exponent is increased from 2 to 2.5"
             },
             shouldEarn: () => coalDrillElfTraining.level.value >= 1
         })),
