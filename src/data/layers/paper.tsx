@@ -352,7 +352,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     })) as GenericUpgrade;
     const bookUpgrade = createUpgrade(() => ({
         resource: noPersist(paper),
-        cost: 1e40,
+        cost: 1e38,
         visibility: () =>
             showIf(management.elfTraining.heavyDrillElfTraining.milestones[4].earned.value),
         display: {
@@ -362,7 +362,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const classroomUpgrade = createUpgrade(() => ({
         resource: noPersist(paper),
-        cost: 1e44,
+        cost: 1e40,
         visibility: () =>
             showIf(management.elfTraining.heavyDrillElfTraining.milestones[4].earned.value),
         display: {
