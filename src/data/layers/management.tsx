@@ -1453,7 +1453,9 @@ const layer = createLayer(id, () => {
     })) as GenericBuyable;
 
     const classroomCost = computed(() => {
-        const classroomFactor = Decimal.add(classrooms.amount.value, 1).pow(1.5);
+        var v = classrooms.amount.value;
+        if(v.gte(100)) v=v.pow(1.5).div(10)
+        const classroomFactor = Decimal.add(v, 1).pow(1.5);
         return {
             wood: classroomFactor.mul(1e21),
             paper: classroomFactor.mul(1e18),
