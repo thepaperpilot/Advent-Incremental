@@ -19,7 +19,7 @@ import { createMultiplicativeModifier, createSequentialModifier, Modifier } from
 import { noPersist } from "game/persistence";
 import Decimal, { DecimalSource, format, formatSmall, formatWhole } from "util/bignum";
 import { WithRequired } from "util/common";
-import { render, renderCol, renderRow } from "util/vue";
+import { render, renderCol, renderGrid, renderRow } from "util/vue";
 import { computed, ComputedRef, ref, unref } from "vue";
 import cloth from "./cloth";
 import coal from "./coal";
@@ -486,7 +486,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {render(makePaper)}
                 <Spacer />
-                {renderRow(...Object.values(upgrades))}
+                {renderGrid(Object.values(upgrades), Object.values(upgrades2))}
                 <Spacer />
                 {renderCol(...Object.values(books))}
             </>
