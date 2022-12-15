@@ -8,9 +8,9 @@ import {
 } from "features/feature";
 import { BaseLayer, createLayer, GenericLayer, layers } from "game/layers";
 import { persistent } from "game/persistence";
-import type { PlayerData } from "game/player";
+import type { LayerData, PlayerData } from "game/player";
 import player from "game/player";
-import { format, formatTime } from "util/bignum";
+import Decimal, { format, formatTime } from "util/bignum";
 import { Computable, convertComputable, ProcessedComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { renderRow, VueFeature } from "util/vue";
@@ -468,6 +468,14 @@ export function fixOldSave(
 ): void {
     if (!["0.0", "0.1", "0.2", "0.3", "0.4"].includes(oldVersion ?? "")) {
         return;
+    }
+    if ((player.layers?.workshop as LayerData<typeof workshop> | undefined)?.foundationProgress) {
+        (player.layers?.workshop as LayerData<typeof workshop> | undefined)!.foundationProgress =
+            Decimal.min(
+                (player.layers!.workshop as LayerData<typeof workshop> | undefined)!
+                    .foundationProgress!,
+                1000
+            );
     }
     /*player.offlineProd = false;
     delete player.layers?.management;
