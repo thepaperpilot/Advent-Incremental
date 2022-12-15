@@ -227,14 +227,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         resource: metal.metal,
         cost() {
             let v = new Decimal(this.amount.value);
-            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 4).div(100**3);
+            if (Decimal.gte(v, 10)) v = Decimal.pow(v, 4).div(10**3);
             v = Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value).times(v);
             return Decimal.pow(8, v).times(2e5);
         },
         inverseCost(x: DecimalSource) {
             let v = Decimal.div(x, 2e5).log(8);
             v = v.div(Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value));
-            if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100**3).root(4);
+            if (Decimal.gte(v, 10)) v = Decimal.mul(v, 10**3).root(4);
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         display: jsx(() => (
