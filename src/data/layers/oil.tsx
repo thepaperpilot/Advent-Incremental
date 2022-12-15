@@ -736,7 +736,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const row3Upgrades = [
         createUpgrade(() => ({
             resource: noPersist(oil),
-            cost: 1e11,
+            cost: 1e13,
             display: {
                 title: "Dye Synergy I",
                 description: "Red dye boosts yellow dye gain *(log(x)^0.75)"
@@ -747,7 +747,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createUpgrade(() => ({
             resource: noPersist(oil),
-            cost: 1e12,
+            cost: 1e14,
             display: {
                 title: "Orange-colored boxes",
                 description: "Orange dye's 2nd effect is raised to the 2.5"
@@ -758,7 +758,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createUpgrade(() => ({
             resource: noPersist(oil),
-            cost: 1e13,
+            cost: 1e15,
             display: {
                 title: "Colorful Focus",
                 description: "Sum of secondary dyes increases max focus multiplier by cbrt(x)"
@@ -769,7 +769,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createUpgrade(() => ({
             resource: noPersist(oil),
-            cost: 1e14,
+            cost: 1e16,
             display: {
                 title: "Dye Synergy II",
                 description: "Blue dye boosts red dye gain *log(x)"
@@ -780,7 +780,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createUpgrade(() => ({
             resource: noPersist(oil),
-            cost: 1e15,
+            cost: 1e17,
             display: {
                 title: "The Ultimate Metal Dye",
                 description: "Sum of primary dyes boosts auto smelt speed"
