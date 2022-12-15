@@ -426,7 +426,10 @@ const layer = createLayer(id, () => {
                 effectDisplay: "Unlock an elf that autobuys coal drills."
             },
             visibility: () => showIf(expanderElfMilestones[2].earned.value && main.day.value >= 13),
-            shouldEarn: () => expandersElfTraining.level.value >= 4
+            shouldEarn: () => expandersElfTraining.level.value >= 4,
+            onComplete() {
+                main.days[4].recentlyUpdated.value = true;
+            },
         })),
         createMilestone(() => ({
             display: {
@@ -481,7 +484,10 @@ const layer = createLayer(id, () => {
             },
             visibility: () =>
                 showIf(heatedCutterElfMilestones[3].earned.value && main.day.value >= 13),
-            shouldEarn: () => heatedCutterElfTraining.level.value >= 5
+            shouldEarn: () => heatedCutterElfTraining.level.value >= 5,
+            onComplete() {
+                main.days[4].recentlyUpdated.value = true;
+            },
         }))
     ] as Array<GenericMilestone>;
     const heatedPlanterElfMilestones = [
@@ -579,7 +585,10 @@ const layer = createLayer(id, () => {
             },
             visibility: () =>
                 showIf(fertilizerElfMilestones[3].earned.value && main.day.value >= 13),
-            shouldEarn: () => fertilizerElfTraining.level.value >= 5
+            shouldEarn: () => fertilizerElfTraining.level.value >= 5,
+            onComplete() {
+                main.days[4].recentlyUpdated.value = true;
+            },
         }))
     ] as Array<GenericMilestone>;
     const smallfireElfMilestones = [
@@ -782,7 +791,10 @@ const layer = createLayer(id, () => {
                 effectDisplay: "Unlock a second row of box buyables"
             },
             visibility: () => showIf(boxElfMilestones[2].earned.value && main.day.value >= 13),
-            shouldEarn: () => boxElfTraining.level.value >= 4
+            shouldEarn: () => boxElfTraining.level.value >= 4,
+            onComplete() {
+                main.days[6].recentlyUpdated.value = true;
+            },
         })),
         createMilestone(() => ({
             display: {
@@ -790,7 +802,10 @@ const layer = createLayer(id, () => {
                 effectDisplay: "Unlock another row of box upgrades"
             },
             visibility: () => showIf(boxElfMilestones[3].earned.value && main.day.value >= 13),
-            shouldEarn: () => boxElfTraining.level.value >= 5
+            shouldEarn: () => boxElfTraining.level.value >= 5,
+            onComplete() {
+                main.days[6].recentlyUpdated.value = true;
+            },
         }))
     ] as Array<GenericMilestone>;
     const clothElfMilestones = [
@@ -850,7 +865,10 @@ const layer = createLayer(id, () => {
                 effectDisplay: "Unlock another row of focus upgrades"
             },
             visibility: () => showIf(clothElfMilestones[3].earned.value && main.day.value >= 13),
-            shouldEarn: () => clothElfTraining.level.value >= 5
+            shouldEarn: () => clothElfTraining.level.value >= 5,
+            onComplete() {
+                main.days[12].recentlyUpdated.value = true;
+            },
         }))
     ] as Array<GenericMilestone>;
     const coalDrillElfMilestones = [
@@ -884,7 +902,10 @@ const layer = createLayer(id, () => {
             },
             visibility: () =>
                 showIf(coalDrillElfMilestones[2].earned.value && main.day.value >= 13),
-            shouldEarn: () => coalDrillElfTraining.level.value >= 4
+            shouldEarn: () => coalDrillElfTraining.level.value >= 4,
+            onComplete() {
+                main.days[3].recentlyUpdated.value = true;
+            },
         })),
         createMilestone(() => ({
             display: {
@@ -979,7 +1000,10 @@ const layer = createLayer(id, () => {
                 effectDisplay: "Unlock another row of oil upgrades"
             },
             visibility: () => showIf(oilElfMilestones[3].earned.value && main.day.value >= 13),
-            shouldEarn: () => oilElfTraining.level.value >= 5
+            shouldEarn: () => oilElfTraining.level.value >= 5,
+            onComplete() {
+                main.days[9].recentlyUpdated.value = true;
+            },
         }))
     ] as Array<GenericMilestone>;
     const heavyDrillElfMilestones = [
@@ -1026,7 +1050,10 @@ const layer = createLayer(id, () => {
             },
             visibility: () =>
                 showIf(heavyDrillElfMilestones[3].earned.value && main.day.value >= 13),
-            shouldEarn: () => heavyDrillElfTraining.level.value >= 5
+            shouldEarn: () => heavyDrillElfTraining.level.value >= 5,
+            onComplete() {
+                main.days[5].recentlyUpdated.value = true;
+            },
         }))
     ] as Array<GenericMilestone>;
     // ------------------------------------------------------------------------------- Milestone display
