@@ -139,7 +139,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: {
             color: colorText,
-            width: "160px"
+            width: "160px",
+            flexGrow: 1
         }
     })) as ElfBuyable & { resource: Resource };
     const {
@@ -206,7 +207,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: {
             color: colorText,
-            width: "160px"
+            width: "160px",
+            flexGrow: 1
         }
     })) as ElfBuyable & { resource: Resource };
     const {
@@ -261,7 +263,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: {
             color: colorText,
-            width: "160px"
+            width: "160px",
+            flexGrow: 1
         }
     })) as ElfBuyable & { resource: Resource };
     const {
@@ -296,7 +299,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         resource: metal.metal,
         cost() {
             let v = new Decimal(this.amount.value);
-            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 4).div(100);
+            if (Decimal.gte(v, 10)) v = Decimal.pow(v, 4).div(10 ** 3);
             v = Decimal.pow(0.95, paper.books.oilBook.totalAmount.value).times(v);
             let price = Decimal.pow(16, v).times(2e6);
             if (row2Upgrades[4].bought.value) {
@@ -316,7 +319,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
             let v = Decimal.div(x, 2e6).log(16);
             v = v.div(Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value));
-            if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(4);
+            if (Decimal.gte(v, 10)) v = Decimal.mul(v, 10 ** 3).root(4);
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         display: jsx(() => (
@@ -342,7 +345,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: {
             color: colorText,
-            width: "160px"
+            width: "160px",
+            flexGrow: 1
         }
     })) as ElfBuyable & { resource: Resource };
     const {
@@ -370,14 +374,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         resource: noPersist(oil),
         cost() {
             let v = new Decimal(this.amount.value);
-            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 4).div(100);
+            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 4).div(100 ** 3);
             v = Decimal.pow(0.95, paper.books.oilBook.totalAmount.value).times(v);
             return Decimal.pow(2, v).times(50);
         },
         inverseCost(x: DecimalSource) {
             let v = Decimal.div(x, 50).log(2);
             v = v.div(Decimal.pow(0.95, paper.books.oilBook.totalAmount.value));
-            if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(4);
+            if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100 ** 3).root(4);
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         display: jsx(() => (
@@ -410,7 +414,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: {
             color: colorText,
-            width: "160px"
+            width: "160px",
+            flexGrow: 1
         }
     })) as ElfBuyable & { resource: Resource };
     const {
@@ -470,7 +475,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: {
             color: colorText,
-            width: "160px"
+            width: "160px",
+            flexGrow: 1
         }
     })) as ElfBuyable & { resource: Resource };
 
