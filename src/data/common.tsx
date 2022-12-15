@@ -16,6 +16,7 @@ import { GenericMilestone } from "features/milestones/milestone";
 import { displayResource, Resource, trackTotal } from "features/resources/resource";
 import type { GenericTree, GenericTreeNode, TreeNode, TreeNodeOptions } from "features/trees/tree";
 import { createTreeNode } from "features/trees/tree";
+import { BaseLayer, Layer } from "game/layers";
 import type { Modifier } from "game/modifiers";
 import type { Persistent } from "game/persistence";
 import { DefaultValue, persistent } from "game/persistence";
@@ -544,3 +545,11 @@ export function changeActiveBuyables(options: {
         max
     };
 }
+/* ugh
+export function masteryHelper(layer: BaseLayer & {mastery: Partial<typeof layer>}, main: Layer<any> & { isMastery: Ref<boolean> }): ProxyHandler<typeof layer.mastery>{
+    return new Proxy({}, {
+        get (__, key: keyof typeof layer.mastery) {
+            return main.isMastery.value ? layer.mastery[key] : layer[key]
+        }
+    })
+} */

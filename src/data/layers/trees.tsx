@@ -26,6 +26,7 @@ import {
 import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatGain, formatLimit, formatWhole } from "util/bignum";
 import { Direction, WithRequired } from "util/common";
+import { createLazyProxy } from "util/proxies";
 import { render, renderGrid, renderRow } from "util/vue";
 import { computed, ref } from "vue";
 import boxes from "./boxes";
@@ -51,6 +52,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const logs = createResource<DecimalSource>(0, "logs");
     // Think of saplings as spent trees
     const saplings = createResource<DecimalSource>(0, "saplings");
+    const mastered = persistent<boolean>(false);
 
     const ema = ref<DecimalSource>(0);
 
@@ -59,9 +61,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const totalTrees = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
-            addend: () => Decimal.times(expandingForestBuyable.amount.value, 10),
+            addend: () => Decimal.times((main.isMastery.value ? mastery.expandingForestBuyable : expandingForestBuyable).amount.value, 10),
             description: "Expand Forest",
-            enabled: researchUpgrade2.bought
+            enabled: (main.isMastery.value ? mastery.researchUpgrade2 : researchUpgrade2).bought
         })),
         createAdditiveModifier(() => ({
             addend: () => Decimal.div(workshop.foundationProgress.value, 2),
@@ -95,7 +97,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const trees = createResource(
-        computed(() => Decimal.sub(totalTrees.apply(10), saplings.value)),
+        computed(() => Decimal.sub(totalTrees.apply(10), main.isMastery.value ? mastery.saplings.value : saplings.value)),
         "trees"
     );
     const computedTotalTrees = computed(() => totalTrees.apply(10));
@@ -292,7 +294,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createAdditiveModifier(() => ({
             addend: 1,
             description: "Wooden Fingers",
-            enabled: manualCutUpgrade1.bought
+            enabled: (main.isMastery ? mastery.manualCutUpgrade1 : manualCutUpgrade1).bought
         })),
         createAdditiveModifier(() => ({
             addend: computedAutoCuttingAmount,
@@ -793,11 +795,218 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     });
 
-    const mastery = {
-        logs: createResource<DecimalSource>(0,'logs'),
-        saplings: createResource<DecimalSource>(0,'saplings'),
-        
-    }
+    // This would be a lazy proxy if the typings worked properly, REEE
+    // Doesn't matter too much, nothing needs lazy inittialization
+    const mastery = (() => {
+        const logs = createResource<DecimalSource>(0, "logs")
+        const manualCutUpgrade1 = createUpgrade(() => ({
+            resource: noPersist(logs),
+            cost: 10,
+            display: {
+                title: "Wooden Fingers",
+                description: "Cut down an additional tree per click"
+            }
+        }));
+        const manualPlantUpgrade1 = createUpgrade(() => ({
+            resource: noPersist(logs),
+            cost: 10,
+            display: {
+                title: "Leafy Fingers",
+                description: "Plant an additional tree per click"
+            }
+        }));
+        const autoCutUpgrade1 = createUpgrade(() => ({
+            resource: noPersist(logs),
+            cost: 25,
+            display: {
+                title: "Automated Knives",
+                description: "Cut down a tree every second"
+            }
+        }));
+        const autoPlantUpgrade1 = createUpgrade(() => ({
+            resource: noPersist(logs),
+            cost: 25,
+            display: {
+                title: "Automated Spade",
+                description: "Plant a tree every second"
+            }
+        }));
+        const researchUpgrade1 = createUpgrade(() => ({
+            resource: noPersist(logs),
+            cost: 40,
+            display: {
+                title: "Research I",
+                description: "Trees give 25% more logs, and unlock more upgrades"
+            }
+        }));
+        const row1Upgrades = [
+            manualCutUpgrade1,
+            manualPlantUpgrade1,
+            autoCutUpgrade1,
+            autoPlantUpgrade1,
+            researchUpgrade1
+        ];
+    
+        const manualCutUpgrade2 = createUpgrade(() => ({
+            resource: noPersist(logs),
+            cost: 50,
+            visibility: () => showIf(researchUpgrade1.bought.value),
+            display: {
+                title: "Sharper Fingers",
+                description: "Manually cut trees twice as often"
+            }
+        }));
+        const manualPlantUpgrade2 = createUpgrade(() => ({
+            resource: noPersist(logs),
+            cost: 50,
+            visibility: () => showIf(researchUpgrade1.bought.value),
+            display: {
+                title: "Greener Fingers",
+                description: "Manually Plant trees twice as often"
+            }
+        }));
+        const manualCutUpgrade3 = createUpgrade(() => ({
+            resource: noPersist(logs),
+            cost: 150,
+            visibility: () => showIf(researchUpgrade1.bought.value),
+            display: {
+                title: "Smart Knives",
+                description:
+                    "Each time you manually chop trees, gain 1s of automatic tree chopping production"
+            }
+        }));
+        const manualPlantUpgrade3 = createUpgrade(() => ({
+            resource: noPersist(logs),
+            cost: 150,
+            visibility: () => showIf(researchUpgrade1.bought.value),
+            display: {
+                title: "Smart Spades",
+                description:
+                    "Each time you manually plant trees, gain 1s of automatic tree planting production"
+            }
+        }));
+        const researchUpgrade2 = createUpgrade(() => ({
+            resource: noPersist(logs),
+            cost: 300,
+            visibility: () => showIf(researchUpgrade1.bought.value),
+            display: {
+                title: "Research II",
+                description: "Trees give 25% more logs, and unlock repeatable purchases"
+            }
+        }));
+        const row2Upgrades = [
+            manualCutUpgrade2,
+            manualPlantUpgrade2,
+            manualCutUpgrade3,
+            manualPlantUpgrade3,
+            researchUpgrade2
+        ];
+    
+        const autoCuttingBuyable1 = createBuyable(() => ({
+            resource: noPersist(logs),
+            cost() {
+                let v = this.amount.value;
+                if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
+                if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
+                if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
+                if (Decimal.gte(v, 2e30)) v = Decimal.pow(v, 10).div(Decimal.pow(2e30, 9));
+                v = Decimal.pow(0.95, paper.books.cuttersBook.totalAmount.value).times(v);
+                return Decimal.times(100, v).add(200);
+            },
+            inverseCost(x: DecimalSource) {
+                let v = Decimal.sub(x, 200).div(100);
+                v = v.div(Decimal.pow(0.95, paper.books.cuttersBook.totalAmount.value));
+                if (Decimal.gte(v, 2e30)) v = Decimal.mul(v, Decimal.pow(2e30, 9)).root(10);
+                if (Decimal.gte(v, 2e6)) v = Decimal.mul(v, 2e6).root(2);
+                if (Decimal.gte(v, 200)) v = Decimal.mul(v, 200).root(2);
+                if (Decimal.gte(v, 50)) v = Decimal.mul(v, 50).root(2);
+                return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+            },
+            display: {
+                title: "Generic Cutters",
+                description: "Each cutter cuts down 1 tree/s"
+            },
+            visibility: () => showIf(researchUpgrade2.bought.value)
+        })) as ElfBuyable & { display: { title: string }; resource: Resource };
+        const autoPlantingBuyable1 = createBuyable(() => ({
+            resource: noPersist(logs),
+            cost() {
+                let v = this.amount.value;
+                if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
+                if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
+                if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
+                if (Decimal.gte(v, 2e30)) v = Decimal.pow(v, 10).div(Decimal.pow(2e30, 9));
+                v = Decimal.pow(0.95, paper.books.plantersBook.totalAmount.value).times(v);
+                let cost = Decimal.times(100, v).add(200);
+                if (management.elfTraining.planterElfTraining.milestones[3].earned.value) {
+                    cost = Decimal.div(cost, 10);
+                }
+                return cost;
+            },
+            inverseCost(x: DecimalSource) {
+                if (management.elfTraining.planterElfTraining.milestones[3].earned.value) {
+                    x = Decimal.mul(x, 10);
+                }
+                let v = Decimal.sub(x, 200).div(100);
+                v = v.div(Decimal.pow(0.95, paper.books.plantersBook.totalAmount.value));
+                if (Decimal.gte(v, 2e30)) v = Decimal.mul(v, Decimal.pow(2e30, 9)).root(10);
+                if (Decimal.gte(v, 2e6)) v = Decimal.mul(v, 2e6).root(2);
+                if (Decimal.gte(v, 200)) v = Decimal.mul(v, 200).root(2);
+                if (Decimal.gte(v, 50)) v = Decimal.mul(v, 50).root(2);
+                return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+            },
+            display: {
+                title: "Generic Planters",
+                description: "Each planter plants 0.5 trees/s"
+            },
+            visibility: () => showIf(researchUpgrade2.bought.value)
+        })) as ElfBuyable & { display: { title: string }; resource: Resource };
+        const expandingForestBuyable = createBuyable(() => ({
+            resource: noPersist(logs),
+            cost() {
+                let v = this.amount.value;
+                if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
+                if (Decimal.gte(v, 1e5)) v = Decimal.pow(v, 2).div(1e5);
+                if (Decimal.gte(v, 1e15)) v = Decimal.pow(v, 10).div(1e135);
+                v = Decimal.pow(0.95, paper.books.expandersBook.totalAmount.value).times(v);
+                return Decimal.pow(Decimal.add(v, 1), 1.5).times(500);
+            },
+            inverseCost(x: DecimalSource) {
+                let v = Decimal.div(x, 500).root(1.5).sub(1);
+                v = v.div(Decimal.pow(0.95, paper.books.expandersBook.totalAmount.value));
+                if (Decimal.gte(v, 1e15)) v = Decimal.mul(v, 1e135).root(10);
+                if (Decimal.gte(v, 1e5)) v = Decimal.mul(v, 1e5).root(2);
+                if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(2);
+                return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+            },
+            display: {
+                title: "Expand Forest",
+                description: "Add 10 trees to the forest"
+            },
+            visibility: () => showIf(researchUpgrade2.bought.value)
+        })) as ElfBuyable & { display: { title: string }; resource: Resource };
+        return {
+            logs,
+            saplings,
+            manualCutUpgrade1,
+            manualCutUpgrade2,
+            manualCutUpgrade3,
+            manualPlantUpgrade1,
+            manualPlantUpgrade2,
+            manualPlantUpgrade3,
+            autoCuttingBuyable1,
+            autoPlantingBuyable1,
+            expandingForestBuyable,
+            researchUpgrade1,
+            researchUpgrade2,
+            autoCutUpgrade1,
+            autoPlantUpgrade1,
+            row1Buyables,
+            row1Upgrades,
+            row2Upgrades
+        }
+    })(); 
+    //mastery.manualCutUpgrade1
 
     return {
         name,
@@ -817,13 +1026,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         manualPlantProgress,
         generalTabCollapsed,
         computedAutoCuttingAmount,
+        mastery,
         minWidth: 700,
         display: jsx(() => (
             <>
                 {render(trackerDisplay)}
                 <Spacer />
                 <MainDisplay
-                    resource={logs}
+                    resource={main.isMastery.value ? mastery.logs : logs}
                     color={colorBright}
                     style="margin-bottom: 0"
                     productionDisplay={
@@ -841,7 +1051,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     }
                 />
                 <MainDisplay
-                    resource={saplings}
+                    resource={main.isMastery.value ? mastery.saplings : saplings}
                     color={colorDark}
                     style="margin-bottom: 0"
                     productionDisplay={formatGain(netSaplingGain.value)}
@@ -856,16 +1066,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {renderRow(cutTree, plantTree)}
                 <div>Tip: You can hold down on actions to perform them automatically</div>
                 <Spacer />
-                {renderGrid(row1Upgrades, row2Upgrades)}
+                {renderGrid(...main.isMastery.value ? [mastery.row1Upgrades, mastery.row2Upgrades] : [row1Upgrades, row2Upgrades])}
                 <Spacer />
-                {renderRow(...row1Buyables)}
+                {renderRow(...main.isMastery.value ?  mastery.row1Buyables : row1Buyables)}
             </>
         )),
         minimizedDisplay: jsx(() => (
             <div>
-                {name} - {format(logs.value)} {logs.displayName}
+                {name} - {format(main.isMastery.value ? mastery.logs.value : logs.value)} {logs.displayName}
             </div>
-        ))
+        )),
+        mastered
     };
 });
 

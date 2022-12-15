@@ -59,7 +59,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const foundationConversion = createIndependentConversion(() => ({
         scaling: addSoftcap(
             addSoftcap(createPolynomialScaling(
-                addScaling(250), 1.5), addScaling(5387), 1 / 1e10),
+                addScaling(250), 1.5), addScaling(5423), 1 / 1e10),
             addScaling(1e20),
             3e8
         ),
