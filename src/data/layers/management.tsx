@@ -581,7 +581,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Noel Level 5",
-                effectDisplay: "Unlock an elf that autobuys metal buyables"
+                effectDisplay: "Unlock an elf that autobuys metal machines"
             },
             visibility: () =>
                 showIf(fertilizerElfMilestones[3].earned.value && main.day.value >= 13),

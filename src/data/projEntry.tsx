@@ -259,7 +259,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
             symbol: dyesSymbol,
             story: "To make toys, we're going to need some color to make them look nice and enticing! We can't just give kids clear toys after all! To add some color to our toys, we'll need some dyes!",
             completedStory:
-                "After all that effort, you finally have a rainbow of dyes to choose from! Now the children won't be able to resist the toys you have to offer, once you get them made of course..."
+                "After all that effort, you finally have a rainbow of dyes to choose from! Now the children won't be able to resist the toys you have to offer, once you get them made of course... Good Job!"
         })),
         createDay(() => ({
             day: 12,

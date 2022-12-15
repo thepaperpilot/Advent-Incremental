@@ -244,7 +244,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const paperBook = createBook({
         name: "The Book Thief",
         elfName: "Star",
-        buyableName: "Paper Buyables",
+        buyableName: "Books",
         visibility: () => showIf(elves.elves.paperElf.bought.value)
     });
     const boxBook = createBook({
@@ -280,13 +280,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const metalBook = createBook({
         name: "Physical Metallurgy",
         elfName: "Twinkle",
-        buyableName: "Metal Buyables",
+        buyableName: "Metal Machines",
         visibility: () => showIf(elves.elves.metalElf.bought.value)
     });
     const dyeBook = createBook({
         name: "Arts and Crafts",
         elfName: "Carol",
-        buyableName: "Dye Buyables",
+        buyableName: "Dyes",
         visibility: () => showIf(elves.elves.dyeElf.bought.value)
     });
     const books = {
