@@ -125,6 +125,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     scaling--;
                 }
                 let cost = Decimal.pow(scaling, v).times(10);
+                if(["Peppermint", "Twinkle", "Cocoa", "Frosty"].includes(options.elfName)){
+                    cost = cost.mul(1e31)
+                }
                 if (management.elfTraining.paperElfTraining.milestones[0].earned.value) {
                     cost = Decimal.div(cost, sumBooks.value.max(1));
                 }
@@ -146,7 +149,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     scaling--;
                 }
 
-                let v = Decimal.div(x, 10).log(scaling);
+                let v = Decimal.div(x, 10)
+                if(["Peppermint", "Twinkle", "Cocoa", "Frosty"].includes(options.elfName)){
+                    v = v.div(1e31)
+                }
+                v = v.log(scaling);
 
                 v = v.div(Decimal.pow(0.95, paperBook.totalAmount.value));
                 if (Decimal.gte(v, 10000)) v = Decimal.mul(v, 10000).root(2);
