@@ -434,7 +434,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: management.elfTraining.planterElfTraining.milestones[0].earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.pow(trees.value, 0.2).log10().pow_base(2),
+            multiplier: () => Decimal.pow(trees.value, 0.2).add(1).log10().pow_base(2),
             description: "Ivy Level 3",
             enabled: management.elfTraining.planterElfTraining.milestones[2].earned
         })),
