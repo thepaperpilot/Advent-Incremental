@@ -1331,7 +1331,7 @@ const layer = createLayer(id, () => {
             description: "Increase elves affected by focus by 1"
         },
         resource: trees.logs,
-        cost: 1e30
+        cost: 1e28
     }));
     const focusUpgrade3 = createUpgrade(() => ({
         display: {
@@ -1339,7 +1339,7 @@ const layer = createLayer(id, () => {
             description: "Focus can now be rerolled every 10 seconds"
         },
         resource: trees.logs,
-        cost: 1e35
+        cost: 1e31
     }));
     const upgrades = [focusUpgrade1, focusUpgrade2, focusUpgrade3];
     const focusUpgrade4 = createUpgrade(() => ({
@@ -1350,7 +1350,7 @@ const layer = createLayer(id, () => {
         },
         resource: trees.logs,
         visibility: () => showIf(elfTraining.clothElfTraining.milestones[4].earned.value),
-        cost: 1e40
+        cost: 1e34
     }));
     const focusUpgrade5 = createUpgrade(() => ({
         display: {
@@ -1359,7 +1359,7 @@ const layer = createLayer(id, () => {
         },
         resource: trees.logs,
         visibility: () => showIf(elfTraining.clothElfTraining.milestones[4].earned.value),
-        cost: 1e45
+        cost: 1e35
     }));
     const focusUpgrade6 = createUpgrade(() => ({
         display: {
@@ -1368,7 +1368,7 @@ const layer = createLayer(id, () => {
         },
         resource: trees.logs,
         visibility: () => showIf(elfTraining.clothElfTraining.milestones[4].earned.value),
-        cost: 1e50
+        cost: 1e36
     }));
     const upgrades2 = [focusUpgrade4, focusUpgrade5, focusUpgrade6];
     // ------------------------------------------------------------------------------- Schools
