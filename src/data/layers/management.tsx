@@ -1390,7 +1390,7 @@ const layer = createLayer(id, () => {
     const focusUpgrade6 = createUpgrade(() => ({
         display: {
             title: "Focus Doubler",
-            description: "Focus now applies to 6 elves."
+            description: "Focus applies to an additional elf."
         },
         resource: trees.logs,
         visibility: () => showIf(elfTraining.clothElfTraining.milestones[4].earned.value),
