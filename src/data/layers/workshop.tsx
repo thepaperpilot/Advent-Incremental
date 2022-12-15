@@ -93,13 +93,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
         visibility: () =>
             showIf(
-                Decimal.lt(foundationProgress.value, 100) ||
+                Decimal.lt(
+                    foundationProgress.value,
                     management.elfTraining.expandersElfTraining.milestones[2].earned.value
+                        ? 1000
+                        : 100
+                )
             ),
         canClick: () =>
             Decimal.gte(trees.logs.value, foundationConversion.nextAt.value) &&
-            (Decimal.lt(foundationProgress.value, 100) ||
-                management.elfTraining.expandersElfTraining.milestones[2].earned.value),
+            Decimal.lt(
+                foundationProgress.value,
+                management.elfTraining.expandersElfTraining.milestones[2].earned.value ? 1000 : 100
+            ),
         onClick() {
             if (!unref(this.canClick)) {
                 return;
