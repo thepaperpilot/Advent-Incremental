@@ -450,7 +450,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
             let v = Decimal.div(x, 1e7).log(10);
             v = v.div(Decimal.pow(0.95, paper.books.oilBook.totalAmount.value));
-            if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(4);
+            if (Decimal.gte(v, 1e4)) v = Decimal.mul(v, 1e4).root(2);
+            if (Decimal.gte(v, 200)) v = Decimal.mul(v, 200).root(2);
+            if (Decimal.gte(v, 50)) v = Decimal.mul(v, 50).root(2);
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         display: jsx(() => (
