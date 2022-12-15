@@ -1466,13 +1466,9 @@ const layer = createLayer(id, () => {
     });
 
     const classroomEffect = computed(() => {
-        var eff = Decimal.add(classrooms.amount.value, 1)
+        return Decimal.add(classrooms.amount.value, 1)
             .pow(0.9)
             .pow(paper.upgrades2.classroomUpgrade.bought.value ? 1.1 : 1);
-        if(eff.gte(100)){
-            eff = eff.sqrt().mul(10)
-        }
-        return eff
     });
 
     const classrooms = createBuyable(() => ({
