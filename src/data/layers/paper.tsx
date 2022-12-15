@@ -12,18 +12,18 @@ import { createCumulativeConversion, createPolynomialScaling } from "features/co
 import { jsx, showIf } from "features/feature";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource, displayResource, Resource } from "features/resources/resource";
-import { createUpgrade } from "features/upgrades/upgrade";
+import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier, Modifier } from "game/modifiers";
 import { noPersist } from "game/persistence";
-import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
+import Decimal, { DecimalSource, format, formatSmall, formatWhole } from "util/bignum";
 import { WithRequired } from "util/common";
 import { render, renderCol, renderRow } from "util/vue";
 import { computed, ComputedRef, ref, unref } from "vue";
 import cloth from "./cloth";
 import coal from "./coal";
-import elves from "./elves";
+import elves, { ElfBuyable } from "./elves";
 import plastic from "./plastic";
 import trees from "./trees";
 import dyes from "./dyes";
@@ -104,7 +104,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: `Print a copy of "${options.name}", which ${options.elfName} will use to improve their skills! Each copy printed will reduce the "${options.buyableName}" price scaling by 0.95x and make ${options.elfName} purchase +10% faster!`,
                 effectDisplay: jsx(() => (
                     <>
-                        {format(Decimal.pow(0.95, buyable.totalAmount.value))}x price scaling,{" "}
+                        {formatSmall(Decimal.pow(0.95, buyable.totalAmount.value))}x price scaling,{" "}
                         {format(Decimal.div(buyable.totalAmount.value, 10).add(1))}x auto-purchase
                         speed
                     </>
@@ -113,20 +113,48 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             resource: noPersist(paper),
             cost() {
-                let v = this.amount.value;
+                let v = buyable.amount.value;
+                if (options.elfName === "Star" && Decimal.gte(v, 10))
+                    v = Decimal.pow(10, Decimal.div(v, 10));
                 if (options.elfName === "Star" || options.elfName === "Bell") v = Decimal.pow(v, 2);
                 if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
                 if (Decimal.gte(v, 10000)) v = Decimal.pow(v, 2).div(10000);
                 v = Decimal.pow(0.95, paperBook.totalAmount.value).times(v);
                 let scaling = 5;
-                if (management.elfTraining.paperElfTraining.milestones[0].earned.value) {
+                if (management.elfTraining.paperElfTraining.milestones[2].earned.value) {
                     scaling--;
                 }
                 let cost = Decimal.pow(scaling, v).times(10);
                 if (management.elfTraining.paperElfTraining.milestones[0].earned.value) {
                     cost = Decimal.div(cost, sumBooks.value.max(1));
                 }
+                if (bookUpgrade.bought.value) {
+                    cost = cost.div(10);
+                }
                 return cost;
+            },
+            inverseCost(x: DecimalSource) {
+                if (bookUpgrade.bought.value) {
+                    x = Decimal.mul(x, 10);
+                }
+                if (management.elfTraining.paperElfTraining.milestones[0].earned.value) {
+                    x = Decimal.mul(x, sumBooks.value.max(1));
+                }
+
+                let scaling = 5;
+                if (management.elfTraining.paperElfTraining.milestones[2].earned.value) {
+                    scaling--;
+                }
+
+                let v = Decimal.div(x, 10).log(scaling);
+
+                v = v.div(Decimal.pow(0.95, paperBook.totalAmount.value));
+                if (Decimal.gte(v, 10000)) v = Decimal.mul(v, 10000).root(2);
+                if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(2);
+                if (options.elfName === "Star" || options.elfName === "Bell")
+                    v = Decimal.root(v, 2);
+                if (options.elfName === "Star" && Decimal.gte(v, 10)) v = v.log10().mul(10);
+                return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
             },
             style: "width: 600px",
             freeLevels: computed(() =>
@@ -135,7 +163,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     : 0
             ),
             totalAmount: computed(() => Decimal.add(buyable.amount.value, buyable.freeLevels.value))
-        })) as GenericBuyable & {
+        })) as ElfBuyable & {
             resource: Resource;
             freeLevels: ComputedRef<DecimalSource>;
             totalAmount: ComputedRef<DecimalSource>;
@@ -294,7 +322,37 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const upgrades = { clothUpgrade, drillingUpgrade, oilUpgrade };
-
+    const ashUpgrade = createUpgrade(() => ({
+        resource: noPersist(paper),
+        cost: 1e36,
+        visibility: () =>
+            showIf(management.elfTraining.heavyDrillElfTraining.milestones[4].earned.value),
+        display: {
+            title: "Paper Burning",
+            description: "Paper adds to ash gain after all other modifiers"
+        }
+    })) as GenericUpgrade;
+    const bookUpgrade = createUpgrade(() => ({
+        resource: noPersist(paper),
+        cost: 1e40,
+        visibility: () =>
+            showIf(management.elfTraining.heavyDrillElfTraining.milestones[4].earned.value),
+        display: {
+            title: "Book Cheapener",
+            description: "Books are less expensive"
+        }
+    }));
+    const classroomUpgrade = createUpgrade(() => ({
+        resource: noPersist(paper),
+        cost: 1e44,
+        visibility: () =>
+            showIf(management.elfTraining.heavyDrillElfTraining.milestones[4].earned.value),
+        display: {
+            title: "Classroom Supplies",
+            description: "Classrooms' effect is raised to the 1.1"
+        }
+    }));
+    const upgrades2 = { ashUpgrade, bookUpgrade, classroomUpgrade };
     const paperGain = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -338,7 +396,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Star Level 2",
             enabled: management.elfTraining.paperElfTraining.milestones[1].earned
         }))
-    ]);
+    ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAshCost = computed(() => ashCost.apply(1e6));
 
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
@@ -399,6 +457,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         paperConversion,
         books,
         upgrades,
+        upgrades2,
         generalTabCollapsed,
         minWidth: 700,
         display: jsx(() => (

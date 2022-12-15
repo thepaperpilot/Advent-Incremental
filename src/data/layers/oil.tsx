@@ -24,19 +24,22 @@ import metal from "./metal";
 import {
     createSequentialModifier,
     createAdditiveModifier,
-    createMultiplicativeModifier
+    createMultiplicativeModifier,
+    Modifier
 } from "game/modifiers";
 import { main } from "data/projEntry";
 import { globalBus } from "game/events";
 import coal from "./coal";
 import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
 import { createMilestone, GenericMilestone } from "features/milestones/milestone";
-import { formatGain } from "util/bignum";
+import { formatGain, formatSmall } from "util/bignum";
 import plastic from "./plastic";
 import paper from "./paper";
 import dyes from "./dyes";
 import management from "./management";
 import workshop from "./workshop";
+import { WithRequired } from "util/common";
+import { ElfBuyable } from "./elves";
 
 const id = "oil";
 const day = 9;
@@ -84,7 +87,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const activeHeavy = persistent<DecimalSource>(0);
     const heavyCoal = computed(() =>
-        Decimal.times(Decimal.pow(activeHeavy.value, heavy2Power.value).pow(2), 1e14)
+        Decimal.times(
+            Decimal.pow(activeHeavy.value, heavy2Power.value).pow(
+                management.elfTraining.coalDrillElfTraining.milestones[0].earned.value ? 2.5 : 2
+            ),
+            1e14
+        )
     );
     const heavyPower = computed(() =>
         Decimal.times(Decimal.pow(activeHeavy.value, heavy2Power.value), 1)
@@ -93,8 +101,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         resource: metal.metal,
         cost() {
             let v = new Decimal(this.amount.value);
+            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 4).div(100**3);
             v = Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value).times(v);
             return Decimal.pow(1.3, v).times(2.5e4);
+        },
+        inverseCost(x: DecimalSource) {
+            let v = Decimal.div(x, 2.5e4).log(1.3);
+            v = v.div(Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value));
+            if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100**3).root(4);
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         display: jsx(() => (
             <>
@@ -102,8 +117,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <br />
                 A large drill specialized at deep mining.
                 <br />
-                Consumes 1e14*(Heavy Drills amount)<sup>2</sup> coal/sec for (Heavy Drills amount)
-                drill power.
+                Consumes 1e14*(Heavy Drills amount)
+                <sup>
+                    {management.elfTraining.coalDrillElfTraining.milestones[0].earned.value
+                        ? 2.5
+                        : 2}
+                </sup>{" "}
+                coal/sec for (Heavy Drills amount) drill power.
                 <br />
                 <br />
                 Currently:
@@ -121,7 +141,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             color: colorText,
             width: "160px"
         }
-    })) as GenericBuyable & { resource: Resource };
+    })) as ElfBuyable & { resource: Resource };
     const {
         min: minHeavy,
         max: maxHeavy,
@@ -132,13 +152,28 @@ const layer = createLayer(id, function (this: BaseLayer) {
         active: activeHeavy
     });
     const activeHeavy2 = persistent<DecimalSource>(0);
-    const heavy2Power = computed(() => Decimal.add(activeHeavy2.value, Math.E).ln());
+    const heavy2Power = computed(() => {
+        let power = Decimal.add(activeHeavy2.value, Math.E);
+        if (management.elfTraining.heavyDrillElfTraining.milestones[3].earned.value) {
+            power = power.log(2.5);
+        } else {
+            power = power.ln();
+        }
+        return power;
+    });
     const buildHeavy2 = createBuyable(() => ({
         resource: metal.metal,
         cost() {
             let v = new Decimal(this.amount.value);
+            if (Decimal.gte(v, 50)) v = Decimal.pow(v, 4).div(50**3);
             v = Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value).times(v);
             return Decimal.pow(2, v).times(1e5);
+        },
+        inverseCost(x: DecimalSource) {
+            let v = Decimal.div(x, 1e5).log(2);
+            v = v.div(Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value));
+            if (Decimal.gte(v, 50)) v = Decimal.mul(v, 50**3).root(4);
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         display: jsx(() => (
             <>
@@ -146,7 +181,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <br />
                 Attach extra drills to Heavy Drills to make them faster
                 <br />
-                Raise amount of effective Heavy Drills by ^ln(Heavy Drill Drill amount + e).
+                Raise amount of effective Heavy Drills by ^
+                {management.elfTraining.heavyDrillElfTraining.milestones[3].earned.value ? (
+                    <>
+                        log<sub>2.5</sub>
+                    </>
+                ) : (
+                    <>ln</>
+                )}
+                (Heavy Drill Drill amount + e).
                 <br />
                 (also affects coal consumption).
                 <br />
@@ -165,7 +208,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             color: colorText,
             width: "160px"
         }
-    })) as GenericBuyable & { resource: Resource };
+    })) as ElfBuyable & { resource: Resource };
     const {
         min: minHeavy2,
         max: maxHeavy2,
@@ -184,8 +227,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         resource: metal.metal,
         cost() {
             let v = new Decimal(this.amount.value);
+            if (Decimal.gte(v, 10)) v = Decimal.pow(v, 4).div(10**3);
             v = Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value).times(v);
             return Decimal.pow(8, v).times(2e5);
+        },
+        inverseCost(x: DecimalSource) {
+            let v = Decimal.div(x, 2e5).log(8);
+            v = v.div(Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value));
+            if (Decimal.gte(v, 10)) v = Decimal.mul(v, 10**3).root(4);
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         display: jsx(() => (
             <>
@@ -197,7 +247,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <br />
                 <br />
                 Currently:
-                <br />×{format(extractorPower.value)} drill power
+                <br />×{formatSmall(extractorPower.value)} drill power
                 <br />×{format(extractorCoal.value)} coal/sec
                 <br />×{format(extractorOre.value)} ore/sec
                 <br />
@@ -213,7 +263,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             color: colorText,
             width: "160px"
         }
-    })) as GenericBuyable & { resource: Resource };
+    })) as ElfBuyable & { resource: Resource };
     const {
         min: minExtractor,
         max: maxExtractor,
@@ -234,18 +284,40 @@ const layer = createLayer(id, function (this: BaseLayer) {
             .mul(activeHeavy.value)
             .mul(Decimal.add(activeHeavy2.value, 1))
             .mul(activeExtractor.value)
-            .mul(depth.value)
+            .mul(
+                Decimal.pow(
+                    depth.value,
+                    management.elfTraining.oilElfTraining.milestones[0].earned.value ? 1.2 : 1
+                )
+            )
             .div(1e5)
     );
     const buildPump = createBuyable(() => ({
         resource: metal.metal,
         cost() {
             let v = new Decimal(this.amount.value);
+            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 4).div(100);
             v = Decimal.pow(0.95, paper.books.oilBook.totalAmount.value).times(v);
             let price = Decimal.pow(16, v).times(2e6);
-            if (row2Upgrades[4].bought.value)
+            if (row2Upgrades[4].bought.value) {
                 price = price.div(Decimal.add(totalOil.value, 1).root(6));
+            }
+            if (management.elfTraining.heavyDrillElfTraining.milestones[1].earned.value) {
+                price = price.div(10);
+            }
             return price;
+        },
+        inverseCost(x: DecimalSource) {
+            if (management.elfTraining.heavyDrillElfTraining.milestones[1].earned.value) {
+                x = Decimal.mul(x, 10);
+            }
+            if (row2Upgrades[4].bought.value) {
+                x = Decimal.mul(x, Decimal.add(totalOil.value, 1).root(6));
+            }
+            let v = Decimal.div(x, 2e6).log(16);
+            v = v.div(Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value));
+            if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(4);
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         display: jsx(() => (
             <>
@@ -272,7 +344,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             color: colorText,
             width: "160px"
         }
-    })) as GenericBuyable & { resource: Resource };
+    })) as ElfBuyable & { resource: Resource };
     const {
         max: maxPump,
         min: minPump,
@@ -284,15 +356,29 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
 
     const activeBurner = persistent<DecimalSource>(0);
-    const burnerOil = computed(() => Decimal.pow(activeBurner.value, 2));
-    const burnerCoal = computed(() => Decimal.pow(activeBurner.value, 3).mul(1e19));
-    const burnerMetal = computed(() => Decimal.add(activeBurner.value, 1));
+    const effectiveBurners = computed(() => {
+        let burners = activeBurner.value;
+        if (management.elfTraining.heavyDrillElfTraining.milestones[2].earned.value) {
+            burners = Decimal.pow(burners, 1.5);
+        }
+        return burners;
+    });
+    const burnerOil = computed(() => Decimal.pow(effectiveBurners.value, 2));
+    const burnerCoal = computed(() => Decimal.pow(effectiveBurners.value, 3).mul(1e19));
+    const burnerMetal = computed(() => Decimal.add(effectiveBurners.value, 1));
     const buildBurner = createBuyable(() => ({
         resource: noPersist(oil),
         cost() {
             let v = new Decimal(this.amount.value);
+            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 4).div(100);
             v = Decimal.pow(0.95, paper.books.oilBook.totalAmount.value).times(v);
             return Decimal.pow(2, v).times(50);
+        },
+        inverseCost(x: DecimalSource) {
+            let v = Decimal.div(x, 50).log(2);
+            v = v.div(Decimal.pow(0.95, paper.books.oilBook.totalAmount.value));
+            if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(4);
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         display: jsx(() => (
             <>
@@ -326,7 +412,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             color: colorText,
             width: "160px"
         }
-    })) as GenericBuyable & { resource: Resource };
+    })) as ElfBuyable & { resource: Resource };
     const {
         max: maxBurner,
         min: minBurner,
@@ -344,11 +430,23 @@ const layer = createLayer(id, function (this: BaseLayer) {
         resource: metal.metal,
         cost() {
             let v = new Decimal(this.amount.value);
+            if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
+            if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
+            if (Decimal.gte(v, 1e4)) v = Decimal.pow(v, 2).div(1e4);
             v = Decimal.pow(0.95, paper.books.oilBook.totalAmount.value).times(v);
             let price = Decimal.pow(10, v).times(1e7);
             if (row2Upgrades[4].bought.value)
                 price = price.div(Decimal.add(totalOil.value, 1).root(6));
             return price;
+        },
+        inverseCost(x: DecimalSource) {
+            if (row2Upgrades[4].bought.value) {
+                x = Decimal.mul(x, Decimal.add(totalOil.value, 1).root(6));
+            }
+            let v = Decimal.div(x, 1e7).log(10);
+            v = v.div(Decimal.pow(0.95, paper.books.oilBook.totalAmount.value));
+            if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(4);
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         display: jsx(() => (
             <>
@@ -374,7 +472,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             color: colorText,
             width: "160px"
         }
-    })) as GenericBuyable & { resource: Resource };
+    })) as ElfBuyable & { resource: Resource };
 
     const {
         max: maxSmelter,
@@ -601,7 +699,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 1500,
             display: {
                 title: "Blaster Burner",
-                description: "The Oil Burner can now increase your metal gain."
+                description: "The Oil Burner can now increase your auto smelting multi."
             },
             style: { color: colorText }
         })),
@@ -629,7 +727,63 @@ const layer = createLayer(id, function (this: BaseLayer) {
             style: { color: colorText }
         }))
     ];
-
+    const row3Upgrades = [
+        createUpgrade(() => ({
+            resource: noPersist(oil),
+            cost: 1e11,
+            display: {
+                title: "Dye Synergy I",
+                description: "Red dye boosts yellow dye gain *(log(x)^0.75)"
+            },
+            visibility: () =>
+                showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
+            style: { color: colorText }
+        })),
+        createUpgrade(() => ({
+            resource: noPersist(oil),
+            cost: 1e12,
+            display: {
+                title: "Orange-colored boxes",
+                description: "Orange dye's 2nd effect is raised to the 2.5"
+            },
+            visibility: () =>
+                showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
+            style: { color: colorText }
+        })),
+        createUpgrade(() => ({
+            resource: noPersist(oil),
+            cost: 1e13,
+            display: {
+                title: "Colorful Focus",
+                description: "Sum of secondary dyes increases max focus multiplier by cbrt(x)"
+            },
+            visibility: () =>
+                showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
+            style: { color: colorText }
+        })),
+        createUpgrade(() => ({
+            resource: noPersist(oil),
+            cost: 1e14,
+            display: {
+                title: "Dye Synergy II",
+                description: "Blue dye boosts red dye gain *log(x)"
+            },
+            visibility: () =>
+                showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
+            style: { color: colorText }
+        })),
+        createUpgrade(() => ({
+            resource: noPersist(oil),
+            cost: 1e15,
+            display: {
+                title: "The Ultimate Metal Dye",
+                description: "Sum of primary dyes boosts auto smelt speed"
+            },
+            visibility: () =>
+                showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
+            style: { color: colorText }
+        }))
+    ];
     const coalConsumption = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: () => Decimal.negate(heavyCoal.value),
@@ -683,6 +837,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "Guide to drilling",
             enabled: paper.upgrades.drillingUpgrade.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(totalOil.value, 1).log10().add(1),
+            description: "Cocoa Level 2",
+            enabled: management.elfTraining.oilElfTraining.milestones[1].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Cocoa Level 3",
+            enabled: management.elfTraining.oilElfTraining.milestones[2].earned
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () => coalEffectiveness.value,
@@ -742,8 +906,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.add(buildHeavy2.amount.value, 1).sqrt(),
             description: "Faith Level 4",
             enabled: management.elfTraining.bonfireElfTraining.milestones[3].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Cocoa Level 3",
+            enabled: management.elfTraining.oilElfTraining.milestones[2].earned
         }))
-    ]);
+    ]) as WithRequired<Modifier, "description" | "revert">;
     const computedOilSpeed = computed(() => oilSpeed.apply(0));
 
     const oilConsumption = createSequentialModifier(() => [
@@ -923,6 +1092,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         activePump,
         buildPump,
         activeBurner,
+        effectiveBurners,
         buildBurner,
         activeSmelter,
         buildSmelter,
@@ -938,6 +1108,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
         row1Upgrades,
         row2Upgrades,
+        row3Upgrades,
 
         minWidth: 700,
 
@@ -953,6 +1124,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
             if (oilMilestones[1].earned.value) {
                 upgrades.push(row2Upgrades);
+            }
+            if (management.elfTraining.oilElfTraining.milestones[4].earned.value) {
+                upgrades.push(row3Upgrades);
             }
             return (
                 <>

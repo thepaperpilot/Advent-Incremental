@@ -8,7 +8,7 @@ import {
 } from "features/feature";
 import { BaseLayer, createLayer, GenericLayer, layers } from "game/layers";
 import { persistent } from "game/persistence";
-import type { LayerData, PlayerData } from "game/player";
+import type { PlayerData } from "game/player";
 import player from "game/player";
 import { format, formatTime } from "util/bignum";
 import { Computable, convertComputable, ProcessedComputable } from "util/computed";
@@ -18,23 +18,24 @@ import type { Ref } from "vue";
 import { computed, ref, unref } from "vue";
 import "./advent.css";
 import Day from "./Day.vue";
-import trees from "./layers/trees";
-import workshop from "./layers/workshop";
-import treeSymbol from "./symbols/tree.png";
-import workshopSymbol from "./symbols/sws.png";
-import coalSymbol from "./symbols/coal.png";
-import elfSymbol from "./symbols/elf.png";
-import paperSymbol from "./symbols/paperStacks.png";
 import boxesSymbol from "./symbols/cardboardBox.png";
-import metalSymbol from "./symbols/metal.png";
 import clothSymbol from "./symbols/cloth.png";
-import oilSymbol from "./symbols/oil.png";
-import plasticSymbol from "./symbols/plastic.png";
+import coalSymbol from "./symbols/coal.png";
 import dyesSymbol from "./symbols/dyes.png";
+import elfSymbol from "./symbols/elf.png";
 import managementSymbol from "./symbols/elfManagement.png";
+import metalSymbol from "./symbols/metal.png";
+import oilSymbol from "./symbols/oil.png";
+import paperSymbol from "./symbols/paperStacks.png";
+import plasticSymbol from "./symbols/plastic.png";
+import workshopSymbol from "./symbols/sws.png";
+import treeSymbol from "./symbols/tree.png";
+import advManagementSymbol from "./symbols/workshopMansion.png";
 import wrappingPaperSymbol from "./symbols/wrappingPaper.png";
 import coal from "./layers/coal";
 import elves from "./layers/elves";
+import trees from "./layers/trees";
+import workshop from "./layers/workshop";
 import paper from "./layers/paper";
 import boxes from "./layers/boxes";
 import metal from "./layers/metal";
@@ -160,6 +161,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
                                 // Mobile, use single tab mode
                                 player.tabs.splice(1, Infinity, layer ?? "trees");
                             }
+                            layers[layer ?? "trees"]!.minimized.value = false;
                         },
                         onUnlockLayer() {
                             if (layer) {
@@ -291,8 +293,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 13,
             shouldNotify: false,
-            layer: null, // "management" (advanced)
-            symbol: "",
+            layer: "management",
+            symbol: advManagementSymbol,
             story: "So after a good night's rest you decide that maybe making these elves able to do all the work for you isn't something to be scared of, but rather encouraged. Let's spend another day continuing to train them up and really get this place spinning. They are Santa's elves after all, they're supposed to be able to run everything without you!",
             completedStory:
                 "The elves are doing an incredible job, and Santa does not seem keen on firing you - Score! Now you can get to work on guiding this properly trained highly functional group of hard workers to make Christmas as great as possible. Good Job!"
@@ -311,7 +313,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             layer: "wrappingPaper",
             symbol: wrappingPaperSymbol,
             story: "You'll need to produce wrapping paper so the presents can be wrapped. The elves are getting a bit bored of their boring old workstations, so you decide to let them decorate with some wrapping paper.",
-            completedStory: "You've produced enough wrapping paper, and the elves are happy with their new workstations. However, some will need more than just wrapping paper to decorate."
+            completedStory:
+                "You've produced enough wrapping paper, and the elves are happy with their new workstations. However, some will need more than just wrapping paper to decorate."
         })),
         createDay(() => ({
             day: 16,

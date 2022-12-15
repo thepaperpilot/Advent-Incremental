@@ -15,17 +15,6 @@
         }"
     >
         <div
-            class="overlayTextContainer border"
-            :style="[
-                { width: unref(width) + 'px', height: unref(height) + 'px' },
-                unref(borderStyle) ?? {}
-            ]"
-        >
-            <span v-if="component" class="overlayText" :style="unref(textStyle)">
-                <component :is="component" />
-            </span>
-        </div>
-        <div
             class="border"
             :style="[
                 { width: unref(width) + 'px', height: unref(height) + 'px' },
@@ -35,6 +24,17 @@
             ]"
         >
             <div class="fill" :style="[barStyle, unref(style) ?? {}, unref(fillStyle) ?? {}]" />
+        </div>
+        <div
+            class="overlayTextContainer border"
+            :style="[
+                { width: unref(width) + 'px', height: (unref(height) - 1) + 'px' },
+                unref(borderStyle) ?? {}
+            ]"
+        >
+            <span v-if="component" class="overlayText" :style="unref(textStyle)">
+                <component :is="component" />
+            </span>
         </div>
         <MarkNode :mark="unref(mark)" />
         <Node :id="id" />
@@ -109,21 +109,21 @@ export default defineComponent({
             };
             switch (unref(direction)) {
                 case Direction.Up:
-                    barStyle.clipPath = `inset(${normalizedProgress.value}% -2px -2px -2px)`;
-                    barStyle.width = unwrapRef(width) + 2 + "px";
+                    barStyle.clipPath = `inset(${normalizedProgress.value}% -1px -1px -1px)`;
+                    barStyle.width = unwrapRef(width) + 1 + "px";
                     break;
                 case Direction.Down:
-                    barStyle.clipPath = `inset(-2px -2px ${normalizedProgress.value}% -2px)`;
-                    barStyle.width = unwrapRef(width) + 2 + "px";
+                    barStyle.clipPath = `inset(-1px -1px ${normalizedProgress.value}% -1px)`;
+                    barStyle.width = unwrapRef(width) + 1 + "px";
                     break;
                 case Direction.Right:
-                    barStyle.clipPath = `inset(-2px ${normalizedProgress.value}% -2px -2px)`;
+                    barStyle.clipPath = `inset(-1px ${normalizedProgress.value}% -1px -1px)`;
                     break;
                 case Direction.Left:
-                    barStyle.clipPath = `inset(-2px -2px -2px ${normalizedProgress.value} + '%)`;
+                    barStyle.clipPath = `inset(-1px -1px -1px ${normalizedProgress.value} + '%)`;
                     break;
                 case Direction.Default:
-                    barStyle.clipPath = "inset(-2px 50% -2px -2px)";
+                    barStyle.clipPath = "inset(-1px 50% -1px -1px)";
                     break;
             }
             return barStyle;
@@ -148,10 +148,12 @@ export default defineComponent({
     display: table;
     overflow: hidden;
     border-radius: 10px;
+    padding-bottom: 1px;
 }
 
 .overlayTextContainer {
     position: absolute;
+    top: 0;
     border-radius: 10px;
     vertical-align: middle;
     display: flex;
@@ -168,13 +170,17 @@ export default defineComponent({
     border-radius: 10px;
     border-color: var(--foreground);
     overflow: hidden;
-    margin: 0;
+}
+
+.border:not(.overlayTextContainer) {
+    margin: -1px 0 -1px -1px;
 }
 
 .fill {
     position: absolute;
     background-color: var(--foreground);
     overflow: hidden;
+    padding: 2px 1px;
     margin-left: -0.5px;
     transition-duration: 0.2s;
     z-index: 2;

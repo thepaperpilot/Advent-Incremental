@@ -28,7 +28,9 @@ import { formatWhole } from "util/break_eternity";
 import { Direction } from "util/common";
 import { render, renderCol, renderRow } from "util/vue";
 import { computed, ref } from "vue";
+import boxes from "./boxes";
 import dyes from "./dyes";
+import { ElfBuyable } from "./elves";
 import management from "./management";
 import metal from "./metal";
 import paper from "./paper";
@@ -187,11 +189,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
             v = Decimal.pow(0.95, paper.books.clothBook.totalAmount.value).times(v);
             return Decimal.pow(1.5, v).times(1e14);
         },
+        inverseCost(x: DecimalSource) {
+            let v = Decimal.div(x, 1e14).log(1.5);
+            v = v.div(Decimal.pow(0.95, paper.books.clothBook.totalAmount.value));
+            if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(2);
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+        },
         display: {
             title: "Build more pens",
             description: "Breed +1 sheep at once"
         }
-    })) as GenericBuyable & { resource: Resource };
+    })) as ElfBuyable & { resource: Resource };
 
     const betterShears = createBuyable(() => ({
         resource: metal.metal,
@@ -201,11 +209,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
             v = Decimal.pow(0.95, paper.books.clothBook.totalAmount.value).times(v);
             return Decimal.pow(1.4, v).times(10000);
         },
+        inverseCost(x: DecimalSource) {
+            let v = Decimal.div(x, 10000).log(1.4);
+            v = v.div(Decimal.pow(0.95, paper.books.clothBook.totalAmount.value));
+            if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(2);
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+        },
         display: {
             title: "Make stronger shears",
             description: "Shear +1 sheep at once"
         }
-    })) as GenericBuyable & { resource: Resource };
+    })) as ElfBuyable & { resource: Resource };
 
     const fasterSpinning = createBuyable(() => ({
         resource: paper.paper,
@@ -215,11 +229,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
             v = Decimal.pow(0.95, paper.books.clothBook.totalAmount.value).times(v);
             return Decimal.pow(1.3, v).times(1000000);
         },
+        inverseCost(x: DecimalSource) {
+            let v = Decimal.div(x, 1000000).log(1.3);
+            v = v.div(Decimal.pow(0.95, paper.books.clothBook.totalAmount.value));
+            if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(2);
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+        },
         display: {
             title: "Learn how to spin",
             description: "Spin +1 wool at once"
         }
-    })) as GenericBuyable & { resource: Resource };
+    })) as ElfBuyable & { resource: Resource };
 
     const treesUpgrade1 = createUpgrade(() => ({
         resource: noPersist(cloth),
@@ -366,6 +386,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "1000% Foundation Completed",
             enabled: workshop.milestones.extraExpansionMilestone5.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Carry cloth in boxes",
+            enabled: boxes.row3Upgrades.clothUpgrade.bought
         }))
     ]);
     const computedSheepGain = computed(() => sheepGain.apply(1));
@@ -401,6 +426,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "1000% Foundation Completed",
             enabled: workshop.milestones.extraExpansionMilestone5.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Carry cloth in boxes",
+            enabled: boxes.row3Upgrades.clothUpgrade.bought
         }))
     ]);
     const computedShearingAmount = computed(() => shearingAmount.apply(1));
@@ -436,6 +466,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "1000% Foundation Completed",
             enabled: workshop.milestones.extraExpansionMilestone5.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Carry cloth in boxes",
+            enabled: boxes.row3Upgrades.clothUpgrade.bought
         }))
     ]);
     const computedSpinningAmount = computed(() => spinningAmount.apply(1));

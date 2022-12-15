@@ -17,7 +17,11 @@ import { createHotkey } from "features/hotkey";
 import { createMilestone } from "features/milestones/milestone";
 import { createResource, displayResource } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
-import { createExponentialModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
+import {
+    createExponentialModifier,
+    createMultiplicativeModifier,
+    createSequentialModifier
+} from "game/modifiers";
 import { noPersist } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
@@ -54,10 +58,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             createMultiplicativeModifier(() => ({
                 multiplier: computed(() => wrappingPaper.boosts.beach1.value),
                 description: "Beach Wrapping Paper",
-                enabled: computed(() => Decimal.gt(wrappingPaper.boosts.beach1.value,1))
+                enabled: computed(() => Decimal.gt(wrappingPaper.boosts.beach1.value, 1))
             })),
             createExponentialModifier(() => ({
-                exponent: 0.95, // Needs fixing
+                exponent: 1 / 0.99,
                 description: "Holly Level 5",
                 enabled: management.elfTraining.cutterElfTraining.milestones[4].earned
             }))
@@ -90,7 +94,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     management.elfTraining.expandersElfTraining.milestones[2].earned.value
             ),
         canClick: () =>
-            Decimal.gte(trees.logs.value, foundationConversion.currentAt.value) &&
+            Decimal.gte(trees.logs.value, foundationConversion.nextAt.value) &&
             (Decimal.lt(foundationProgress.value, 100) ||
                 management.elfTraining.expandersElfTraining.milestones[2].earned.value),
         onClick() {

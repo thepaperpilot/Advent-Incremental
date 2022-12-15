@@ -31,12 +31,14 @@ import oil from "./oil";
 import trees from "./trees";
 import wrappingPaper from "./wrapping-paper";
 import paper from "./paper";
+import boxes from "./boxes";
+import { ElfBuyable } from "./elves";
 
 interface Dye {
     name: string;
     amount: Resource<DecimalSource> &
         Persistent<DecimalSource> & { [NonPersistent]: Resource<DecimalSource> };
-    buyable: GenericBuyable;
+    buyable: ElfBuyable;
     toGenerate: WithRequired<Modifier, "description" | "revert">;
     computedToGenerate: ComputedRef<DecimalSource>;
     display: JSXFunction;
@@ -89,6 +91,22 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     description: `${options.name} Chambers`
                 }))
             ];
+            if (options.color === "yellow" && oil.row3Upgrades[0].bought.value){
+                modifiers.push(
+                    createMultiplicativeModifier(() => ({
+                        multiplier(){return Decimal.add(dyes.red.amount.value,1).log10().pow(0.75)},
+                        description: "Dye Synergy I"
+                    }))
+                )
+            }
+            if (options.color === "red" && oil.row3Upgrades[3].bought.value){
+                modifiers.push(
+                    createMultiplicativeModifier(() => ({
+                        multiplier(){return Decimal.add(dyes.blue.amount.value,1).log10()},
+                        description: "Dye Synergy II"
+                    }))
+                )
+            }
             if (options.color === "red" || options.color === "yellow") {
                 modifiers.push(
                     createMultiplicativeModifier(() => ({
@@ -156,11 +174,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     enabled: management.elfTraining.clothElfTraining.milestones[2].earned
                 }))
             );
+            modifiers.push(
+                createMultiplicativeModifier(() => ({
+                    multiplier: 2,
+                    description: "Carry dye in boxes",
+                    enabled: boxes.row3Upgrades.dyeUpgrade.bought
+                }))
+            );
             return modifiers;
         }) as WithRequired<Modifier, "description" | "revert">;
         const computedToGenerate = computed(() => toGenerate.apply(0));
 
-        const buyable: GenericBuyable = createBuyable(() => {
+        const buyable: ElfBuyable = createBuyable(() => {
             const costs = convertComputable(options.costs);
             return {
                 ...options,
@@ -219,6 +244,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     v = Decimal.mul(v, Decimal.pow(0.95, paper.books.dyeBook.totalAmount.value));
                     return Decimal.div(v, 10).plus(1);
                 },
+                inverseCostPre(x: DecimalSource) {
+                    let v = Decimal.sub(x, 1).mul(10);
+                    v = v.div(Decimal.pow(0.95, paper.books.dyeBook.totalAmount.value));
+                    if (Decimal.gte(v, 10)) v = Decimal.mul(v, 5).root(2);
+                    if (Decimal.gte(v, 25)) v = Decimal.mul(v, 20).root(2);
+                    return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+                },
+                inverseCost() {
+                    if (unref(buyable.visibility) != Visibility.Visible) return Decimal.dZero;
+                    return unref(costs).reduce((pre, c) =>
+                        Decimal.min(this.inverseCostPre(Decimal.div(c.res.value, unref(c.base)).root(unref(c.root ?? 1))), pre)
+                    , Decimal.dInf);
+                },
                 canPurchase: computed((cost?: DecimalSource) => {
                     if (unref(buyable.visibility) != Visibility.Visible) return false;
                     const trueCost = cost ?? unref(buyable.cost) ?? Decimal.dInf;
@@ -234,7 +272,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     amount.value = Decimal.add(amount.value, computedToGenerate.value);
                     buyable.amount.value = Decimal.add(buyable.amount.value, 1);
 
-                    if (!wrappingPaper.milestones.secondaryNoReset.earned) {
+                    if (!wrappingPaper.milestones.secondaryNoReset.earned.value) {
                         unref(costs).forEach(c => {
                             c.res.value = Decimal.sub(
                                 c.res.value,
@@ -490,15 +528,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         blue1: computed(() => Decimal.add(dyes.blue.amount.value, 1).log2().sqrt().times(5e6)),
 
         orange1: computed(() =>
-            Decimal.pow(2, Decimal.add(dyes.orange.amount.value, 1).log2().sqrt()).pow(
-                upgrades.coalUpg.bought.value ? 1.2 : 1
-            )
+            Decimal.pow(2, Decimal.add(dyes.orange.amount.value, 1).log2().sqrt())
+                .pow(upgrades.coalUpg.bought.value ? 1.2 : 1)
+                .pow(management.elfTraining.clothElfTraining.milestones[3].earned.value ? 1.1 : 1)
         ),
-        orange2: computed(() => Decimal.add(dyes.orange.amount.value, 1).log2().plus(1)),
+        orange2: computed(() => Decimal.add(dyes.orange.amount.value, 1).log2().plus(1).pow(oil.row3Upgrades[1].bought.value ? 2.5 : 1)),
         green1: computed(() =>
-            Decimal.pow(2, Decimal.add(dyes.green.amount.value, 1).log2().sqrt()).pow(
-                upgrades.coalUpg.bought.value ? 1.2 : 1
-            )
+            Decimal.pow(2, Decimal.add(dyes.green.amount.value, 1).log2().sqrt())
+                .pow(upgrades.coalUpg.bought.value ? 1.2 : 1)
+                .pow(management.elfTraining.clothElfTraining.milestones[3].earned.value ? 1.1 : 1)
         ),
         green2: computed(() =>
             Decimal.add(dyes.green.amount.value, 1)
@@ -507,9 +545,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 .pow(upgrades.coalUpg.bought.value ? 2 : 1)
         ),
         purple1: computed(() =>
-            Decimal.pow(2, Decimal.add(dyes.purple.amount.value, 1).log2().sqrt()).pow(
-                upgrades.coalUpg.bought.value ? 1.2 : 1
-            )
+            Decimal.pow(2, Decimal.add(dyes.purple.amount.value, 1).log2().sqrt())
+                .pow(upgrades.coalUpg.bought.value ? 1.2 : 1)
+                .pow(management.elfTraining.clothElfTraining.milestones[3].earned.value ? 1.1 : 1)
         ),
         purple2: computed(() => Decimal.add(dyes.purple.amount.value, 1).log2().plus(1))
     };

@@ -70,7 +70,7 @@ ul {
 /* Scrollbar stuff */
 
 * {
-	scrollbar-color: #ffffff0f var(--accent1);
+	scrollbar-color: var(--accent1) #ffffff0f;
 }
 
 ::-webkit-scrollbar {

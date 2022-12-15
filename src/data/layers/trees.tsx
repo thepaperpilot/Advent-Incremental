@@ -27,12 +27,12 @@ import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatGain, formatLimit, formatWhole } from "util/bignum";
 import { Direction, WithRequired } from "util/common";
 import { render, renderGrid, renderRow } from "util/vue";
-import { computed, ref, watch } from "vue";
+import { computed, ref } from "vue";
 import boxes from "./boxes";
 import cloth from "./cloth";
 import coal from "./coal";
 import dyes from "./dyes";
-import elves from "./elves";
+import elves, { ElfBuyable } from "./elves";
 import management from "./management";
 import paper from "./paper";
 import workshop from "./workshop";
@@ -53,6 +53,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const saplings = createResource<DecimalSource>(0, "saplings");
 
     const ema = ref<DecimalSource>(0);
+
+    const lastAutoCuttingAmount = ref<DecimalSource>(0);
+    const lastAutoPlantedAmount = ref<DecimalSource>(0);
 
     const totalTrees = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
@@ -211,12 +214,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
             v = Decimal.pow(0.95, paper.books.cuttersBook.totalAmount.value).times(v);
             return Decimal.times(100, v).add(200);
         },
+        inverseCost(x: DecimalSource) {
+            let v = Decimal.sub(x, 200).div(100);
+            v = v.div(Decimal.pow(0.95, paper.books.cuttersBook.totalAmount.value));
+            if (Decimal.gte(v, 2e30)) v = Decimal.mul(v, Decimal.pow(2e30, 9999)).root(10000);
+            if (Decimal.gte(v, 2e6)) v = Decimal.mul(v, 2e6).root(2);
+            if (Decimal.gte(v, 200)) v = Decimal.mul(v, 200).root(2);
+            if (Decimal.gte(v, 50)) v = Decimal.mul(v, 50).root(2);
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+        },
         display: {
             title: "Generic Cutters",
             description: "Each cutter cuts down 1 tree/s"
         },
         visibility: () => showIf(researchUpgrade2.bought.value)
-    })) as GenericBuyable & { display: { title: string }; resource: Resource };
+    })) as ElfBuyable & { display: { title: string }; resource: Resource };
     const autoPlantingBuyable1 = createBuyable(() => ({
         resource: noPersist(logs),
         cost() {
@@ -232,12 +244,24 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
             return cost;
         },
+        inverseCost(x: DecimalSource) {
+            if (management.elfTraining.planterElfTraining.milestones[3].earned.value) {
+                x = Decimal.mul(x, 10);
+            }
+            let v = Decimal.sub(x, 200).div(100);
+            v = v.div(Decimal.pow(0.95, paper.books.plantersBook.totalAmount.value));
+            if (Decimal.gte(v, 2e30)) v = Decimal.mul(v, Decimal.pow(2e30, 9999)).root(10000);
+            if (Decimal.gte(v, 2e6)) v = Decimal.mul(v, 2e6).root(2);
+            if (Decimal.gte(v, 200)) v = Decimal.mul(v, 200).root(2);
+            if (Decimal.gte(v, 50)) v = Decimal.mul(v, 50).root(2);
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+        },
         display: {
             title: "Generic Planters",
             description: "Each planter plants 0.5 trees/s"
         },
         visibility: () => showIf(researchUpgrade2.bought.value)
-    })) as GenericBuyable & { display: { title: string }; resource: Resource };
+    })) as ElfBuyable & { display: { title: string }; resource: Resource };
     const expandingForestBuyable = createBuyable(() => ({
         resource: noPersist(logs),
         cost() {
@@ -248,12 +272,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
             v = Decimal.pow(0.95, paper.books.expandersBook.totalAmount.value).times(v);
             return Decimal.pow(Decimal.add(v, 1), 1.5).times(500);
         },
+        inverseCost(x: DecimalSource) {
+            let v = Decimal.div(x, 500).root(1.5).sub(1);
+            v = v.div(Decimal.pow(0.95, paper.books.expandersBook.totalAmount.value));
+            if (Decimal.gte(v, 1e15)) v = Decimal.mul(v, 1e135).root(10);
+            if (Decimal.gte(v, 1e5)) v = Decimal.mul(v, 1e5).root(2);
+            if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(2);
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
+        },
         display: {
             title: "Expand Forest",
             description: "Add 10 trees to the forest"
         },
         visibility: () => showIf(researchUpgrade2.bought.value)
-    })) as GenericBuyable & { display: { title: string }; resource: Resource };
+    })) as ElfBuyable & { display: { title: string }; resource: Resource };
     const row1Buyables = [autoCuttingBuyable1, autoPlantingBuyable1, expandingForestBuyable];
 
     const manualCuttingAmount = createSequentialModifier(() => [
@@ -326,20 +358,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createAdditiveModifier(() => ({
             addend: () =>
-                Decimal.sub(lastAutoCuttingAmount.value, lastAutoPlantedAmount.value).max(0),
+                Decimal.sub(lastAutoPlantedAmount.value, lastAutoCuttingAmount.value).max(0),
             description: "Ivy Level 5",
             enabled: management.elfTraining.planterElfTraining.milestones[4].earned
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAutoCuttingAmount = computed(() => autoCuttingAmount.apply(0));
-    const lastAutoCuttingAmount = ref<DecimalSource>(0);
-    setInterval(
-        () =>
-            watch(computedAutoCuttingAmount, cut => {
-                lastAutoCuttingAmount.value = cut;
-            }),
-        0
-    );
 
     const manualPlantingAmount = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
@@ -421,20 +445,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createAdditiveModifier(() => ({
             addend: () =>
-                Decimal.sub(lastAutoPlantedAmount.value, lastAutoCuttingAmount.value).max(0),
+                Decimal.sub(lastAutoCuttingAmount.value, lastAutoPlantedAmount.value).max(0),
             description: "Ivy Level 5",
             enabled: management.elfTraining.planterElfTraining.milestones[4].earned
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAutoPlantingAmount = computed(() => autoPlantingAmount.apply(0));
-    const lastAutoPlantedAmount = ref<DecimalSource>(0);
-    setInterval(
-        () =>
-            watch(computedAutoPlantingAmount, planted => {
-                lastAutoPlantedAmount.value = planted;
-            }),
-        0
-    );
 
     const logGain = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
@@ -710,6 +726,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 plantTree.onClick();
             }
         }
+
+        const plantingAmount = Decimal.sub(
+            computedAutoPlantingAmount.value,
+            Decimal.sub(lastAutoCuttingAmount.value, lastAutoPlantedAmount.value).max(0)
+        );
+        const cuttingAmount = Decimal.sub(
+            computedAutoCuttingAmount.value,
+            Decimal.sub(lastAutoPlantedAmount.value, lastAutoCuttingAmount.value).max(0)
+        );
+        lastAutoPlantedAmount.value = plantingAmount;
+        lastAutoCuttingAmount.value = cuttingAmount;
 
         const amountCut = Decimal.min(
             trees.value,

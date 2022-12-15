@@ -34,6 +34,7 @@ import dyes from "./dyes";
 import management from "./management";
 import workshop from "./workshop";
 import paper from "./paper";
+import { ElfBuyable } from "./elves";
 
 const id = "metal";
 const day = 7;
@@ -94,6 +95,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Joy Level 4",
             enabled: management.elfTraining.smallfireElfTraining.milestones[3].earned
         })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(management.schools.amount.value, 1),
+            description: "Twinkle Level 1",
+            enabled: management.elfTraining.metalElfTraining.milestones[0].earned
+        })),
         createExponentialModifier(() => ({
             exponent: 1.1,
             description: "Mary Level 2",
@@ -148,6 +154,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.div(management.totalElfExp.value, 1000).add(1).sqrt(),
             description: "Mary Level 5",
             enabled: management.elfTraining.heatedPlanterElfTraining.milestones[4].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () =>
+                Decimal.pow(1.25, management.elfTraining.metalElfTraining.level.value),
+            description: "Twinkle Level 2",
+            enabled: management.elfTraining.metalElfTraining.milestones[1].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () =>
+                Decimal.add(dyes.dyes.red.amount.value, dyes.dyes.blue.amount.value)
+                    .add(dyes.dyes.yellow.amount.value)
+                    .add(1)
+                    .log10(),
+            description: "The Ultimate Metal Dye",
+            enabled: oil.row3Upgrades[4].bought
         }))
     ]);
     const computedAutoSmeltSpeed = computed(() => autoSmeltSpeed.apply(0));
@@ -159,9 +180,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () =>
-                Decimal.add(oil.activeBurner.value, 1).mul(oil.oilEffectiveness.value),
+                Decimal.add(oil.effectiveBurners.value, 1).mul(oil.oilEffectiveness.value),
             description: "Blaster Burner",
             enabled: oil.row2Upgrades[2].bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 3,
+            description: "Twinkle Level 3",
+            enabled: management.elfTraining.metalElfTraining.milestones[2].earned
         }))
     ]);
     const computedAutoSmeltMulti = computed(() => autoSmeltMulti.apply(1));
@@ -381,7 +407,25 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost() {
             let v = new Decimal(this.amount.value);
             v = Decimal.pow(0.95, paper.books.metalBook.totalAmount.value).times(v);
-            return Decimal.pow(1.15, v).times(10);
+            let cost = Decimal.pow(1.15, v).times(10);
+            if (management.elfTraining.clothElfTraining.milestones[4].earned.value) {
+                cost = Decimal.div(cost, Decimal.add(oil.depth.value, 1).sqrt());
+            }
+            if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
+                cost = Decimal.div(cost, 10);
+            }
+            return cost;
+        },
+        inverseCost(x: DecimalSource) {
+            if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
+                x = Decimal.mul(x, 10);
+            }
+            if (management.elfTraining.clothElfTraining.milestones[4].earned.value) {
+                x = Decimal.mul(x, Decimal.add(oil.depth.value, 1).sqrt());
+            }
+            let v = Decimal.div(x, 10).log(1.15);
+            v = v.div(Decimal.pow(0.95, paper.books.metalBook.totalAmount.value));
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         display: {
             title: "Metal Drill",
@@ -401,13 +445,31 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         .gte(10)
             ),
         style: { width: "200px" }
-    })) as GenericBuyable & { resource: Resource };
+    })) as ElfBuyable & { resource: Resource };
     const industrialCrucible = createBuyable(() => ({
         resource: noPersist(metal),
         cost() {
             let v = new Decimal(this.amount.value);
             v = Decimal.pow(0.95, paper.books.metalBook.totalAmount.value).times(v);
-            return Decimal.pow(1.15, Decimal.times(v, 10)).times(10);
+            let cost = Decimal.pow(1.15, Decimal.times(v, 10)).times(10);
+            if (management.elfTraining.clothElfTraining.milestones[4].earned.value) {
+                cost = Decimal.div(cost, Decimal.add(oil.depth.value, 1).sqrt());
+            }
+            if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
+                cost = Decimal.div(cost, 10);
+            }
+            return cost;
+        },
+        inverseCost(x: DecimalSource) {
+            if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
+                x = Decimal.mul(x, 10);
+            }
+            if (management.elfTraining.clothElfTraining.milestones[4].earned.value) {
+                x = Decimal.mul(x, Decimal.add(oil.depth.value, 1).sqrt());
+            }
+            let v = Decimal.div(x, 10).log(1.15).div(10);
+            v = v.div(Decimal.pow(0.95, paper.books.metalBook.totalAmount.value));
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         display: {
             title: "Industrial Crucible",
@@ -426,14 +488,32 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     Decimal.gte(bestOre.value, 50)
             ),
         style: { width: "200px" }
-    })) as GenericBuyable & { resource: Resource };
+    })) as ElfBuyable & { resource: Resource };
     const autoSmeltEnabled = persistent<boolean>(true);
     const hotterForge = createBuyable(() => ({
         resource: coal.coal,
         cost() {
             let v = new Decimal(this.amount.value);
             v = Decimal.pow(0.95, paper.books.metalBook.totalAmount.value).times(v);
-            return Decimal.pow(10, v).times(1e12);
+            let cost = Decimal.pow(10, v).times(1e12);
+            if (management.elfTraining.clothElfTraining.milestones[4].earned.value) {
+                cost = Decimal.div(cost, Decimal.add(oil.depth.value, 1).sqrt());
+            }
+            if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
+                cost = Decimal.div(cost, 10);
+            }
+            return cost;
+        },
+        inverseCost(x: DecimalSource) {
+            if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
+                x = Decimal.mul(x, 10);
+            }
+            if (management.elfTraining.clothElfTraining.milestones[4].earned.value) {
+                x = Decimal.mul(x, Decimal.add(oil.depth.value, 1).sqrt());
+            }
+            let v = Decimal.div(x, 1e12).log(10);
+            v = v.div(Decimal.pow(0.95, paper.books.metalBook.totalAmount.value));
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         display: {
             title: "Hotter Forges",
@@ -449,7 +529,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () =>
             showIf(Decimal.gte(hotterForge.amount.value, 1) || industrialFurnace.bought.value),
         style: { width: "200px" }
-    })) as GenericBuyable & { resource: Resource };
+    })) as ElfBuyable & { resource: Resource };
     const hotterForgeEffect = computed(() => Decimal.times(hotterForge.amount.value, 0.25));
 
     globalBus.on("update", diff => {

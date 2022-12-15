@@ -38,8 +38,14 @@ import workshop from "./workshop";
 import wrappingPaper from "./wrapping-paper";
 import dyes from "./dyes";
 
+export interface ElfBuyable extends GenericBuyable {
+    /** The inverse function of the cost formula, used to calculate the maximum amount that can be bought by elves. */
+    inverseCost: (x?: DecimalSource) => DecimalSource;
+}
+
 const id = "elves";
 const day = 4;
+
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Elves";
     const colorBright = "red";
@@ -531,6 +537,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         if (Decimal.gte(totalElves.value, 9)) {
             cost = Decimal.times(cost, 1e15);
         }
+        if (Decimal.gte(totalElves.value, 12)) {
+            cost = Decimal.times(cost, 1e15);
+        }
         return cost;
     });
 
@@ -539,13 +548,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
             name: string;
             description: string;
             buyable:
-                | (GenericBuyable & { resource?: Resource })
-                | (GenericBuyable & { resource?: Resource })[];
+                | (ElfBuyable & { resource?: Resource })
+                | (ElfBuyable & { resource?: Resource })[];
             cooldownModifier: Modifier;
-            customCost?: (amount: DecimalSource) => DecimalSource;
             hasToggle?: boolean;
             toggleDesc?: string;
-            onAutoPurchase?: (buyable: GenericBuyable & { resource?: Resource }) => void;
+            onAutoPurchase?: (
+                buyable: ElfBuyable & { resource?: Resource },
+                amount: DecimalSource
+            ) => void;
             onPurchase?: VoidFunction; // Will get overriden by the custom onpurchase, but that's fine
             canBuy?: Computable<boolean>;
             buyMax?: Computable<boolean>;
@@ -563,27 +574,32 @@ const layer = createLayer(id, function (this: BaseLayer) {
         function update(diff: number) {
             if (upgrade.bought.value && unref(isActive)) {
                 buyProgress.value = Decimal.add(buyProgress.value, diff);
+
                 const cooldown = Decimal.recip(computedAutoBuyCooldown.value);
                 amountOfTimesDone.value += diff / cooldown.toNumber();
+
+                let maxBuyAmount = Decimal.div(buyProgress.value, cooldown).floor();
+                buyProgress.value = Decimal.sub(buyProgress.value, maxBuyAmount.mul(cooldown));
+
+                if (unref(buyMax)) maxBuyAmount = Decimal.dInf;
+
                 (isArray(options.buyable) ? options.buyable : [options.buyable]).forEach(
                     buyable => {
-                        while (buyMax ? true : Decimal.gte(buyProgress.value, cooldown)) {
-                            if (
-                                options.customCost && buyable.resource
-                                    ? Decimal.gte(
-                                          buyable.resource.value,
-                                          options.customCost(buyable.amount.value)
-                                      )
-                                    : unref(buyable.canPurchase)
-                            ) {
-                                buyable.amount.value = Decimal.add(buyable.amount.value, 1);
-                                buyProgress.value = Decimal.sub(buyProgress.value, cooldown);
-                                options.onAutoPurchase?.(buyable);
-                            } else {
-                                buyProgress.value = cooldown;
-                                break;
-                            }
-                        }
+                        const buyAmount = Decimal.min(
+                            Decimal.sub(
+                                buyable.inverseCost(buyable.resource?.value),
+                                buyable.amount.value
+                            ).add(1),
+                            maxBuyAmount
+                        );
+
+                        if (buyAmount.lte(0)) return;
+
+                        buyable.amount.value = Decimal.add(buyable.amount.value, buyAmount);
+                        maxBuyAmount = Decimal.sub(maxBuyAmount, buyAmount);
+                        options.onAutoPurchase?.(buyable, buyAmount);
+
+                        if (maxBuyAmount.lte(0)) return;
                     }
                 );
             }
@@ -702,9 +718,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () => showIf(boxes.upgrades.logsUpgrade.bought.value),
         hasToggle: true,
         toggleDesc: "Activate auto-purchased small fires",
-        onAutoPurchase() {
+        onAutoPurchase(_, amount) {
             if (smallFireElf.toggle.value) {
-                coal.activeFires.value = Decimal.add(coal.activeFires.value, 1);
+                coal.activeFires.value = Decimal.add(coal.activeFires.value, amount);
             }
         },
         onPurchase() {
@@ -720,12 +736,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () => showIf(boxes.upgrades.ashUpgrade.bought.value),
         hasToggle: true,
         toggleDesc: "Activate auto-purchased bonfires",
-        onAutoPurchase() {
-            const spent = unref((this.buyable as GenericBuyable).cost!);
+        onAutoPurchase(buyable, amount) {
+            const spent = Decimal.mul(unref(buyable.cost ?? 0), amount);
             coal.activeFires.value = Decimal.sub(coal.activeFires.value, spent).max(0);
             coal.buildFire.amount.value = Decimal.sub(coal.buildFire.amount.value, spent).max(0);
             if (bonfireElf.toggle.value) {
-                coal.activeBonfires.value = Decimal.add(coal.activeBonfires.value, 1);
+                coal.activeBonfires.value = Decimal.add(coal.activeBonfires.value, amount);
             }
         },
         onPurchase() {
@@ -742,9 +758,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () => showIf(boxes.upgrades.coalUpgrade.bought.value),
         hasToggle: true,
         toggleDesc: "Activate auto-purchased kilns",
-        onAutoPurchase() {
+        onAutoPurchase(_, amount) {
             if (kilnElf.toggle.value) {
-                coal.activeKilns.value = Decimal.add(coal.activeKilns.value, 1);
+                coal.activeKilns.value = Decimal.add(coal.activeKilns.value, amount);
             }
         },
         onPurchase() {
@@ -788,9 +804,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             showIf(management.elfTraining.expandersElfTraining.milestones[3].earned.value),
         hasToggle: true,
         toggleDesc: "Activate auto-purchased coal drills",
-        onAutoPurchase() {
+        onAutoPurchase(_, amount) {
             if (coalDrillElf.toggle.value) {
-                coal.activeDrills.value = Decimal.add(coal.activeDrills.value, 1);
+                coal.activeDrills.value = Decimal.add(coal.activeDrills.value, amount);
             }
         }
     });
@@ -804,14 +820,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             showIf(management.elfTraining.fertilizerElfTraining.milestones[4].earned.value),
         hasToggle: true,
         toggleDesc: "Activate auto-purchased oil drills",
-        onAutoPurchase(buyable) {
+        onAutoPurchase(buyable, amount) {
             if (heavyDrillElf.toggle.value) {
                 if (buyable === oil.buildHeavy) {
-                    oil.activeHeavy.value = Decimal.add(oil.activeHeavy.value, 1);
-                } else if (buyable === oil.buildHeavy) {
-                    oil.activeHeavy.value = Decimal.add(oil.activeHeavy.value, 1);
-                } else if (buyable === oil.buildHeavy) {
-                    oil.activeHeavy.value = Decimal.add(oil.activeHeavy.value, 1);
+                    oil.activeHeavy.value = Decimal.add(oil.activeHeavy.value, amount);
+                } else if (buyable === oil.buildHeavy2) {
+                    oil.activeHeavy2.value = Decimal.add(oil.activeHeavy2.value, amount);
+                } else if (buyable === oil.buildExtractor) {
+                    oil.activeExtractor.value = Decimal.add(oil.activeExtractor.value, amount);
                 }
             }
         }
@@ -826,14 +842,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             showIf(management.elfTraining.heatedCutterElfTraining.milestones[4].earned.value),
         hasToggle: true,
         toggleDesc: "Activate auto-purchased oil-using machines",
-        onAutoPurchase(buyable) {
+        onAutoPurchase(buyable, amount) {
             if (heavyDrillElf.toggle.value) {
                 if (buyable === oil.buildPump) {
-                    oil.activePump.value = Decimal.add(oil.activePump.value, 1);
+                    oil.activePump.value = Decimal.add(oil.activePump.value, amount);
                 } else if (buyable === oil.buildBurner) {
-                    oil.activeBurner.value = Decimal.add(oil.activeBurner.value, 1);
+                    oil.activeBurner.value = Decimal.add(oil.activeBurner.value, amount);
                 } else if (buyable === oil.buildSmelter) {
-                    oil.activeSmelter.value = Decimal.add(oil.activeSmelter.value, 1);
+                    oil.activeSmelter.value = Decimal.add(oil.activeSmelter.value, amount);
                 }
             }
         }
