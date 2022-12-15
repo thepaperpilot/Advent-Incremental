@@ -179,7 +179,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () => showIf(management.elfTraining.boxElfTraining.milestones[4].earned.value),
         display: {
             title: "Carry dye in boxes",
-            description: "Double all dye gain"
+            description: "Double all dye gain but reset all dyes"
         },
         onPurchase() {
             (["red", "yellow", "blue", "orange", "green", "purple"] as const).forEach(dyeColor => {

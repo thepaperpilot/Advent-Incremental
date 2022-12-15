@@ -523,7 +523,7 @@ const layer = createLayer(id, () => {
                 requirement: "Mary Level 5",
                 effectDisplay: jsx(() => (
                     <>
-                        Auto smelting speed is multiplied by <Sqrt>total XP/1000</Sqrt>.
+                        Auto smelting speed is multiplied by <Sqrt>total XP/1e6</Sqrt>.
                     </>
                 ))
             },
@@ -1309,8 +1309,9 @@ const layer = createLayer(id, () => {
         focusTargets.value = {};
         const newCount = Decimal.min(count, range);
         while (newCount.gt(x)) {
-            const roll = Object.values(elfTraining)[Math.floor(Math.random() * range)]?.name ?? "";
-            if (!focusTargets.value[roll]) {
+            const elf = Object.values(elfTraining)[Math.floor(Math.random() * range)];
+            const roll = elf?.name ?? "";
+            if (!focusTargets.value[roll] && unref(elf.visibility) === Visibility.Visible) {
                 focusTargets.value[roll] = true;
                 x++;
             }

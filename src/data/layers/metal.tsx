@@ -151,7 +151,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: dyes.upgrades.redDyeUpg2.bought
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.div(management.totalElfExp.value, 1000).add(1).sqrt(),
+            multiplier: () => Decimal.div(management.totalElfExp.value, 1e6).add(1).sqrt(),
             description: "Mary Level 5",
             enabled: management.elfTraining.heatedPlanterElfTraining.milestones[4].earned
         })),

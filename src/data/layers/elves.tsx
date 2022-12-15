@@ -650,8 +650,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     description: jsx(() => (
                         <>
                             {options.description}
-                            {upgrade.bought.value &&
-                            !["Peppermint", "Twinkle", "Cocoa", "Frosty"].includes(
+                            {upgrade.bought.value ||
+                            ["Peppermint", "Twinkle", "Cocoa", "Frosty"].includes(
                                 options.name
                             ) ? null : (
                                 <>
@@ -813,7 +813,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         name: "Bell",
         description:
             "Bell will automatically purchase all box buyables you can afford, without actually spending any boxes.",
-        buyable: Object.values(boxes.buyables),
+        buyable: [...Object.values(boxes.buyables), ...Object.values(boxes.buyables2)],
         cooldownModifier: boxCooldown,
         visibility: () => showIf(plastic.elfUpgrades.boxElf.bought.value)
     });
