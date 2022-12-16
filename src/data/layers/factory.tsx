@@ -9,6 +9,7 @@ import conveyor from "./factory-components/conveyor.png";
 import { reactive, Ref, ref, watchEffect } from "vue";
 import { Direction } from "util/common";
 import { persistent } from "game/persistence";
+import player from "game/player";
 
 const id = "factory";
 
@@ -116,40 +117,26 @@ const factory = createLayer(id, () => {
     function onMouseLeave() {
         isMouseHoverShown.value = false;
     }
-    const factoryDisp = jsx(() => (
-        <Modal
-            modelValue={isFactoryShown.value}
-            update:modelValue={(v: boolean) => (isFactoryShown.value = v)}
-            v-slots={{
-                header: () => <h2>{name}</h2>,
-                body: () => (
-                    <Factory
-                        application={app}
-                        onMouseMove={onMouseMove}
-                        onMouseEnter={onMouseEnter}
-                        onMouseLeave={onMouseLeave}
-                        onClick={onClick}
-                    />
-                )
-            }}
-        />
-    ));
+    function goBack() {
+        player.tabs.splice(0, Infinity, "main")
+    }
     return {
         name,
         day,
         color,
         minWidth: 700,
+        minimizable: false,
         display: jsx(() => (
-            <>
-                <button
-                    class="button"
-                    style="display: inline-block;"
-                    onClick={() => (isFactoryShown.value = true)}
-                >
-                    Open the Factory
-                </button>
-                {factoryDisp()}
-            </>
+            <div class="layer-container">
+                <button class="goBack" onClick={goBack}>❌</button>
+                <Factory
+                    application={app}
+                    onMouseMove={onMouseMove}
+                    onMouseEnter={onMouseEnter}
+                    onMouseLeave={onMouseLeave}
+                    onClick={onClick}
+                />
+            </div>
         )),
         components
     };
