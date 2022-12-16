@@ -762,6 +762,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.times(computedAutoPlantingAmount.value, diff)
         );
         saplings.value = Decimal.sub(saplings.value, amountPlanted);
+        if(Decimal.gte(saplings.value, totalTrees.value)) saplings.value = totalTrees.value;
     });
 
     const netSaplingGain = computed(() =>
