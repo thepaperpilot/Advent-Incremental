@@ -86,7 +86,7 @@ defineExpose({ isOpen, nodes });
 }
 
 .modal-container {
-    width: 640px;
+    min-width: 640px;
     max-width: 95vw;
     max-height: calc(95vh - 20px);
     background-color: var(--background);
