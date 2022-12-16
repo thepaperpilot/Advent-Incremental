@@ -7,7 +7,7 @@ import {
     jsx
 } from "features/feature";
 import { BaseLayer, createLayer, GenericLayer, layers } from "game/layers";
-import { persistent } from "game/persistence";
+import { Persistent, persistent } from "game/persistence";
 import type { LayerData, PlayerData } from "game/player";
 import player from "game/player";
 import Decimal, { format, formatTime } from "util/bignum";
@@ -49,7 +49,6 @@ import dyes from "./layers/dyes";
 import letters from "./layers/letters";
 import management from "./layers/management";
 import wrappingPaper from "./layers/wrapping-paper";
-import { createReset } from "features/reset";
 
 export interface Day extends VueFeature {
     day: number;
@@ -62,20 +61,6 @@ export interface Day extends VueFeature {
     shouldNotify: ProcessedComputable<boolean>;
 }
 
-const masterableLayers = [
-    trees,
-    workshop,
-    coal,
-    elves,
-    paper,
-    boxes,
-    metal,
-    cloth,
-    oil,
-    plastic,
-    dyes
-];
-
 export const main = createLayer("main", function (this: BaseLayer) {
     const day = persistent<number>(1);
     const timeUntilNewDay = computed(
@@ -87,9 +72,29 @@ export const main = createLayer("main", function (this: BaseLayer) {
     const loreTitle = ref<string>("");
     const loreBody = ref<CoercableComponent | undefined>();
 
+    const swappingMastery = ref(false);
     const isMastery = persistent<boolean>(false);
     const toggleMastery = () => {
+        swappingMastery.value = true;
         isMastery.value = !isMastery.value;
+
+        for (const layer of [
+            trees,
+            workshop,
+            coal,
+            // elves,
+            // paper,
+            // boxes,
+            // metal,
+            // cloth,
+            // oil,
+            // plastic,
+            // dyes,
+            // management,
+            // letters
+        ]) { layer.swapMastery() }
+
+        swappingMastery.value = false;
     };
 
     function createDay(
@@ -420,6 +425,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         minWidth: 700,
         isMastery,
         toggleMastery,
+        swappingMastery,
         display: jsx(() => (
             <>
                 {player.devSpeed === 0 ? <div>Game Paused</div> : null}
