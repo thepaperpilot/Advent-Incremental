@@ -1,9 +1,10 @@
 <template>
     <div
         class="day feature dontMerge opened"
-        :class="{ mastered: unref(mastered) }"
+        :class="{ mastered: unref(mastered), wallpaper: day < 8 }"
         v-if="opened.value"
     >
+        <div class="ribbon" v-if="day >= 8" />
         <Tooltip :display="layers[layer ?? '']?.name ?? ''" :direction="Direction.Up" yoffset="5px">
             <Transition appear name="door">
                 <div class="doors" @click="emit('openLayer')">
@@ -95,7 +96,7 @@ function tryUnlock() {
         rgb(0 0 0 / 13%) 0px 0px 3px inset, rgb(0 0 0 / 13%) 0px 0px 0px 3px inset;
 }
 
-.mastered.day {
+.mastered.day.wallpaper {
     background: linear-gradient(
         225deg,
         rgb(255, 76, 76) 10.8%,
@@ -202,8 +203,8 @@ function tryUnlock() {
     right: 0;
 }
 
-.mastered .doors::before,
-.mastered .doors::after {
+.mastered.wallpaper .doors::before,
+.mastered.wallpaper .doors::after {
     background: linear-gradient(
         225deg,
         rgb(255, 76, 76) 10.8%,
@@ -223,6 +224,42 @@ function tryUnlock() {
         rgb(255, 255, 255) 88.5%,
         rgb(255, 76, 76) 88.8%
     );
+}
+
+.mastered .ribbon {
+    position: absolute;
+    top: -2px;
+    left: 0px;
+    width: calc(100% + 0px);
+    height: calc(100% + 4px);
+    overflow: hidden;
+    pointer-events: none;
+    user-select: none;
+    z-index: 11;
+}
+
+.mastered .ribbon::after {
+    content: "🎀";
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    font-size: xx-large;
+    transform: rotateZ(-45deg);
+    z-index: 1;
+}
+
+.mastered .ribbon::before {
+    content: "";
+    width: calc(100% - 24px);
+    height: 100%;
+    border: solid darkred 8px;
+    transform: rotateZ(45deg);
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-top: none;
+    border-bottom: none;
+    z-index: 1;
 }
 
 .date {
