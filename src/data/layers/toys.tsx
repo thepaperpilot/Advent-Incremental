@@ -28,15 +28,12 @@ import Decimal, { DecimalSource, format, formatGain, formatLimit, formatWhole } 
 import { Direction, WithRequired } from "util/common";
 import { render, renderGrid, renderRow } from "util/vue";
 import { computed, ref } from "vue";
-import boxes from "./boxes";
+import metal from "./metal";
+import plastic from "./plastic";
 import cloth from "./cloth";
-import coal from "./coal";
+import trees from "./trees";
 import dyes from "./dyes";
-import elves, { ElfBuyable } from "./elves";
-import management from "./management";
 import paper from "./paper";
-import workshop from "./workshop";
-import wrappingPaper from "./wrapping-paper";
 const id = "toys";
 const day = 17;
 
@@ -51,7 +48,108 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const toyGain = createSequentialModifier(() => [
 
     ]);
-    const toySum = createResource(computed(() => Decimal.add(clothes.value, woodenBlocks.value).add(trucks.value)), "toy sum")
+    const toySum = createResource(computed(() => Decimal.add(clothes.value, woodenBlocks.value).add(trucks.value)), "toys");
+    
+    const clothesCost = computed(() => {
+        const clothFactor = Decimal.add(1,clothesBuyable.amount.value);
+        return {
+            cloth: clothFactor.mul(1e8),
+            dye: clothFactor.mul(1e6)
+        };
+    });
+    const clothesBuyable = createBuyable(() => ({
+        display: jsx(() => (
+            <>
+                <h3>Make Clothes</h3>
+
+                <div>
+                    Click this buyable to make some clothes!
+                </div>
+
+                <div>
+                    You have {formatWhole(clothes.value)} clothes.
+                </div>
+                
+                    <div>
+                    Costs {format(clothesCost.value.cloth)} cloth and requires {format(clothesCost.value.dye)} of red, yellow, and
+                        blue dye
+                    </div>
+            </>
+        )),
+        canPurchase(): boolean {
+            return (
+                clothesCost.value.cloth.lte(cloth.cloth.value) &&
+                clothesCost.value.dye.lte(dyes.dyes.blue.amount.value) &&
+                clothesCost.value.dye.lte(dyes.dyes.red.amount.value) &&
+                clothesCost.value.dye.lte(dyes.dyes.yellow.amount.value)
+            );
+        },
+    })) as GenericBuyable;
+    const woodenBlocksCost = computed(() => {
+        const woodFactor = Decimal.add(1,woodenBlocksBuyable.amount.value).pow(5);
+        return {
+            wood: woodFactor.mul(1e40)
+        };
+    });
+    const woodenBlocksBuyable = createBuyable(() => ({
+        display: jsx(() => (
+            <>
+                <h3>Make Wooden Blocks</h3>
+
+                <div>
+                    Click this buyable to make some wooden blocks!
+                </div>
+
+                <div>
+                    You have {formatWhole(woodenBlocks.value)} wooden blocks.
+                </div>
+                
+                    <div>
+                    Costs {format(woodenBlocksCost.value.wood)} logs
+                    </div>
+            </>
+        )),
+        canPurchase(): boolean {
+            return (
+                woodenBlocksCost.value.wood.lte(trees.logs.value)
+            );
+        },
+    })) as GenericBuyable;
+    const trucksCost = computed(() => {
+        const factor = Decimal.add(1,trucksBuyable.amount.value).pow(3);
+        const plasticFactor = Decimal.add(1,trucksBuyable.amount.value);
+        return {
+            metal: factor.mul(1e25),
+            plastic: plasticFactor.mul(1e10)
+
+        };
+    });
+    const trucksBuyable = createBuyable(() => ({
+        display: jsx(() => (
+            <>
+                <h3>Make Trucks</h3>
+
+                <div>
+                    Click this buyable to make some trucks!
+                </div>
+
+                <div>
+                    You have {formatWhole(woodenBlocks.value)} wooden blocks.
+                </div>
+                
+                    <div>
+                    Costs {format(trucksCost.value.metal)} metal and {format(trucksCost.value.plastic)} plastic
+                    </div>
+            </>
+        )),
+        canPurchase(): boolean {
+            return (
+                trucksCost.value.metal.lte(metal.metal.value) &&
+                trucksCost.value.plastic.lte(plastic.plastic.value)
+            );
+        },
+    })) as GenericBuyable;
+    const buyables = [ clothesBuyable, woodenBlocksBuyable, trucksBuyable ];
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
                 {
             title: `Toy Gain`,
@@ -99,7 +197,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         color: colorBright,
         clothes,
         woodenBlocks,
+        trucks,
+        toySum,
         totalToys,
+        buyables,
         generalTabCollapsed,
         minWidth: 700,
         display: jsx(() => (
@@ -124,6 +225,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     style="margin-bottom: 0"
                     productionDisplay={undefined}
                 />
+                <Spacer />
+                {renderRow(...buyables)}
             </>
         )),
         minimizedDisplay: jsx(() => (
