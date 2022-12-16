@@ -41,7 +41,7 @@ const id = "toys";
 const day = 17;
 
 const layer = createLayer(id, function (this: BaseLayer) {
-    const name = "Toys";
+    const name = "toys";
     const colorBright = "#4BDC13";
     const colorDark = "green";
 
