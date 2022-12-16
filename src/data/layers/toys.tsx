@@ -41,17 +41,17 @@ const id = "toys";
 const day = 17;
 
 const layer = createLayer(id, function (this: BaseLayer) {
-    const name = "toys";
+    const name = "Toys";
     const colorBright = "#4BDC13";
     const colorDark = "green";
 
-    const toys = createResource<DecimalSource>(0, "toys");
-    const toys2 = createResource<DecimalSource>(0, "toys2");
-    const toys3 = createResource<DecimalSource>(0, "toys3");
+    const clothes = createResource<DecimalSource>(0, "clothes");
+    const teddybears = createResource<DecimalSource>(0, " teddy bears");
+    const trains = createResource<DecimalSource>(0, "trains");
     const toyGain = createSequentialModifier(() => [
-        
-    ]);
 
+    ]);
+    const toySum = createResource(computed(() => Decimal.add(clothes.value, teddybears.value).add(trains.value)), "toy sum")
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
                 {
             title: `Toy Gain`,
@@ -82,7 +82,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
 
     const { total: totalToys, trackerDisplay } = setUpDailyProgressTracker({
-        resource: toys,
+        resource: toySum,
         goal: 1e4,
         name,
         day,
@@ -95,8 +95,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     return {
         name,
+        day,
         color: colorBright,
-        toys,
+        clothes,
+        teddybears,
         totalToys,
         generalTabCollapsed,
         minWidth: 700,
@@ -105,7 +107,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {render(trackerDisplay)}
                 <Spacer />
                 <MainDisplay
-                    resource={toys}
+                    resource={clothes}
                     color={colorBright}
                     style="margin-bottom: 0"
                     productionDisplay={
@@ -123,13 +125,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     }
                 />
                 <MainDisplay
-                    resource={toys2}
+                    resource={teddybears}
                     color={colorDark}
                     style="margin-bottom: 0"
                     productionDisplay={undefined}
                 />
                 <MainDisplay
-                    resource={toys3}
+                    resource={trains}
                     color={colorDark}
                     style="margin-bottom: 0"
                     productionDisplay={undefined}
@@ -138,7 +140,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
         minimizedDisplay: jsx(() => (
             <div>
-                {name} - {format(toys.value)} {toys.displayName}
+                {name} - {format(toySum.value)} {"total toys"}
             </div>
         ))
     };

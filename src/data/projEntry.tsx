@@ -33,7 +33,11 @@ import plastic from "./layers/plastic";
 import trees from "./layers/trees";
 import workshop from "./layers/workshop";
 import wrappingPaper from "./layers/wrapping-paper";
+<<<<<<< HEAD
 import ribbon from "./layers/ribbon";
+=======
+import toys from "./layers/toys";
+>>>>>>> fix toy sum
 import boxesSymbol from "./symbols/cardboardBox.png";
 import clothSymbol from "./symbols/cloth.png";
 import coalSymbol from "./symbols/coal.png";
@@ -575,8 +579,12 @@ export const getInitialLayers = (
     dyes,
     management,
     letters,
+<<<<<<< HEAD
     wrappingPaper,
     ribbon
+=======
+    toys,
+>>>>>>> fix toy sum
 ];
 
 /**
