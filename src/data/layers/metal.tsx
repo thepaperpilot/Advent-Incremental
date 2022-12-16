@@ -93,17 +93,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.add(oil.buildHeavy.amount.value, 1).sqrt(),
             description: "Joy Level 4",
-            enabled: management.elfTraining.smallfireElfTraining.milestones[3].earned
+            enabled: () => management.elfTraining.smallfireElfTraining.milestones[3].earned.value && !main.isMastery.value
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.add(management.schools.amount.value, 1),
             description: "Twinkle Level 1",
-            enabled: management.elfTraining.metalElfTraining.milestones[0].earned
+            enabled: () => management.elfTraining.metalElfTraining.milestones[0].earned.value && !main.isMastery.value
         })),
         createExponentialModifier(() => ({
             exponent: 1.1,
             description: "Mary Level 2",
-            enabled: management.elfTraining.heatedPlanterElfTraining.milestones[1].earned
+            enabled: () => management.elfTraining.heatedPlanterElfTraining.milestones[1].earned.value && !main.isMastery.value
         }))
     ]);
     const computedOrePurity = computed(() => orePurity.apply(0.1));
@@ -117,17 +117,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createExponentialModifier(() => ({
             exponent: 1.1,
             description: "Joy Level 5",
-            enabled: management.elfTraining.smallfireElfTraining.milestones[4].earned
+            enabled: () => management.elfTraining.smallfireElfTraining.milestones[4].earned.value && !main.isMastery.value
         })),
         createExponentialModifier(() => ({
             exponent: 1.1,
             description: "Faith Level 5",
-            enabled: management.elfTraining.bonfireElfTraining.milestones[4].earned
+            enabled: () => management.elfTraining.bonfireElfTraining.milestones[4].earned.value && !main.isMastery.value
         })),
         createExponentialModifier(() => ({
             exponent: 1.1,
             description: "Snowball Level 5",
-            enabled: management.elfTraining.kilnElfTraining.milestones[4].earned
+            enabled: () => management.elfTraining.kilnElfTraining.milestones[4].earned.value && !main.isMastery.value
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -153,13 +153,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.div(management.totalElfExp.value, 1e6).add(1).sqrt(),
             description: "Mary Level 5",
-            enabled: management.elfTraining.heatedPlanterElfTraining.milestones[4].earned
+            enabled: () => management.elfTraining.heatedPlanterElfTraining.milestones[4].earned.value && !main.isMastery.value
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () =>
                 Decimal.pow(1.25, management.elfTraining.metalElfTraining.level.value),
             description: "Twinkle Level 2",
-            enabled: management.elfTraining.metalElfTraining.milestones[1].earned
+            enabled: () => management.elfTraining.metalElfTraining.milestones[1].earned.value && !main.isMastery.value
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () =>
@@ -187,7 +187,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: 3,
             description: "Twinkle Level 3",
-            enabled: management.elfTraining.metalElfTraining.milestones[2].earned
+            enabled: () => management.elfTraining.metalElfTraining.milestones[2].earned.value && !main.isMastery.value
         }))
     ]);
     const computedAutoSmeltMulti = computed(() => autoSmeltMulti.apply(1));

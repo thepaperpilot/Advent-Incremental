@@ -280,7 +280,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.add(oil.buildExtractor.amount.value, 1).pow(1.25),
             description: "Snowball Level 4",
-            enabled: management.elfTraining.kilnElfTraining.milestones[3].earned
+            enabled: () => management.elfTraining.kilnElfTraining.milestones[3].earned.value && !main.isMastery.value
         }))
     ]);
     const computedPlasticGain = computed(() => plasticGain.apply(0));

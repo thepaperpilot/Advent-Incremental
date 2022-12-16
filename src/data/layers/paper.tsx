@@ -412,7 +412,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: 0.1,
             description: "Star Level 2",
-            enabled: management.elfTraining.paperElfTraining.milestones[1].earned
+            enabled: () => management.elfTraining.paperElfTraining.milestones[1].earned.value && !main.isMastery.value
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAshCost = computed(() => ashCost.apply(1e6));

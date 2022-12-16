@@ -93,11 +93,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createAdditiveModifier(() => ({
             addend: () => Decimal.pow(computedManualCuttingAmount.value, 0.99),
             description: "Hope Level 1",
-            enabled: management.elfTraining.expandersElfTraining.milestones[0].earned
+            enabled: () => management.elfTraining.expandersElfTraining.milestones[0].earned.value && !main.isMastery.value
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const trees = createResource(
-        computed(() => Decimal.sub(totalTrees.apply(10), main.isMastery.value ? mastery.saplings.value : saplings.value)),
+        computed(() => Decimal.sub(totalTrees.apply(10), saplings.value)),
         "trees"
     );
     const computedTotalTrees = computed(() => totalTrees.apply(10));
@@ -299,7 +299,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createAdditiveModifier(() => ({
             addend: computedAutoCuttingAmount,
             description: "Smart Knives",
-            enabled: manualCutUpgrade3.bought
+            enabled: main.isMastery.value ? mastery.manualCutUpgrade3.bought : manualCutUpgrade3.bought
         }))
     ]);
     const computedManualCuttingAmount = computed(() => manualCuttingAmount.apply(1));
@@ -307,7 +307,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: 0.5,
             description: "Sharper Fingers",
-            enabled: manualCutUpgrade2.bought
+            enabled: main.isMastery.value ? mastery.manualCutUpgrade2.bought : manualCutUpgrade2.bought
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.pow(0.5, elves.totalElves.value),
@@ -356,13 +356,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.pow(1.1, main.day.value),
             description: "Holly Level 4",
-            enabled: management.elfTraining.cutterElfTraining.milestones[3].earned
+            enabled: () => management.elfTraining.cutterElfTraining.milestones[3].earned.value && !main.isMastery.value
         })),
         createAdditiveModifier(() => ({
             addend: () =>
                 Decimal.sub(lastAutoPlantedAmount.value, lastAutoCuttingAmount.value).max(0),
             description: "Ivy Level 5",
-            enabled: management.elfTraining.planterElfTraining.milestones[4].earned
+            enabled: () => management.elfTraining.planterElfTraining.milestones[4].earned.value && !main.isMastery.value
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAutoCuttingAmount = computed(() => autoCuttingAmount.apply(0));
@@ -371,12 +371,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createAdditiveModifier(() => ({
             addend: 1,
             description: "Leafy Fingers",
-            enabled: manualPlantUpgrade1.bought
+            enabled: main.isMastery.value ? mastery.manualPlantUpgrade1.bought : manualPlantUpgrade1.bought
         })),
         createAdditiveModifier(() => ({
             addend: computedAutoPlantingAmount,
             description: "Smart Spades",
-            enabled: manualPlantUpgrade3.bought
+            enabled: main.isMastery.value ? mastery.manualPlantUpgrade3.bought : manualPlantUpgrade3.bought
         }))
     ]);
     const computedManualPlantingAmount = computed(() => manualPlantingAmount.apply(1));
@@ -384,7 +384,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: 0.5,
             description: "Greener Fingers",
-            enabled: manualPlantUpgrade2.bought
+            enabled: main.isMastery.value ? mastery.manualPlantUpgrade2.bought : manualPlantUpgrade2.bought
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.pow(0.5, elves.totalElves.value),
@@ -398,10 +398,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createAdditiveModifier(() => ({
             addend: 1,
             description: "Automated Spade",
-            enabled: autoPlantUpgrade1.bought
+            enabled: main.isMastery.value ? mastery.autoPlantUpgrade1.bought : autoPlantUpgrade1.bought
         })),
         createAdditiveModifier(() => ({
-            addend: () => Decimal.div(autoPlantingBuyable1.amount.value, 2),
+            addend: () => Decimal.div(main.isMastery.value ? mastery.autoPlantingBuyable1.amount.value : autoPlantingBuyable1.amount.value, 2),
             description: "Generic Planters",
             enabled: researchUpgrade2.bought
         })),
@@ -433,23 +433,23 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: 2,
             description: "Ivy Level 1",
-            enabled: management.elfTraining.planterElfTraining.milestones[0].earned
+            enabled: () => management.elfTraining.planterElfTraining.milestones[0].earned.value && !main.isMastery.value
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.pow(trees.value, 0.2).max(1).log10().pow_base(2),
             description: "Ivy Level 3",
-            enabled: management.elfTraining.planterElfTraining.milestones[2].earned
+            enabled: () => management.elfTraining.planterElfTraining.milestones[2].earned.value && !main.isMastery.value
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
             description: "Mary Level 4",
-            enabled: management.elfTraining.heatedPlanterElfTraining.milestones[3].earned
+            enabled: () => management.elfTraining.heatedPlanterElfTraining.milestones[3].earned.value && !main.isMastery.value
         })),
         createAdditiveModifier(() => ({
             addend: () =>
                 Decimal.sub(lastAutoCuttingAmount.value, lastAutoPlantedAmount.value).max(0),
             description: "Ivy Level 5",
-            enabled: management.elfTraining.planterElfTraining.milestones[4].earned
+            enabled: () => management.elfTraining.planterElfTraining.milestones[4].earned.value && !main.isMastery.value
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAutoPlantingAmount = computed(() => autoPlantingAmount.apply(0));
@@ -458,12 +458,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: 1.25,
             description: "Research I",
-            enabled: researchUpgrade1.bought
+            enabled: main.isMastery.value ? mastery.researchUpgrade1.bought : researchUpgrade1.bought
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 1.25,
             description: "Research II",
-            enabled: researchUpgrade2.bought
+            enabled: main.isMastery.value ? mastery.researchUpgrade2.bought : researchUpgrade2.bought
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () =>
@@ -518,12 +518,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: computed(() => Decimal.add(computedAutoCuttingAmount.value, 1).root(9)),
             description: "Holly Level 1",
-            enabled: management.elfTraining.cutterElfTraining.milestones[0].earned
+            enabled () {
+                return management.elfTraining.cutterElfTraining.milestones[0].earned.value && !main.isMastery.value;
+            }
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.sqrt(management.totalElfLevels.value),
             description: "Noel Level 1",
-            enabled: management.elfTraining.fertilizerElfTraining.milestones[0].earned
+            enabled () {
+                return management.elfTraining.fertilizerElfTraining.milestones[0].earned.value && !main.isMastery.value;
+            }
         })),
         createMultiplicativeModifier(() => ({
             multiplier: wrappingPaper.boosts.christmas1,
@@ -565,7 +569,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             minHeight: "80px"
         },
         canClick: () =>
-            Decimal.gte(trees.value, 1) &&
+            Decimal.gte((main.isMastery.value ? mastery.trees.value : trees.value), 1) &&
             Decimal.gte(manualCutProgress.value, computedManualCuttingCooldown.value),
         onClick() {
             if (Decimal.lt(manualCutProgress.value, computedManualCuttingCooldown.value)) {
@@ -573,7 +577,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
             const amount = Decimal.floor(
                 Decimal.min(
-                    trees.value,
+                    main.isMastery.value ? mastery.trees.value : trees.value,
                     Decimal.times(
                         computedManualCuttingAmount.value,
                         Decimal.div(
@@ -583,8 +587,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     )
                 )
             );
-            logs.value = Decimal.add(logs.value, Decimal.times(logGain.apply(1), amount));
-            saplings.value = Decimal.add(saplings.value, amount);
+            if (main.isMastery.value) {
+                mastery.logs.value = Decimal.add(mastery.logs.value, Decimal.times(logGain.apply(1), amount));
+                mastery.saplings.value = Decimal.add(Decimal.mul(mastery.saplings.value, 2), amount);
+            } else {
+                logs.value = Decimal.add(logs.value, Decimal.times(logGain.apply(1), amount));
+                saplings.value = Decimal.add(saplings.value, amount);
+            }
             manualCutProgress.value = 0;
         }
     }));
@@ -616,7 +625,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             minHeight: "80px"
         },
         canClick: () =>
-            Decimal.gte(saplings.value, 1) &&
+            Decimal.gte(main.isMastery.value ? mastery.saplings.value : saplings.value, 1) &&
             Decimal.gte(manualPlantProgress.value, computedManualPlantingCooldown.value),
         onClick() {
             if (Decimal.lt(manualPlantProgress.value, computedManualPlantingCooldown.value)) {
@@ -624,7 +633,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
             const amount = Decimal.floor(
                 Decimal.min(
-                    saplings.value,
+                    main.isMastery.value ? mastery.saplings.value : saplings.value,
                     Decimal.times(
                         computedManualPlantingAmount.value,
                         Decimal.div(
@@ -634,7 +643,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     )
                 )
             );
-            saplings.value = Decimal.sub(saplings.value, amount);
+            if (main.isMastery.value) {
+                mastery.saplings.value = Decimal.sub(mastery.saplings.value, amount);
+            } else {
+                saplings.value = Decimal.sub(saplings.value, amount);
+            }
             manualPlantProgress.value = 0;
         }
     }));
@@ -644,55 +657,55 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Logs per Tree",
             modifier: logGain,
             base: 1,
-            visible: researchUpgrade1.bought
+            visible: main.isMastery.value ? mastery.researchUpgrade1.bought : researchUpgrade1.bought
         },
         {
             title: "Manual Cutting Amount",
             modifier: manualCuttingAmount,
             base: 1,
-            visible: manualCutUpgrade1.bought,
+            visible: main.isMastery.value ? mastery.manualCutUpgrade1.bought : manualCutUpgrade1.bought,
             unit: "/click"
         },
         {
             title: "Manual Cutting Cooldown",
             modifier: manualCuttingCooldown,
             base: 1,
-            visible: manualCutUpgrade1.bought,
+            visible: main.isMastery.value ? mastery.manualCutUpgrade1.bought : manualCutUpgrade1.bought,
             unit: "s"
         },
         {
             title: "Manual Planting Amount",
             modifier: manualPlantingAmount,
             base: 1,
-            visible: manualPlantUpgrade1.bought,
+            visible: main.isMastery.value ? mastery.manualPlantUpgrade1.bought : manualPlantUpgrade1.bought,
             unit: "/click"
         },
         {
             title: "Manual Planting Cooldown",
             modifier: manualPlantingCooldown,
             base: 1,
-            visible: manualPlantUpgrade1.bought,
+            visible: main.isMastery.value ? mastery.manualPlantUpgrade1.bought : manualPlantUpgrade1.bought,
             unit: "s"
         },
         {
             title: `Auto Cutting Amount`,
             modifier: autoCuttingAmount,
             base: 0,
-            visible: autoCutUpgrade1.bought,
+            visible: main.isMastery.value ? mastery.autoCutUpgrade1.bought : autoCutUpgrade1.bought,
             unit: "/s"
         },
         {
             title: `Auto Planting Amount`,
             modifier: autoPlantingAmount,
             base: 0,
-            visible: autoPlantUpgrade1.bought,
+            visible: main.isMastery.value ? mastery.autoCutUpgrade1.bought : autoCutUpgrade1.bought,
             unit: "/s"
         },
         {
             title: `Forest Size`,
             modifier: totalTrees,
             base: 10,
-            visible: researchUpgrade2.bought
+            visible: main.isMastery.value ? mastery.researchUpgrade2.bought: researchUpgrade2.bought,
         }
     ]);
     const showModifiersModal = ref(false);
@@ -741,7 +754,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         lastAutoCuttingAmount.value = Decimal.isNaN(cuttingAmount) ? 0 : cuttingAmount;
 
         const amountCut = Decimal.min(
-            trees.value,
+            (main.isMastery ? mastery.trees.value : trees.value),
             Decimal.times(computedAutoCuttingAmount.value, diff)
         );
         const logsGained = Decimal.mul(logGain.apply(1), amountCut);
@@ -750,15 +763,22 @@ const layer = createLayer(id, function (this: BaseLayer) {
         ema.value = Decimal.mul(effectiveLogsGained, SMOOTHING_FACTOR).add(
             Decimal.mul(ema.value, Decimal.dOne.sub(SMOOTHING_FACTOR))
         );
-
-        logs.value = Decimal.add(logs.value, logsGained);
-        saplings.value = Decimal.add(saplings.value, amountCut);
-
+        if (main.isMastery.value) {
+            mastery.logs.value = Decimal.add(mastery.logs.value, logsGained);
+            mastery.saplings.value = Decimal.add(Decimal.mul(mastery.saplings.value, 2), amountCut);
+        } else {
+            logs.value = Decimal.add(logs.value, logsGained);
+            saplings.value = Decimal.add(Decimal.mul(saplings.value, mastered ? 2 : 1), amountCut);
+        }
         const amountPlanted = Decimal.min(
             saplings.value,
             Decimal.times(computedAutoPlantingAmount.value, diff)
         );
-        saplings.value = Decimal.sub(saplings.value, amountPlanted);
+        if (main.isMastery.value) {
+            mastery.saplings.value = Decimal.sub(mastery.saplings.value, amountPlanted);
+        } else {
+            saplings.value = Decimal.sub(saplings.value, amountPlanted);
+        }
     });
 
     const netSaplingGain = computed(() =>
@@ -938,15 +958,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 if (Decimal.gte(v, 2e30)) v = Decimal.pow(v, 10).div(Decimal.pow(2e30, 9));
                 v = Decimal.pow(0.95, paper.books.plantersBook.totalAmount.value).times(v);
                 let cost = Decimal.times(100, v).add(200);
-                if (management.elfTraining.planterElfTraining.milestones[3].earned.value) {
+                /*if (management.elfTraining.planterElfTraining.milestones[3].earned.value) {
                     cost = Decimal.div(cost, 10);
-                }
+                }*/
                 return cost;
             },
             inverseCost(x: DecimalSource) {
-                if (management.elfTraining.planterElfTraining.milestones[3].earned.value) {
+                /*if (management.elfTraining.planterElfTraining.milestones[3].earned.value) {
                     x = Decimal.mul(x, 10);
-                }
+                }*/
                 let v = Decimal.sub(x, 200).div(100);
                 v = v.div(Decimal.pow(0.95, paper.books.plantersBook.totalAmount.value));
                 if (Decimal.gte(v, 2e30)) v = Decimal.mul(v, Decimal.pow(2e30, 9)).root(10);
@@ -985,9 +1005,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             visibility: () => showIf(researchUpgrade2.bought.value)
         })) as ElfBuyable & { display: { title: string }; resource: Resource };
+        const trees = createResource(
+            computed(() => Decimal.sub(totalTrees.apply(10), saplings.value)),
+            "trees"
+        );
         return {
             logs,
             saplings,
+            trees,
             manualCutUpgrade1,
             manualCutUpgrade2,
             manualCutUpgrade3,
@@ -1057,7 +1082,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     productionDisplay={formatGain(netSaplingGain.value)}
                 />
                 <MainDisplay
-                    resource={trees}
+                    resource={main.isMastery.value ? mastery.trees : trees}
                     color={colorDark}
                     style="margin-bottom: 0"
                     productionDisplay={formatGain(netTreeGain.value)}

@@ -375,12 +375,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: gingersnapEffect,
             description: "Gingersnap Level 2",
-            enabled: management.elfTraining.clothElfTraining.milestones[1].earned
+            enabled: () => management.elfTraining.clothElfTraining.milestones[1].earned.value && !main.isMastery.value
         })),
         createMultiplicativeModifier(() => ({
             multiplier: hollyEffect,
             description: "Holly Level 3",
-            enabled: management.elfTraining.cutterElfTraining.milestones[2].earned
+            enabled: () => management.elfTraining.cutterElfTraining.milestones[2].earned.value && !main.isMastery.value
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -415,12 +415,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: gingersnapEffect,
             description: "Gingersnap Level 2",
-            enabled: management.elfTraining.clothElfTraining.milestones[1].earned
+            enabled: () => management.elfTraining.clothElfTraining.milestones[1].earned.value && !main.isMastery.value
         })),
         createMultiplicativeModifier(() => ({
             multiplier: hollyEffect,
             description: "Holly Level 3",
-            enabled: management.elfTraining.cutterElfTraining.milestones[2].earned
+            enabled: () => management.elfTraining.cutterElfTraining.milestones[2].earned.value && !main.isMastery.value
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -455,12 +455,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: gingersnapEffect,
             description: "Gingersnap Level 2",
-            enabled: management.elfTraining.clothElfTraining.milestones[1].earned
+            enabled: () => management.elfTraining.clothElfTraining.milestones[1].earned.value && !main.isMastery.value
         })),
         createMultiplicativeModifier(() => ({
             multiplier: hollyEffect,
             description: "Holly Level 3",
-            enabled: management.elfTraining.cutterElfTraining.milestones[2].earned
+            enabled: () => management.elfTraining.cutterElfTraining.milestones[2].earned.value && !main.isMastery.value
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,

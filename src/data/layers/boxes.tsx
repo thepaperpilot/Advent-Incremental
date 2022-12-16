@@ -58,7 +58,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createExponentialModifier(() => ({
             exponent: 1.1,
             description: "Bell Level 2",
-            enabled: management.elfTraining.boxElfTraining.milestones[1].earned
+            enabled: () => management.elfTraining.boxElfTraining.milestones[1].earned.value && !main.isMastery.value
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
 

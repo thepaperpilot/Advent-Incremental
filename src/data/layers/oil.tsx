@@ -847,12 +847,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.add(totalOil.value, 1).log10().add(1),
             description: "Cocoa Level 2",
-            enabled: management.elfTraining.oilElfTraining.milestones[1].earned
+            enabled: () => management.elfTraining.oilElfTraining.milestones[1].earned.value && !main.isMastery.value
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
             description: "Cocoa Level 3",
-            enabled: management.elfTraining.oilElfTraining.milestones[2].earned
+            enabled: () => management.elfTraining.oilElfTraining.milestones[2].earned.value && !main.isMastery.value
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () => coalEffectiveness.value,
@@ -906,17 +906,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.sqrt(management.totalElfLevels.value),
             description: "Jack Level 4",
-            enabled: management.elfTraining.heatedCutterElfTraining.milestones[3].earned
+            enabled: () => management.elfTraining.heatedCutterElfTraining.milestones[3].earned.value && !main.isMastery.value
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.add(buildHeavy2.amount.value, 1).sqrt(),
             description: "Faith Level 4",
-            enabled: management.elfTraining.bonfireElfTraining.milestones[3].earned
+            enabled: () => management.elfTraining.bonfireElfTraining.milestones[3].earned.value && !main.isMastery.value
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
             description: "Cocoa Level 3",
-            enabled: management.elfTraining.oilElfTraining.milestones[2].earned
+            enabled: () => management.elfTraining.oilElfTraining.milestones[2].earned.value && !main.isMastery.value
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedOilSpeed = computed(() => oilSpeed.apply(0));
