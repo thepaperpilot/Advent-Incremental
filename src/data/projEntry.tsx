@@ -33,6 +33,7 @@ import plastic from "./layers/plastic";
 import trees from "./layers/trees";
 import workshop from "./layers/workshop";
 import wrappingPaper from "./layers/wrapping-paper";
+import toys from "./layers/toys";
 import boxesSymbol from "./symbols/cardboardBox.png";
 import clothSymbol from "./symbols/cloth.png";
 import coalSymbol from "./symbols/coal.png";
@@ -447,7 +448,8 @@ export const getInitialLayers = (
     dyes,
     wrappingPaper,
     management,
-    letters
+    letters,
+    toys,
 ];
 
 /**
