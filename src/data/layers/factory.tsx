@@ -44,7 +44,7 @@ function roundDownTo(num: number, multiple: number) {
     return Math.floor(num / multiple) * multiple;
 }
 function getRelativeCoords(e: MouseEvent) {
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
     return {
         x: e.clientX - rect.left,
         y: e.clientY - rect.top
@@ -125,9 +125,9 @@ const factory = createLayer(id, () => {
                 body: () => (
                     <Factory
                         application={app}
-                        onMousemove={onMouseMove}
-                        onMouseenter={onMouseEnter}
-                        onMouseleave={onMouseLeave}
+                        onMouseMove={onMouseMove}
+                        onMouseEnter={onMouseEnter}
+                        onMouseLeave={onMouseLeave}
                         onClick={onClick}
                     />
                 )
