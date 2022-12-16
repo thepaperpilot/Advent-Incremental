@@ -46,12 +46,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const colorDark = "green";
 
     const clothes = createResource<DecimalSource>(0, "clothes");
-    const teddybears = createResource<DecimalSource>(0, " teddy bears");
-    const trains = createResource<DecimalSource>(0, "trains");
+    const woodenBlocks = createResource<DecimalSource>(0, " wooden blocks");
+    const trucks = createResource<DecimalSource>(0, "trucks");
     const toyGain = createSequentialModifier(() => [
 
     ]);
-    const toySum = createResource(computed(() => Decimal.add(clothes.value, teddybears.value).add(trains.value)), "toy sum")
+    const toySum = createResource(computed(() => Decimal.add(clothes.value, woodenBlocks.value).add(trucks.value)), "toy sum")
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
                 {
             title: `Toy Gain`,
@@ -83,7 +83,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const { total: totalToys, trackerDisplay } = setUpDailyProgressTracker({
         resource: toySum,
-        goal: 1e4,
+        goal: 8e9,
         name,
         day,
         color: colorDark,
@@ -98,7 +98,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         day,
         color: colorBright,
         clothes,
-        teddybears,
+        woodenBlocks,
         totalToys,
         generalTabCollapsed,
         minWidth: 700,
@@ -110,28 +110,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     resource={clothes}
                     color={colorBright}
                     style="margin-bottom: 0"
-                    productionDisplay={
-                        /*Decimal.gt(computedAutoCuttingAmount.value, 0)
-                            ? `+${format(ema.value)}/s average<br/>equilibrium: +${formatLimit(
-                                  [
-                                      [computedAutoCuttingAmount.value, "cutting speed"],
-                                      [computedAutoPlantingAmount.value, "planting speed"],
-                                      [Decimal.mul(computedTotalTrees.value, 20), "forest cap"]
-                                  ],
-                                  "/s",
-                                  logGain.apply(1)
-                              )}`
-                            : */undefined
-                    }
+                    productionDisplay={undefined}
                 />
                 <MainDisplay
-                    resource={teddybears}
+                    resource={woodenBlocks}
                     color={colorDark}
                     style="margin-bottom: 0"
                     productionDisplay={undefined}
                 />
                 <MainDisplay
-                    resource={trains}
+                    resource={trucks}
                     color={colorDark}
                     style="margin-bottom: 0"
                     productionDisplay={undefined}
