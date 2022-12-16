@@ -34,6 +34,7 @@ import workshopSymbol from "./symbols/sws.png";
 import treeSymbol from "./symbols/tree.png";
 import advManagementSymbol from "./symbols/workshopMansion.png";
 import wrappingPaperSymbol from "./symbols/wrappingPaper.png";
+import ribbonsSymbol from "./symbols/ribbons.png";
 import coal from "./layers/coal";
 import elves from "./layers/elves";
 import trees from "./layers/trees";
@@ -325,7 +326,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
             day: 16,
             shouldNotify: false,
             layer: null, // "ribbons"
-            symbol: "",
+            symbol: ribbonsSymbol,
             story: "",
             completedStory: ""
         })),
