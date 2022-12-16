@@ -406,7 +406,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 17,
             shouldNotify: false,
-            layer: null, // "toys 1"
+            layer: "toys 1", // "toys 1"
             symbol: "",
             story: "",
             completedStory: "",
