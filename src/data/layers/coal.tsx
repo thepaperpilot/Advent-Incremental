@@ -970,10 +970,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
         if (Decimal.times(diff, computedLogConsumption.value).negate().gt(trees.logs.value)) {
             return;
         }
-        trees.logs.value = Decimal.times(diff, computedLogConsumption.value).plus(trees.logs.value);
-        coal.value = Decimal.times(diff, computedCoalGain.value).plus(coal.value);
-        ash.value = Decimal.times(diff, computedAshGain.value).plus(ash.value);
-        activeFires.value = Decimal.max(activeFires.value, 0);
+        if (main.isMastery.value) {
+            trees.mastery.logs.value = Decimal.times(diff, computedLogConsumption.value).plus(trees.mastery.logs.value);
+            mastery.coal.value = Decimal.times(diff, computedCoalGain.value).plus(mastery.coal.value);
+            mastery.ash.value = Decimal.times(diff, computedAshGain.value).plus(mastery.ash.value);
+            mastery.activeFires.value = Decimal.max(mastery.activeFires.value, 0);
+        } else {
+            trees.logs.value = Decimal.times(diff, computedLogConsumption.value).plus(trees.logs.value);
+            coal.value = Decimal.times(diff, computedCoalGain.value).plus(coal.value);
+            ash.value = Decimal.times(diff, computedAshGain.value).plus(ash.value);
+            activeFires.value = Decimal.max(activeFires.value, 0);
+        }
     });
 
     const { total: totalCoal, trackerDisplay } = setUpDailyProgressTracker({
@@ -1507,6 +1514,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         computedFertilizerEffect,
         generalTabCollapsed,
         minWidth: 700,
+        mastery,
         display: jsx(() => (
             <>
                 {render(trackerDisplay)}

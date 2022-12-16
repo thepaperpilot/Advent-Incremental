@@ -495,6 +495,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         minWidth: 700,
         buildFoundationHK,
         mastery,
+        mastered,
         display: jsx(() => (
             <>
                 <div>
