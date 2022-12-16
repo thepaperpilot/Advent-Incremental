@@ -588,7 +588,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         } & Partial<ClickableOptions>
     ) {
         const buyProgress = persistent<DecimalSource>(0);
-        const amountOfTimesDone = persistent(0);
+        const amountOfTimesDone = persistent<number>(0);
         const toggle = options.hasToggle ? persistent<boolean>(false) : ref(true);
 
         const computedAutoBuyCooldown = computed(() => options.cooldownModifier.apply(10));
@@ -684,7 +684,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 }
             };
         }) as GenericUpgrade & {
-            buyProgress: Ref<number>;
+            buyProgress: Ref<DecimalSource>;
             update: (diff: number) => void;
             toggle: Ref<boolean>;
             name: string;
@@ -1079,6 +1079,188 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     });
 
+    const mastery = {
+        elves: {
+            cuttersElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                bought: persistent<boolean>(false)
+            },
+            plantersElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                bought: persistent<boolean>(false)
+            },
+            expandersElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                bought: persistent<boolean>(false)
+            },
+            heatedCuttersElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                bought: persistent<boolean>(false)
+            },
+            heatedPlantersElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                bought: persistent<boolean>(false)
+            },
+            fertilizerElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                bought: persistent<boolean>(false)
+            },
+            smallFireElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                toggle: persistent<boolean>(false),
+                bought: persistent<boolean>(false)
+            },
+            bonfireElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                toggle: persistent<boolean>(false),
+                bought: persistent<boolean>(false)
+            },
+            kilnElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                toggle: persistent<boolean>(false),
+                bought: persistent<boolean>(false)
+            },
+            paperElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                bought: persistent<boolean>(false)
+            },
+            boxElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                bought: persistent<boolean>(false)
+            },
+            clothElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                bought: persistent<boolean>(false)
+            },
+            coalDrillElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                toggle: persistent<boolean>(false),
+                bought: persistent<boolean>(false)
+            },
+            heavyDrillElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                toggle: persistent<boolean>(false),
+                bought: persistent<boolean>(false)
+            },
+            oilElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                toggle: persistent<boolean>(false),
+                bought: persistent<boolean>(false)
+            },
+            metalElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                bought: persistent<boolean>(false)
+            },
+            dyeElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                bought: persistent<boolean>(false)
+            }
+        },
+        milestones: [
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+        ]
+    };
+    function swapMastery() {
+        [elves.cuttersElf.buyProgress.value, mastery.elves.cuttersElf.buyProgress.value] = [mastery.elves.cuttersElf.buyProgress.value, elves.cuttersElf.buyProgress.value];
+        [elves.cuttersElf.amountOfTimesDone.value, mastery.elves.cuttersElf.amountOfTimesDone.value] = [mastery.elves.cuttersElf.amountOfTimesDone.value, elves.cuttersElf.amountOfTimesDone.value];
+        [elves.cuttersElf.bought.value, mastery.elves.cuttersElf.bought.value] = [mastery.elves.cuttersElf.bought.value, elves.cuttersElf.bought.value];
+        [elves.plantersElf.buyProgress.value, mastery.elves.plantersElf.buyProgress.value] = [mastery.elves.plantersElf.buyProgress.value, elves.plantersElf.buyProgress.value];
+        [elves.plantersElf.amountOfTimesDone.value, mastery.elves.plantersElf.amountOfTimesDone.value] = [mastery.elves.plantersElf.amountOfTimesDone.value, elves.plantersElf.amountOfTimesDone.value];
+        [elves.plantersElf.bought.value, mastery.elves.plantersElf.bought.value] = [mastery.elves.plantersElf.bought.value, elves.plantersElf.bought.value];
+        [elves.expandersElf.buyProgress.value, mastery.elves.expandersElf.buyProgress.value] = [mastery.elves.expandersElf.buyProgress.value, elves.expandersElf.buyProgress.value];
+        [elves.expandersElf.amountOfTimesDone.value, mastery.elves.expandersElf.amountOfTimesDone.value] = [mastery.elves.expandersElf.amountOfTimesDone.value, elves.expandersElf.amountOfTimesDone.value];
+        [elves.expandersElf.bought.value, mastery.elves.expandersElf.bought.value] = [mastery.elves.expandersElf.bought.value, elves.expandersElf.bought.value];
+        [elves.heatedCuttersElf.buyProgress.value, mastery.elves.heatedCuttersElf.buyProgress.value] = [mastery.elves.heatedCuttersElf.buyProgress.value, elves.heatedCuttersElf.buyProgress.value];
+        [elves.heatedCuttersElf.amountOfTimesDone.value, mastery.elves.heatedCuttersElf.amountOfTimesDone.value] = [mastery.elves.heatedCuttersElf.amountOfTimesDone.value, elves.heatedCuttersElf.amountOfTimesDone.value];
+        [elves.heatedCuttersElf.bought.value, mastery.elves.heatedCuttersElf.bought.value] = [mastery.elves.heatedCuttersElf.bought.value, elves.heatedCuttersElf.bought.value];
+        [elves.heatedPlantersElf.buyProgress.value, mastery.elves.heatedPlantersElf.buyProgress.value] = [mastery.elves.heatedPlantersElf.buyProgress.value, elves.heatedPlantersElf.buyProgress.value];
+        [elves.heatedPlantersElf.amountOfTimesDone.value, mastery.elves.heatedPlantersElf.amountOfTimesDone.value] = [mastery.elves.heatedPlantersElf.amountOfTimesDone.value, elves.heatedPlantersElf.amountOfTimesDone.value];
+        [elves.heatedPlantersElf.bought.value, mastery.elves.heatedPlantersElf.bought.value] = [mastery.elves.heatedPlantersElf.bought.value, elves.heatedPlantersElf.bought.value];
+        [elves.fertilizerElf.buyProgress.value, mastery.elves.fertilizerElf.buyProgress.value] = [mastery.elves.fertilizerElf.buyProgress.value, elves.fertilizerElf.buyProgress.value];
+        [elves.fertilizerElf.amountOfTimesDone.value, mastery.elves.fertilizerElf.amountOfTimesDone.value] = [mastery.elves.fertilizerElf.amountOfTimesDone.value, elves.fertilizerElf.amountOfTimesDone.value];
+        [elves.fertilizerElf.bought.value, mastery.elves.fertilizerElf.bought.value] = [mastery.elves.fertilizerElf.bought.value, elves.fertilizerElf.bought.value];
+        [elves.smallFireElf.buyProgress.value, mastery.elves.smallFireElf.buyProgress.value] = [mastery.elves.smallFireElf.buyProgress.value, elves.smallFireElf.buyProgress.value];
+        [elves.smallFireElf.amountOfTimesDone.value, mastery.elves.smallFireElf.amountOfTimesDone.value] = [mastery.elves.smallFireElf.amountOfTimesDone.value, elves.smallFireElf.amountOfTimesDone.value];
+        [elves.smallFireElf.toggle.value, mastery.elves.smallFireElf.toggle.value] = [mastery.elves.smallFireElf.toggle.value, elves.smallFireElf.toggle.value];
+        [elves.smallFireElf.bought.value, mastery.elves.smallFireElf.bought.value] = [mastery.elves.smallFireElf.bought.value, elves.smallFireElf.bought.value];
+        [elves.bonfireElf.buyProgress.value, mastery.elves.bonfireElf.buyProgress.value] = [mastery.elves.bonfireElf.buyProgress.value, elves.bonfireElf.buyProgress.value];
+        [elves.bonfireElf.amountOfTimesDone.value, mastery.elves.bonfireElf.amountOfTimesDone.value] = [mastery.elves.bonfireElf.amountOfTimesDone.value, elves.bonfireElf.amountOfTimesDone.value];
+        [elves.bonfireElf.toggle.value, mastery.elves.bonfireElf.toggle.value] = [mastery.elves.bonfireElf.toggle.value, elves.bonfireElf.toggle.value];
+        [elves.bonfireElf.bought.value, mastery.elves.bonfireElf.bought.value] = [mastery.elves.bonfireElf.bought.value, elves.bonfireElf.bought.value];
+        [elves.kilnElf.buyProgress.value, mastery.elves.kilnElf.buyProgress.value] = [mastery.elves.kilnElf.buyProgress.value, elves.kilnElf.buyProgress.value];
+        [elves.kilnElf.amountOfTimesDone.value, mastery.elves.kilnElf.amountOfTimesDone.value] = [mastery.elves.kilnElf.amountOfTimesDone.value, elves.kilnElf.amountOfTimesDone.value];
+        [elves.kilnElf.toggle.value, mastery.elves.kilnElf.toggle.value] = [mastery.elves.kilnElf.toggle.value, elves.kilnElf.toggle.value];
+        [elves.kilnElf.bought.value, mastery.elves.kilnElf.bought.value] = [mastery.elves.kilnElf.bought.value, elves.kilnElf.bought.value];
+        [elves.paperElf.buyProgress.value, mastery.elves.paperElf.buyProgress.value] = [mastery.elves.paperElf.buyProgress.value, elves.paperElf.buyProgress.value];
+        [elves.paperElf.amountOfTimesDone.value, mastery.elves.paperElf.amountOfTimesDone.value] = [mastery.elves.paperElf.amountOfTimesDone.value, elves.paperElf.amountOfTimesDone.value];
+        [elves.paperElf.bought.value, mastery.elves.paperElf.bought.value] = [mastery.elves.paperElf.bought.value, elves.paperElf.bought.value];
+        [elves.boxElf.buyProgress.value, mastery.elves.boxElf.buyProgress.value] = [mastery.elves.boxElf.buyProgress.value, elves.boxElf.buyProgress.value];
+        [elves.boxElf.amountOfTimesDone.value, mastery.elves.boxElf.amountOfTimesDone.value] = [mastery.elves.boxElf.amountOfTimesDone.value, elves.boxElf.amountOfTimesDone.value];
+        [elves.boxElf.bought.value, mastery.elves.boxElf.bought.value] = [mastery.elves.boxElf.bought.value, elves.boxElf.bought.value];
+        [elves.clothElf.buyProgress.value, mastery.elves.clothElf.buyProgress.value] = [mastery.elves.clothElf.buyProgress.value, elves.clothElf.buyProgress.value];
+        [elves.clothElf.amountOfTimesDone.value, mastery.elves.clothElf.amountOfTimesDone.value] = [mastery.elves.clothElf.amountOfTimesDone.value, elves.clothElf.amountOfTimesDone.value];
+        [elves.clothElf.bought.value, mastery.elves.clothElf.bought.value] = [mastery.elves.clothElf.bought.value, elves.clothElf.bought.value];
+        [elves.coalDrillElf.buyProgress.value, mastery.elves.coalDrillElf.buyProgress.value] = [mastery.elves.coalDrillElf.buyProgress.value, elves.coalDrillElf.buyProgress.value];
+        [elves.coalDrillElf.amountOfTimesDone.value, mastery.elves.coalDrillElf.amountOfTimesDone.value] = [mastery.elves.coalDrillElf.amountOfTimesDone.value, elves.coalDrillElf.amountOfTimesDone.value];
+        [elves.coalDrillElf.toggle.value, mastery.elves.coalDrillElf.toggle.value] = [mastery.elves.coalDrillElf.toggle.value, elves.coalDrillElf.toggle.value];
+        [elves.coalDrillElf.bought.value, mastery.elves.coalDrillElf.bought.value] = [mastery.elves.coalDrillElf.bought.value, elves.coalDrillElf.bought.value];
+        [elves.heavyDrillElf.buyProgress.value, mastery.elves.heavyDrillElf.buyProgress.value] = [mastery.elves.heavyDrillElf.buyProgress.value, elves.heavyDrillElf.buyProgress.value];
+        [elves.heavyDrillElf.amountOfTimesDone.value, mastery.elves.heavyDrillElf.amountOfTimesDone.value] = [mastery.elves.heavyDrillElf.amountOfTimesDone.value, elves.heavyDrillElf.amountOfTimesDone.value];
+        [elves.heavyDrillElf.toggle.value, mastery.elves.heavyDrillElf.toggle.value] = [mastery.elves.heavyDrillElf.toggle.value, elves.heavyDrillElf.toggle.value];
+        [elves.heavyDrillElf.bought.value, mastery.elves.heavyDrillElf.bought.value] = [mastery.elves.heavyDrillElf.bought.value, elves.heavyDrillElf.bought.value];
+        [elves.oilElf.buyProgress.value, mastery.elves.oilElf.buyProgress.value] = [mastery.elves.oilElf.buyProgress.value, elves.oilElf.buyProgress.value];
+        [elves.oilElf.amountOfTimesDone.value, mastery.elves.oilElf.amountOfTimesDone.value] = [mastery.elves.oilElf.amountOfTimesDone.value, elves.oilElf.amountOfTimesDone.value];
+        [elves.oilElf.toggle.value, mastery.elves.oilElf.toggle.value] = [mastery.elves.oilElf.toggle.value, elves.oilElf.toggle.value];
+        [elves.oilElf.bought.value, mastery.elves.oilElf.bought.value] = [mastery.elves.oilElf.bought.value, elves.oilElf.bought.value];
+        [elves.metalElf.buyProgress.value, mastery.elves.metalElf.buyProgress.value] = [mastery.elves.metalElf.buyProgress.value, elves.metalElf.buyProgress.value];
+        [elves.metalElf.amountOfTimesDone.value, mastery.elves.metalElf.amountOfTimesDone.value] = [mastery.elves.metalElf.amountOfTimesDone.value, elves.metalElf.amountOfTimesDone.value];
+        [elves.metalElf.bought.value, mastery.elves.metalElf.bought.value] = [mastery.elves.metalElf.bought.value, elves.metalElf.bought.value];
+        [elves.dyeElf.buyProgress.value, mastery.elves.dyeElf.buyProgress.value] = [mastery.elves.dyeElf.buyProgress.value, elves.dyeElf.buyProgress.value];
+        [elves.dyeElf.amountOfTimesDone.value, mastery.elves.dyeElf.amountOfTimesDone.value] = [mastery.elves.dyeElf.amountOfTimesDone.value, elves.dyeElf.amountOfTimesDone.value];
+        [elves.dyeElf.bought.value, mastery.elves.dyeElf.bought.value] = [mastery.elves.dyeElf.bought.value, elves.dyeElf.bought.value];
+        [milestones[0].earned.value, mastery.milestones[0].earned.value] = [mastery.milestones[0].earned.value, milestones[0].earned.value];
+        [milestones[1].earned.value, mastery.milestones[1].earned.value] = [mastery.milestones[1].earned.value, milestones[1].earned.value];
+        [milestones[2].earned.value, mastery.milestones[2].earned.value] = [mastery.milestones[2].earned.value, milestones[2].earned.value];
+        [milestones[3].earned.value, mastery.milestones[3].earned.value] = [mastery.milestones[3].earned.value, milestones[3].earned.value];
+        [milestones[4].earned.value, mastery.milestones[4].earned.value] = [mastery.milestones[4].earned.value, milestones[4].earned.value];
+        [milestones[5].earned.value, mastery.milestones[5].earned.value] = [mastery.milestones[5].earned.value, milestones[5].earned.value];
+        [milestones[6].earned.value, mastery.milestones[6].earned.value] = [mastery.milestones[6].earned.value, milestones[6].earned.value];
+        [milestones[7].earned.value, mastery.milestones[7].earned.value] = [mastery.milestones[7].earned.value, milestones[7].earned.value];
+        [milestones[8].earned.value, mastery.milestones[8].earned.value] = [mastery.milestones[8].earned.value, milestones[8].earned.value];
+        [milestones[9].earned.value, mastery.milestones[9].earned.value] = [mastery.milestones[9].earned.value, milestones[9].earned.value];
+        [milestones[10].earned.value, mastery.milestones[10].earned.value] = [mastery.milestones[10].earned.value, milestones[10].earned.value];
+        [milestones[11].earned.value, mastery.milestones[11].earned.value] = [mastery.milestones[11].earned.value, milestones[11].earned.value];
+    };
+    const mastered = persistent<boolean>(false);
+
     return {
         name,
         color: colorBright,
@@ -1120,7 +1302,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 </div>
                 {milestonesDisplay()}
             </>
-        ))
+        )),
+        mastery,
+        swapMastery,
+        mastered
     };
 });
 
