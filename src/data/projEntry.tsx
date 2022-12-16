@@ -83,7 +83,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
             workshop,
             coal,
             elves,
-            // paper,
+            paper,
             // boxes,
             // metal,
             // cloth,

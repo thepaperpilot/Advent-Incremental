@@ -16,7 +16,7 @@ import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier, Modifier } from "game/modifiers";
-import { noPersist } from "game/persistence";
+import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatSmall, formatWhole } from "util/bignum";
 import { WithRequired } from "util/common";
 import { render, renderCol, renderGrid } from "util/vue";
@@ -466,6 +466,68 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     });
 
+    const mastery = {
+        paper: persistent<DecimalSource>(0),
+        totalPaper: persistent<DecimalSource>(0),
+        books: {
+            cuttersBook: { amount: persistent<DecimalSource>(0) },
+            plantersBook: { amount: persistent<DecimalSource>(0) },
+            expandersBook: { amount: persistent<DecimalSource>(0) },
+            heatedCuttersBook: { amount: persistent<DecimalSource>(0) },
+            heatedPlantersBook: { amount: persistent<DecimalSource>(0) },
+            fertilizerBook: { amount: persistent<DecimalSource>(0) },
+            smallFireBook: { amount: persistent<DecimalSource>(0) },
+            bonfireBook: { amount: persistent<DecimalSource>(0) },
+            kilnBook: { amount: persistent<DecimalSource>(0) },
+            paperBook: { amount: persistent<DecimalSource>(0) },
+            boxBook: { amount: persistent<DecimalSource>(0) },
+            clothBook: { amount: persistent<DecimalSource>(0) },
+            coalDrillBook: { amount: persistent<DecimalSource>(0) },
+            heavyDrillBook: { amount: persistent<DecimalSource>(0) },
+            oilBook: { amount: persistent<DecimalSource>(0) },
+            metalBook: { amount: persistent<DecimalSource>(0) },
+            dyeBook: { amount: persistent<DecimalSource>(0) }
+        },
+        upgrades: {
+            clothUpgrade: { bought: persistent<boolean>(false) },
+            drillingUpgrade: { bought: persistent<boolean>(false) },
+            oilUpgrade: { bought: persistent<boolean>(false) }
+        },
+        upgrades2: {
+            ashUpgrade: { bought: persistent<boolean>(false) },
+            bookUpgrade: { bought: persistent<boolean>(false) },
+            treeUpgrade: { bought: persistent<boolean>(false) }
+        }
+    };
+    function swapMastery() {
+        [paper.value, mastery.paper.value] = [mastery.paper.value, paper.value];
+        [totalPaper.value, mastery.totalPaper.value] = [mastery.totalPaper.value, totalPaper.value];
+        [books.cuttersBook.amount.value, mastery.books.cuttersBook.amount.value] = [mastery.books.cuttersBook.amount.value, books.cuttersBook.amount.value];
+        [books.plantersBook.amount.value, mastery.books.plantersBook.amount.value] = [mastery.books.plantersBook.amount.value, books.plantersBook.amount.value];
+        [books.expandersBook.amount.value, mastery.books.expandersBook.amount.value] = [mastery.books.expandersBook.amount.value, books.expandersBook.amount.value];
+        [books.heatedCuttersBook.amount.value, mastery.books.heatedCuttersBook.amount.value] = [mastery.books.heatedCuttersBook.amount.value, books.heatedCuttersBook.amount.value];
+        [books.heatedPlantersBook.amount.value, mastery.books.heatedPlantersBook.amount.value] = [mastery.books.heatedPlantersBook.amount.value, books.heatedPlantersBook.amount.value];
+        [books.fertilizerBook.amount.value, mastery.books.fertilizerBook.amount.value] = [mastery.books.fertilizerBook.amount.value, books.fertilizerBook.amount.value];
+        [books.smallFireBook.amount.value, mastery.books.smallFireBook.amount.value] = [mastery.books.smallFireBook.amount.value, books.smallFireBook.amount.value];
+        [books.bonfireBook.amount.value, mastery.books.bonfireBook.amount.value] = [mastery.books.bonfireBook.amount.value, books.bonfireBook.amount.value];
+        [books.kilnBook.amount.value, mastery.books.kilnBook.amount.value] = [mastery.books.kilnBook.amount.value, books.kilnBook.amount.value];
+        [books.paperBook.amount.value, mastery.books.paperBook.amount.value] = [mastery.books.paperBook.amount.value, books.paperBook.amount.value];
+        [books.boxBook.amount.value, mastery.books.boxBook.amount.value] = [mastery.books.boxBook.amount.value, books.boxBook.amount.value];
+        [books.clothBook.amount.value, mastery.books.clothBook.amount.value] = [mastery.books.clothBook.amount.value, books.clothBook.amount.value];
+        [books.coalDrillBook.amount.value, mastery.books.coalDrillBook.amount.value] = [mastery.books.coalDrillBook.amount.value, books.coalDrillBook.amount.value];
+        [books.heavyDrillBook.amount.value, mastery.books.heavyDrillBook.amount.value] = [mastery.books.heavyDrillBook.amount.value, books.heavyDrillBook.amount.value];
+        [books.oilBook.amount.value, mastery.books.oilBook.amount.value] = [mastery.books.oilBook.amount.value, books.oilBook.amount.value];
+        [books.metalBook.amount.value, mastery.books.metalBook.amount.value] = [mastery.books.metalBook.amount.value, books.metalBook.amount.value];
+        [books.dyeBook.amount.value, mastery.books.dyeBook.amount.value] = [mastery.books.dyeBook.amount.value, books.dyeBook.amount.value];
+        [upgrades.clothUpgrade.bought.value, mastery.upgrades.clothUpgrade.bought.value] = [mastery.upgrades.clothUpgrade.bought.value, upgrades.clothUpgrade.bought.value];
+        [upgrades.drillingUpgrade.bought.value, mastery.upgrades.drillingUpgrade.bought.value] = [mastery.upgrades.drillingUpgrade.bought.value, upgrades.drillingUpgrade.bought.value];
+        [upgrades.oilUpgrade.bought.value, mastery.upgrades.oilUpgrade.bought.value] = [mastery.upgrades.oilUpgrade.bought.value, upgrades.oilUpgrade.bought.value];
+        [upgrades2.ashUpgrade.bought.value, mastery.upgrades2.ashUpgrade.bought.value] = [mastery.upgrades2.ashUpgrade.bought.value, upgrades2.ashUpgrade.bought.value];
+        [upgrades2.bookUpgrade.bought.value, mastery.upgrades2.bookUpgrade.bought.value] = [mastery.upgrades2.bookUpgrade.bought.value, upgrades2.bookUpgrade.bought.value];
+        [upgrades2.treeUpgrade.bought.value, mastery.upgrades2.treeUpgrade.bought.value] = [mastery.upgrades2.treeUpgrade.bought.value, upgrades2.treeUpgrade.bought.value];
+    };
+    const mastered = persistent<boolean>(false);
+
     return {
         name,
         day,
@@ -491,11 +553,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {renderCol(...Object.values(books))}
             </>
         )),
-        minimizedDisplay: jsx(() => (
-            <div>
-                {name} - {format(paper.value)} {paper.displayName}
-            </div>
-        ))
+        minimizedDisplay: jsx(() => (<div>{name} - {format(paper.value)} {paper.displayName}</div>)),
+        mastery,
+        swapMastery,
+        mastered
     };
 });
 
