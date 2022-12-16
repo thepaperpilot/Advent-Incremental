@@ -34,7 +34,13 @@ import { ElfBuyable } from "./elves";
 import management from "./management";
 import oil from "./oil";
 import paper from "./paper";
+<<<<<<< HEAD
 import trees from "./trees";
+=======
+import boxes from "./boxes";
+import { ElfBuyable } from "./elves";
+import toys from "./toys"
+>>>>>>> finish balancing toys layer
 
 interface Dye {
     name: string;
@@ -55,7 +61,11 @@ type DyeUpg =
     | "blueDyeUpg2"
     | "coalUpg";
 
+<<<<<<< HEAD
 export type enumColor = "blue" | "red" | "green" | "yellow" | "purple" | "orange";
+=======
+export type enumColor = "red" | "green" | "blue" | "yellow" | "purple" | "orange" | "black";
+>>>>>>> finish balancing toys layer
 
 const id = "dyes";
 const day = 11;
@@ -487,6 +497,34 @@ const layer = createLayer(id, function (this: BaseLayer) {
             ],
             dyesToReset: []
         }),
+        black: createDye({
+            name: "Black Dye",
+            color: "black",
+            costs: () => [
+                {
+                    base: "1e42",
+                    root: 5,
+                    res: trees.logs
+                },
+                {
+                    base: computed(() => (upgrades.yellowDyeUpg2.bought.value ? "1e15" : "2e15")),
+                    root: 2,
+                    res: oil.oil
+                }
+            ],
+            listedBoosts: [
+                {
+                    visible: true,
+                    desc: computed(
+                        () =>
+                            `*${format(
+                                boosts.black1.value
+                            )} letters processed.`
+                    )
+                }
+            ],
+            dyesToReset: []
+        }),
         orange: createDye({
             name: "Orange Dye",
             color: "orange",
@@ -664,7 +702,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 .pow(upgrades.coalUpg.bought.value ? 1.2 : 1)
                 .pow(management.elfTraining.clothElfTraining.milestones[3].earned.value ? 1.1 : 1)
         ),
-        purple2: computed(() => Decimal.add(dyes.purple.amount.value, 1).log2().plus(1))
+        purple2: computed(() => Decimal.add(dyes.purple.amount.value, 1).log2().plus(1)),
+        black1: computed(() =>
+                Decimal.pow(2, Decimal.add(dyes.black.amount.value, 1).log2().sqrt())
+                .pow(upgrades.coalUpg.bought.value ? 1.2 : 1)
+                .pow(management.elfTraining.clothElfTraining.milestones[3].earned.value ? 1.1 : 1)
+        )
     };
 
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
@@ -681,6 +724,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         {
             title: "Blue Dye Creation",
             modifier: dyes.blue.toGenerate,
+            base: 0
+        },
+        {
+            title: "Black Dye Creation",
+            modifier: dyes.black.toGenerate,
             base: 0
         },
         {
@@ -913,6 +961,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     </>
                 ) : null}
                 <div style="width: 620px">
+                    {renderRow(dyes.black.display)}
+                    {renderRow(dyes.black.buyable)}
+                    <Spacer />
                     {renderRow(dyes.red.display, dyes.yellow.display, dyes.blue.display)}
                     {renderRow(dyes.red.buyable, dyes.yellow.buyable, dyes.blue.buyable)}
                     <Spacer />

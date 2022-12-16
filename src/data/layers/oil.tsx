@@ -875,6 +875,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: management.elfTraining.oilElfTraining.milestones[2].earned
         })),
         createMultiplicativeModifier(() => ({
+            multiplier: 4,
+            description: "Workshop 1200%",
+            enabled: workshop.milestones.extraExpansionMilestone6.earned
+        })),
+        createMultiplicativeModifier(() => ({
             multiplier: () => coalEffectiveness.value,
             description: "Effectiveness",
             enabled: () => Decimal.lt(coalEffectiveness.value, 1)

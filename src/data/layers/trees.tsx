@@ -38,6 +38,7 @@ import management from "./management";
 import paper from "./paper";
 import workshop from "./workshop";
 import wrappingPaper from "./wrapping-paper";
+import toys from "./toys";
 const id = "trees";
 const day = 1;
 
@@ -536,9 +537,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: computed(() => Decimal.gt(wrappingPaper.boosts.christmas1.value, 1))
         })),
         createMultiplicativeModifier(() => ({
+<<<<<<< HEAD
             multiplier: () => Decimal.add(computedTotalTrees.value, 1).log10(),
             description: "Trees Decoration",
             enabled: masteryEffectActive
+=======
+            multiplier: 2,
+            description: "Load logs onto trucks",
+            enabled: toys.row1Upgrades[0].bought
+>>>>>>> finish balancing toys layer
         })),
         createExponentialModifier(() => ({
             exponent: 1.2,
