@@ -1004,7 +1004,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const ash = createResource<DecimalSource>(0,"ash");
 
         const buildFire = createBuyable(() => ({
-            resource: trees.mastery.logs,
+            resource: noPersist(trees.mastery.logs), // apparently necessary
             cost() {
                 let v = Decimal.times(buildBonfire.amount.value, unref(buildBonfire.cost!)).plus(
                     this.amount.value
@@ -1105,7 +1105,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         });
 
         const buildKiln = createBuyable(() => ({
-            resource: trees.mastery.logs,
+            resource: noPersist(trees.mastery.logs),
             cost() {
                 let v = this.amount.value;
                 if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
