@@ -6,7 +6,7 @@ import Spacer from "components/layout/Spacer.vue";
 import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
 import { main } from "data/projEntry";
-import { BuyableOptions, createBuyable, GenericBuyable } from "features/buyable";
+import { BuyableOptions, createBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
 import { createCumulativeConversion, createPolynomialScaling } from "features/conversion";
 import { jsx, showIf } from "features/feature";
@@ -19,15 +19,15 @@ import { createMultiplicativeModifier, createSequentialModifier, Modifier } from
 import { noPersist } from "game/persistence";
 import Decimal, { DecimalSource, format, formatSmall, formatWhole } from "util/bignum";
 import { WithRequired } from "util/common";
-import { render, renderCol, renderGrid, renderRow } from "util/vue";
+import { render, renderCol, renderGrid } from "util/vue";
 import { computed, ComputedRef, ref, unref } from "vue";
 import cloth from "./cloth";
 import coal from "./coal";
+import dyes from "./dyes";
 import elves, { ElfBuyable } from "./elves";
+import management from "./management";
 import plastic from "./plastic";
 import trees from "./trees";
-import dyes from "./dyes";
-import management from "./management";
 import workshop from "./workshop";
 import wrappingPaper from "./wrapping-paper";
 
@@ -244,7 +244,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const paperBook = createBook({
         name: "The Book Thief",
         elfName: "Star",
-        buyableName: "Paper Buyables",
+        buyableName: "Books",
         visibility: () => showIf(elves.elves.paperElf.bought.value)
     });
     const boxBook = createBook({
@@ -280,13 +280,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const metalBook = createBook({
         name: "Physical Metallurgy",
         elfName: "Twinkle",
-        buyableName: "Metal Buyables",
+        buyableName: "Metal Machines",
         visibility: () => showIf(elves.elves.metalElf.bought.value)
     });
     const dyeBook = createBook({
         name: "Arts and Crafts",
         elfName: "Carol",
-        buyableName: "Dye Buyables",
+        buyableName: "Dyes",
         visibility: () => showIf(elves.elves.dyeElf.bought.value)
     });
     const books = {
@@ -360,17 +360,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Books are less expensive"
         }
     }));
-    const classroomUpgrade = createUpgrade(() => ({
+    const treeUpgrade = createUpgrade(() => ({
         resource: noPersist(paper),
         cost: 1e40,
         visibility: () =>
             showIf(management.elfTraining.heavyDrillElfTraining.milestones[4].earned.value),
         display: {
-            title: "Classroom Supplies",
-            description: "Classrooms' effect is raised to the 1.1"
+            title: "Un-Processing",
+            description: "Log gain is raised to the ^1.05"
         }
     }));
-    const upgrades2 = { ashUpgrade, bookUpgrade, classroomUpgrade };
+    const upgrades2 = { ashUpgrade, bookUpgrade, treeUpgrade };
     const paperGain = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
             multiplier: 2,

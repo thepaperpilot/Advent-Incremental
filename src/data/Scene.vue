@@ -8,6 +8,12 @@
         />
         <img v-if="day >= 0" :src="tree" class="scene-item" style="left: 10%; bottom: 10%" />
         <img
+            v-if="day >= 13"
+            :src="letters"
+            class="scene-item"
+            style="left: 26%; bottom: 12%; width: 40px; height: 40px"
+        />
+        <img
             v-if="day >= 12"
             :src="advManagement"
             class="scene-item"
@@ -68,6 +74,7 @@ import plastic from "./symbols/plastic.png";
 import dyes from "./symbols/dyes.png";
 import management from "./symbols/elfManagement.png";
 import advManagement from "./symbols/workshopMansion.png";
+import letters from "./symbols/letterbox.png";
 
 defineProps<{
     day: number;

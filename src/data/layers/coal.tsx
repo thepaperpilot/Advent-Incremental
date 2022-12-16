@@ -579,7 +579,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         inverseCost(x: DecimalSource) {
             let v = Decimal.div(x, 50000).root(1.5).sub(1);
             v = v.mul(wrappingPaper.boosts.rainbow1.value);
-            if (management.elfTraining.fertilizerElfTraining.milestones[0].earned.value) {
+            if (management.elfTraining.fertilizerElfTraining.milestones[1].earned.value) {
                 v = v.div(Decimal.pow(0.95, paper.books.fertilizerBook.totalAmount.value));
             }
             v = v.div(Decimal.pow(0.95, paper.books.fertilizerBook.totalAmount.value));

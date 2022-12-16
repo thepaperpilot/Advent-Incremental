@@ -1,40 +1,40 @@
-import Spacer from "components/layout/Spacer.vue";
-import MainDisplay from "features/resources/MainDisplay.vue";
 import Toggle from "components/fields/Toggle.vue";
+import Spacer from "components/layout/Spacer.vue";
 import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
+import { createBar } from "features/bars/bar";
+import { createBuyable } from "features/buyable";
+import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
+import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource, Resource, trackBest } from "features/resources/resource";
-import { BaseLayer, createLayer } from "game/layers";
-import Decimal, { DecimalSource } from "lib/break_eternity";
-import { render, renderRow } from "util/vue";
-import { persistent } from "game/persistence";
+import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
+import { BaseLayer, createLayer } from "game/layers";
 import {
     createAdditiveModifier,
     createExponentialModifier,
     createMultiplicativeModifier,
     createSequentialModifier
 } from "game/modifiers";
-import { computed, ref, unref } from "vue";
-import { createBar } from "features/bars/bar";
-import { Direction } from "util/common";
+import { noPersist, persistent } from "game/persistence";
+import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format, formatGain, formatLimit, formatWhole } from "util/break_eternity";
-import { createClickable } from "features/clickables/clickable";
-import coal from "./coal";
-import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
-import { noPersist } from "game/persistence";
-import { createBuyable, GenericBuyable } from "features/buyable";
+import { Direction } from "util/common";
+import { render, renderRow } from "util/vue";
+import { computed, ref, unref } from "vue";
 import { main } from "../projEntry";
-import oil from "./oil";
 import boxes from "./boxes";
 import cloth from "./cloth";
-import plastic from "./plastic";
+import coal from "./coal";
 import dyes from "./dyes";
-import management from "./management";
-import workshop from "./workshop";
-import paper from "./paper";
 import { ElfBuyable } from "./elves";
+import letters from "./letters";
+import management from "./management";
+import oil from "./oil";
+import paper from "./paper";
+import plastic from "./plastic";
+import workshop from "./workshop";
 
 const id = "metal";
 const day = 7;
@@ -188,6 +188,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 3,
             description: "Twinkle Level 3",
             enabled: () => management.elfTraining.metalElfTraining.milestones[2].earned.value && !main.isMastery.value
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(industrialCrucible.amount.value, 1).sqrt(),
+            description: "100,000 Letters Processed",
+            enabled: letters.milestones.industrialCrucibleMilestone.earned
         }))
     ]);
     const computedAutoSmeltMulti = computed(() => autoSmeltMulti.apply(1));
@@ -258,6 +263,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "Carry ore in boxes",
             enabled: boxes.row2Upgrades.oreUpgrade.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(dyes.dyes.blue.amount.value, 1).sqrt(),
+            description: "1000 Letters Processed",
+            enabled: letters.milestones.miningMilestone.earned
         }))
     ]);
     const computedOreAmount = computed(() => oreAmount.apply(1));
@@ -286,6 +296,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "Oil the Metal Drills",
             enabled: oil.row2Upgrades[1].bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () =>
+                Decimal.pow(
+                    2,
+                    Object.values(letters.milestones).filter(m => m.earned.value).length
+                ),
+            description: "100 Letters Processed",
+            enabled: letters.milestones.autoSmeltingMilestone.earned
         }))
     ]);
     const computedOreSpeed = computed(() => oreSpeed.apply(Decimal.recip(maxOreProgress)));

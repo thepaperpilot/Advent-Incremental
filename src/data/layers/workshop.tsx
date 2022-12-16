@@ -8,6 +8,7 @@ import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
 import { createClickable } from "features/clickables/clickable";
 import {
+    addHardcap,
     addSoftcap,
     createIndependentConversion,
     createPolynomialScaling
@@ -51,18 +52,29 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createExponentialModifier(() => ({
             exponent: 0.99,
             description: "Holly Level 5",
-            enabled: () => management.elfTraining.cutterElfTraining.milestones[4].earned.value && !main.isMastery.value
+            enabled: () =>
+                management.elfTraining.cutterElfTraining.milestones[4].earned.value &&
+                !main.isMastery.value
         }))
-    ])
-    
+    ]);
+
     const addScaling = (value: DecimalSource) => computed(() => costDecrease.apply(value));
 
     const foundationConversion = createIndependentConversion(() => ({
-        scaling: addSoftcap(
-            addSoftcap(createPolynomialScaling(
-                addScaling(250), 1.5), addScaling(5423), 1 / 1e10),
-            addScaling(1e20),
-            3e8
+        // note: 5423 is a magic number. Don't touch this or it'll self-destruct.
+        scaling: addHardcap(
+            addSoftcap(
+                addSoftcap(
+                    createPolynomialScaling(addScaling(250), 1.5),
+                    addScaling(5423),
+                    1 / 1e10
+                ),
+                addScaling(1e20),
+                3e8
+            ),
+            computed(() =>
+                management.elfTraining.expandersElfTraining.milestones[2].earned.value ? 1000 : 100
+            )
         ),
         baseResource: trees.logs,
         gainResource: noPersist(foundationProgress),
@@ -70,14 +82,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
         // buyMax: management.elfTraining.expandersElfTraining.milestones[2].earned,
         spend(gain, spent) {
             trees.logs.value = Decimal.sub(trees.logs.value, spent);
-        }     
-    }));  
+        }
+    }));
 
     const buildFoundation = createClickable(() => ({
         display: jsx(() => (
             <>
                 <b style="font-size: x-large">
-                    Build {formatWhole((main.isMastery.value ? mastery.foundationConversion : foundationConversion).actualGain.value)}% of the foundation
+                    Build{" "}
+                    {formatWhole(
+                        (main.isMastery.value ? mastery.foundationConversion : foundationConversion)
+                            .actualGain.value
+                    )}
+                    % of the foundation
                 </b>
                 <br />
                 <br />
@@ -85,9 +102,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     {main.isMastery.value || mastered ? "Requirement" : "Cost"}:{" "}
                     {displayResource(
                         main.isMastery.value ? trees.mastery.logs : trees.logs,
-                        Decimal.gte((main.isMastery.value ? mastery.foundationConversion : foundationConversion).actualGain.value, 1)
-                            ? (main.isMastery.value ? mastery.foundationConversion : foundationConversion).currentAt.value
-                            : (main.isMastery.value ? mastery.foundationConversion : foundationConversion).nextAt.value
+                        Decimal.gte(
+                            (main.isMastery.value
+                                ? mastery.foundationConversion
+                                : foundationConversion
+                            ).actualGain.value,
+                            1
+                        )
+                            ? (main.isMastery.value
+                                  ? mastery.foundationConversion
+                                  : foundationConversion
+                              ).currentAt.value
+                            : (main.isMastery.value
+                                  ? mastery.foundationConversion
+                                  : foundationConversion
+                              ).nextAt.value
                     )}{" "}
                     {trees.logs.displayName}
                 </span>
@@ -95,13 +124,42 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
         visibility: () =>
             showIf(
-                Decimal.lt(main.isMastery.value ? mastery.foundationProgress.value : foundationProgress.value, 100) ||
-                    management.elfTraining.expandersElfTraining.milestones[2].earned.value
+                main.isMastery.value
+                    ? Decimal.lt(mastery.foundationProgress.value, 100)
+                    : Decimal.lt(
+                          foundationProgress.value,
+                          management.elfTraining.expandersElfTraining.milestones[2].earned.value
+                              ? 1000
+                              : 100
+                      )
             ),
-        canClick: () =>
-            Decimal.gte((main.isMastery.value ? trees.mastery.logs.value : trees.logs.value), (main.isMastery.value ? mastery.foundationConversion : foundationConversion).nextAt.value) &&
-            (Decimal.lt(foundationProgress.value, 100) ||
-                management.elfTraining.expandersElfTraining.milestones[2].earned.value),
+        canClick: () => {
+            if (main.isMastery.value) {
+                if (
+                    Decimal.lt(trees.mastery.logs.value, mastery.foundationConversion.nextAt.value)
+                ) {
+                    return false;
+                }
+                if (Decimal.gte(foundationProgress.value, 100)) {
+                    return false;
+                }
+            } else {
+                if (Decimal.lt(trees.logs.value, foundationConversion.nextAt.value)) {
+                    return false;
+                }
+                if (
+                    Decimal.gte(
+                        foundationProgress.value,
+                        management.elfTraining.expandersElfTraining.milestones[2].earned.value
+                            ? 1000
+                            : 100
+                    )
+                ) {
+                    return false;
+                }
+            }
+            return true;
+        },
         onClick() {
             if (!unref(this.canClick)) {
                 return;
@@ -286,7 +344,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )
     }));
 
-
     watchEffect(() => {
         if (main.day.value === day && Decimal.gte(foundationProgress.value, 100)) {
             main.completeDay();
@@ -297,8 +354,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const foundationProgress = createResource<DecimalSource>(0, "foundation progress");
         const foundationConversion = createIndependentConversion(() => ({
             scaling: addSoftcap(
-                addSoftcap(createPolynomialScaling(
-                    addScaling(250), 1.5), addScaling(5423), 1 / 1e10),
+                addSoftcap(
+                    createPolynomialScaling(addScaling(250), 1.5),
+                    addScaling(5423),
+                    1 / 1e10
+                ),
                 addScaling(1e20),
                 3e8
             ),
@@ -306,8 +366,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             gainResource: noPersist(foundationProgress),
             roundUpCost: true,
             // buyMax: management.elfTraining.expandersElfTraining.milestones[2].earned,
-            spend(gain, spent) {}     
-        }));  
+            spend(gain, spent) {}
+        }));
         const logGainMilestone1 = createMilestone(() => ({
             display: {
                 requirement: "1% Foundation Completed",
@@ -319,7 +379,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const autoCutMilestone1 = createMilestone(() => ({
             display: {
                 requirement: "10% Foundation Completed",
-                effectDisplay: "Cut an additional tree per second for each 5% of foundation completed"
+                effectDisplay:
+                    "Cut an additional tree per second for each 5% of foundation completed"
             },
             shouldEarn: () => Decimal.gte(foundationProgress.value, 10),
             visibility: () => showIf(logGainMilestone1.earned.value),
@@ -481,8 +542,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             extraExpansionMilestone3,
             extraExpansionMilestone4,
             extraExpansionMilestone5
-        }
-    })()
+        };
+    })();
 
     return {
         name,
@@ -508,7 +569,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <div>
                     <span>The foundation is </span>
                     <h2 style={`color: ${color}; text-shadow: 0 0 10px ${color}`}>
-                        {formatWhole(main.isMastery.value ? mastery.foundationProgress.value : foundationProgress.value)}
+                        {formatWhole(
+                            main.isMastery.value
+                                ? mastery.foundationProgress.value
+                                : foundationProgress.value
+                        )}
                     </h2>
                     % completed
                 </div>
@@ -523,7 +588,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
         minimizedDisplay: jsx(() => (
             <div>
-                {name} - {format(foundationProgress.value)} {foundationProgress.displayName}
+                {name} - {format(foundationProgress.value)}% {foundationProgress.displayName}
             </div>
         ))
     };
