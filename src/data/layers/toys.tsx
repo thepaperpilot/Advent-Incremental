@@ -39,6 +39,7 @@ import cloth from "./cloth";
 import trees from "./trees";
 import dyes from "./dyes";
 import paper from "./paper";
+import workshop from "./workshop";
 const id = "toys";
 const day = 17;
 
@@ -56,7 +57,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const toySum = createResource(computed(() => Decimal.add(clothes.value, woodenBlocks.value).add(trucks.value)), "toys");
     
     const clothesCost = computed(() => {
-        const clothFactor = Decimal.add(1,clothesBuyable.amount.value);
+        var clothFactor = Decimal.add(1,clothesBuyable.amount.value);
+        if(milestones.milestone1.earned){
+            clothFactor=clothFactor.div(Decimal.div(workshop.foundationProgress.value,100).floor())
+        }
         return {
             cloth: clothFactor.mul(1e8),
             dye: clothFactor.mul(1e6)
@@ -96,7 +100,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
     })) as GenericBuyable;
     const woodenBlocksCost = computed(() => {
-        const woodFactor = Decimal.add(1,woodenBlocksBuyable.amount.value).pow(5);
+        var woodFactor = Decimal.add(1,woodenBlocksBuyable.amount.value).pow(5);
+        if(milestones.milestone1.earned){
+            woodFactor=woodFactor.div(Decimal.div(workshop.foundationProgress.value,100).floor())
+        }
         return {
             wood: woodFactor.mul(1e40)
         };
@@ -131,8 +138,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
     })) as GenericBuyable;
     const trucksCost = computed(() => {
-        const factor = Decimal.add(1,trucksBuyable.amount.value).pow(3);
-        const plasticFactor = Decimal.add(1,trucksBuyable.amount.value);
+        var factor = Decimal.add(1,trucksBuyable.amount.value).pow(3);
+        var plasticFactor = Decimal.add(1,trucksBuyable.amount.value);
+        if(milestones.milestone1.earned){
+            factor=factor.div(Decimal.div(workshop.foundationProgress.value,100).floor())
+            plasticFactor=plasticFactor.div(Decimal.div(workshop.foundationProgress.value,100).floor())
+        }
         return {
             metal: factor.mul(1e25),
             plastic: plasticFactor.mul(1e10)
