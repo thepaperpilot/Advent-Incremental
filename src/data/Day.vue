@@ -1,13 +1,21 @@
 <template>
-    <div class="day feature dontMerge opened" v-if="opened.value">
-        <Tooltip :display="(layers[layer ?? '']?.name ?? '')" :direction="Direction.Up" yoffset="5px">
+    <div
+        class="day feature dontMerge opened"
+        :class="{ mastered: unref(mastered) }"
+        v-if="opened.value"
+    >
+        <Tooltip :display="layers[layer ?? '']?.name ?? ''" :direction="Direction.Up" yoffset="5px">
             <Transition appear name="door">
                 <div class="doors" @click="emit('openLayer')">
                     <div class="date">Dec<br />{{ day }}</div>
                     <div class="date">Dec<br />{{ day }}</div>
                 </div>
             </Transition>
-            <div class="icon" @click="emit('openLayer')" :style="{ backgroundImage: `url(${symbol})` }"></div>
+            <div
+                class="icon"
+                @click="emit('openLayer')"
+                :style="{ backgroundImage: `url(${symbol})` }"
+            ></div>
             <div class="lore" @click="emit('openLore')">?</div>
             <Notif v-if="unref(shouldNotify)" />
         </Tooltip>
@@ -15,14 +23,18 @@
     <div
         v-else
         class="day feature dontMerge"
-        :class="{ can: canOpen, locked: !canOpen, canOpen }"
+        :class="{ can: canOpen, locked: !canOpen, canOpen, mastered: unref(mastered) }"
         @click="tryUnlock"
     >
         <div class="doors"></div>
         <div class="date">Dec<br />{{ day }}</div>
         <div v-if="!canOpen" class="material-icons lock">lock</div>
         <div v-if="main.day.value === day && !canOpen" class="timer">
-            {{ main.timeUntilNewDay.value < 0 ? "NYI, sorry" : formatTime(main.timeUntilNewDay.value, 0) }}
+            {{
+                main.timeUntilNewDay.value < 0
+                    ? "NYI, sorry"
+                    : formatTime(main.timeUntilNewDay.value, 0)
+            }}
         </div>
         <Notif v-if="canOpen" />
     </div>
@@ -47,6 +59,7 @@ const props = defineProps<{
     opened: Ref<boolean>;
     recentlyUpdated: Ref<boolean>;
     shouldNotify: ProcessedComputable<boolean>;
+    mastered: Ref<boolean>;
 }>();
 
 const emit = defineEmits<{
@@ -78,6 +91,30 @@ function tryUnlock() {
     background-color: var(--raised-background);
     aspect-ratio: 1;
     margin: 5%;
+    box-shadow: rgb(0 0 0 / 13%) 0px 3px 0px inset, rgb(0 0 0 / 13%) 3px 0px 0px inset,
+        rgb(0 0 0 / 13%) 0px 0px 3px inset, rgb(0 0 0 / 13%) 0px 0px 0px 3px inset;
+}
+
+.mastered.day {
+    background: linear-gradient(
+        225deg,
+        rgb(255, 76, 76) 10.8%,
+        rgb(255, 255, 255) 11.1%,
+        rgb(255, 255, 255) 21.9%,
+        rgb(65, 255, 95) 22.2%,
+        rgb(65, 255, 95) 33%,
+        rgb(255, 255, 255) 33.3%,
+        rgb(255, 255, 255) 44.1%,
+        rgb(255, 76, 76) 44.4%,
+        rgb(255, 76, 76) 55.2%,
+        rgb(255, 255, 255) 55.5%,
+        rgb(255, 255, 255) 66.3%,
+        rgb(65, 255, 95) 66.6%,
+        rgb(65, 255, 95) 77.4%,
+        rgb(255, 255, 255) 77.7%,
+        rgb(255, 255, 255) 88.5%,
+        rgb(255, 76, 76) 88.8%
+    );
 }
 
 .door-enter-from::before,
@@ -132,7 +169,8 @@ function tryUnlock() {
     clip-path: polygon(100% 0, 50% 0, 50% 100%, 100% 100%);
 }
 
-.tooltip-container, .doors {
+.tooltip-container,
+.doors {
     position: absolute;
     width: 100%;
     height: 100%;
@@ -162,6 +200,29 @@ function tryUnlock() {
 .doors::after {
     top: 0;
     right: 0;
+}
+
+.mastered .doors::before,
+.mastered .doors::after {
+    background: linear-gradient(
+        225deg,
+        rgb(255, 76, 76) 10.8%,
+        rgb(255, 255, 255) 11.1%,
+        rgb(255, 255, 255) 21.9%,
+        rgb(65, 255, 95) 22.2%,
+        rgb(65, 255, 95) 33%,
+        rgb(255, 255, 255) 33.3%,
+        rgb(255, 255, 255) 44.1%,
+        rgb(255, 76, 76) 44.4%,
+        rgb(255, 76, 76) 55.2%,
+        rgb(255, 255, 255) 55.5%,
+        rgb(255, 255, 255) 66.3%,
+        rgb(65, 255, 95) 66.6%,
+        rgb(65, 255, 95) 77.4%,
+        rgb(255, 255, 255) 77.7%,
+        rgb(255, 255, 255) 88.5%,
+        rgb(255, 76, 76) 88.8%
+    );
 }
 
 .date {

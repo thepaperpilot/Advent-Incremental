@@ -73,7 +73,7 @@ const masterableLayers = [
     oil,
     plastic,
     dyes
-]
+];
 
 export const main = createLayer("main", function (this: BaseLayer) {
     const day = persistent<number>(1);
@@ -89,7 +89,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
     const isMastery = persistent<boolean>(false);
     const toggleMastery = () => {
         isMastery.value = !isMastery.value;
-    }
+    };
 
     function createDay(
         optionsFunc: () => {
@@ -127,7 +127,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
                         shouldNotify,
                         story,
                         completedStory,
-                        recentlyUpdated,
+                        recentlyUpdated
                     } = this;
 
                     return {
@@ -137,6 +137,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
                         opened,
                         recentlyUpdated,
                         shouldNotify,
+                        mastered: (layers[layer ?? ""] as any)?.mastered ?? ref(false),
                         onOpenLore() {
                             const completed = main.day.value > day;
                             loreScene.value = completed ? day - 1 : -1;
