@@ -40,9 +40,6 @@ import wrappingPaper from "./wrapping-paper";
 const id = "toys";
 const day = 17;
 
-// how much to prioritize this' income
-// vs the previous ones
-const SMOOTHING_FACTOR = 0.1;
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Toys";
     const colorBright = "#4BDC13";
