@@ -24,6 +24,7 @@ import { createBuyable, GenericBuyable } from "features/buyable";
 import metal from "./metal";
 import plastic from "./plastic";
 import paper from "./paper";
+import dyes from "./dyes";
 import SqrtVue from "components/math/Sqrt.vue";
 import { globalBus } from "game/events";
 import { main } from "data/projEntry";
@@ -190,7 +191,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.div(paperBuyable.amount.value, 2).add(1),
             description: "Printed Labels"
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => dyes.boosts.black1.value,
+            description: "Black Dye Boost"
         }))
+        
     ]);
     const computedLettersGain = computed(() => lettersGain.apply(1));
     const processingCooldown = createSequentialModifier(() => [

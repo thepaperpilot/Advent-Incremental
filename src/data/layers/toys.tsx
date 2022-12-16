@@ -160,7 +160,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 </div>
 
                 <div>
-                    You have {formatWhole(woodenBlocks.value)} wooden blocks.
+                    You have {formatWhole(trucks.value)} trucks.
                 </div>
                 
                     <div>
@@ -182,14 +182,51 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
     })) as GenericBuyable;
     const buyables = [ clothesBuyable, woodenBlocksBuyable, trucksBuyable ];
+    const trucksUpgrade1 = createUpgrade(() => ({
+        resource: noPersist(trucks),
+        cost: 10,
+        display: {
+            title: "Load logs onto trucks",
+            description: "Log gain is doubled."
+        }
+    }))
+    const clothesUpgrade1 = createUpgrade(() => ({
+        resource: noPersist(clothes),
+        cost: 30,
+        display: {
+            title: "Give elves clothes to wear",
+            description: "Multiply ore per mining operation and auto-smelt purity by the number of clothes you have."
+        }
+    }))
+    
+    const woodenBlocksUpgrade1 = createUpgrade(() => ({
+        resource: noPersist(woodenBlocks),
+        cost: 15,
+        display: {
+            title: "Build wooden towers",
+            description: "You can now build 2 extra tall workshops!"
+        }
+    }))
+const row1Upgrades = [
+        trucksUpgrade1,
+        clothesUpgrade1,
+        woodenBlocksUpgrade1
+    ];
     const milestone1 = createMilestone(() => ({
         display: {
             requirement: "10 toys",
-            effectDisplay: "The number of complete workshops you have divides the cost to make toys."
+            effectDisplay: "The cost of making toys is divided by the number of complete workshops you have."
         },
         shouldEarn: () => Decimal.gte(toySum.value, 10)
     }));
-const milestones = {milestone1}
+    const milestone2 = createMilestone(() => ({
+        display: {
+            requirement: "100 toys",
+            effectDisplay: "Unlock black dyes."
+        },
+        shouldEarn: () => Decimal.gte(toySum.value, 100)
+    }));
+const milestones = {milestone1, milestone2}
 const { collapseMilestones, display: milestonesDisplay } =
         createCollapsibleMilestones(milestones);
 
@@ -217,14 +254,22 @@ const { collapseMilestones, display: milestonesDisplay } =
         if (Decimal.lt(main.day.value, day)) {
             return;
         }
-
+        if (Decimal.lt(clothes.value, clothesBuyable.amount.value)){
+            clothesBuyable.amount.value = clothes.value
+        }
+        if (Decimal.lt(woodenBlocks.value, woodenBlocksBuyable.amount.value)){
+            woodenBlocksBuyable.amount.value = woodenBlocks.value
+        }
+        if (Decimal.lt(trucks.value, trucksBuyable.amount.value)){
+            trucksBuyable.amount.value = trucks.value
+        }
         
     });
 
 
     const { total: totalToys, trackerDisplay } = setUpDailyProgressTracker({
         resource: toySum,
-        goal: 8e9,
+        goal: 200,
         name,
         day,
         color: colorDark,
@@ -244,6 +289,7 @@ const { collapseMilestones, display: milestonesDisplay } =
         toySum,
         totalToys,
         buyables,
+        row1Upgrades,
         milestones,
         generalTabCollapsed,
         collapseMilestones,
@@ -272,6 +318,8 @@ const { collapseMilestones, display: milestonesDisplay } =
                 />
                 <Spacer />
                 {renderRow(...buyables)}
+                <Spacer />
+                {renderGrid(row1Upgrades)}
                 <Spacer />
                 {milestonesDisplay()}
             </>

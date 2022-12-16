@@ -35,6 +35,7 @@ import oil from "./oil";
 import paper from "./paper";
 import plastic from "./plastic";
 import workshop from "./workshop";
+import toys from "./toys";
 
 const id = "metal";
 const day = 7;
@@ -193,6 +194,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.add(industrialCrucible.amount.value, 1).sqrt(),
             description: "100,000 Letters Processed",
             enabled: letters.milestones.industrialCrucibleMilestone.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(toys.clothes.value, 1),
+            description: "Give elves clothes to wear",
+            enabled: toys.row1Upgrades[1].bought
         }))
     ]);
     const computedAutoSmeltMulti = computed(() => autoSmeltMulti.apply(1));
@@ -268,7 +274,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.add(dyes.dyes.blue.amount.value, 1).sqrt(),
             description: "1000 Letters Processed",
             enabled: letters.milestones.miningMilestone.earned
-        }))
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(toys.clothes.value, 1),
+            description: "Give elves clothes to wear",
+            enabled: toys.row1Upgrades[1].bought
+        })),
     ]);
     const computedOreAmount = computed(() => oreAmount.apply(1));
     const oreSpeed = createSequentialModifier(() => [

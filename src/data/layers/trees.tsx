@@ -37,6 +37,7 @@ import management from "./management";
 import paper from "./paper";
 import workshop from "./workshop";
 import wrappingPaper from "./wrapping-paper";
+import toys from "./toys";
 const id = "trees";
 const day = 1;
 
@@ -527,6 +528,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: wrappingPaper.boosts.christmas1,
             description: "Christmas Wrapping Paper",
             enabled: computed(() => Decimal.gt(wrappingPaper.boosts.christmas1.value, 1))
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Load logs onto trucks",
+            enabled: toys.row1Upgrades[0].bought
         })),
         createExponentialModifier(() => ({
             exponent: 1.2,
