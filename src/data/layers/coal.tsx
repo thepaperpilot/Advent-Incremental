@@ -993,11 +993,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const activeBonfires = persistent<DecimalSource>(0);
         const activeKilns = persistent<DecimalSource>(0);
 
-        const coal = createResource<DecimalSource>(0);
-        const ash = createResource<DecimalSource>(0);
+        const coal = createResource<DecimalSource>(0,"coal");
+        const ash = createResource<DecimalSource>(0,"ash");
 
         const buildFire = createBuyable(() => ({
-            resource: trees.logs,
+            resource: trees.mastery.logs,
             cost() {
                 let v = Decimal.times(buildBonfire.amount.value, unref(buildBonfire.cost!)).plus(
                     this.amount.value
@@ -1048,6 +1048,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             active: activeFires,
             buyable: buildFire
         });
+        const fireResource = createResource(buildFire.amount, "small fires");
 
         const buildBonfire = createBuyable(() => ({
             resource: fireResource,
@@ -1097,7 +1098,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         });
 
         const buildKiln = createBuyable(() => ({
-            resource: trees.logs,
+            resource: trees.mastery.logs,
             cost() {
                 let v = this.amount.value;
                 if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
