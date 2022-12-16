@@ -4,14 +4,19 @@
  */
 import Spacer from "components/layout/Spacer.vue";
 import Modal from "components/Modal.vue";
-import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
 import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
+import {
+    createCollapsibleMilestones,
+    createCollapsibleModifierSections,
+    setUpDailyProgressTracker
+} from "data/common";
 import { createBuyable, GenericBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
 import { createHotkey } from "features/hotkey";
 import MainDisplay from "features/resources/MainDisplay.vue";
+import { createMilestone } from "features/milestones/milestone";
 import { createResource, Resource } from "features/resources/resource";
 import { createUpgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
@@ -84,6 +89,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 clothesCost.value.dye.lte(dyes.dyes.yellow.amount.value)
             );
         },
+        onPurchase() {
+            cloth.cloth.value = Decimal.sub(cloth.cloth.value, clothesCost.value.cloth);
+            this.amount.value = Decimal.add(this.amount.value, 1);
+            clothes.value = this.amount.value
+        },
     })) as GenericBuyable;
     const woodenBlocksCost = computed(() => {
         const woodFactor = Decimal.add(1,woodenBlocksBuyable.amount.value).pow(5);
@@ -113,6 +123,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             return (
                 woodenBlocksCost.value.wood.lte(trees.logs.value)
             );
+        },
+        onPurchase() {
+            trees.logs.value = Decimal.sub(trees.logs.value, woodenBlocksCost.value.wood);
+            this.amount.value = Decimal.add(this.amount.value, 1);
+            woodenBlocks.value = this.amount.value
         },
     })) as GenericBuyable;
     const trucksCost = computed(() => {
@@ -148,8 +163,25 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 trucksCost.value.plastic.lte(plastic.plastic.value)
             );
         },
+        onPurchase() {
+            metal.metal.value = Decimal.sub(metal.metal.value, trucksCost.value.metal);
+            plastic.plastic.value = Decimal.sub(plastic.plastic.value, trucksCost.value.plastic);
+            this.amount.value = Decimal.add(this.amount.value, 1);
+            trucks.value = this.amount.value
+        },
     })) as GenericBuyable;
     const buyables = [ clothesBuyable, woodenBlocksBuyable, trucksBuyable ];
+    const milestone1 = createMilestone(() => ({
+        display: {
+            requirement: "10 toys",
+            effectDisplay: "The number of complete workshops you have divides the cost to make toys."
+        },
+        shouldEarn: () => Decimal.gte(toySum.value, 10)
+    }));
+const milestones = {milestone1}
+const { collapseMilestones, display: milestonesDisplay } =
+        createCollapsibleMilestones(milestones);
+
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
                 {
             title: `Toy Gain`,
@@ -201,7 +233,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         toySum,
         totalToys,
         buyables,
+        milestones,
         generalTabCollapsed,
+        collapseMilestones,
         minWidth: 700,
         display: jsx(() => (
             <>
@@ -227,6 +261,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 />
                 <Spacer />
                 {renderRow(...buyables)}
+                <Spacer />
+                {milestonesDisplay()}
             </>
         )),
         minimizedDisplay: jsx(() => (
