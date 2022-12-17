@@ -87,40 +87,43 @@ const layer = createLayer(id, function (this: BaseLayer) {
         display: jsx(() => (
             <>
                 <b style="font-size: x-large">
-                    Build{" "}
-                    {formatWhole(foundationConversion.actualGain.value)}
-                    % of the foundation
+                    Build {formatWhole(foundationConversion.actualGain.value)}% of the foundation
                 </b>
                 <br />
                 <br />
                 <span style="font-size: large">
-                    {(main.isMastery.value || mastered.value) ? "Requirement" : "Cost"}:{" "}
+                    {main.isMastery.value || mastered.value ? "Requirement" : "Cost"}:{" "}
                     {displayResource(
                         trees.logs,
                         Decimal.gte(foundationConversion.actualGain.value, 1)
                             ? foundationConversion.currentAt.value
                             : foundationConversion.nextAt.value
-                    )} {trees.logs.displayName}
+                    )}{" "}
+                    {trees.logs.displayName}
                 </span>
             </>
         )),
         visibility: () =>
-            showIf(Decimal.lt(
-                foundationProgress.value,
-                management.elfTraining.expandersElfTraining.milestones[2].earned.value
-                    ? 1000
-                    : 100
-            )),
-        canClick: () => {
-            if (Decimal.lt(trees.logs.value, foundationConversion.nextAt.value)) {
-                return false;
-            }
-            if (Decimal.gte(
+            showIf(
+                Decimal.lt(
                     foundationProgress.value,
                     management.elfTraining.expandersElfTraining.milestones[2].earned.value
                         ? 1000
                         : 100
-            )) {
+                )
+            ),
+        canClick: () => {
+            if (Decimal.lt(trees.logs.value, foundationConversion.nextAt.value)) {
+                return false;
+            }
+            if (
+                Decimal.gte(
+                    foundationProgress.value,
+                    management.elfTraining.expandersElfTraining.milestones[2].earned.value
+                        ? 1000
+                        : 100
+                )
+            ) {
                 return false;
             }
             return true;
@@ -303,15 +306,27 @@ const layer = createLayer(id, function (this: BaseLayer) {
         width: 600,
         height: 25,
         fillStyle: `backgroundColor: ${colorDark}`,
-        progress: () => (main.day.value === day ? Decimal.div(foundationProgress.value, 100) : 1),
+        progress: () =>
+            main.day.value === day || main.currentlyMastering.value?.name === name
+                ? Decimal.div(foundationProgress.value, 100)
+                : 1,
         display: jsx(() =>
-            main.day.value === day ? <>{formatWhole(foundationProgress.value)}%</> : ""
+            main.day.value === day || main.currentlyMastering.value?.name === name ? (
+                <>{formatWhole(foundationProgress.value)}%</>
+            ) : (
+                ""
+            )
         )
     }));
 
     watchEffect(() => {
         if (main.day.value === day && Decimal.gte(foundationProgress.value, 100)) {
             main.completeDay();
+        } else if (
+            main.currentlyMastering.value?.name === name &&
+            Decimal.gte(foundationProgress.value, 100)
+        ) {
+            main.completeMastery();
         }
     });
 
@@ -330,7 +345,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             extraExpansionMilestone2: { earned: persistent<boolean>(false) },
             extraExpansionMilestone3: { earned: persistent<boolean>(false) },
             extraExpansionMilestone4: { earned: persistent<boolean>(false) },
-            extraExpansionMilestone5: { earned: persistent<boolean>(false) },
+            extraExpansionMilestone5: { earned: persistent<boolean>(false) }
         }
     };
     const mastered = persistent<boolean>(false);
@@ -370,7 +385,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {milestonesDisplay()}
             </>
         )),
-        minimizedDisplay: jsx(() => (<div>{name} - {format(foundationProgress.value)}% {foundationProgress.displayName}</div>)),
+        minimizedDisplay: jsx(() => (
+            <div>
+                {name} - {format(foundationProgress.value)}% {foundationProgress.displayName}
+            </div>
+        )),
         mastery,
         mastered
     };
