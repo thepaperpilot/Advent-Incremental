@@ -399,10 +399,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: autoPlantUpgrade1.bought.value
         })),
         createAdditiveModifier(() => ({
-            addend: () => Decimal.div(
-                    autoPlantingBuyable1.amount.value,
-                    2
-                ),
+            addend: () => Decimal.div(autoPlantingBuyable1.amount.value, 2),
             description: "Generic Planters",
             enabled: researchUpgrade2.bought
         })),
@@ -447,7 +444,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: management.elfTraining.heatedPlanterElfTraining.milestones[3].earned
         })),
         createAdditiveModifier(() => ({
-            addend: () => Decimal.sub(lastAutoCuttingAmount.value, lastAutoPlantedAmount.value).max(0),
+            addend: () =>
+                Decimal.sub(lastAutoCuttingAmount.value, lastAutoPlantedAmount.value).max(0),
             description: "Ivy Level 5",
             enabled: management.elfTraining.planterElfTraining.milestones[4].earned
         }))
@@ -594,7 +592,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 )
             );
             logs.value = Decimal.add(logs.value, Decimal.times(logGain.apply(1), amount));
-            saplings.value = Decimal.add(saplings.value, amount.times((main.isMastery.value || mastered.value) ? 2 : 1));
+            saplings.value = Decimal.add(
+                saplings.value,
+                amount.times(main.isMastery.value || mastered.value ? 2 : 1)
+            );
             manualCutProgress.value = 0;
         }
     }));
@@ -761,7 +762,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.mul(averageLogGain.value, Decimal.dOne.sub(SMOOTHING_FACTOR))
         );
         logs.value = Decimal.add(logs.value, logsGained);
-        saplings.value = Decimal.add(Decimal.mul(saplings.value, (main.isMastery.value || mastered.value) ? 2 : 1), amountCut);
+        saplings.value = Decimal.add(
+            Decimal.mul(saplings.value, main.isMastery.value || mastered.value ? 2 : 1),
+            amountCut
+        );
         const amountPlanted = Decimal.min(
             saplings.value,
             Decimal.times(computedAutoPlantingAmount.value, diff)
@@ -831,6 +835,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     return {
         name,
+        day,
         color: colorBright,
         logs,
         totalLogs,
@@ -858,7 +863,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     style="margin-bottom: 0"
                     productionDisplay={
                         Decimal.gt(computedAutoCuttingAmount.value, 0)
-                            ? `+${format(averageLogGain.value)}/s average<br/>equilibrium: +${formatLimit(
+                            ? `+${format(
+                                  averageLogGain.value
+                              )}/s average<br/>equilibrium: +${formatLimit(
                                   [
                                       [computedAutoCuttingAmount.value, "cutting speed"],
                                       [computedAutoPlantingAmount.value, "planting speed"],
@@ -891,9 +898,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {renderRow(...row1Buyables)}
             </>
         )),
-        minimizedDisplay: jsx(() => (<div>{name} - {format(logs.value)} {logs.displayName}</div>)),
+        minimizedDisplay: jsx(() => (
+            <div>
+                {name} - {format(logs.value)} {logs.displayName}
+            </div>
+        )),
         mastery,
-        mastered,
+        mastered
     };
 });
 

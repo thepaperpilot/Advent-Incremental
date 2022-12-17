@@ -1185,13 +1185,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             { earned: persistent<boolean>(false) },
             { earned: persistent<boolean>(false) },
             { earned: persistent<boolean>(false) },
-            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) }
         ]
     };
     const mastered = persistent<boolean>(false);
 
     return {
         name,
+        day,
         color: colorBright,
         elves,
         totalElves,

@@ -33,7 +33,7 @@ import wrappingPaper from "./wrapping-paper";
 import paper from "./paper";
 import boxes from "./boxes";
 import { ElfBuyable } from "./elves";
-import { main } from "../projEntry"
+import { main } from "../projEntry";
 
 interface Dye {
     name: string;
@@ -148,7 +148,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     createMultiplicativeModifier(() => ({
                         multiplier: () => Decimal.add(cloth.cloth.value, Math.E).ln(),
                         description: "Gingersnap Level 1",
-                        enabled: () => management.elfTraining.clothElfTraining.milestones[0].earned.value && !main.isMastery.value
+                        enabled: () =>
+                            management.elfTraining.clothElfTraining.milestones[0].earned.value &&
+                            !main.isMastery.value
                     }))
                 );
                 modifiers.push(
@@ -176,7 +178,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 createMultiplicativeModifier(() => ({
                     multiplier: 2,
                     description: "Gingersnap Level 3",
-                    enabled: () => management.elfTraining.clothElfTraining.milestones[2].earned.value && !main.isMastery.value
+                    enabled: () =>
+                        management.elfTraining.clothElfTraining.milestones[2].earned.value &&
+                        !main.isMastery.value
                 }))
             );
             modifiers.push(
@@ -821,6 +825,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     return {
         name,
+        day,
         color,
         dyes,
         dyeSum,

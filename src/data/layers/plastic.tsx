@@ -280,7 +280,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.add(oil.buildExtractor.amount.value, 1).pow(1.25),
             description: "Snowball Level 4",
-            enabled: () => management.elfTraining.kilnElfTraining.milestones[3].earned.value && !main.isMastery.value
+            enabled: () =>
+                management.elfTraining.kilnElfTraining.milestones[3].earned.value &&
+                !main.isMastery.value
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.add(dyes.secondaryDyeSum.value, 1).cbrt(),
@@ -336,6 +338,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     return {
         name,
+        day,
         color,
         plastic,
         totalPlastic,
@@ -377,7 +380,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 </Row>
             </>
         )),
-        minimizedDisplay: jsx(() => (<div>{name} - {format(plastic.value)} {plastic.displayName}</div>)),
+        minimizedDisplay: jsx(() => (
+            <div>
+                {name} - {format(plastic.value)} {plastic.displayName}
+            </div>
+        )),
         mastery,
         mastered
     };

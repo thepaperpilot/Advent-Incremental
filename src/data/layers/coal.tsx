@@ -675,7 +675,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createAdditiveModifier(() => ({
             addend() {
-                return  kilnCoal.value;
+                return kilnCoal.value;
             },
             description: "Charcoal Kilns",
             enabled() {
@@ -773,7 +773,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: Decimal.add(coal.value, 1).log10().add(1).sqrt(),
             description: "Peppermint Level 2",
-            enabled: () => management.elfTraining.coalDrillElfTraining.milestones[1].earned.value && !main.isMastery.value
+            enabled: () =>
+                management.elfTraining.coalDrillElfTraining.milestones[1].earned.value &&
+                !main.isMastery.value
         })),
         createMultiplicativeModifier(() => ({
             multiplier: Decimal.add(plastic.buildRefinery.amount.value, 1).sqrt(),
@@ -783,7 +785,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createExponentialModifier(() => ({
             exponent: 1.05,
             description: "Jack Level 2",
-            enabled: () => management.elfTraining.heatedCutterElfTraining.milestones[1].earned.value && !main.isMastery.value
+            enabled: () =>
+                management.elfTraining.heatedCutterElfTraining.milestones[1].earned.value &&
+                !main.isMastery.value
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedCoalGain = computed(() => coalGain.apply(0));
@@ -861,17 +865,23 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createExponentialModifier(() => ({
             exponent: 1.1,
             description: "Joy Level 2",
-            enabled: () => management.elfTraining.smallfireElfTraining.milestones[1].earned.value && !main.isMastery.value
+            enabled: () =>
+                management.elfTraining.smallfireElfTraining.milestones[1].earned.value &&
+                !main.isMastery.value
         })),
         createExponentialModifier(() => ({
             exponent: 1.1,
             description: "Faith Level 2",
-            enabled: () => management.elfTraining.bonfireElfTraining.milestones[1].earned.value && !main.isMastery.value
+            enabled: () =>
+                management.elfTraining.bonfireElfTraining.milestones[1].earned.value &&
+                !main.isMastery.value
         })),
         createExponentialModifier(() => ({
             exponent: 1.1,
             description: "Snowball Level 2",
-            enabled: () => management.elfTraining.kilnElfTraining.milestones[1].earned.value && !main.isMastery.value
+            enabled: () =>
+                management.elfTraining.kilnElfTraining.milestones[1].earned.value &&
+                !main.isMastery.value
         })),
         createAdditiveModifier(() => ({
             addend: paper.paper,
@@ -971,12 +981,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
             return;
         }
         if (main.isMastery.value) {
-            trees.mastery.logs.value = Decimal.times(diff, computedLogConsumption.value).plus(trees.mastery.logs.value);
-            mastery.coal.value = Decimal.times(diff, computedCoalGain.value).plus(mastery.coal.value);
+            trees.mastery.logs.value = Decimal.times(diff, computedLogConsumption.value).plus(
+                trees.mastery.logs.value
+            );
+            mastery.coal.value = Decimal.times(diff, computedCoalGain.value).plus(
+                mastery.coal.value
+            );
             mastery.ash.value = Decimal.times(diff, computedAshGain.value).plus(mastery.ash.value);
             mastery.activeFires.value = Decimal.max(mastery.activeFires.value, 0);
         } else {
-            trees.logs.value = Decimal.times(diff, computedLogConsumption.value).plus(trees.logs.value);
+            trees.logs.value = Decimal.times(diff, computedLogConsumption.value).plus(
+                trees.logs.value
+            );
             coal.value = Decimal.times(diff, computedCoalGain.value).plus(coal.value);
             ash.value = Decimal.times(diff, computedAshGain.value).plus(ash.value);
             activeFires.value = Decimal.max(activeFires.value, 0);
@@ -1027,6 +1043,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     return {
         name,
+        day,
         color: colorCoal,
         coal,
         totalCoal,
@@ -1091,12 +1108,23 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     <Column>
                         {render(buildFire)}
                         <div>
-                            {formatWhole(Decimal.floor(main.isMastery ? mastery.activeFires.value : activeFires.value))}/
-                            {formatWhole(Decimal.floor(main.isMastery ? mastery.buildFire.amount.value : buildFire.amount.value))}
+                            {formatWhole(
+                                Decimal.floor(
+                                    main.isMastery ? mastery.activeFires.value : activeFires.value
+                                )
+                            )}
+                            /
+                            {formatWhole(
+                                Decimal.floor(
+                                    main.isMastery
+                                        ? mastery.buildFire.amount.value
+                                        : buildFire.amount.value
+                                )
+                            )}
                         </div>
                         {renderRow(minFire, removeFire, addFire, maxFire)}
                     </Column>
-                    {(unlockBonfire.bought.value) ? (
+                    {unlockBonfire.bought.value ? (
                         <>
                             <Spacer />
                             <Column>
@@ -1109,7 +1137,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                             </Column>
                         </>
                     ) : undefined}
-                    {(unlockKiln.bought.value) ? (
+                    {unlockKiln.bought.value ? (
                         <>
                             <Spacer />
                             <Column>
@@ -1141,7 +1169,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {renderRow(...row3buyables)}
             </>
         )),
-        minimizedDisplay: jsx(() => (<div>{name} - {format(coal.value)} {coal.displayName}</div>)),
+        minimizedDisplay: jsx(() => (
+            <div>
+                {name} - {format(coal.value)} {coal.displayName}
+            </div>
+        )),
         mastery,
         mastered
     };
