@@ -624,6 +624,25 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     });
 
+    const mastery = {
+        ore: persistent<DecimalSource>(0),
+        bestOre: persistent<DecimalSource>(0),
+        oreProgress: persistent<DecimalSource>(0),
+        metal: persistent<DecimalSource>(0),
+        bestMetal: persistent<DecimalSource>(0),
+        totalMetal: persistent<DecimalSource>(0),
+        simplePickaxe: { bought: persistent<boolean>(false) },
+        doublePickaxe: { bought: persistent<boolean>(false) },
+        crucible: { bought: persistent<boolean>(false) },
+        coalDrill: { bought: persistent<boolean>(false) },
+        industrialFurnace: { bought: persistent<boolean>(false) },
+        efficientDrill: { bought: persistent<boolean>(false) },
+        oreDrill: { amount: persistent<DecimalSource>(0) },
+        industrialCrucible: { amount: persistent<DecimalSource>(0) },
+        hotterForge: { amount: persistent<DecimalSource>(0) }
+    };
+    const mastered = persistent<boolean>(false);
+
     return {
         name,
         day,
@@ -719,11 +738,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {renderRow(oreDrill, industrialCrucible, hotterForge)}
             </>
         )),
-        minimizedDisplay: jsx(() => (
-            <div>
-                {name} - {format(metal.value)} {metal.displayName}
-            </div>
-        ))
+        minimizedDisplay: jsx(() => (<div>{name} - {format(metal.value)} {metal.displayName}</div>)),
+        mastery,
+        mastered
     };
 });
 

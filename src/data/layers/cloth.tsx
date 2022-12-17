@@ -573,6 +573,35 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     });
 
+    const mastery = {
+        cloth: persistent<DecimalSource>(0),
+        totalCloth: persistent<DecimalSource>(0),
+        wool: persistent<DecimalSource>(0),
+        sheep: persistent<DecimalSource>(0),
+        buildPens: { amount: persistent<DecimalSource>(0) },
+        betterShears: { amount: persistent<DecimalSource>(0) },
+        fasterSpinning: { amount: persistent<DecimalSource>(0) },
+        treesUpgrades: {
+            treesUpgrade1: { bought: persistent<boolean>(false) },
+            treesUpgrade2: { bought: persistent<boolean>(false) },
+            treesUpgrade3: { bought: persistent<boolean>(false) },
+            treesUpgrade4: { bought: persistent<boolean>(false) }
+        },
+        metalUpgrades: {
+            metalUpgrade1: { bought: persistent<boolean>(false) },
+            metalUpgrade2: { bought: persistent<boolean>(false) },
+            metalUpgrade3: { bought: persistent<boolean>(false) },
+            metalUpgrade4: { bought: persistent<boolean>(false) }
+        },
+        paperUpgrades: {
+            paperUpgrade1: { bought: persistent<boolean>(false) },
+            paperUpgrade2: { bought: persistent<boolean>(false) },
+            paperUpgrade3: { bought: persistent<boolean>(false) },
+            paperUpgrade4: { bought: persistent<boolean>(false) }
+        }
+    };
+    const mastered = persistent<boolean>(false);
+
     return {
         name,
         color,
@@ -611,11 +640,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 </Row>
             </>
         )),
-        minimizedDisplay: jsx(() => (
-            <div>
-                {name} - {format(cloth.value)} {cloth.displayName}
-            </div>
-        ))
+        minimizedDisplay: jsx(() => (<div>{name} - {format(cloth.value)} {cloth.displayName}</div>)),
+        mastery,
+        mastered
     };
 });
 

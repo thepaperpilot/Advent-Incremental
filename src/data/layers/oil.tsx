@@ -1086,6 +1086,62 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     });
 
+    const mastery = {
+        oil: persistent<DecimalSource>(0),
+        totalOil: persistent<DecimalSource>(0),
+        depth: persistent<DecimalSource>(0),
+        drillProgress: persistent<DecimalSource>(0),
+        activeHeavy: persistent<DecimalSource>(0),
+        buildHeavy: { amount: persistent<DecimalSource>(0) },
+        activeHeavy2: persistent<DecimalSource>(0),
+        buildHeavy2: { amount: persistent<DecimalSource>(0) },
+        activeExtractor: persistent<DecimalSource>(0),
+        buildExtractor: { amount: persistent<DecimalSource>(0) },
+        activePump: persistent<DecimalSource>(0),
+        buildPump: { amount: persistent<DecimalSource>(0) },
+        activeBurner: persistent<DecimalSource>(0),
+        buildBurner: { amount: persistent<DecimalSource>(0) },
+        activeSmelter: persistent<DecimalSource>(0),
+        buildSmelter: { amount: persistent<DecimalSource>(0) },
+        depthMilestones: [
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) }
+        ],
+        oilMilestones: [
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) }
+        ],
+        row1Upgrades: [
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) }
+        ],
+        row2Upgrades: [
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) }
+        ],
+        row3Upgrades: [
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) }
+        ]
+    };
+    const mastered = persistent<boolean>(false);
+
     return {
         name,
         day,
@@ -1281,11 +1337,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 </>
             );
         }),
-        minimizedDisplay: jsx(() => (
-            <div>
-                {name} - {format(oil.value)} {oil.displayName}
-            </div>
-        ))
+        minimizedDisplay: jsx(() => (<div>{name} - {format(oil.value)} {oil.displayName}</div>)),
+
+        mastery,
+        mastered
     };
 });
 
