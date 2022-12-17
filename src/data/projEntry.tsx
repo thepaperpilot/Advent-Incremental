@@ -7,7 +7,7 @@ import {
     jsx
 } from "features/feature";
 import { BaseLayer, createLayer, GenericLayer, layers } from "game/layers";
-import { Persistent, persistent } from "game/persistence";
+import { isPersistent, Persistent, persistent } from "game/persistence";
 import type { LayerData, PlayerData } from "game/player";
 import player from "game/player";
 import Decimal, { format, formatTime } from "util/bignum";
@@ -84,7 +84,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
             coal,
             elves,
             paper,
-            // boxes,
+            boxes,
             // metal,
             // cloth,
             // oil,
@@ -92,10 +92,20 @@ export const main = createLayer("main", function (this: BaseLayer) {
             // dyes,
             // management,
             // letters
-        ]) { layer.swapMastery() }
+        ]) { swapMastery(layer.mastery, layer) }
 
         swappingMastery.value = false;
     };
+    function swapMastery(mastery: Record<string, any>, layer: Record<string, any>) {
+        for (const key of Object.keys(mastery)) {
+            if (isPersistent(mastery[key])) {
+                [mastery[key].value, layer[key].value] = [layer[key].value, mastery[key].value];
+            }
+            else {
+                swapMastery(mastery[key], layer[key]);
+            }
+        }
+    }
 
     function createDay(
         optionsFunc: () => {

@@ -1023,34 +1023,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         heatedPlanters: { amount: persistent<DecimalSource>(0) },
         moreFertilizer: { amount: persistent<DecimalSource>(0) }
     };
-    function swapMastery() {
-        [coal.value, mastery.coal.value] = [mastery.coal.value, coal.value];
-        [totalCoal.value, mastery.totalCoal.value] = [mastery.totalCoal.value, totalCoal.value];
-        [ash.value, mastery.ash.value] = [mastery.ash.value, ash.value];
-        [activeFires.value, mastery.activeFires.value] = [mastery.activeFires.value, activeFires.value];
-        [buildFire.amount.value, mastery.buildFire.amount.value] = [mastery.buildFire.amount.value, buildFire.amount.value];
-        [activeBonfires.value, mastery.activeBonfires.value] = [mastery.activeBonfires.value, activeBonfires.value];
-        [buildBonfire.amount.value, mastery.buildBonfire.amount.value] = [mastery.buildBonfire.amount.value, buildBonfire.amount.value];
-        [activeKilns.value, mastery.activeKilns.value] = [mastery.activeKilns.value, activeKilns.value];
-        [buildKiln.amount.value, mastery.buildKiln.amount.value] = [mastery.buildKiln.amount.value, buildKiln.amount.value];
-        [activeDrills.value, mastery.activeDrills.value] = [mastery.activeDrills.value, activeDrills.value];
-        [buildDrill.amount.value, mastery.buildDrill.amount.value] = [mastery.buildDrill.amount.value, buildDrill.amount.value];
-        [warmerCutters.bought.value, mastery.warmerCutters.bought.value] = [mastery.warmerCutters.bought.value, warmerCutters.bought.value];
-        [warmerPlanters.bought.value, mastery.warmerPlanters.bought.value] = [mastery.warmerPlanters.bought.value, warmerPlanters.bought.value];
-        [basicFertilizer.bought.value, mastery.basicFertilizer.bought.value] = [mastery.basicFertilizer.bought.value, basicFertilizer.bought.value];
-        [unlockBonfire.bought.value, mastery.unlockBonfire.bought.value] = [mastery.unlockBonfire.bought.value, unlockBonfire.bought.value];
-        [dedicatedCutters.bought.value, mastery.dedicatedCutters.bought.value] = [mastery.dedicatedCutters.bought.value, dedicatedCutters.bought.value];
-        [dedicatedPlanters.bought.value, mastery.dedicatedPlanters.bought.value] = [mastery.dedicatedPlanters.bought.value, dedicatedPlanters.bought.value];
-        [betterFertilizer.bought.value, mastery.betterFertilizer.bought.value] = [mastery.betterFertilizer.bought.value, betterFertilizer.bought.value];
-        [unlockKiln.bought.value, mastery.unlockKiln.bought.value] = [mastery.unlockKiln.bought.value, unlockKiln.bought.value];
-        [efficientSmelther.bought.value, mastery.efficientSmelther.bought.value] = [mastery.efficientSmelther.bought.value, efficientSmelther.bought.value];
-        [arsonistAssistance.bought.value, mastery.arsonistAssistance.bought.value] = [mastery.arsonistAssistance.bought.value, arsonistAssistance.bought.value];
-        [refinedCoal.bought.value, mastery.refinedCoal.bought.value] = [mastery.refinedCoal.bought.value, refinedCoal.bought.value];
-        [coloredFire.bought.value, mastery.coloredFire.bought.value] = [mastery.coloredFire.bought.value, coloredFire.bought.value];
-        [heatedCutters.amount.value, mastery.heatedCutters.amount.value] = [mastery.heatedCutters.amount.value, heatedCutters.amount.value];
-        [heatedPlanters.amount.value, mastery.heatedPlanters.amount.value] = [mastery.heatedPlanters.amount.value, heatedPlanters.amount.value];
-        [moreFertilizer.amount.value, mastery.moreFertilizer.amount.value] = [mastery.moreFertilizer.amount.value, moreFertilizer.amount.value];
-    }
     const mastered = persistent<boolean>(false);
 
     return {
@@ -1171,7 +1143,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
         minimizedDisplay: jsx(() => (<div>{name} - {format(coal.value)} {coal.displayName}</div>)),
         mastery,
-        swapMastery,
         mastered
     };
 });

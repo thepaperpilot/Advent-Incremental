@@ -827,24 +827,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
             { amount: persistent<DecimalSource>(0) }
         ]
     };
-    function swapMastery() {
-        [logs.value, mastery.logs.value] = [mastery.logs.value, logs.value];
-        [totalLogs.value, mastery.totalLogs.value] = [mastery.totalLogs.value, totalLogs.value];
-        [saplings.value, mastery.saplings.value] = [mastery.saplings.value, saplings.value];
-        [row1Upgrades[0].bought.value, mastery.row1Upgrades[0].bought.value] = [mastery.row1Upgrades[0].bought.value, row1Upgrades[0].bought.value];
-        [row1Upgrades[1].bought.value, mastery.row1Upgrades[1].bought.value] = [mastery.row1Upgrades[1].bought.value, row1Upgrades[1].bought.value];
-        [row1Upgrades[2].bought.value, mastery.row1Upgrades[2].bought.value] = [mastery.row1Upgrades[2].bought.value, row1Upgrades[2].bought.value];
-        [row1Upgrades[3].bought.value, mastery.row1Upgrades[3].bought.value] = [mastery.row1Upgrades[3].bought.value, row1Upgrades[3].bought.value];
-        [row1Upgrades[4].bought.value, mastery.row1Upgrades[4].bought.value] = [mastery.row1Upgrades[4].bought.value, row1Upgrades[4].bought.value];
-        [row2Upgrades[0].bought.value, mastery.row2Upgrades[0].bought.value] = [mastery.row2Upgrades[0].bought.value, row2Upgrades[0].bought.value];
-        [row2Upgrades[1].bought.value, mastery.row2Upgrades[1].bought.value] = [mastery.row2Upgrades[1].bought.value, row2Upgrades[1].bought.value];
-        [row2Upgrades[2].bought.value, mastery.row2Upgrades[2].bought.value] = [mastery.row2Upgrades[2].bought.value, row2Upgrades[2].bought.value];
-        [row2Upgrades[3].bought.value, mastery.row2Upgrades[3].bought.value] = [mastery.row2Upgrades[3].bought.value, row2Upgrades[3].bought.value];
-        [row2Upgrades[4].bought.value, mastery.row2Upgrades[4].bought.value] = [mastery.row2Upgrades[4].bought.value, row2Upgrades[4].bought.value];
-        [row1Buyables[0].amount.value, mastery.row1Buyables[0].amount.value] = [mastery.row1Buyables[0].amount.value, row1Buyables[0].amount.value];
-        [row1Buyables[1].amount.value, mastery.row1Buyables[1].amount.value] = [mastery.row1Buyables[1].amount.value, row1Buyables[1].amount.value];
-        [row1Buyables[2].amount.value, mastery.row1Buyables[2].amount.value] = [mastery.row1Buyables[2].amount.value, row1Buyables[2].amount.value];
-    }
     const mastered = persistent<boolean>(false);
 
     return {
@@ -911,7 +893,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
         minimizedDisplay: jsx(() => (<div>{name} - {format(logs.value)} {logs.displayName}</div>)),
         mastery,
-        swapMastery,
         mastered,
     };
 });

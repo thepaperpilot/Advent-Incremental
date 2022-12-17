@@ -333,22 +333,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
             extraExpansionMilestone5: { earned: persistent<boolean>(false) },
         }
     };
-    function swapMastery() {
-        [foundationProgress.value, mastery.foundationProgress.value] = [mastery.foundationProgress.value, foundationProgress.value];
-        [milestones.logGainMilestone1.earned.value, mastery.milestones.logGainMilestone1.earned.value] = [mastery.milestones.logGainMilestone1.earned.value, milestones.logGainMilestone1.earned.value];
-        [milestones.autoCutMilestone1.earned.value, mastery.milestones.autoCutMilestone1.earned.value] = [mastery.milestones.autoCutMilestone1.earned.value, milestones.autoCutMilestone1.earned.value];
-        [milestones.autoPlantMilestone1.earned.value, mastery.milestones.autoPlantMilestone1.earned.value] = [mastery.milestones.autoPlantMilestone1.earned.value, milestones.autoPlantMilestone1.earned.value];
-        [milestones.autoCutMilestone2.earned.value, mastery.milestones.autoCutMilestone2.earned.value] = [mastery.milestones.autoCutMilestone2.earned.value, milestones.autoCutMilestone2.earned.value];
-        [milestones.autoPlantMilestone2.earned.value, mastery.milestones.autoPlantMilestone2.earned.value] = [mastery.milestones.autoPlantMilestone2.earned.value, milestones.autoPlantMilestone2.earned.value];
-        [milestones.logGainMilestone2.earned.value, mastery.milestones.logGainMilestone2.earned.value] = [mastery.milestones.logGainMilestone2.earned.value, milestones.logGainMilestone2.earned.value];
-        [milestones.morePlantsMilestone1.earned.value, mastery.milestones.morePlantsMilestone1.earned.value] = [mastery.milestones.morePlantsMilestone1.earned.value, milestones.morePlantsMilestone1.earned.value];
-        [milestones.logGainMilestone3.earned.value, mastery.milestones.logGainMilestone3.earned.value] = [mastery.milestones.logGainMilestone3.earned.value, milestones.logGainMilestone3.earned.value];
-        [milestones.extraExpansionMilestone1.earned.value, mastery.milestones.extraExpansionMilestone1.earned.value] = [mastery.milestones.extraExpansionMilestone1.earned.value, milestones.extraExpansionMilestone1.earned.value];
-        [milestones.extraExpansionMilestone2.earned.value, mastery.milestones.extraExpansionMilestone2.earned.value] = [mastery.milestones.extraExpansionMilestone2.earned.value, milestones.extraExpansionMilestone2.earned.value];
-        [milestones.extraExpansionMilestone3.earned.value, mastery.milestones.extraExpansionMilestone3.earned.value] = [mastery.milestones.extraExpansionMilestone3.earned.value, milestones.extraExpansionMilestone3.earned.value];
-        [milestones.extraExpansionMilestone4.earned.value, mastery.milestones.extraExpansionMilestone4.earned.value] = [mastery.milestones.extraExpansionMilestone4.earned.value, milestones.extraExpansionMilestone4.earned.value];
-        [milestones.extraExpansionMilestone5.earned.value, mastery.milestones.extraExpansionMilestone5.earned.value] = [mastery.milestones.extraExpansionMilestone5.earned.value, milestones.extraExpansionMilestone5.earned.value];
-    }
     const mastered = persistent<boolean>(false);
 
     return {
@@ -388,7 +372,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
         minimizedDisplay: jsx(() => (<div>{name} - {format(foundationProgress.value)}% {foundationProgress.displayName}</div>)),
         mastery,
-        swapMastery,
         mastered
     };
 });

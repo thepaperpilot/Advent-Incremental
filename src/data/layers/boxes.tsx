@@ -21,7 +21,7 @@ import {
     createSequentialModifier,
     Modifier
 } from "game/modifiers";
-import { noPersist } from "game/persistence";
+import { isPersistent, noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { WithRequired } from "util/common";
 import { render, renderGrid, renderRow } from "util/vue";
@@ -584,6 +584,37 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     });
 
+    const mastery = {
+        boxes: persistent<DecimalSource>(0),
+        totalBoxes: persistent<DecimalSource>(0),
+        upgrades: {
+            logsUpgrade: { bought: persistent<boolean>(false) },
+            ashUpgrade: { bought: persistent<boolean>(false) },
+            coalUpgrade: { bought: persistent<boolean>(false) }
+        },
+        row2Upgrades: {
+            oreUpgrade: { bought: persistent<boolean>(false) },
+            metalUpgrade: { bought: persistent<boolean>(false) },
+            plasticUpgrade: { bought: persistent<boolean>(false) }
+        },
+        row3Upgrades: {
+            clothUpgrade: { bought: persistent<boolean>(false) },
+            dyeUpgrade: { bought: persistent<boolean>(false) },
+            xpUpgrade: { bought: persistent<boolean>(false) },
+        },
+        buyables: {
+            logBoxesBuyable: { amount: persistent<DecimalSource>(0) },
+            ashBoxesBuyable: { amount: persistent<DecimalSource>(0) },
+            coalBoxesBuyable: { amount: persistent<DecimalSource>(0) }
+        },
+        buyables2: {
+            oreBoxesBuyable: { amount: persistent<DecimalSource>(0) },
+            metalBoxesBuyable: { amount: persistent<DecimalSource>(0) },
+            plasticBoxesBuyable: { amount: persistent<DecimalSource>(0) }
+        }
+    };
+    const mastered = persistent<boolean>(false);
+
     return {
         name,
         day,
@@ -615,11 +646,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {renderGrid(Object.values(buyables), Object.values(buyables2))}
             </>
         )),
-        minimizedDisplay: jsx(() => (
-            <div>
-                {name} - {format(boxes.value)} {boxes.displayName}
-            </div>
-        ))
+        minimizedDisplay: jsx(() => (<div>{name} - {format(boxes.value)} {boxes.displayName}</div>)),
+        mastery,
+        mastered
     };
 });
 
