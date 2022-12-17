@@ -237,3 +237,9 @@ export default defineComponent({
     text-shadow: 0 0 7px var(--foreground);
 }
 </style>
+<style> 
+.layer-tab.minimized > * > .desc {
+    color: var(--accent1);
+    font-size: 30px;
+}
+</style>

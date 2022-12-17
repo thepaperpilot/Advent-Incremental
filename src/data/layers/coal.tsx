@@ -1110,9 +1110,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
         minimizedDisplay: jsx(() => (
             <div>
-                {name} - {format(coal.value)} {coal.displayName}
-            </div>
-        ))
+                {name}{" "}
+                <span class="desc">{format(coal.value)} {coal.displayName}</span>
+            </div>   
+        )),
     };
 });
 
