@@ -3,43 +3,34 @@ import { createLayer } from "game/layers";
 import { Application } from "@pixi/app";
 import { Sprite } from "@pixi/sprite";
 import { Graphics } from "@pixi/graphics";
+import { Assets } from "@pixi/assets";
 import Factory from "./Factory.vue";
 import Modal from "components/Modal.vue";
 import conveyor from "./factory-components/conveyor.png";
-import { reactive, Ref, ref, watchEffect } from "vue";
+import cursor from "./factory-components/cursor.jpg";
+import { computed, reactive, Ref, ref, watchEffect } from "vue";
 import { Direction } from "util/common";
 import { persistent } from "game/persistence";
 import player from "game/player";
+import "./styles/factory.css";
+import { globalBus } from "game/events";
+import { Container } from "@pixi/display";
 
 const id = "factory";
 
 // what is the actual day?
-
-enum FactoryTypes {
-    conveyor,
-    conveyor1
-}
-
-interface FactoryComponent {
-    type: FactoryTypes | undefined;
-    directionIn: Direction | undefined;
-    directionOut: Direction | undefined;
-}
 const day = 20;
-const size = {
-    width: 1000,
-    height: 400
-};
 
 // 20x20 block size
 // TODO: unhardcode stuff
-const blockAmts = {
-    w: 50,
-    h: 20
+const size = {
+    width: 1000,
+    height: 340
 };
-
-const blockWidth = Math.floor(size.width / blockAmts.w);
-const blockHeight = Math.floor(size.height / blockAmts.h);
+export const blockAmts = {
+    w: 50,
+    h: 17
+};
 
 function roundDownTo(num: number, multiple: number) {
     return Math.floor(num / multiple) * multiple;
@@ -51,6 +42,40 @@ function getRelativeCoords(e: MouseEvent) {
         y: e.clientY - rect.top
     };
 }
+
+interface FactoryComponent {
+    directionIn: Direction | undefined;
+    directionOut: Direction | undefined;
+    imageSrc: string;
+    name: string;
+    description: string;
+    type: string;
+    sprite: Sprite;
+}
+const FACTORY_COMPONENTS = {
+    cursor: {
+        directionIn: undefined,
+        directionOut: undefined,
+        imageSrc: cursor,
+        name: "Cursor",
+        description: "Use this to move."
+    },
+    conveyor: {
+        directionIn: Direction,
+        directionOut: Direction,
+        imageSrc: conveyor,
+        name: "Conveyor",
+        description: "Moves 1 item per tick."
+    },
+    someOtherComponent: {
+        directionIn: Direction.Down,
+        directionOut: undefined,
+        imageSrc: conveyor,
+        description: "Accepts anything and produces nothing."
+    }
+};
+
+type FactoryCompNames = keyof typeof FACTORY_COMPONENTS;
 const factory = createLayer(id, () => {
     // layer display
     const name = "The Factory";
@@ -62,41 +87,38 @@ const factory = createLayer(id, () => {
         y: 0
     });
     const isMouseHoverShown = ref(false);
-    const isFactoryShown = ref(false);
-    // create a Array filled with th
-    const components: Ref<FactoryComponent[][]> = persistent(
-        Array(blockHeight)
+    const whatIsHovered = ref<FactoryCompNames | "">("");
+    const compSelected = ref<FactoryCompNames | "">("");
+    const components: Ref<unknown[][]> = persistent(
+        Array(blockAmts.h)
             .fill(undefined)
-            .map(() =>
-                Array(blockWidth)
-                    .fill(undefined)
-                    .map(() => ({
-                        type: undefined,
-                        directionIn: undefined,
-                        directionOut: undefined
-                    }))
-            )
+            .map(() => Array(blockAmts.w).fill(undefined))
     );
 
     // pixi
     const app = new Application(size);
     const graphicContainer = new Graphics();
-    app.stage.addChild(graphicContainer);
+    const spriteContainer = new Container();
+    let blockWidth = 0;
+    let blockHeight = 0;
+    app.stage.addChild(graphicContainer, spriteContainer);
+
+    globalBus.on("update", () => {
+        blockWidth = app.screen.width / blockAmts.w;
+        blockHeight = app.screen.height / blockAmts.h;
+    });
 
     // draw graphics
     function updateGraphics() {
-        // factory not shown, no point in rerendering stuff
-        if (isFactoryShown.value) {
-            graphicContainer.clear();
-            if (isMouseHoverShown.value) {
-                graphicContainer.beginFill(0x808080);
-                graphicContainer.drawRect(
-                    roundDownTo(mouseCoords.x, blockWidth),
-                    roundDownTo(mouseCoords.y, blockHeight),
-                    blockWidth,
-                    blockHeight
-                );
-            }
+        graphicContainer.clear();
+        if (isMouseHoverShown.value) {
+            graphicContainer.beginFill(0x808080);
+            graphicContainer.drawRect(
+                roundDownTo(mouseCoords.x, blockWidth),
+                roundDownTo(mouseCoords.y, blockHeight),
+                blockWidth,
+                blockHeight
+            );
         }
     }
     watchEffect(updateGraphics);
@@ -108,8 +130,25 @@ const factory = createLayer(id, () => {
         mouseCoords.x = x;
         mouseCoords.y = y;
     }
-    function onClick(e: MouseEvent) {
-        // placeholder
+    async function onClick(e: MouseEvent) {
+        if (compSelected.value === "") {
+            console.warn("You haven't hovered over anything, trickster!");
+            return;
+        }
+        let { x, y } = getRelativeCoords(e);
+        x = roundDownTo(x, blockWidth) / blockWidth;
+        y = roundDownTo(y, blockHeight) / blockHeight;
+        const basicData = structuredClone(
+            FACTORY_COMPONENTS[compSelected.value]
+        ) as FactoryComponent;
+        basicData.type = compSelected.value;
+        const sheet = await Assets.load(basicData.imageSrc);
+        basicData.sprite = new Sprite(sheet);
+        basicData.sprite.x = x;
+        basicData.sprite.y = y;
+        basicData.sprite.width = blockWidth;
+        basicData.sprite.height = blockHeight;
+        spriteContainer.addChild(basicData.sprite);
     }
     function onMouseEnter() {
         isMouseHoverShown.value = true;
@@ -118,7 +157,13 @@ const factory = createLayer(id, () => {
         isMouseHoverShown.value = false;
     }
     function goBack() {
-        player.tabs.splice(0, Infinity, "main")
+        player.tabs.splice(0, Infinity, "main");
+    }
+    function onComponentHover(name: FactoryCompNames | "") {
+        whatIsHovered.value = name;
+    }
+    function onCompClick(name: FactoryCompNames) {
+        compSelected.value = name;
     }
     return {
         name,
@@ -128,14 +173,56 @@ const factory = createLayer(id, () => {
         minimizable: false,
         display: jsx(() => (
             <div class="layer-container">
-                <button class="goBack" onClick={goBack}>❌</button>
-                <Factory
-                    application={app}
-                    onMouseMove={onMouseMove}
-                    onMouseEnter={onMouseEnter}
-                    onMouseLeave={onMouseLeave}
-                    onClick={onClick}
-                />
+                <button class="goBack" onClick={goBack}>
+                    ❌
+                </button>
+                <table cellspacing="0" cellpadding="0" border="0" class="container">
+                    <tr>
+                        <td class="info" colspan="2">
+                            <div style="min-height: 3em">
+                                {whatIsHovered.value === ""
+                                    ? undefined
+                                    : FACTORY_COMPONENTS[whatIsHovered.value].description}
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align: top" class="comps">
+                            <h3>Components</h3>
+                            <div>
+                                {Object.entries(FACTORY_COMPONENTS).map(value => {
+                                    const key = value[0] as FactoryCompNames;
+                                    const item = value[1];
+                                    return (
+                                        <img
+                                            src={item.imageSrc}
+                                            style={{
+                                                width: "20%",
+                                                "aspect-ratio": "1",
+                                                border:
+                                                    compSelected.value === key
+                                                        ? "1px solid white"
+                                                        : ""
+                                            }}
+                                            onMouseenter={() => onComponentHover(key)}
+                                            onMouseleave={() => onComponentHover("")}
+                                            onClick={() => onCompClick(key)}
+                                        ></img>
+                                    );
+                                })}
+                            </div>
+                        </td>
+                        <td>
+                            <Factory
+                                application={app}
+                                onMousemove={onMouseMove}
+                                onClick={onClick}
+                                onMouseenter={onMouseEnter}
+                                onMouseleave={onMouseLeave}
+                            />
+                        </td>
+                    </tr>
+                </table>
             </div>
         )),
         components

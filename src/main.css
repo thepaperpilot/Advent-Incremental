@@ -137,6 +137,15 @@ ul {
     background: #070710;
 }
 
+.layer-container {
+    min-width: 100%;
+    min-height: 100%;
+    margin: 0;
+    flex-grow: 1;
+    display: flex;
+    isolation: isolate;
+}
+
 .goBack {
     position: sticky;
     top: 10px;
@@ -157,12 +166,4 @@ ul {
 .goBack:hover {
     transform: scale(1.1, 1.1);
     text-shadow: 0 0 7px var(--foreground);
-}
-.layer-container {
-    min-width: 100%;
-    min-height: 100%;
-    margin: 0;
-    flex-grow: 1;
-    display: flex;
-    isolation: isolate;
 }
