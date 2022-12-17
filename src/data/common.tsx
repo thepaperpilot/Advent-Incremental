@@ -335,7 +335,11 @@ export function createCollapsibleModifierSections(
             return (
                 <>
                     {hasPreviousSection ? <br /> : null}
-                    <div style={{"--unit": settings.alignUnits && s.unit ? "'" + s.unit + "'" : ""}}>
+                    <div
+                        style={{
+                            "--unit": settings.alignUnits && s.unit ? "'" + s.unit + "'" : ""
+                        }}
+                    >
                         {header}
                         <br />
                         {modifiers}
@@ -410,6 +414,7 @@ export function createCollapsibleMilestones(milestones: Record<string, GenericMi
 export function setUpDailyProgressTracker(options: {
     resource: Resource;
     goal: DecimalSource;
+    masteryGoal?: DecimalSource;
     name: string;
     day: number;
     color: string;
@@ -423,9 +428,10 @@ export function setUpDailyProgressTracker(options: {
 }) {
     const total = options.ignoreTotal ? options.resource : trackTotal(options.resource);
     const progressFunc = () => {
-        if (main.day.value !== options.day) return 1;
+        const isMastering = main.currentlyMastering.value?.name === options.name;
+        if (main.day.value !== options.day && !isMastering) return 1;
         let progress = Decimal.add(total.value, 1);
-        let requirement = options.goal;
+        let requirement = isMastering ? options.masteryGoal ?? options.goal : options.goal;
         if (options.usingLog?.value ?? settings.usingLog) {
             progress = progress.log10();
             requirement = Decimal.log10(requirement);
@@ -458,6 +464,12 @@ export function setUpDailyProgressTracker(options: {
                         Reach {formatWhole(options.goal)} {options.ignoreTotal ? "" : "total "}
                         {options.resource.displayName} to complete the day
                     </>
+                ) : main.currentlyMastering.value?.name === options.name ? (
+                    <>
+                        Reach {formatWhole(options.masteryGoal ?? options.goal)}{" "}
+                        {options.ignoreTotal ? "" : "total "}
+                        {options.resource.displayName} to master the day
+                    </>
                 ) : (
                     <>{options.name} Complete!</>
                 )}
@@ -483,6 +495,11 @@ export function setUpDailyProgressTracker(options: {
     watchEffect(() => {
         if (main.day.value === options.day && Decimal.gte(total.value, options.goal)) {
             main.completeDay();
+        } else if (
+            main.currentlyMastering.value?.name === options.name &&
+            Decimal.gte(total.value, options.masteryGoal ?? options.goal)
+        ) {
+            main.completeMastery();
         }
     });
 

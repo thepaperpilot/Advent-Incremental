@@ -7,7 +7,7 @@ import {
     jsx
 } from "features/feature";
 import { BaseLayer, createLayer, GenericLayer, layers } from "game/layers";
-import { isPersistent, Persistent, persistent } from "game/persistence";
+import { isPersistent, persistent } from "game/persistence";
 import type { LayerData, PlayerData } from "game/player";
 import player from "game/player";
 import Decimal, { format, formatTime } from "util/bignum";
@@ -19,6 +19,20 @@ import type { Ref } from "vue";
 import { computed, ref, unref } from "vue";
 import "./advent.css";
 import Day from "./Day.vue";
+import boxes from "./layers/boxes";
+import cloth from "./layers/cloth";
+import coal from "./layers/coal";
+import dyes from "./layers/dyes";
+import elves from "./layers/elves";
+import letters from "./layers/letters";
+import management from "./layers/management";
+import metal from "./layers/metal";
+import oil from "./layers/oil";
+import paper from "./layers/paper";
+import plastic from "./layers/plastic";
+import trees from "./layers/trees";
+import workshop from "./layers/workshop";
+import wrappingPaper from "./layers/wrapping-paper";
 import boxesSymbol from "./symbols/cardboardBox.png";
 import clothSymbol from "./symbols/cloth.png";
 import coalSymbol from "./symbols/coal.png";
@@ -30,25 +44,11 @@ import metalSymbol from "./symbols/metal.png";
 import oilSymbol from "./symbols/oil.png";
 import paperSymbol from "./symbols/paperStacks.png";
 import plasticSymbol from "./symbols/plastic.png";
+import ribbonsSymbol from "./symbols/ribbons.png";
 import workshopSymbol from "./symbols/sws.png";
 import treeSymbol from "./symbols/tree.png";
 import advManagementSymbol from "./symbols/workshopMansion.png";
 import wrappingPaperSymbol from "./symbols/wrappingPaper.png";
-import ribbonsSymbol from "./symbols/ribbons.png";
-import coal from "./layers/coal";
-import elves from "./layers/elves";
-import trees from "./layers/trees";
-import workshop from "./layers/workshop";
-import paper from "./layers/paper";
-import boxes from "./layers/boxes";
-import metal from "./layers/metal";
-import cloth from "./layers/cloth";
-import oil from "./layers/oil";
-import plastic from "./layers/plastic";
-import dyes from "./layers/dyes";
-import letters from "./layers/letters";
-import management from "./layers/management";
-import wrappingPaper from "./layers/wrapping-paper";
 
 export interface Day extends VueFeature {
     day: number;
@@ -56,6 +56,7 @@ export interface Day extends VueFeature {
     symbol: string;
     story: string;
     completedStory: string;
+    masteredStory: string;
     opened: Ref<boolean>;
     recentlyUpdated: Ref<boolean>; // Has the tab recieved an update since the player last opened it?
     shouldNotify: ProcessedComputable<boolean>;
@@ -72,6 +73,11 @@ export const main = createLayer("main", function (this: BaseLayer) {
     const loreTitle = ref<string>("");
     const loreBody = ref<CoercableComponent | undefined>();
 
+    const currentlyMastering = computed(() =>
+        isMastery.value
+            ? Object.values(layers).find(layer => unref((layer as any).mastered) === false)
+            : undefined
+    );
     const swappingMastery = ref(false);
     const isMastery = persistent<boolean>(false);
     const toggleMastery = () => {
@@ -100,8 +106,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         for (const key of Object.keys(mastery)) {
             if (isPersistent(mastery[key])) {
                 [mastery[key].value, layer[key].value] = [layer[key].value, mastery[key].value];
-            }
-            else {
+            } else {
                 swapMastery(mastery[key], layer[key]);
             }
         }
@@ -115,6 +120,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
             symbol: string;
             story: string;
             completedStory: string;
+            masteredStory: string;
         }
     ): Day {
         const opened = persistent<boolean>(false);
@@ -143,9 +149,12 @@ export const main = createLayer("main", function (this: BaseLayer) {
                         shouldNotify,
                         story,
                         completedStory,
+                        masteredStory,
                         recentlyUpdated
                     } = this;
 
+                    const mastered: Ref<boolean> =
+                        (layers[layer ?? ""] as any)?.mastered ?? ref(false);
                     return {
                         day,
                         symbol,
@@ -153,14 +162,18 @@ export const main = createLayer("main", function (this: BaseLayer) {
                         opened,
                         recentlyUpdated,
                         shouldNotify,
-                        mastered: (layers[layer ?? ""] as any)?.mastered ?? ref(false),
+                        mastered,
                         onOpenLore() {
                             const completed = main.day.value > day;
                             loreScene.value = completed ? day - 1 : -1;
                             const title = unref(layers[layer ?? "trees"]?.name ?? "");
                             loreTitle.value = completed ? `${title} - Completed!` : title;
                             loreBody.value = completed
-                                ? `${story}<hr style="
+                                ? unref(mastered)
+                                    ? `${story}<hr style="
+                                margin: 10px 0;"/>${completedStory}<hr style="
+                                margin: 10px 0;"/>${masteredStory}`
+                                    : `${story}<hr style="
                             margin: 10px 0;"/>${completedStory}`
                                 : story;
                             showLoreModal.value = true;
@@ -209,7 +222,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             symbol: treeSymbol,
             story: "Oh no! Santa forgot about Christmas and it's only 25 days away! He's asked for your help due to your history getting large quantities of things in short amounts of time. Unfortunately you're really starting from scratch here - let's start with getting wood, which you'll need for everything from building workshops to wrapping paper to many of the toys themselves!",
             completedStory:
-                "Santa looks at all the wood you've gathered and tells you you've done well! He says you should take the rest of the day off so you're refreshed for tomorrow's work. Good Job!"
+                "Santa looks at all the wood you've gathered and tells you you've done well! He says you should take the rest of the day off so you're refreshed for tomorrow's work. Good Job!",
+            masteredStory: ""
         })),
         createDay(() => ({
             day: 2,
@@ -218,7 +232,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             symbol: workshopSymbol,
             story: "Santa looked over your tree farm and was impressed with how much you could accomplish in just one day. Today's goal is to get a workshop built up for the elves to work in - and apparently, they need quite a lot of space to work!",
             completedStory:
-                "The workshop complete, Santa once again dismisses you for the day. With a strong foundation, this workshop should suffice for supporting future work toward this impossible mission. Good Job!"
+                "The workshop complete, Santa once again dismisses you for the day. With a strong foundation, this workshop should suffice for supporting future work toward this impossible mission. Good Job!",
+            masteredStory: ""
         })),
         createDay(() => ({
             day: 3,
@@ -227,7 +242,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             symbol: coalSymbol,
             story: "Santa tells you that unfortunately there are quite a few naughty children out there this year, and he's going to need you to gather as much coal as you can for him to give out.",
             completedStory:
-                "Santa looks at all the coal you've gathered and tells you you've done well! He says you should take the rest of the day off so you're refreshed for tomorrow's work. Good Job!"
+                "Santa looks at all the coal you've gathered and tells you you've done well! He says you should take the rest of the day off so you're refreshed for tomorrow's work. Good Job!",
+            masteredStory: ""
         })),
         createDay(() => ({
             day: 4,
@@ -236,7 +252,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             symbol: elfSymbol,
             story: "Alright, it seems you finally have enough things set up to start bringing in the elves! Unfortunately, it seems they'll need to be retrained on how to help, since they've stopped practicing for 11 months!",
             completedStory:
-                "The workshop now hums with the bustling elves working on everything. They can take it from here - you deserve a break after such a long day! Good Job!"
+                "The workshop now hums with the bustling elves working on everything. They can take it from here - you deserve a break after such a long day! Good Job!",
+            masteredStory: ""
         })),
         createDay(() => ({
             day: 5,
@@ -245,7 +262,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             symbol: paperSymbol,
             story: "With the elves trained, we're almost ready to start working on these presents! Just a couple more pre-reqs first, starting with turning all this wood into wood pulp and finally into paper, which will be required for wrapping paper later on but in the meantime can be used to help write guides which will help these elves continue their education!",
             completedStory:
-                "You look upon your rivers of book pulp as you hand out stacks of papers to elves to read through. You've continued getting closer and closer to preparing for Christmas, and can go to bed satisfied with your progress. Good Job!"
+                "You look upon your rivers of book pulp as you hand out stacks of papers to elves to read through. You've continued getting closer and closer to preparing for Christmas, and can go to bed satisfied with your progress. Good Job!",
+            masteredStory: ""
         })),
         createDay(() => ({
             day: 6,
@@ -254,7 +272,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             symbol: boxesSymbol,
             story: "You watch all these elves carrying incredibly large loads just in their open elf-sized hands, and realize there's probably a better way. You need to put the toys in boxes anyways, so why don't we get started working on those so the workers can take advantage as well?",
             completedStory:
-                "Wow, those boxes are really convenient! The workshop feels more and more proper with every day. You tick another requirement on your list and start looking towards tomorrow. Good Job!"
+                "Wow, those boxes are really convenient! The workshop feels more and more proper with every day. You tick another requirement on your list and start looking towards tomorrow. Good Job!",
+            masteredStory: ""
         })),
         createDay(() => ({
             day: 7,
@@ -263,7 +282,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             symbol: metalSymbol,
             story: "You woke up ready to make some toys, before realizing most toys these days are made out of more than just wood! You're sure you're close to really getting to work, but there's a few more materials you're going to need - like metal! Lots of things need metal!",
             completedStory:
-                "The sounds of drills and metal clanging join the already loud din as yet another piece of the puzzle fits into place. You're making solid progress, Good Job!"
+                "The sounds of drills and metal clanging join the already loud din as yet another piece of the puzzle fits into place. You're making solid progress, Good Job!",
+            masteredStory: ""
         })),
         createDay(() => ({
             day: 8,
@@ -272,7 +292,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             symbol: clothSymbol,
             story: "Another resource you're going to need for gifts is cloth! Fortunately you think this should be pretty easy to prepare using a sheep farm - and as you've already proven with the tree farm, that's something you can handle!",
             completedStory:
-                "You fall into a pile of wool, sighing contentedly as you look at all the progress you've made today. Good Job!"
+                "You fall into a pile of wool, sighing contentedly as you look at all the progress you've made today. Good Job!",
+            masteredStory: ""
         })),
         createDay(() => ({
             day: 9,
@@ -281,7 +302,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             symbol: oilSymbol,
             story: "Looks like you just need one more thing before the toy factory can start running: plastic! Every toy nowadays is made with plastic! But wait, how are you going to get plastic? What can make plastic? Wait that's right, oil! You figured out you might as well repurpose your coal and ore drills into something that can get you oil, but unfortunately you'll need to mine much deeper that you're currently doing, so let's get to work!",
             completedStory:
-                "It took a while, but you finally got enough oil for the next step! You deserve a good rest after all this digging work - tomorrow will be a busy day! Good Job!"
+                "It took a while, but you finally got enough oil for the next step! You deserve a good rest after all this digging work - tomorrow will be a busy day! Good Job!",
+            masteredStory: ""
         })),
         createDay(() => ({
             day: 10,
@@ -290,7 +312,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             symbol: plasticSymbol,
             story: "Now that plenty of oil has been prepared, it's time to start refining it into plastic! This should be incredibly useful not only for toys, but making tools and other items!",
             completedStory:
-                "You've started refining massive amounts of oil into slightly less massive amounts of plastic. You have a slight pang of regret thinking of the environmental impact, but ultimately decide Christmas is worth it. Good Job!"
+                "You've started refining massive amounts of oil into slightly less massive amounts of plastic. You have a slight pang of regret thinking of the environmental impact, but ultimately decide Christmas is worth it. Good Job!",
+            masteredStory: ""
         })),
         createDay(() => ({
             day: 11,
@@ -299,7 +322,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             symbol: dyesSymbol,
             story: "To make toys, we're going to need some color to make them look nice and enticing! We can't just give kids clear toys after all! To add some color to our toys, we'll need some dyes!",
             completedStory:
-                "After all that effort, you finally have a rainbow of dyes to choose from! Now the children won't be able to resist the toys you have to offer, once you get them made of course... Good Job!"
+                "After all that effort, you finally have a rainbow of dyes to choose from! Now the children won't be able to resist the toys you have to offer, once you get them made of course... Good Job!",
+            masteredStory: ""
         })),
         createDay(() => ({
             day: 12,
@@ -308,7 +332,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             symbol: managementSymbol,
             story: "You watch as the elves work, and you realize that they could probably be trained to help out better. Just then, Santa comes over to check on your progress. You reply that you're doing fine, except that the elves may need a bit of behavior management. Santa offers to help, saying that he doesn't want to leave you to do everything. Unfortunately for you, the behavior problems won't fix themselves, so let's get to work!",
             completedStory:
-                "Woo! You are exhausted - this layer felt really long to you. It's great seeing the elves so productive, although you worry a bit about your own job security now! Good Job!"
+                "Woo! You are exhausted - this layer felt really long to you. It's great seeing the elves so productive, although you worry a bit about your own job security now! Good Job!",
+            masteredStory: ""
         })),
         createDay(() => ({
             day: 13,
@@ -317,7 +342,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             symbol: advManagementSymbol,
             story: "So after a good night's rest you decide that maybe making these elves able to do all the work for you isn't something to be scared of, but rather encouraged. Let's spend another day continuing to train them up and really get this place spinning. They are Santa's elves after all, they're supposed to be able to run everything without you!",
             completedStory:
-                "The elves are doing an incredible job, and Santa does not seem keen on firing you - Score! Now you can get to work on guiding this properly trained highly functional group of hard workers to make Christmas as great as possible. Good Job!"
+                "The elves are doing an incredible job, and Santa does not seem keen on firing you - Score! Now you can get to work on guiding this properly trained highly functional group of hard workers to make Christmas as great as possible. Good Job!",
+            masteredStory: ""
         })),
         createDay(() => ({
             day: 14,
@@ -326,7 +352,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             symbol: lettersSymbol,
             story: "Fully prepared to start working on presents, you realize you don't actually know what to make! You ask Santa and he points at a massive pile of letters hiding just off-camera. Those are all the letters to Santa that need to be processed, sorted, and categorized appropriately so every kid gets what they need!",
             completedStory:
-                "The letters are sorted! You have a slight feeling you may have rushed a little, and suddenly understand why sometimes you don't get everything you asked Santa for every year, or even the occasional bad gift. You sympathetically pat Santa on the back as you head to bed for the day. Good Job!"
+                "The letters are sorted! You have a slight feeling you may have rushed a little, and suddenly understand why sometimes you don't get everything you asked Santa for every year, or even the occasional bad gift. You sympathetically pat Santa on the back as you head to bed for the day. Good Job!",
+            masteredStory: ""
         })),
         createDay(() => ({
             day: 15,
@@ -335,7 +362,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             symbol: wrappingPaperSymbol,
             story: "You'll need to produce wrapping paper so the presents can be wrapped. The elves are getting a bit bored of their boring old workstations, so you decide to let them decorate with some wrapping paper.",
             completedStory:
-                "You've produced enough wrapping paper, and the elves are happy with their new workstations. However, some will need more than just wrapping paper to decorate."
+                "You've produced enough wrapping paper, and the elves are happy with their new workstations. However, some will need more than just wrapping paper to decorate.",
+            masteredStory: ""
         })),
         createDay(() => ({
             day: 16,
@@ -343,7 +371,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             layer: null, // "ribbons"
             symbol: ribbonsSymbol,
             story: "",
-            completedStory: ""
+            completedStory: "",
+            masteredStory: ""
         })),
         createDay(() => ({
             day: 17,
@@ -351,7 +380,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             layer: null, // "toys 1"
             symbol: "",
             story: "",
-            completedStory: ""
+            completedStory: "",
+            masteredStory: ""
         })),
         createDay(() => ({
             day: 18,
@@ -359,7 +389,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             layer: null, // "toys 2"
             symbol: "",
             story: "",
-            completedStory: ""
+            completedStory: "",
+            masteredStory: ""
         })),
         createDay(() => ({
             day: 19,
@@ -367,7 +398,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             layer: null, // "toys 3"
             symbol: "",
             story: "",
-            completedStory: ""
+            completedStory: "",
+            masteredStory: ""
         })),
         createDay(() => ({
             day: 20,
@@ -375,7 +407,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             layer: null, // "presents"
             symbol: "",
             story: "",
-            completedStory: ""
+            completedStory: "",
+            masteredStory: ""
         })),
         createDay(() => ({
             day: 21,
@@ -383,7 +416,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             layer: null, // "reindeer"
             symbol: "",
             story: "",
-            completedStory: ""
+            completedStory: "",
+            masteredStory: ""
         })),
         createDay(() => ({
             day: 22,
@@ -391,7 +425,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             layer: null, // "sleigh"
             symbol: "",
             story: "",
-            completedStory: ""
+            completedStory: "",
+            masteredStory: ""
         })),
         createDay(() => ({
             day: 23,
@@ -399,7 +434,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             layer: null, // "distribution route planning"
             symbol: "",
             story: "",
-            completedStory: ""
+            completedStory: "",
+            masteredStory: ""
         })),
         createDay(() => ({
             day: 24,
@@ -407,7 +443,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             layer: null, // "packing the presents"
             symbol: "",
             story: "",
-            completedStory: ""
+            completedStory: "",
+            masteredStory: ""
         }))
     ];
 
@@ -422,6 +459,21 @@ export const main = createLayer("main", function (this: BaseLayer) {
         save();
     }
 
+    function completeMastery() {
+        const completedLayer = currentlyMastering.value;
+        if (completedLayer == null) {
+            return;
+        }
+        loreScene.value = (completedLayer as any).day - 1;
+        loreTitle.value = "Day Mastered!";
+        loreBody.value = days[loreScene.value].masteredStory;
+        showLoreModal.value = true;
+        if ((completedLayer as any).mastered != null) {
+            (completedLayer as any).mastered.value = true;
+        }
+        toggleMastery();
+    }
+
     return {
         name: "Calendar",
         days,
@@ -432,10 +484,12 @@ export const main = createLayer("main", function (this: BaseLayer) {
         loreBody,
         showLoreModal,
         completeDay,
+        completeMastery,
         minWidth: 700,
         isMastery,
         toggleMastery,
         swappingMastery,
+        currentlyMastering,
         display: jsx(() => (
             <>
                 {player.devSpeed === 0 ? <div>Game Paused</div> : null}
