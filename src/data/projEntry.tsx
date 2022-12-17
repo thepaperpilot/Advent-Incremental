@@ -98,7 +98,9 @@ export const main = createLayer("main", function (this: BaseLayer) {
             dyes,
             management,
             letters
-        ]) { swapMastery(layer.mastery, layer) }
+        ]) {
+            swapMastery(layer.mastery, layer);
+        }
 
         swappingMastery.value = false;
     };

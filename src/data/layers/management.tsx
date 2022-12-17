@@ -1821,16 +1821,16 @@ const layer = createLayer(id, () => {
         classrooms: { amount: persistent<DecimalSource>(0) },
         classroomUpgrade: { bought: persistent<boolean>(false) },
         advancedUpgrade: { bought: persistent<boolean>(false) },
-        upgrades: {
-            focus1: { bought: persistent<boolean>(false) },
-            focus2: { bought: persistent<boolean>(false) },
-            focus3: { bought: persistent<boolean>(false) }
-        },
-        upgrades2: {
-            focus4: { bought: persistent<boolean>(false) },
-            focus5: { bought: persistent<boolean>(false) },
-            focus6: { bought: persistent<boolean>(false) }
-        },
+        upgrades: [
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) }
+        ],
+        upgrades2: [
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) }
+        ],
         focusMulti: persistent<DecimalSource>(1),
         focusTargets: persistent<Record<string, boolean>>({}),
         focusCooldown: persistent<number>(0),
@@ -1859,7 +1859,7 @@ const layer = createLayer(id, () => {
         classroomUpgrade,
         advancedUpgrade,
 
-        focusMultiplier: focusMulti,
+        focusMulti,
         upgrades,
         upgrades2,
         focusTargets,
