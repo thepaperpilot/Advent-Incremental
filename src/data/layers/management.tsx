@@ -1653,6 +1653,191 @@ const layer = createLayer(id, () => {
         }
     });
 
+    const mastery = {
+        elfTraining: {
+            bonfireElfTraining: {
+                exp: persistent<DecimalSource>(0),
+                milestones: [
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) }
+                ]
+            },
+            boxElfTraining: {
+                exp: persistent<DecimalSource>(0),
+                milestones: [
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) }
+                ]
+            },
+            clothElfTraining: {
+                exp: persistent<DecimalSource>(0),
+                milestones: [
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) }
+                ]
+            },
+            coalDrillElfTraining: {
+                exp: persistent<DecimalSource>(0),
+                milestones: [
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) }
+                ]
+            },
+            cutterElfTraining: {
+                exp: persistent<DecimalSource>(0),
+                milestones: [
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) }
+                ]
+            },
+            expandersElfTraining: {
+                exp: persistent<DecimalSource>(0),
+                milestones: [
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) }
+                ]
+            },
+            fertilizerElfTraining: {
+                exp: persistent<DecimalSource>(0),
+                milestones: [
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) }
+                ]
+            },
+            heatedCutterElfTraining: {
+                exp: persistent<DecimalSource>(0),
+                milestones: [
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) }
+                ]
+            },
+            heatedPlanterElfTraining: {
+                exp: persistent<DecimalSource>(0),
+                milestones: [
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) }
+                ]
+            },
+            heavyDrillElfTraining: {
+                exp: persistent<DecimalSource>(0),
+                milestones: [
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) }
+                ]
+            },
+            kilnElfTraining: {
+                exp: persistent<DecimalSource>(0),
+                milestones: [
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) }
+                ]
+            },
+            metalElfTraining: {
+                exp: persistent<DecimalSource>(0),
+                milestones: [
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) }
+                ]
+            },
+            oilElfTraining: {
+                exp: persistent<DecimalSource>(0),
+                milestones: [
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) }
+                ]
+            },
+            paperElfTraining: {
+                exp: persistent<DecimalSource>(0),
+                milestones: [
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) }
+                ]
+            },
+            planterElfTraining: {
+                exp: persistent<DecimalSource>(0),
+                milestones: [
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) }
+                ]
+            },
+            smallfireElfTraining: {
+                exp: persistent<DecimalSource>(0),
+                milestones: [
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) }
+                ]
+            }
+        },
+        teaching: { bought: persistent<boolean>(false) },
+        schools: { amount: persistent<DecimalSource>(0) },
+        classrooms: { amount: persistent<DecimalSource>(0) },
+        classroomUpgrade: { bought: persistent<boolean>(false) },
+        advancedUpgrade: { bought: persistent<boolean>(false) },
+        upgrades: {
+            focus1: { bought: persistent<boolean>(false) },
+            focus2: { bought: persistent<boolean>(false) },
+            focus3: { bought: persistent<boolean>(false) }
+        },
+        upgrades2: {
+            focus4: { bought: persistent<boolean>(false) },
+            focus5: { bought: persistent<boolean>(false) },
+            focus6: { bought: persistent<boolean>(false) }
+        },
+        focusMulti: persistent<DecimalSource>(1),
+        focusTargets: persistent<Record<string, boolean>>({}),
+        focusCooldown: persistent<number>(0),
+        focusTime: persistent<number>(0)
+    };
+    const mastered = persistent<boolean>(false);
+
     // ------------------------------------------------------------------------------- Return
 
     return {
@@ -1727,7 +1912,10 @@ const layer = createLayer(id, () => {
                     ""
                 )}
             </>
-        ))
+        )),
+
+        mastery,
+        mastered
     };
 });
 

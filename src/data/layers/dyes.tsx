@@ -18,7 +18,7 @@ import {
     createSequentialModifier,
     Modifier
 } from "game/modifiers";
-import { NonPersistent, noPersist, Persistent } from "game/persistence";
+import { NonPersistent, noPersist, persistent, Persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { WithRequired } from "util/common";
 import { Computable, convertComputable } from "util/computed";
@@ -780,6 +780,45 @@ const layer = createLayer(id, function (this: BaseLayer) {
         ignoreTotal: true
     });
 
+    const mastery = {
+        dyes: {
+            red: {
+                amount: persistent<DecimalSource>(0),
+                buyable: { amount: persistent<DecimalSource>(0) }
+            },
+            green: {
+                amount: persistent<DecimalSource>(0),
+                buyable: { amount: persistent<DecimalSource>(0) }
+            },
+            blue: {
+                amount: persistent<DecimalSource>(0),
+                buyable: { amount: persistent<DecimalSource>(0) }
+            },
+            yellow: {
+                amount: persistent<DecimalSource>(0),
+                buyable: { amount: persistent<DecimalSource>(0) }
+            },
+            purple: {
+                amount: persistent<DecimalSource>(0),
+                buyable: { amount: persistent<DecimalSource>(0) }
+            },
+            orange: {
+                amount: persistent<DecimalSource>(0),
+                buyable: { amount: persistent<DecimalSource>(0) }
+            }
+        },
+        upgrades: {
+            blueDyeUpg: { bought: persistent<boolean>(false) },
+            redDyeUpg: { bought: persistent<boolean>(false) },
+            yellowDyeUpg: { bought: persistent<boolean>(false) },
+            yellowDyeUpg2: { bought: persistent<boolean>(false) },
+            redDyeUpg2: { bought: persistent<boolean>(false) },
+            blueDyeUpg2: { bought: persistent<boolean>(false) },
+            coalUpg: { bought: persistent<boolean>(false) }
+        }
+    };
+    const mastered = persistent<boolean>(false);
+
     return {
         name,
         color,
@@ -810,7 +849,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 </div>
                 {render(upgrades.coalUpg)}
             </>
-        ))
+        )),
+        mastery,
+        mastered
     };
 });
 

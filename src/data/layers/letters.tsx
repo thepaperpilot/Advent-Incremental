@@ -253,6 +253,23 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     });
 
+    const mastery = {
+        letters: persistent<DecimalSource>(0),
+        totalLetters: persistent<DecimalSource>(0),
+        buyables: {
+            metalBuyable: { amount: persistent<DecimalSource>(0) },
+            plasticBuyable: { amount: persistent<DecimalSource>(0) },
+            paperBuyable: { amount: persistent<DecimalSource>(0) }
+        },
+        milestones: {
+            autoSmeltingMilestone: { earned: persistent<boolean>(false) },
+            miningMilestone: { earned: persistent<boolean>(false) },
+            synergyMilestone: { earned: persistent<boolean>(false) },
+            industrialCrucibleMilestone: { earned: persistent<boolean>(false) }
+        }
+    };
+    const mastered = persistent<boolean>(false);
+
     return {
         name,
         day,
@@ -281,11 +298,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {milestonesDisplay()}
             </>
         )),
-        minimizedDisplay: jsx(() => (
-            <div>
-                {name} - {format(letters.value)} {letters.displayName}
-            </div>
-        ))
+        minimizedDisplay: jsx(() => (<div>{name} - {format(letters.value)} {letters.displayName}</div>)),
+        mastery,
+        mastered
     };
 });
 

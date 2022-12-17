@@ -88,10 +88,10 @@ export const main = createLayer("main", function (this: BaseLayer) {
             metal,
             cloth,
             oil,
-            // plastic,
-            // dyes,
-            // management,
-            // letters
+            plastic,
+            dyes,
+            management,
+            letters
         ]) { swapMastery(layer.mastery, layer) }
 
         swappingMastery.value = false;

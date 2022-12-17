@@ -311,6 +311,29 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     });
 
+    const mastery = {
+        plastic: persistent<DecimalSource>(0),
+        totalPlastic: persistent<DecimalSource>(0),
+        activeRefinery: persistent<DecimalSource>(0),
+        buildRefinery: { amount: persistent<DecimalSource>(0) },
+        upgrades: {
+            paperTools: { bought: persistent<boolean>(false) },
+            boxTools: { bought: persistent<boolean>(false) },
+            clothTools: { bought: persistent<boolean>(false) }
+        },
+        elfUpgrades: {
+            paperElf: { bought: persistent<boolean>(false) },
+            boxElf: { bought: persistent<boolean>(false) },
+            clothElf: { bought: persistent<boolean>(false) }
+        },
+        buyables: {
+            passivePaper: { amount: persistent<DecimalSource>(0) },
+            passiveBoxes: { amount: persistent<DecimalSource>(0) },
+            clothGains: { amount: persistent<DecimalSource>(0) }
+        }
+    };
+    const mastered = persistent<boolean>(false);
+
     return {
         name,
         color,
@@ -354,11 +377,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 </Row>
             </>
         )),
-        minimizedDisplay: jsx(() => (
-            <div>
-                {name} - {format(plastic.value)} {plastic.displayName}
-            </div>
-        ))
+        minimizedDisplay: jsx(() => (<div>{name} - {format(plastic.value)} {plastic.displayName}</div>)),
+        mastery,
+        mastered
     };
 });
 
