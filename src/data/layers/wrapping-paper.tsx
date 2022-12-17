@@ -20,6 +20,7 @@ import Modal from "components/Modal.vue";
 import { createMilestone } from "features/milestones/milestone";
 import { createClickable } from "features/clickables/clickable";
 import { main } from "../projEntry";
+import player from "game/player";
 
 const id = "wrappingPaper";
 const day = 15;
@@ -373,6 +374,10 @@ const layer = createLayer(id, () => {
         }),
         onClick() {
             main.toggleMastery();
+            const layer = main.currentlyMastering.value?.id ?? "trees";
+            if (!player.tabs.includes(layer)) {
+                main.openDay(layer);
+            }
         },
         style: {
             backgroundColor: "gold"
