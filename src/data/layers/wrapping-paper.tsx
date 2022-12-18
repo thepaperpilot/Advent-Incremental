@@ -1,26 +1,22 @@
-import { BuyableOptions, createBuyable, GenericBuyable } from "features/buyable";
-import { jsx, JSXFunction, showIf } from "features/feature";
-import { createResource, Resource } from "features/resources/resource";
-import { createLayer } from "game/layers";
-import { noPersist, persistent } from "game/persistence";
-import Decimal, { DecimalSource } from "util/bignum";
-import MainDisplay from "features/resources/MainDisplay.vue";
-import { render, renderRow } from "util/vue";
-import { default as dyes, type enumColor } from "./dyes";
-import { BaseTransition, computed, Ref, ref, unref } from "vue";
 import Spacer from "components/layout/Spacer.vue";
-import { Computable } from "util/computed";
-import { format } from "util/bignum";
-import {
-    createCollapsibleModifierSections,
-    setUpDailyProgressTracker,
-    createCollapsibleMilestones
-} from "data/common";
-import Modal from "components/Modal.vue";
-import { createMilestone } from "features/milestones/milestone";
+import { createCollapsibleMilestones } from "data/common";
+import { createBar, GenericBar } from "features/bars/bar";
+import { BuyableOptions, createBuyable, GenericBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
-import { main } from "../projEntry";
+import { jsx, JSXFunction, showIf } from "features/feature";
+import { createMilestone } from "features/milestones/milestone";
+import MainDisplay from "features/resources/MainDisplay.vue";
+import { createResource, Resource } from "features/resources/resource";
+import { createLayer, layers } from "game/layers";
 import player from "game/player";
+import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
+import { Direction } from "util/common";
+import { Computable } from "util/computed";
+import { render, renderRow } from "util/vue";
+import { computed, Ref, unref, watchEffect } from "vue";
+import { main } from "../projEntry";
+import { default as dyes, type enumColor } from "./dyes";
+import metal from "./metal";
 
 const id = "wrappingPaper";
 const day = 15;
@@ -277,42 +273,15 @@ const layer = createLayer(id, () => {
         ),
         "Total Wrapping Paper"
     );
-    const showModifiersModal = ref(false);
-    const modifiersModal = jsx(() => (
-        <Modal
-            modelValue={showModifiersModal.value}
-            onUpdate:modelValue={(value: boolean) => (showModifiersModal.value = value)}
-            v-slots={{
-                header: () => <h2>{name} Modifiers</h2>,
-                body: generalTab
-            }}
-        />
-    ));
 
-    const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => []);
-
-    const { total: totalWrappingPaper, trackerDisplay } = setUpDailyProgressTracker({
-        resource: wrappingPaperSum,
-        goal: 1e8,
-        name,
-        day,
-        color,
-        textColor: "var(--feature-foreground)",
-        modal: {
-            show: showModifiersModal,
-            display: modifiersModal
-        },
-        ignoreTotal: true
-    });
-
-    const milestoneCosts = [6, 12, 18, 24, 30, 36]; // change
+    const milestoneCosts = [10, 30, 90, 270, 810, 2430];
 
     const primaryBoostMilestone = createMilestone(() => ({
         display: {
             requirement: milestoneCosts[0] + " Total Wrapping Paper",
             effectDisplay: "Double primary colour dye gain"
         },
-        shouldEarn: () => Decimal.gte(totalWrappingPaper.value, milestoneCosts[0]),
+        shouldEarn: () => Decimal.gte(wrappingPaperSum.value, milestoneCosts[0]),
         visibility: () => showIf(true)
     }));
     const secondaryBoostMilestone = createMilestone(() => ({
@@ -320,7 +289,7 @@ const layer = createLayer(id, () => {
             requirement: milestoneCosts[1] + " Total Wrapping Paper",
             effectDisplay: "Double secondary colour dye gain"
         },
-        shouldEarn: () => Decimal.gte(totalWrappingPaper.value, milestoneCosts[1]),
+        shouldEarn: () => Decimal.gte(wrappingPaperSum.value, milestoneCosts[1]),
         visibility: () => showIf(primaryBoostMilestone.earned.value)
     }));
     const buyMaxPrimaryMilestone = createMilestone(() => ({
@@ -328,7 +297,7 @@ const layer = createLayer(id, () => {
             requirement: milestoneCosts[2] + " Total Wrapping Paper",
             effectDisplay: "Buy maximum primary colour dyes"
         },
-        shouldEarn: () => Decimal.gte(totalWrappingPaper.value, milestoneCosts[2]),
+        shouldEarn: () => Decimal.gte(wrappingPaperSum.value, milestoneCosts[2]),
         visibility: () => showIf(secondaryBoostMilestone.earned.value)
     }));
     const secondaryNoResetMilestone = createMilestone(() => ({
@@ -336,7 +305,7 @@ const layer = createLayer(id, () => {
             requirement: milestoneCosts[3] + " Total Wrapping Paper",
             effectDisplay: "Secondary colour dyes don't spend primary colour dyes"
         },
-        shouldEarn: () => Decimal.gte(totalWrappingPaper.value, milestoneCosts[3]),
+        shouldEarn: () => Decimal.gte(wrappingPaperSum.value, milestoneCosts[3]),
         visibility: () => showIf(buyMaxPrimaryMilestone.earned.value)
     }));
     const buyMaxSecondaryMilestone = createMilestone(() => ({
@@ -344,7 +313,7 @@ const layer = createLayer(id, () => {
             requirement: milestoneCosts[4] + " Total Wrapping Paper",
             effectDisplay: "Buy maximum secondary colour dyes"
         },
-        shouldEarn: () => Decimal.gte(totalWrappingPaper.value, milestoneCosts[4]),
+        shouldEarn: () => Decimal.gte(wrappingPaperSum.value, milestoneCosts[4]),
         visibility: () => showIf(secondaryNoResetMilestone.earned.value)
     }));
     const unlockDyeElfMilestone = createMilestone(() => ({
@@ -352,7 +321,7 @@ const layer = createLayer(id, () => {
             requirement: milestoneCosts[5] + " Total Wrapping Paper",
             effectDisplay: "Unlock a new elf to help with dyes"
         },
-        shouldEarn: () => Decimal.gte(totalWrappingPaper.value, milestoneCosts[5]),
+        shouldEarn: () => Decimal.gte(wrappingPaperSum.value, milestoneCosts[5]),
         visibility: () => showIf(buyMaxSecondaryMilestone.earned.value)
     }));
 
@@ -368,11 +337,37 @@ const layer = createLayer(id, () => {
     const { collapseMilestones, display: milestonesDisplay } =
         createCollapsibleMilestones(milestones);
 
+    const masteryReq = computed(() => Decimal.pow(2, masteredDays.value).times(30));
     const enterMasteryButton = createClickable(() => ({
-        display: jsx(() => {
-            return <>{main.isMastery.value ? "Stop Decorating" : "Begin Decoration"}</>;
+        display: () => ({
+            title: main.isMastery.value ? "Stop Decorating" : "Begin Decoration",
+            description: jsx(() => {
+                return (
+                    <>
+                        <br />
+                        Decorating brings you to a separate version of each day that only allows
+                        layers that are decorated or being decorated to work. These days will have a
+                        new decoration effect that applies outside of decorating as well.
+                        <br />
+                        You can safely start and stop decorating without losing progress
+                        {main.isMastery.value ? null : (
+                            <>
+                                <br />
+                                <br />
+                                Requires {formatWhole(masteryReq.value)} total wrapping paper
+                            </>
+                        )}
+                    </>
+                );
+            })
         }),
+        canClick() {
+            return main.isMastery.value || Decimal.gte(wrappingPaperSum.value, masteryReq.value);
+        },
         onClick() {
+            if (!unref(enterMasteryButton.canClick)) {
+                return;
+            }
             main.toggleMastery();
             const layer = main.currentlyMastering.value?.id ?? "trees";
             if (!player.tabs.includes(layer)) {
@@ -380,9 +375,40 @@ const layer = createLayer(id, () => {
             }
         },
         style: {
-            backgroundColor: "gold"
+            width: "300px",
+            minHeight: "160px"
         }
     }));
+
+    const masteredDays = computed(() =>
+        Object.values(layers)
+            .filter(l => l && "mastered" in l)
+            .findIndex(l => (l as any).mastered.value === false)
+    );
+
+    const dayProgress = createBar(() => ({
+        direction: Direction.Right,
+        width: 600,
+        height: 25,
+        fillStyle: `backgroundColor: ${color}`,
+        progress: () => (main.day.value === day ? Decimal.div(masteredDays.value, 6) : 1),
+        display: jsx(() =>
+            main.day.value === day ? (
+                <>
+                    {masteredDays.value}
+                    /6 days decorated
+                </>
+            ) : (
+                ""
+            )
+        )
+    })) as GenericBar;
+
+    watchEffect(() => {
+        if (main.day.value === day && Decimal.gte(masteredDays.value, 6)) {
+            main.completeDay();
+        }
+    });
 
     return {
         name,
@@ -390,7 +416,13 @@ const layer = createLayer(id, () => {
         display: jsx(() => {
             return (
                 <div style="width: 620px">
-                    {render(trackerDisplay)}
+                    <div>
+                        {main.day.value === day
+                            ? `Decorate 6 previous days to complete the day`
+                            : `${name} Complete!`}
+                    </div>
+                    {render(dayProgress)}
+                    <Spacer />
                     <MainDisplay resource={wrappingPaperSum} />
                     {renderRow(
                         wrappingPaper.christmas.display,
@@ -421,8 +453,6 @@ const layer = createLayer(id, () => {
             );
         }),
         wrappingPaper,
-        totalWrappingPaper,
-        generalTabCollapsed,
         boosts,
         milestones,
         collapseMilestones,

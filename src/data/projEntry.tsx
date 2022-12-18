@@ -75,7 +75,11 @@ export const main = createLayer("main", function (this: BaseLayer) {
 
     const currentlyMastering = computed(() =>
         isMastery.value
-            ? Object.values(layers).find(layer => unref((layer as any).mastered) === false)
+            ? Object.values(layers).find(
+                  layer =>
+                      unref((layer as any).mastered) === false &&
+                      !["Elves", "Management"].includes(unref(layer?.name ?? ""))
+              )
             : undefined
     );
     const swappingMastery = ref(false);
