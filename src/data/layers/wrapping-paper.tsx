@@ -363,6 +363,7 @@ const layer = createLayer(id, () => {
                 );
             })
         }),
+        visibility: () => showIf(main.day.value === day),
         canClick() {
             return main.isMastery.value || Decimal.gte(wrappingPaperSum.value, masteryReq.value);
         },
