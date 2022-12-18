@@ -15,7 +15,6 @@ import player from "game/player";
 import "./styles/factory.css";
 import { globalBus } from "game/events";
 import { Container } from "@pixi/display";
-import { Matrix } from "@pixi/math";
 
 const id = "factory";
 
@@ -42,26 +41,11 @@ function getRelativeCoords(e: MouseEvent) {
     };
 }
 
+const factorySize = {
+    width: 50,
+    height: 50
+};
 const blockSize = 50;
-
-interface FactoryComponent {
-    directionIn: Direction | undefined;
-    directionOut: Direction | undefined;
-    imageSrc: string;
-    name: string;
-    description: string;
-    type: string;
-    sprite: Sprite;
-}
-
-async function positionSprite(name: string, y: number, x: number, width: number, height: number) {
-    const sprite = await createSprite(name);
-    sprite.width = width;
-    sprite.height = height;
-    sprite.y = y;
-    sprite.x = x;
-    return sprite;
-}
 
 const factory = createLayer(id, () => {
     // layer display
@@ -107,11 +91,9 @@ const factory = createLayer(id, () => {
                 square: Infinity
             },
             consumption: {},
-            consumptionStock: {},
-            onProduce(times) {
-            }
+            consumptionStock: {}
         }
-    } as Record<string, FactoryComponentDeclaration>;
+    } as Record<"cursor" | "conveyor" | "square", FactoryComponentDeclaration>;
 
     type FactoryCompNames = keyof typeof FACTORY_COMPONENTS;
     type BuildableCompName = Exclude<FactoryCompNames, "cursor">;
@@ -165,11 +147,14 @@ const factory = createLayer(id, () => {
     const isMouseHoverShown = ref(false);
     const whatIsHovered = ref<FactoryCompNames | "">("");
     const compSelected = ref<FactoryCompNames>("cursor");
-    const components: Ref<unknown[][]> = persistent(
-        Array(blockAmts.h)
+    const components: Ref<(FactoryComponent | null)[][]> = persistent(
+        Array(factorySize.width)
             .fill(undefined)
-            .map(() => Array(blockAmts.w).fill(undefined))
+            .map(() => Array(factorySize.height).fill(null))
     );
+    const compInternalData: (FactoryInternal | null)[][] = Array(factorySize.width)
+        .fill(undefined)
+        .map(() => Array(factorySize.height).fill(null));
 
     // pixi
     const app = new Application({
@@ -184,18 +169,16 @@ const factory = createLayer(id, () => {
     app.stage.sortableChildren = true;
 
     globalBus.on("update", diff => {
-
         // will change soon:tm:
         const tick = diff;
-        for (const y of components.keys()) {
-            for (const x of components[y].keys()) {
-                const data = componentData.value[y][x];
-                const compData = components[y][x];
+        for (const y of components.value.keys()) {
+            for (const x of components.value[y].keys()) {
+                const data = components.value[y][x];
+                const compData = compInternalData[y][x];
                 //console.log(compData, data)
                 if (data === null || compData === null) continue;
                 const factoryData = FACTORY_COMPONENTS[data.type];
                 if (data.ticksDone >= factoryData.tick) {
-                    console.log(compData.canProduce);
                     if (!compData.canProduce.value) continue;
                     const cyclesDone = Math.floor(data.ticksDone / factoryData.tick);
                     console.log("produce", data.ticksDone, factoryData.tick);
@@ -214,9 +197,7 @@ const factory = createLayer(id, () => {
         }
     });
 
-
-
-    async function changeFactoryComponent(y: number, x: number) {
+    /*async function changeFactoryComponent(y: number, x: number) {
         const comp = componentData.value[y][x];
         if (comp === null) return;
         const data = FACTORY_COMPONENTS[comp.type];
@@ -243,27 +224,18 @@ const factory = createLayer(id, () => {
             })
         };
         spriteContainer.addChild(sprite);
-    }
-
-    function removeFactoryComponent(y: number, x: number) {
-        const comp = components[y][x];
-        if (comp === null) return;
-        comp.sprite.destroy();
-        componentData.value[y][x] = null;
-        components[y][x] = null;
-        spriteContainer.removeChild(comp.sprite);
-    }
+    }*/
 
     // draw graphics
     function updateGraphics() {
         app.resize();
         graphicContainer.clear();
-        
+
         spriteContainer.x = mapOffset.x * blockSize + app.view.width / 2;
         spriteContainer.y = mapOffset.y * blockSize + app.view.height / 2;
-        
-        if (isMouseHoverShown.value) {
-            let { tx, ty } = spriteContainer.localTransform;
+
+        if (isMouseHoverShown.value && compSelected.value === "cursor") {
+            const { tx, ty } = spriteContainer.localTransform;
             graphicContainer.beginFill(0x808080);
             graphicContainer.drawRect(
                 roundDownTo(mouseCoords.x - tx, blockSize) + tx,
@@ -275,45 +247,74 @@ const factory = createLayer(id, () => {
     }
     watchEffect(updateGraphics);
 
-    let pointerDown = ref(false), pointerDrag = ref(false);
+    const pointerDown = ref(false),
+        pointerDrag = ref(false);
 
     function onFactoryPointerMove(e: PointerEvent) {
-
         const { x, y } = getRelativeCoords(e);
         mouseCoords.x = x;
         mouseCoords.y = y;
 
-        if (pointerDown.value && (pointerDrag.value || Math.abs(e.movementX) > 2 || Math.abs(e.movementY) > 2)) {
+        if (
+            pointerDown.value &&
+            compSelected.value === "cursor" &&
+            (pointerDrag.value || Math.abs(e.movementX) > 2 || Math.abs(e.movementY) > 2)
+        ) {
             pointerDrag.value = true;
             mapOffset.x += e.movementX / blockSize;
             mapOffset.y += e.movementY / blockSize;
         }
     }
-    async function onFactoryPointerDown(e: PointerEvent) {
+    async function onFactoryPointerDown() {
         window.addEventListener("pointerup", onFactoryPointerUp);
         pointerDown.value = true;
     }
     async function onFactoryPointerUp(e: PointerEvent) {
-        if (!pointerDrag.value) {
-            if (compSelected.value !== "") {
-                let { tx, ty } = spriteContainer.localTransform;
-                let { x, y } = getRelativeCoords(e);
-                x = roundDownTo(x - tx, blockSize) / blockSize;
-                y = roundDownTo(y - ty, blockSize) / blockSize;
+        // make sure they're not dragging and that
+        // they aren't trying to put down a cursor
+        if (!pointerDrag.value && compSelected.value !== "cursor") {
+            const { tx, ty } = spriteContainer.localTransform;
+            let { x, y } = getRelativeCoords(e);
+            x = roundDownTo(x - tx, blockSize) / blockSize;
+            y = roundDownTo(y - ty, blockSize) / blockSize;
+            const factoryBaseData = FACTORY_COMPONENTS[compSelected.value];
+            const sheet = await Assets.load(factoryBaseData.imageSrc);
+            const sprite = new Sprite(sheet);
 
-                const basicData = structuredClone(
-                    FACTORY_COMPONENTS[compSelected.value]
-                ) as FactoryComponent;
-                basicData.type = compSelected.value;
-                const sheet = await Assets.load(basicData.imageSrc);
-                basicData.sprite = new Sprite(sheet);
+            console.log(x, y);
 
-                basicData.sprite.x = x * blockSize;
-                basicData.sprite.y = y * blockSize;
-                basicData.sprite.width = blockSize;
-                basicData.sprite.height = blockSize;
-                spriteContainer.addChild(basicData.sprite);
-            }
+            sprite.x = x * blockSize;
+            sprite.y = y * blockSize;
+            sprite.width = blockSize;
+            sprite.height = blockSize;
+            components.value[y][x] = {
+                type: compSelected.value,
+                ticksDone: 0,
+                consumptionStock: structuredClone(factoryBaseData.consumptionStock),
+                productionStock: structuredClone(factoryBaseData.productionStock)
+            };
+            compInternalData[y][x] = {
+                canProduce: computed(() => {
+                    if (!(factoryBaseData.canProduce?.value ?? true)) return false;
+                    // this should NEVER be null
+                    const compData = components.value[y][x] as FactoryComponent;
+                    for (const [key, res] of Object.entries(compData.productionStock)) {
+                        // if the current stock + production is more than you can handle
+                        if (
+                            res + factoryBaseData.production[key] >
+                            factoryBaseData.productionStock[key]
+                        )
+                            return false;
+                    }
+                    for (const [key, res] of Object.entries(compData.consumptionStock)) {
+                        // make sure you have enough to produce
+                        if (res < factoryBaseData.consumptionStock[key]) return false;
+                    }
+                    return true;
+                }),
+                sprite
+            };
+            spriteContainer.addChild(sprite);
         }
 
         window.removeEventListener("pointerup", onFactoryPointerUp);
@@ -343,6 +344,7 @@ const factory = createLayer(id, () => {
         minWidth: 700,
         minimizable: false,
         style: { overflow: "hidden" },
+        components,
         display: jsx(() => (
             <div class="layer-container">
                 <button class="goBack" onClick={goBack}>
