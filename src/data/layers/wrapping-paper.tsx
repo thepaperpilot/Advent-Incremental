@@ -16,7 +16,6 @@ import { render, renderRow } from "util/vue";
 import { computed, Ref, unref, watchEffect } from "vue";
 import { main } from "../projEntry";
 import { default as dyes, type enumColor } from "./dyes";
-import metal from "./metal";
 
 const id = "wrappingPaper";
 const day = 15;
@@ -51,7 +50,7 @@ interface WrappingPaperOptions {
 
 const layer = createLayer(id, () => {
     const name = "Wrapping Paper";
-    const color = "gold"; // todo: change
+    const color = "gold";
 
     const createWrappingPaper = (options: WrappingPaperOptions & Partial<BuyableOptions>) => {
         const getCost: Computable<
@@ -409,6 +408,7 @@ const layer = createLayer(id, () => {
     return {
         name,
         day,
+        color,
         display: jsx(() => {
             return (
                 <div style="width: 620px">
