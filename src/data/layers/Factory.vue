@@ -4,7 +4,6 @@
 <script setup lang="ts">
 import type { Application } from "@pixi/app";
 import { onMounted, shallowRef } from "vue";
-import { blockAmts } from "./factory";
 import "lib/pixi";
 
 const element = shallowRef<HTMLElement | null>(null);
@@ -15,8 +14,8 @@ console.log(props.application);
 onMounted(() => {
     if (element.value !== null) {
         element.value?.append(props.application.view);
-        //props.application.resizeTo = element.value;
-        //props.application.resize();
+        props.application.resizeTo = element.value;
+        props.application.resize();
     } else {
         throw new TypeError("This should not occur");
     }
@@ -24,7 +23,10 @@ onMounted(() => {
 </script>
 <style scoped>
 .factoryDisp {
-    width: 100%;
-    height: 100%;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
 }
 </style>
