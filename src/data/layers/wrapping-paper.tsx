@@ -187,7 +187,7 @@ const layer = createLayer(id, () => {
                 {
                     desc: computed(
                         () => `
-                        -${format(unref(boosts.jazzy1))} to elf cost scaling
+                        x${format(unref(boosts.jazzy1))} to auto-smelting speed
                         `
                     )
                 }
@@ -256,11 +256,7 @@ const layer = createLayer(id, () => {
     const boosts = {
         christmas1: computed(() => Decimal.add(wrappingPaper.christmas.buyable.amount.value, 1)), // Probably not the best way to do this, but it works
         rainbow1: computed(() => Decimal.pow(2, wrappingPaper.rainbow.buyable.amount.value)),
-        jazzy1: computed(() =>
-            Decimal.ln(
-                Decimal.add(Decimal.ln(Decimal.add(wrappingPaper.jazzy.buyable.amount.value, 1)), 1)
-            )
-        ),
+        jazzy1: computed(() => Decimal.add(wrappingPaper.jazzy.buyable.amount.value, 1)),
         sunshine1: computed(() => Decimal.add(wrappingPaper.sunshine.buyable.amount.value, 1)),
         ocean1: computed(() => Decimal.pow(1.5, wrappingPaper.ocean.buyable.amount.value)),
         beach1: computed(() => Decimal.add(wrappingPaper.beach.buyable.amount.value, 1))

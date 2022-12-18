@@ -35,6 +35,7 @@ import oil from "./oil";
 import paper from "./paper";
 import plastic from "./plastic";
 import workshop from "./workshop";
+import wrappingPaper from "./wrapping-paper";
 
 const id = "metal";
 const day = 7;
@@ -185,6 +186,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     .log10(),
             description: "The Ultimate Metal Dye",
             enabled: oil.row3Upgrades[4].bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: wrappingPaper.boosts.jazzy1,
+            description: "Jazzy Wrapping Paper",
+            enabled: computed(() => Decimal.gt(wrappingPaper.boosts.jazzy1.value, 1))
         }))
     ]);
     const computedAutoSmeltSpeed = computed(() => autoSmeltSpeed.apply(0));

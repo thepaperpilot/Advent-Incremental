@@ -554,10 +554,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     ));
 
     const trainingCost = computed(() => {
-        let cost = Decimal.pow(
-            Decimal.sub(4, wrappingPaper.boosts.jazzy1.value),
-            totalElves.value
-        ).times(1e6);
+        let cost = Decimal.pow(4, totalElves.value).times(1e6);
         if (Decimal.gte(totalElves.value, 9)) {
             cost = Decimal.times(cost, 1e15);
         }
@@ -1076,11 +1073,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.gte(coal.coal.value, coalGoal)
         ) {
             main.completeDay();
-        } else if (
-            main.currentlyMastering.value?.name === name &&
-            Decimal.gte(coal.coal.value, options.masteryGoal ?? options.goal)
-        ) {
-            main.completeMastery();
         }
     });
 
@@ -1193,10 +1185,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
             { earned: persistent<boolean>(false) }
         ]
     };
-    const mastered = persistent<boolean>(false);
-    const masteryEffectActive = computed(
-        () => mastered.value || main.currentlyMastering.value?.name === name
-    );
 
     return {
         name,
@@ -1241,8 +1229,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {milestonesDisplay()}
             </>
         )),
-        mastery,
-        mastered
+        mastery
     };
 });
 
