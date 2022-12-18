@@ -186,8 +186,8 @@ const factory = createLayer(id, () => {
         day,
         color,
         minWidth: 700,
+        minimizable: false,
         style: { overflow: "hidden" },
-        draggable: false,
         display: jsx(() => (
             <div class="layer-container">
                 <button class="goBack" onClick={goBack}>
