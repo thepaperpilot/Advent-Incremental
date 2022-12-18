@@ -91,7 +91,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
             paperConversion.convert();
         },
-        style: "width: 600px; min-height: unset"
+        style: "width: 600px; min-height: unset",
+        visibility: () => showIf(!main.isMastery.value || masteryEffectActive.value)
     }));
 
     function createBook(
@@ -534,11 +535,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 ) : null}
                 <MainDisplay resource={paper} color={color} style="margin-bottom: 0" />
                 <Spacer />
-                {render(makePaper)}
-                <Spacer />
-                {renderGrid(Object.values(upgrades), Object.values(upgrades2))}
-                <Spacer />
-                {renderCol(...Object.values(books))}
+                {!main.isMastery.value || masteryEffectActive.value ? (
+                    <>
+                        {render(makePaper)}
+                        <Spacer />
+                        {renderGrid(Object.values(upgrades), Object.values(upgrades2))}
+                        <Spacer />
+                        {renderCol(...Object.values(books))}
+                    </>
+                ) : null}
             </>
         )),
         minimizedDisplay: jsx(() => (

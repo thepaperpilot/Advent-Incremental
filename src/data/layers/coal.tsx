@@ -134,7 +134,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             color: colorText,
             width: "160px",
             flexGrow: 1
-        }
+        },
+        visibility: () => showIf(!main.isMastery.value || masteryEffectActive.value)
     })) as ElfBuyable & { resource: Resource };
 
     const {
