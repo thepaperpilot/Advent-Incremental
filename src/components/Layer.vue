@@ -207,3 +207,9 @@ export default defineComponent({
     pointer-events: none;
 }
 </style>
+<style> 
+.layer-tab.minimized > * > .desc {
+    color: var(--accent1);
+    font-size: 30px;
+}
+</style>
