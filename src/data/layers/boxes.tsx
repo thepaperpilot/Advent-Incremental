@@ -58,7 +58,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createExponentialModifier(() => ({
             exponent: 1.1,
             description: "Bell Level 2",
-            enabled: () => management.elfTraining.boxElfTraining.milestones[1].earned.value && !main.isMastery.value
+            enabled: () =>
+                management.elfTraining.boxElfTraining.milestones[1].earned.value &&
+                !main.isMastery.value
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
 
@@ -600,7 +602,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         row3Upgrades: {
             clothUpgrade: { bought: persistent<boolean>(false) },
             dyeUpgrade: { bought: persistent<boolean>(false) },
-            xpUpgrade: { bought: persistent<boolean>(false) },
+            xpUpgrade: { bought: persistent<boolean>(false) }
         },
         buyables: {
             logBoxesBuyable: { amount: persistent<DecimalSource>(0) },
@@ -614,6 +616,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     };
     const mastered = persistent<boolean>(false);
+    const masteryEffectActive = computed(
+        () => mastered.value || main.currentlyMastering.value?.name === name
+    );
 
     return {
         name,
@@ -646,7 +651,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {renderGrid(Object.values(buyables), Object.values(buyables2))}
             </>
         )),
-        minimizedDisplay: jsx(() => (<div>{name} - {format(boxes.value)} {boxes.displayName}</div>)),
+        minimizedDisplay: jsx(() => (
+            <div>
+                {name} - {format(boxes.value)} {boxes.displayName}
+            </div>
+        )),
         mastery,
         mastered
     };

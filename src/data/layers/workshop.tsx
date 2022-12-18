@@ -78,7 +78,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         roundUpCost: true,
         // buyMax: management.elfTraining.expandersElfTraining.milestones[2].earned,
         spend(gain, spent) {
-            if (main.isMastery.value || mastered.value) return;
+            if (masteryEffectActive.value) return;
             trees.logs.value = Decimal.sub(trees.logs.value, spent);
         }
     }));
@@ -92,7 +92,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <br />
                 <br />
                 <span style="font-size: large">
-                    {main.isMastery.value || mastered.value ? "Requirement" : "Cost"}:{" "}
+                    {masteryEffectActive.value ? "Requirement" : "Cost"}:{" "}
                     {displayResource(
                         trees.logs,
                         Decimal.gte(foundationConversion.actualGain.value, 1)
@@ -349,6 +349,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     };
     const mastered = persistent<boolean>(false);
+    const masteryEffectActive = computed(
+        () => mastered.value || main.currentlyMastering.value?.name === name
+    );
 
     return {
         name,

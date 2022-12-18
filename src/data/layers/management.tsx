@@ -1837,6 +1837,9 @@ const layer = createLayer(id, () => {
         focusTime: persistent<number>(0)
     };
     const mastered = persistent<boolean>(false);
+    const masteryEffectActive = computed(
+        () => mastered.value || main.currentlyMastering.value?.name === name
+    );
 
     // ------------------------------------------------------------------------------- Return
 

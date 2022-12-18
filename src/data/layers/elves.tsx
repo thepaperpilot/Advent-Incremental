@@ -1076,6 +1076,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.gte(coal.coal.value, coalGoal)
         ) {
             main.completeDay();
+        } else if (
+            main.currentlyMastering.value?.name === name &&
+            Decimal.gte(coal.coal.value, options.masteryGoal ?? options.goal)
+        ) {
+            main.completeMastery();
         }
     });
 
@@ -1189,6 +1194,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         ]
     };
     const mastered = persistent<boolean>(false);
+    const masteryEffectActive = computed(
+        () => mastered.value || main.currentlyMastering.value?.name === name
+    );
 
     return {
         name,

@@ -269,6 +269,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     };
     const mastered = persistent<boolean>(false);
+    const masteryEffectActive = computed(
+        () => mastered.value || main.currentlyMastering.value?.name === name
+    );
 
     return {
         name,
@@ -298,7 +301,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {milestonesDisplay()}
             </>
         )),
-        minimizedDisplay: jsx(() => (<div>{name} - {format(letters.value)} {letters.displayName}</div>)),
+        minimizedDisplay: jsx(() => (
+            <div>
+                {name} - {format(letters.value)} {letters.displayName}
+            </div>
+        )),
         mastery,
         mastered
     };

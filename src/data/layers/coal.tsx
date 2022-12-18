@@ -1040,6 +1040,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         moreFertilizer: { amount: persistent<DecimalSource>(0) }
     };
     const mastered = persistent<boolean>(false);
+    const masteryEffectActive = computed(
+        () => mastered.value || main.currentlyMastering.value?.name === name
+    );
 
     return {
         name,

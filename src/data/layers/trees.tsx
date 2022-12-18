@@ -456,7 +456,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createAdditiveModifier(() => ({
             addend: () => totalTrees.apply(0),
             description: "Tree Mastery",
-            enabled: () => main.isMastery.value || mastered.value
+            enabled: () => masteryEffectActive.value
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 1.25,
@@ -594,7 +594,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             logs.value = Decimal.add(logs.value, Decimal.times(logGain.apply(1), amount));
             saplings.value = Decimal.add(
                 saplings.value,
-                amount.times(main.isMastery.value || mastered.value ? 2 : 1)
+                amount.times(masteryEffectActive.value ? 2 : 1)
             );
             manualCutProgress.value = 0;
         }
@@ -763,7 +763,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         );
         logs.value = Decimal.add(logs.value, logsGained);
         saplings.value = Decimal.add(
-            Decimal.mul(saplings.value, main.isMastery.value || mastered.value ? 2 : 1),
+            Decimal.mul(saplings.value, masteryEffectActive.value ? 2 : 1),
             amountCut
         );
         const amountPlanted = Decimal.min(
@@ -832,6 +832,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         ]
     };
     const mastered = persistent<boolean>(false);
+    const masteryEffectActive = computed(
+        () => mastered.value || main.currentlyMastering.value?.name === name
+    );
 
     return {
         name,

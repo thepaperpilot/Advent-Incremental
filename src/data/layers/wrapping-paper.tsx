@@ -293,7 +293,7 @@ const layer = createLayer(id, () => {
 
     const { total: totalWrappingPaper, trackerDisplay } = setUpDailyProgressTracker({
         resource: wrappingPaperSum,
-        goal: 1e20,
+        goal: 1e8,
         name,
         day,
         color,

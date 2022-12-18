@@ -822,6 +822,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     };
     const mastered = persistent<boolean>(false);
+    const masteryEffectActive = computed(
+        () => mastered.value || main.currentlyMastering.value?.name === name
+    );
 
     return {
         name,

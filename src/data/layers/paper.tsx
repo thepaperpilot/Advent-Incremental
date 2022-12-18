@@ -412,7 +412,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: 0.1,
             description: "Star Level 2",
-            enabled: () => management.elfTraining.paperElfTraining.milestones[1].earned.value && !main.isMastery.value
+            enabled: () =>
+                management.elfTraining.paperElfTraining.milestones[1].earned.value &&
+                !main.isMastery.value
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAshCost = computed(() => ashCost.apply(1e6));
@@ -500,6 +502,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     };
     const mastered = persistent<boolean>(false);
+    const masteryEffectActive = computed(
+        () => mastered.value || main.currentlyMastering.value?.name === name
+    );
 
     return {
         name,
@@ -526,7 +531,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {renderCol(...Object.values(books))}
             </>
         )),
-        minimizedDisplay: jsx(() => (<div>{name} - {format(paper.value)} {paper.displayName}</div>)),
+        minimizedDisplay: jsx(() => (
+            <div>
+                {name} - {format(paper.value)} {paper.displayName}
+            </div>
+        )),
         mastery,
         mastered
     };
