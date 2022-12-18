@@ -15,6 +15,7 @@ import player from "game/player";
 import "./styles/factory.css";
 import { globalBus } from "game/events";
 import { Container } from "@pixi/display";
+import { Matrix } from "@pixi/math";
 
 const id = "factory";
 
@@ -29,14 +30,6 @@ enum FactoryDirections {
     None
 }
 type FactoryDirection = FactoryDirections | Direction;
-export const size = {
-    width: 1000,
-    height: 345
-};
-const blockAmts = {
-    w: 50,
-    h: 17
-};
 
 function roundDownTo(num: number, multiple: number) {
     return Math.floor(num / multiple) * multiple;
@@ -48,9 +41,17 @@ function getRelativeCoords(e: MouseEvent) {
         y: e.clientY - rect.top
     };
 }
-async function createSprite(name: string) {
-    const sheet = await Assets.load(name);
-    return new Sprite(sheet);
+
+const blockSize = 50;
+
+interface FactoryComponent {
+    directionIn: Direction | undefined;
+    directionOut: Direction | undefined;
+    imageSrc: string;
+    name: string;
+    description: string;
+    type: string;
+    sprite: Sprite;
 }
 
 async function positionSprite(name: string, y: number, x: number, width: number, height: number) {
@@ -157,35 +158,32 @@ const factory = createLayer(id, () => {
         x: 0,
         y: 0
     });
+    const mapOffset = reactive({
+        x: 0,
+        y: 0
+    });
     const isMouseHoverShown = ref(false);
     const whatIsHovered = ref<FactoryCompNames | "">("");
     const compSelected = ref<FactoryCompNames>("cursor");
-
-    const componentData: Ref<(FactoryComponent | null)[][]> = persistent(
+    const components: Ref<unknown[][]> = persistent(
         Array(blockAmts.h)
             .fill(undefined)
-            .map(() => Array(blockAmts.w).fill(null))
+            .map(() => Array(blockAmts.w).fill(undefined))
     );
-    const components: (FactoryInternal | null)[][] = Array(blockAmts.h)
-        .fill(undefined)
-        .map(() => Array(blockAmts.w).fill(null));
-    window.components = components;
 
     // pixi
-    const app = new Application(size);
+    const app = new Application({
+        backgroundAlpha: 0
+    });
     const graphicContainer = new Graphics();
     const spriteContainer = new Container();
     const movingBlocks = new Container();
-    const blockWidth = ref(app.screen.width / blockAmts.w);
-    const blockHeight = ref(app.screen.height / blockAmts.h);
 
     graphicContainer.zIndex = 1;
     app.stage.addChild(graphicContainer, spriteContainer, movingBlocks);
     app.stage.sortableChildren = true;
 
     globalBus.on("update", diff => {
-        blockWidth.value = app.screen.width / blockAmts.w;
-        blockHeight.value = app.screen.height / blockAmts.h;
 
         // will change soon:tm:
         const tick = diff;
@@ -216,13 +214,7 @@ const factory = createLayer(id, () => {
         }
     });
 
-    globalBus.on("onLoad", async () => {
-        for (const y of componentData.value.keys()) {
-            for (const x of componentData.value[y].keys()) {
-                changeFactoryComponent(y, x);
-            }
-        }
-    });
+
 
     async function changeFactoryComponent(y: number, x: number) {
         const comp = componentData.value[y][x];
@@ -264,64 +256,76 @@ const factory = createLayer(id, () => {
 
     // draw graphics
     function updateGraphics() {
+        app.resize();
         graphicContainer.clear();
-        if (isMouseHoverShown.value && compSelected.value !== "cursor") {
-            const { x, y } = {
-                x: roundDownTo(mouseCoords.x, blockWidth.value) / blockWidth.value,
-                y: roundDownTo(mouseCoords.y, blockHeight.value) / blockHeight.value
-            };
-            console.log(isMouseHoverShown.value, x, y);
-            graphicContainer.beginFill(components[y][x] !== null ? 0xff0000 : 0xffff00);
+        
+        spriteContainer.x = mapOffset.x * blockSize + app.view.width / 2;
+        spriteContainer.y = mapOffset.y * blockSize + app.view.height / 2;
+        
+        if (isMouseHoverShown.value) {
+            let { tx, ty } = spriteContainer.localTransform;
+            graphicContainer.beginFill(0x808080);
             graphicContainer.drawRect(
-                roundDownTo(mouseCoords.x, blockWidth.value),
-                roundDownTo(mouseCoords.y, blockHeight.value),
-                blockWidth.value,
-                blockHeight.value
+                roundDownTo(mouseCoords.x - tx, blockSize) + tx,
+                roundDownTo(mouseCoords.y - ty, blockSize) + ty,
+                blockSize,
+                blockSize
             );
         }
     }
     watchEffect(updateGraphics);
 
-    function onMouseMove(e: MouseEvent) {
-        // some code to get the x and y coords relative to element
-        // https://stackoverflow.com/questions/3234256/find-mouse-position-relative-to-element
+    let pointerDown = ref(false), pointerDrag = ref(false);
+
+    function onFactoryPointerMove(e: PointerEvent) {
+
         const { x, y } = getRelativeCoords(e);
         mouseCoords.x = x;
         mouseCoords.y = y;
-    }
-    async function onClick(e: MouseEvent) {
-        const coords = getRelativeCoords(e);
-        const x = roundDownTo(coords.x, blockWidth.value) / blockWidth.value;
-        const y = roundDownTo(coords.y, blockHeight.value) / blockHeight.value;
-        if (e.button === 0) {
-            // you shouldn't be putting down a mouse
-            if (compSelected.value === "cursor") return;
-            // should not already be placed
-            if (components[y][x] !== null) return;
 
-            const basicData = FACTORY_COMPONENTS[compSelected.value];
-            componentData.value[y][x] = {
-                type: compSelected.value,
-                ticksDone: 0,
-                consumptionStock: Object.fromEntries(
-                    Object.entries(basicData.consumptionStock).map(i => [i[0], 0])
-                ),
-                productionStock: Object.fromEntries(
-                    Object.entries(basicData.productionStock).map(i => [i[0], 0])
-                )
-            };
-            await changeFactoryComponent(y, x);
-        } else if (e.button === 2) {
-            // right click
-            removeFactoryComponent(y, x);
+        if (pointerDown.value && (pointerDrag.value || Math.abs(e.movementX) > 2 || Math.abs(e.movementY) > 2)) {
+            pointerDrag.value = true;
+            mapOffset.x += e.movementX / blockSize;
+            mapOffset.y += e.movementY / blockSize;
         }
     }
-    function onMouseEnter() {
+    async function onFactoryPointerDown(e: PointerEvent) {
+        window.addEventListener("pointerup", onFactoryPointerUp);
+        pointerDown.value = true;
+    }
+    async function onFactoryPointerUp(e: PointerEvent) {
+        if (!pointerDrag.value) {
+            if (compSelected.value !== "") {
+                let { tx, ty } = spriteContainer.localTransform;
+                let { x, y } = getRelativeCoords(e);
+                x = roundDownTo(x - tx, blockSize) / blockSize;
+                y = roundDownTo(y - ty, blockSize) / blockSize;
+
+                const basicData = structuredClone(
+                    FACTORY_COMPONENTS[compSelected.value]
+                ) as FactoryComponent;
+                basicData.type = compSelected.value;
+                const sheet = await Assets.load(basicData.imageSrc);
+                basicData.sprite = new Sprite(sheet);
+
+                basicData.sprite.x = x * blockSize;
+                basicData.sprite.y = y * blockSize;
+                basicData.sprite.width = blockSize;
+                basicData.sprite.height = blockSize;
+                spriteContainer.addChild(basicData.sprite);
+            }
+        }
+
+        window.removeEventListener("pointerup", onFactoryPointerUp);
+        pointerDown.value = pointerDrag.value = false;
+    }
+    function onFactoryMouseEnter() {
         isMouseHoverShown.value = true;
     }
-    function onMouseLeave() {
+    function onFactoryMouseLeave() {
         isMouseHoverShown.value = false;
     }
+
     function goBack() {
         player.tabs.splice(0, Infinity, "main");
     }
@@ -338,71 +342,43 @@ const factory = createLayer(id, () => {
         color,
         minWidth: 700,
         minimizable: false,
-        componentData,
+        style: { overflow: "hidden" },
         display: jsx(() => (
             <div class="layer-container">
                 <button class="goBack" onClick={goBack}>
                     ❌
                 </button>
-                <table cellspacing="0" cellpadding="0" border="0" class="container">
-                    <tr>
-                        <td class="info" colspan="2">
-                            <div style="min-height: 3em">
-                                {whatIsHovered.value !== "" ? (
-                                    <>
-                                        <b>{FACTORY_COMPONENTS[whatIsHovered.value].name}</b>
-                                        <br />
-                                        {FACTORY_COMPONENTS[whatIsHovered.value].description}
-                                    </>
-                                ) : undefined}
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="vertical-align: top" class="comps">
-                            <h3>Components</h3>
-                            <div>
-                                {Object.entries(FACTORY_COMPONENTS).map(value => {
-                                    const key = value[0] as FactoryCompNames;
-                                    const item = value[1];
-                                    return (
-                                        <img
-                                            src={item.imageSrc}
-                                            style={{
-                                                width: "20%",
-                                                "aspect-ratio": "1",
-                                                border:
-                                                    compSelected.value === key
-                                                        ? "1px solid green"
-                                                        : ""
-                                            }}
-                                            onMouseenter={() => onComponentHover(key)}
-                                            onMouseleave={() => onComponentHover("")}
-                                            onClick={() => onCompClick(key)}
-                                        ></img>
-                                    );
-                                })}
-                            </div>
-                        </td>
-                        <td
-                            style={{
-                                width: size.width,
-                                height: size.height,
-                                margin: 0,
-                                padding: 0
-                            }}
-                        >
-                            <Factory
-                                application={app}
-                                onMousemove={onMouseMove}
-                                onMouseup={onClick}
-                                onMouseenter={onMouseEnter}
-                                onMouseleave={onMouseLeave}
-                                onContextmenu={(e: MouseEvent) => e.preventDefault()}
-                            />
-                        </td>
-                    </tr>
-                </table>
+                <Factory
+                    application={app}
+                    onPointermove={onFactoryPointerMove}
+                    onPointerdown={onFactoryPointerDown}
+                    onPointerenter={onFactoryMouseEnter}
+                    onPointerleave={onFactoryMouseLeave}
+                />
+                <div cellspacing="0" cellpadding="0" border="0" class="container">
+                    <div style="line-height: 2.5em; min-height: 2.5em">
+                        {whatIsHovered.value === ""
+                            ? undefined
+                            : FACTORY_COMPONENTS[whatIsHovered.value].description}
+                    </div>
+                    <div class="comps">
+                        <div>
+                            {Object.entries(FACTORY_COMPONENTS).map(value => {
+                                const key = value[0] as FactoryCompNames;
+                                const item = value[1];
+                                return (
+                                    <img
+                                        src={item.imageSrc}
+                                        class={{ selected: compSelected.value === key }}
+                                        onMouseenter={() => onComponentHover(key)}
+                                        onMouseleave={() => onComponentHover("")}
+                                        onClick={() => onCompClick(key)}
+                                    ></img>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
             </div>
         ))
     };
