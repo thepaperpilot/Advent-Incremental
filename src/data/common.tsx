@@ -468,7 +468,7 @@ export function setUpDailyProgressTracker(options: {
                     <>
                         Reach {formatWhole(options.masteryGoal ?? options.goal)}{" "}
                         {options.ignoreTotal ? "" : "total "}
-                        {options.resource.displayName} to master the day
+                        {options.resource.displayName} to decorate the day
                     </>
                 ) : (
                     <>{options.name} Complete!</>

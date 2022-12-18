@@ -471,7 +471,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
             return;
         }
         loreScene.value = (completedLayer as any).day - 1;
-        loreTitle.value = "Day Mastered!";
+        loreTitle.value = "Day Decorated!";
         loreBody.value = days[loreScene.value].masteredStory;
         showLoreModal.value = true;
         if ((completedLayer as any).mastered != null) {

@@ -51,6 +51,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const logs = createResource<DecimalSource>(0, "logs");
     // Think of saplings as spent trees
     const saplings = createResource<DecimalSource>(0, "saplings");
+    const createdSaplings = persistent<DecimalSource>(0);
 
     const averageLogGain = ref<DecimalSource>(0);
 
@@ -92,6 +93,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             addend: () => Decimal.pow(computedManualCuttingAmount.value, 0.99),
             description: "Hope Level 1",
             enabled: management.elfTraining.expandersElfTraining.milestones[0].earned
+        })),
+        createAdditiveModifier(() => ({
+            addend: createdSaplings,
+            description: "Trees Decoration",
+            enabled: masteryEffectActive
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const trees = createResource(
@@ -453,11 +459,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const computedAutoPlantingAmount = computed(() => autoPlantingAmount.apply(0));
 
     const logGain = createSequentialModifier(() => [
-        createAdditiveModifier(() => ({
-            addend: () => totalTrees.apply(0),
-            description: "Tree Mastery",
-            enabled: () => masteryEffectActive.value
-        })),
         createMultiplicativeModifier(() => ({
             multiplier: 1.25,
             description: "Research I",
@@ -533,6 +534,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Christmas Wrapping Paper",
             enabled: computed(() => Decimal.gt(wrappingPaper.boosts.christmas1.value, 1))
         })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(computedTotalTrees.value, 1).log10(),
+            description: "Trees Decoration",
+            enabled: masteryEffectActive
+        })),
         createExponentialModifier(() => ({
             exponent: 1.2,
             description: "100% Foundation Completed",
@@ -592,9 +598,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 )
             );
             logs.value = Decimal.add(logs.value, Decimal.times(logGain.apply(1), amount));
-            saplings.value = Decimal.add(
-                saplings.value,
-                amount.times(masteryEffectActive.value ? 2 : 1)
+            saplings.value = Decimal.mul(amount, masteryEffectActive.value ? 2 : 1).add(
+                saplings.value
             );
             manualCutProgress.value = 0;
         }
@@ -703,7 +708,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: `Forest Size`,
             modifier: totalTrees,
             base: 10,
-            visible: researchUpgrade2.bought.value
+            visible: () => researchUpgrade2.bought.value || masteryEffectActive.value
         }
     ]);
     const showModifiersModal = ref(false);
@@ -762,10 +767,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.mul(averageLogGain.value, Decimal.dOne.sub(SMOOTHING_FACTOR))
         );
         logs.value = Decimal.add(logs.value, logsGained);
-        saplings.value = Decimal.add(
-            Decimal.mul(saplings.value, masteryEffectActive.value ? 2 : 1),
-            amountCut
+        saplings.value = Decimal.mul(amountCut, masteryEffectActive.value ? 2 : 1).add(
+            saplings.value
         );
+        if (masteryEffectActive.value) {
+            createdSaplings.value = Decimal.add(createdSaplings.value, amountCut);
+        }
         const amountPlanted = Decimal.min(
             saplings.value,
             Decimal.times(computedAutoPlantingAmount.value, diff)
@@ -844,6 +851,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         totalLogs,
         trees,
         saplings,
+        createdSaplings,
         cutTree,
         plantTree,
         cutTreeHK,
@@ -860,6 +868,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 {render(trackerDisplay)}
                 <Spacer />
+                {masteryEffectActive.value ? (
+                    <>
+                        Decoration effect: Trees drop 2 saplings, and forest size increases log gain
+                        <Spacer />
+                    </>
+                ) : null}
                 <MainDisplay
                     resource={logs}
                     color={colorBright}

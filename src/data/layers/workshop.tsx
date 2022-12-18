@@ -116,6 +116,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.lt(trees.logs.value, foundationConversion.nextAt.value)) {
                 return false;
             }
+            if (main.isMastery.value && main.currentlyMastering.value?.name === "Trees") {
+                return false;
+            }
             if (
                 Decimal.gte(
                     foundationProgress.value,
