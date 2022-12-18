@@ -597,6 +597,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     )
                 )
             );
+            if (masteryEffectActive.value) {
+                createdSaplings.value = Decimal.add(createdSaplings.value, amount);
+            }
             logs.value = Decimal.add(logs.value, Decimal.times(logGain.apply(1), amount));
             saplings.value = Decimal.mul(amount, masteryEffectActive.value ? 2 : 1).add(
                 saplings.value
@@ -778,7 +781,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.times(computedAutoPlantingAmount.value, diff)
         );
         saplings.value = Decimal.sub(saplings.value, amountPlanted);
-        if(Decimal.gte(saplings.value, computedTotalTrees.value)) saplings.value = computedTotalTrees.value;
     });
 
     const netSaplingGain = computed(() =>
@@ -919,8 +921,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         minimizedDisplay: jsx(() => (
             <div>
                 {name}{" "}
-                <span class="desc">{format(logs.value)} {logs.displayName}</span>
-            </div>   
+                <span class="desc">
+                    {format(logs.value)} {logs.displayName}
+                </span>
+            </div>
         )),
         mastery,
         mastered
