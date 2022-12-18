@@ -1008,7 +1008,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effectDisplay: "Elves work twice as fast (again)"
         },
         shouldEarn: () => Decimal.gte(totalElves.value, 10),
-        visibility: () => showIf(main.day.value >= 10)
+        visibility: () => showIf(main.day.value >= 10 && treeUpgradesMilestone.earned.value)
     }));
     const coalUpgradesMilestone = createMilestone(() => ({
         display: {

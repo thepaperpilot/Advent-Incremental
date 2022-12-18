@@ -16,6 +16,7 @@ import { render, renderRow } from "util/vue";
 import { computed, Ref, unref, watchEffect } from "vue";
 import { main } from "../projEntry";
 import { default as dyes, type enumColor } from "./dyes";
+import elves from "./elves";
 
 const id = "wrappingPaper";
 const day = 15;
@@ -374,6 +375,15 @@ const layer = createLayer(id, () => {
             if (!player.tabs.includes(layer)) {
                 main.openDay(layer);
             }
+            if (layer === "paper") {
+                // Purchase first 6 elves
+                elves.elves.cuttersElf.bought.value = true;
+                elves.elves.plantersElf.bought.value = true;
+                elves.elves.expandersElf.bought.value = true;
+                elves.elves.heatedCuttersElf.bought.value = true;
+                elves.elves.heatedPlantersElf.bought.value = true;
+                elves.elves.fertilizerElf.bought.value = true;
+            }
         },
         style: {
             width: "300px",
@@ -392,6 +402,7 @@ const layer = createLayer(id, () => {
         width: 600,
         height: 25,
         fillStyle: `backgroundColor: ${color}`,
+        textStyle: `color: var(--feature-foreground)`,
         progress: () => (main.day.value === day ? Decimal.div(masteredDays.value, 6) : 1),
         display: jsx(() =>
             main.day.value === day ? (
