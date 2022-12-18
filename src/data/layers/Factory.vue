@@ -4,7 +4,7 @@
 <script setup lang="ts">
 import type { Application } from "@pixi/app";
 import { onMounted, shallowRef } from "vue";
-import { blockAmts } from "./factory";
+import {size} from "./factory"
 import "lib/pixi";
 
 const element = shallowRef<HTMLElement | null>(null);
@@ -24,7 +24,10 @@ onMounted(() => {
 </script>
 <style scoped>
 .factoryDisp {
-    width: 100%;
-    height: 100%;
+    width: v-bind("size.width");
+    height: v-bind("size.height");
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 </style>

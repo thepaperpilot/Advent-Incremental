@@ -137,7 +137,8 @@ setInterval(() => {
 window.onbeforeunload = () => {
     if (
         player.autosave &&
-        (layers as any).main.days[(layers as any).main.day.value - 1].opened.value
+        ((layers as any).main.days[(layers as any).main.day.value - 1].opened.value ||
+            import.meta.env.DEV)
     ) {
         save();
     }
