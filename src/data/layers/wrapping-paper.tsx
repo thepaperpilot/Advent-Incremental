@@ -335,7 +335,13 @@ const layer = createLayer(id, () => {
     const masteryReq = computed(() => Decimal.pow(2, masteredDays.value).times(30));
     const enterMasteryButton = createClickable(() => ({
         display: () => ({
-            title: main.isMastery.value ? "Stop Decorating" : "Begin Decoration",
+            title: `${main.isMastery.value ? "Stop Decorating" : "Begin Decorating"} ${
+                Object.values(layers).find(
+                    layer =>
+                        unref((layer as any).mastered) === false &&
+                        !["Elves", "Management"].includes(unref(layer?.name ?? ""))
+                )?.name
+            }`,
             description: jsx(() => {
                 return (
                     <>
