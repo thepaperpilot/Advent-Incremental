@@ -1826,10 +1826,6 @@ const layer = createLayer(id, () => {
         focusCooldown: persistent<number>(0),
         focusTime: persistent<number>(0)
     };
-    const mastered = persistent<boolean>(false);
-    const masteryEffectActive = computed(
-        () => mastered.value || main.currentlyMastering.value?.name === name
-    );
 
     // ------------------------------------------------------------------------------- Return
 
@@ -1907,8 +1903,7 @@ const layer = createLayer(id, () => {
             </>
         )),
 
-        mastery,
-        mastered
+        mastery
     };
 });
 
