@@ -27,7 +27,7 @@ import { WithRequired } from "util/common";
 import { render, renderGrid, renderRow } from "util/vue";
 import { computed, ComputedRef, ref, unref } from "vue";
 import dyes from "./dyes";
-import { ElfBuyable } from "./elves";
+import elves, { ElfBuyable } from "./elves";
 import management from "./management";
 import paper from "./paper";
 import plastic from "./plastic";
@@ -58,9 +58,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createExponentialModifier(() => ({
             exponent: 1.1,
             description: "Bell Level 2",
-            enabled: () =>
-                management.elfTraining.boxElfTraining.milestones[1].earned.value &&
-                !main.isMastery.value
+            enabled: management.elfTraining.boxElfTraining.milestones[1].earned
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
 
@@ -100,7 +98,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
             boxesConversion.convert();
         },
-        style: "width: 600px; min-height: unset"
+        style: "width: 600px; min-height: unset",
+        visibility: () => showIf(!main.isMastery.value || masteryEffectActive.value)
     }));
 
     const logsUpgrade = createUpgrade(() => ({
@@ -109,6 +108,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Double log gain and unlock a new elf for training"
         },
         onPurchase() {
+            if (masteryEffectActive.value) {
+                elves.elves.smallFireElf.bought.value = true;
+            }
             main.days[3].recentlyUpdated.value = true;
         },
         resource: noPersist(boxes),
@@ -120,6 +122,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Double ash gain and unlock a new elf for training"
         },
         onPurchase() {
+            if (masteryEffectActive.value) {
+                elves.elves.bonfireElf.bought.value = true;
+            }
             main.days[3].recentlyUpdated.value = true;
         },
         resource: noPersist(boxes),
@@ -131,6 +136,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Double coal gain and unlock a new elf for training"
         },
         onPurchase() {
+            if (masteryEffectActive.value) {
+                elves.elves.kilnElf.bought.value = true;
+            }
             main.days[3].recentlyUpdated.value = true;
         },
         resource: noPersist(boxes),
@@ -249,14 +257,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         visibility: () => showIf(logsUpgrade.bought.value),
-        freeLevels: computed(() =>
-            management.elfTraining.boxElfTraining.milestones[0].earned.value
-                ? Decimal.max(ashBoxesBuyable.amount.value, 1)
-                      .sqrt()
-                      .floor()
-                      .add(Decimal.max(coalBoxesBuyable.amount.value, 1).sqrt().floor())
-                : 0
-        ),
+        freeLevels: computed(() => {
+            let levels: DecimalSource = 0;
+            if (management.elfTraining.boxElfTraining.milestones[0].earned.value) {
+                levels = Decimal.max(ashBoxesBuyable.amount.value, 1)
+                    .sqrt()
+                    .floor()
+                    .add(Decimal.max(coalBoxesBuyable.amount.value, 1).sqrt().floor());
+            }
+            if (masteryEffectActive.value) {
+                levels = Decimal.pow(logBoxesBuyable.amount.value, 2)
+                    .sub(logBoxesBuyable.amount.value)
+                    .add(levels);
+            }
+            return levels;
+        }),
         totalAmount: computed(() =>
             Decimal.add(logBoxesBuyable.amount.value, logBoxesBuyable.freeLevels.value)
         )
@@ -304,14 +319,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         visibility: () => showIf(ashUpgrade.bought.value),
-        freeLevels: computed(() =>
-            management.elfTraining.boxElfTraining.milestones[0].earned.value
-                ? Decimal.max(logBoxesBuyable.amount.value, 1)
-                      .sqrt()
-                      .floor()
-                      .add(Decimal.max(coalBoxesBuyable.amount.value, 1).sqrt().floor())
-                : 0
-        ),
+        freeLevels: computed(() => {
+            let levels: DecimalSource = 0;
+            if (management.elfTraining.boxElfTraining.milestones[0].earned.value) {
+                levels = Decimal.max(logBoxesBuyable.amount.value, 1)
+                    .sqrt()
+                    .floor()
+                    .add(Decimal.max(coalBoxesBuyable.amount.value, 1).sqrt().floor());
+            }
+            if (masteryEffectActive.value) {
+                levels = Decimal.pow(ashBoxesBuyable.amount.value, 2)
+                    .sub(ashBoxesBuyable.amount.value)
+                    .add(levels);
+            }
+            return levels;
+        }),
         totalAmount: computed(() =>
             Decimal.add(ashBoxesBuyable.amount.value, ashBoxesBuyable.freeLevels.value)
         )
@@ -359,14 +381,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         visibility: () => showIf(coalUpgrade.bought.value),
-        freeLevels: computed(() =>
-            management.elfTraining.boxElfTraining.milestones[0].earned.value
-                ? Decimal.max(logBoxesBuyable.amount.value, 1)
-                      .sqrt()
-                      .floor()
-                      .add(Decimal.max(ashBoxesBuyable.amount.value, 1).sqrt().floor())
-                : 0
-        ),
+        freeLevels: computed(() => {
+            let levels: DecimalSource = 0;
+            if (management.elfTraining.boxElfTraining.milestones[0].earned.value) {
+                levels = Decimal.max(logBoxesBuyable.amount.value, 1)
+                    .sqrt()
+                    .floor()
+                    .add(Decimal.max(ashBoxesBuyable.amount.value, 1).sqrt().floor());
+            }
+            if (masteryEffectActive.value) {
+                levels = Decimal.pow(coalBoxesBuyable.amount.value, 2)
+                    .sub(coalBoxesBuyable.amount.value)
+                    .add(levels);
+            }
+            return levels;
+        }),
         totalAmount: computed(() =>
             Decimal.add(coalBoxesBuyable.amount.value, coalBoxesBuyable.freeLevels.value)
         )
@@ -421,14 +450,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         visibility: () => showIf(management.elfTraining.boxElfTraining.milestones[3].earned.value),
-        freeLevels: computed(() =>
-            management.elfTraining.boxElfTraining.milestones[0].earned.value
-                ? Decimal.max(metalBoxesBuyable.amount.value, 1)
-                      .sqrt()
-                      .floor()
-                      .add(Decimal.max(plasticBoxesBuyable.amount.value, 1).sqrt().floor())
-                : 0
-        ),
+        freeLevels: computed(() => {
+            let levels: DecimalSource = 0;
+            if (management.elfTraining.boxElfTraining.milestones[0].earned.value) {
+                levels = Decimal.max(metalBoxesBuyable.amount.value, 1)
+                    .sqrt()
+                    .floor()
+                    .add(Decimal.max(plasticBoxesBuyable.amount.value, 1).sqrt().floor());
+            }
+            if (masteryEffectActive.value) {
+                levels = Decimal.pow(oreBoxesBuyable.amount.value, 2)
+                    .sub(oreBoxesBuyable.amount.value)
+                    .add(levels);
+            }
+            return levels;
+        }),
         totalAmount: computed(() =>
             Decimal.add(oreBoxesBuyable.amount.value, oreBoxesBuyable.freeLevels.value)
         )
@@ -476,14 +512,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         visibility: () => showIf(management.elfTraining.boxElfTraining.milestones[3].earned.value),
-        freeLevels: computed(() =>
-            management.elfTraining.boxElfTraining.milestones[0].earned.value
-                ? Decimal.max(oreBoxesBuyable.amount.value, 1)
-                      .sqrt()
-                      .floor()
-                      .add(Decimal.max(plasticBoxesBuyable.amount.value, 1).sqrt().floor())
-                : 0
-        ),
+        freeLevels: computed(() => {
+            let levels: DecimalSource = 0;
+            if (management.elfTraining.boxElfTraining.milestones[0].earned.value) {
+                levels = Decimal.max(oreBoxesBuyable.amount.value, 1)
+                    .sqrt()
+                    .floor()
+                    .add(Decimal.max(plasticBoxesBuyable.amount.value, 1).sqrt().floor());
+            }
+            if (masteryEffectActive.value) {
+                levels = Decimal.pow(metalBoxesBuyable.amount.value, 2)
+                    .sub(metalBoxesBuyable.amount.value)
+                    .add(levels);
+            }
+            return levels;
+        }),
         totalAmount: computed(() =>
             Decimal.add(metalBoxesBuyable.amount.value, metalBoxesBuyable.freeLevels.value)
         )
@@ -531,14 +574,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         visibility: () => showIf(management.elfTraining.boxElfTraining.milestones[3].earned.value),
-        freeLevels: computed(() =>
-            management.elfTraining.boxElfTraining.milestones[0].earned.value
-                ? Decimal.max(oreBoxesBuyable.amount.value, 1)
-                      .sqrt()
-                      .floor()
-                      .add(Decimal.max(metalBoxesBuyable.amount.value, 1).sqrt().floor())
-                : 0
-        ),
+        freeLevels: computed(() => {
+            let levels: DecimalSource = 0;
+            if (management.elfTraining.boxElfTraining.milestones[0].earned.value) {
+                levels = Decimal.max(oreBoxesBuyable.amount.value, 1)
+                    .sqrt()
+                    .floor()
+                    .add(Decimal.max(metalBoxesBuyable.amount.value, 1).sqrt().floor());
+            }
+            if (masteryEffectActive.value) {
+                levels = Decimal.pow(plasticBoxesBuyable.amount.value, 2)
+                    .sub(plasticBoxesBuyable.amount.value)
+                    .add(levels);
+            }
+            return levels;
+        }),
         totalAmount: computed(() =>
             Decimal.add(plasticBoxesBuyable.amount.value, plasticBoxesBuyable.freeLevels.value)
         )
@@ -577,6 +627,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const { total: totalBoxes, trackerDisplay } = setUpDailyProgressTracker({
         resource: boxes,
         goal: 5e4,
+        masteryGoal: 1e9,
         name,
         day,
         color,
@@ -638,6 +689,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 {render(trackerDisplay)}
                 <Spacer />
+                {masteryEffectActive.value ? (
+                    <>
+                        Decoration effect: Effective boxes buyables' levels are squared
+                        <Spacer />
+                    </>
+                ) : null}
                 <MainDisplay resource={boxes} color={color} style="margin-bottom: 0" />
                 <Spacer />
                 {render(makeBoxes)}
@@ -654,8 +711,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         minimizedDisplay: jsx(() => (
             <div>
                 {name}{" "}
-                <span class="desc">{format(boxes.value)} {boxes.displayName}</span>
-            </div>   
+                <span class="desc">
+                    {format(boxes.value)} {boxes.displayName}
+                </span>
+            </div>
         )),
         mastery,
         mastered
