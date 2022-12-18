@@ -203,9 +203,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: 3,
             description: "Twinkle Level 3",
-            enabled: () =>
-                management.elfTraining.metalElfTraining.milestones[2].earned.value &&
-                !main.isMastery.value
+            enabled: management.elfTraining.metalElfTraining.milestones[2].earned
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.add(industrialCrucible.amount.value, 1).sqrt(),
@@ -770,8 +768,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
         minimizedDisplay: jsx(() => (
             <div>
-                {name} - {format(metal.value)} {metal.displayName}
-            </div>
+                {name}{" "}
+                <span class="desc">{format(metal.value)} {metal.displayName}</span>
+            </div>   
         )),
         mastery,
         mastered

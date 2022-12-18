@@ -132,7 +132,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: {
             color: colorText,
-            width: "160px"
+            width: "160px",
+            flexGrow: 1
         }
     })) as ElfBuyable & { resource: Resource };
 
@@ -196,7 +197,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: {
             color: colorText,
-            width: "160px"
+            width: "160px",
+            flexGrow: 1
         },
         visibility: () => showIf(unlockBonfire.bought.value)
     })) as ElfBuyable & { resource: Resource };
@@ -262,7 +264,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: {
             color: colorText,
-            width: "160px"
+            width: "160px",
+            flexGrow: 1
         },
         visibility: () => showIf(unlockKiln.bought.value)
     })) as ElfBuyable & { resource: Resource };
@@ -334,7 +337,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: {
             color: colorText,
-            width: "160px"
+            width: "160px",
+            flexGrow: 1
         },
         visibility: () => showIf(metal.coalDrill.bought.value)
     })) as ElfBuyable & { resource: Resource };
@@ -1174,8 +1178,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
         minimizedDisplay: jsx(() => (
             <div>
-                {name} - {format(coal.value)} {coal.displayName}
-            </div>
+                {name}{" "}
+                <span class="desc">{format(coal.value)} {coal.displayName}</span>
+            </div>   
         )),
         mastery,
         mastered

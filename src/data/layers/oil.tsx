@@ -1352,10 +1352,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }),
         minimizedDisplay: jsx(() => (
             <div>
-                {name} - {format(oil.value)} {oil.displayName}
-            </div>
+                {name}{" "}
+                <span class="desc">{format(oil.value)} {oil.displayName}</span>
+            </div>   
         )),
-
         mastery,
         mastered
     };

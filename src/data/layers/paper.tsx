@@ -533,8 +533,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
         minimizedDisplay: jsx(() => (
             <div>
-                {name} - {format(paper.value)} {paper.displayName}
-            </div>
+                {name}{" "}
+                <span class="desc">{format(paper.value)} {paper.displayName}</span>
+            </div>   
         )),
         mastery,
         mastered
