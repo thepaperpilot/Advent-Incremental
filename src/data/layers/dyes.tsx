@@ -107,7 +107,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 modifiers.push(
                     createMultiplicativeModifier(() => ({
                         multiplier() {
-                            return Decimal.add(dyes.blue.amount.value, 1).log10();
+                            return Decimal.add(dyes.blue.amount.value, 1).log10().add(1);
                         },
                         description: "Dye Synergy II",
                         enabled: oil.row3Upgrades[3].bought
