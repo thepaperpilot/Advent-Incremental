@@ -292,10 +292,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () => showIf(elves.elves.dyeElf.bought.value)
     });
     const secondaryDyeBook = createBook({
-        name: "",
+        name: "Natural Dyeing",
         elfName: "Carol",
         buyableName: "Secondary Dyes",
-        visibility: () => showIf(elves.elves.dyeElf.bought.value && ribbon.milestones.dyeBook.earned.value)
+        visibility: () =>
+            showIf(elves.elves.dyeElf.bought.value && ribbon.milestones.dyeBook.earned.value)
     });
     const books = {
         cuttersBook,

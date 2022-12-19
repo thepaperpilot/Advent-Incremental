@@ -676,7 +676,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 style: "width: 190px",
                 onPurchase() {
                     options.onPurchase?.();
-                    if (!["Peppermint", "Twinkle", "Cocoa", "Frosty"].includes(options.name)) {
+                    if (
+                        !["Peppermint", "Twinkle", "Cocoa", "Frosty", "Carol"].includes(
+                            options.name
+                        )
+                    ) {
                         elfReset.reset();
                     }
                 }
@@ -901,8 +905,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
     const managementElves2 = [metalElf];
 
-    const dyeColors = Object.fromEntries((["red", "yellow", "blue", "orange", "green", "purple"] as enumColor[])
-        .map(color => [dyes.dyes[color].buyable.id, color])) as Record<string, enumColor>;
+    const dyeColors = Object.fromEntries(
+        (["red", "yellow", "blue", "orange", "green", "purple"] as enumColor[]).map(color => [
+            dyes.dyes[color].buyable.id,
+            color
+        ])
+    ) as Record<string, enumColor>;
     const dyeElf = createElf({
         name: "Carol",
         description:
@@ -910,7 +918,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buyable: Object.values(dyes.dyes).map(dye => dye.buyable),
         cooldownModifier: dyeCooldown, // Note: Buy max will be unlocked at this point
         visibility: () => showIf(wrappingPaper.unlockDyeElfMilestone.earned.value),
-        buyMax: management.elfTraining.dyeElfTraining.milestones[2].earned,
+        buyMax: () => management.elfTraining.dyeElfTraining.milestones[2].earned.value,
         onAutoPurchase(buyable, amount) {            
             buyable.amount.value = Decimal.sub(buyable.amount.value, amount);
             if (["orange", "green", "purple"].includes(dyeColors[buyable.id])) {
