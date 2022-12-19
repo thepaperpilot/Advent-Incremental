@@ -474,7 +474,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         masteryGoal: 5e7,
         name,
         day,
-        color,
+        background: color,
         textColor: "var(--feature-foreground)",
         modal: {
             show: showModifiersModal,

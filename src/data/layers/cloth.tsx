@@ -584,7 +584,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         goal: 1e3,
         name,
         day,
-        color,
+        background: color,
         textColor: "var(--feature-foreground)",
         modal: {
             show: showModifiersModal,

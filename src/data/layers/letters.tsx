@@ -264,7 +264,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         goal: 1e6,
         name,
         day,
-        color,
+        background: {
+            gradient: "letters-bar",
+            duration: "15s"
+        },
         textColor: "var(--feature-foreground)",
         modal: {
             show: showModifiersModal,

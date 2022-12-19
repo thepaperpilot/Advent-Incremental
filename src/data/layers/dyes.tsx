@@ -823,7 +823,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         goal: 6e4,
         name,
         day,
-        color,
+        background: color,
         textColor: "var(--feature-foreground)",
         modal: {
             show: showModifiersModal,

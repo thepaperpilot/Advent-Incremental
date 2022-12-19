@@ -659,7 +659,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         goal: 25000,
         name,
         day,
-        color,
+        background: color,
         modal: {
             show: showModifiersModal,
             display: modifiersModal

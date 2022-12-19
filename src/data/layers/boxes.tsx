@@ -630,7 +630,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         masteryGoal: 5e5,
         name,
         day,
-        color,
+        background: color,
         modal: {
             display: modifiersModal,
             show: showModifiersModal

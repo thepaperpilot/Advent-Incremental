@@ -819,7 +819,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         goal: 1e4,
         name,
         day,
-        color: colorDark,
+        background: colorDark,
         modal: {
             show: showModifiersModal,
             display: modifiersModal

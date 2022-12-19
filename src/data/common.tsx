@@ -37,6 +37,7 @@ import { getFirstFeature, render, renderColJSX, renderJSX, VueFeature } from "ut
 import { Ref, watchEffect } from "vue";
 import { computed, unref } from "vue";
 import "./common.css";
+import "data/layers/styles/day-gradients.css";
 import { main } from "./projEntry";
 
 /** An object that configures a {@link ResetButton} */
@@ -417,7 +418,12 @@ export function setUpDailyProgressTracker(options: {
     masteryGoal?: DecimalSource;
     name: string;
     day: number;
-    color: string;
+    background:
+        | string
+        | {
+              gradient: string;
+              duration: string;
+          };
     textColor?: string;
     modal?: {
         show: Ref<boolean>;
@@ -442,7 +448,13 @@ export function setUpDailyProgressTracker(options: {
         direction: Direction.Right,
         width: 600,
         height: 25,
-        fillStyle: { backgroundColor: options.color },
+        /* eslint-disable prettier/prettier */
+        fillStyle: typeof options.background == "string" ? {
+            backgroundColor: options.background,
+        } : {
+            animation: options.background.duration + " " + options.background.gradient + " linear infinite",
+        },
+        /* eslint-enable prettier/prettier */
         textStyle: options.textColor ? { color: options.textColor } : undefined,
         progress: progressFunc,
         display: jsx(() =>

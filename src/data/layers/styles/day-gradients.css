@@ -1,0 +1,42 @@
+@keyframes letters-bar {
+    from {
+        background: 0 0 / auto 70% no-repeat linear-gradient(white, white), 0 0 / 113px 113px repeat
+            repeating-linear-gradient(-45deg,
+                red 0 20px, white 20px 40px, 
+                blue 40px 60px, white 60px 80px
+            );
+    }
+    to {
+        background: 0 0 / auto 70% no-repeat linear-gradient(white, white), 113px 0px / 113px 113px repeat
+            repeating-linear-gradient(-45deg, 
+                red 0 20px, white 20px 40px, 
+                blue 40px 60px, white 60px 80px
+            );
+    }
+}
+@keyframes wrapping-paper-bar {
+    from {
+        background: 0 0 / 113px 113px repeat repeating-linear-gradient(-45deg,
+                rgb(255, 76, 76) 0 10px,
+                rgb(255, 255, 255) 10px 20px,
+                rgb(65, 255, 95) 20px 30px,
+                rgb(255, 255, 255) 30px 40px,
+                rgb(255, 76, 76) 40px 50px,
+                rgb(255, 255, 255) 50px 60px,
+                rgb(65, 255, 95) 60px 70px,
+                rgb(255, 255, 255) 70px 80px
+            );
+    }
+    to {
+        background: 113px 0 / 113px 113px repeat repeating-linear-gradient(-45deg,
+                rgb(255, 76, 76) 0 10px,
+                rgb(255, 255, 255) 10px 20px,
+                rgb(65, 255, 95) 20px 30px,
+                rgb(255, 255, 255) 30px 40px,
+                rgb(255, 76, 76) 40px 50px,
+                rgb(255, 255, 255) 50px 60px,
+                rgb(65, 255, 95) 60px 70px,
+                rgb(255, 255, 255) 70px 80px
+            );
+    }
+}

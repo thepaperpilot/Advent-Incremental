@@ -366,7 +366,7 @@ const layer = createLayer(id, () => {
         direction: Direction.Right,
         width: 600,
         height: 25,
-        fillStyle: `backgroundColor: ${color}`,
+        fillStyle: `animation: 15s wrapping-paper-bar linear infinite`,
         textStyle: `color: var(--feature-foreground)`,
         progress: () => (main.day.value === day ? Decimal.div(masteredDays.value, 6) : 1),
         display: jsx(() =>
