@@ -804,14 +804,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
         description: "Cut trees",
         onPress: () => {
             if (cutTree.canClick.value) cutTree.onClick();
-        }
+        },
+        enabled: main.days[day - 1].opened
     }));
     const plantTreeHK = createHotkey(() => ({
         key: "p",
         description: "Plant trees",
         onPress: () => {
             if (plantTree.canClick.value) plantTree.onClick();
-        }
+        },
+        enabled: main.days[day - 1].opened
     }));
 
     const { total: totalLogs, trackerDisplay } = setUpDailyProgressTracker({

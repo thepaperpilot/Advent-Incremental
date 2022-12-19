@@ -848,6 +848,7 @@ const layer = createLayer(id, () => {
                     dyeColor => {
                         dyes.dyes[dyeColor].amount.value = 0;
                         dyes.dyes[dyeColor].buyable.amount.value = 0;
+                        main.days[10].recentlyUpdated.value = true;
                     }
                 );
             }
@@ -864,6 +865,7 @@ const layer = createLayer(id, () => {
                 (["red", "yellow", "blue"] as const).forEach(dyeColor => {
                     dyes.dyes[dyeColor].amount.value = 0;
                     dyes.dyes[dyeColor].buyable.amount.value = 0;
+                    main.days[10].recentlyUpdated.value = true;
                 });
             }
         })),
