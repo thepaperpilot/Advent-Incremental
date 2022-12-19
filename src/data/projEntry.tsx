@@ -384,7 +384,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 16,
             shouldNotify: false,
-            layer: null, // "ribbons"
+            layer: "ribbon",
             symbol: ribbonsSymbol,
             story: "In addition to wrapping paper, you think some ribbons are in order! These should work pretty similarly, allowing you to decorate even more workstations!",
             completedStory:
