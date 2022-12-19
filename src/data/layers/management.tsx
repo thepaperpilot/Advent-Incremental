@@ -34,6 +34,8 @@ import plastic from "./plastic";
 import trees from "./trees";
 
 import "./styles/management.css";
+import { Resource } from "features/resources/resource";
+import { isArray } from "@vue/shared";
 
 const id = "management";
 const day = 12;
@@ -1462,6 +1464,19 @@ const layer = createLayer(id, () => {
         };
     });
 
+    function displayCost(
+        res: Resource<DecimalSource> | Resource<DecimalSource>[],
+        cost: DecimalSource,
+        label: string
+    ) {
+        const affordable = (isArray(res) ? res : [res]).every(res => Decimal.gte(res.value, cost));
+        return (
+            <span class={affordable ? "" : "unaffordable"}>
+                {format(cost)} {label}
+            </span>
+        );
+    }
+
     const schools = createBuyable(() => ({
         display: jsx(() => (
             <>
@@ -1477,13 +1492,19 @@ const layer = createLayer(id, () => {
                 </div>
                 {Decimal.lt(schools.amount.value, unref(schools.purchaseLimit)) ? (
                     <div>
-                        Costs {format(schoolCost.value.wood)} logs, {format(schoolCost.value.coal)}{" "}
-                        coal, {format(schoolCost.value.paper)} paper,{" "}
-                        {format(schoolCost.value.boxes)} boxes,{" "}
-                        {format(schoolCost.value.metalIngots)} metal ingots,{" "}
-                        {format(schoolCost.value.cloth)} cloth, {format(schoolCost.value.plastic)}{" "}
-                        plastic, and requires {format(schoolCost.value.dye)} of red, yellow, and
-                        blue dye
+                        Costs {displayCost(trees.logs, schoolCost.value.wood, "logs")},{" "}
+                        {displayCost(coal.coal, schoolCost.value.coal, "coal")},{" "}
+                        {displayCost(paper.paper, schoolCost.value.paper, "paper")},{" "}
+                        {displayCost(boxes.boxes, schoolCost.value.boxes, "boxes")},{" "}
+                        {displayCost(metal.metal, schoolCost.value.metalIngots, "metal ingots")},{" "}
+                        {displayCost(cloth.cloth, schoolCost.value.cloth, "cloth")},{" "}
+                        {displayCost(plastic.plastic, schoolCost.value.plastic, "plastic")}, and
+                        requires{" "}
+                        {displayCost(
+                            [dyes.dyes.red.amount, dyes.dyes.yellow.amount, dyes.dyes.blue.amount],
+                            schoolCost.value.dye,
+                            "red, yellow, and blue dye"
+                        )}
                     </div>
                 ) : null}
             </>
@@ -1551,9 +1572,10 @@ const layer = createLayer(id, () => {
                     multiplying elves' XP gain by {format(classroomEffect.value)}
                 </div>
                 <div>
-                    Costs {format(classroomCost.value.wood)} logs,
-                    {format(classroomCost.value.paper)} paper, {format(classroomCost.value.boxes)}{" "}
-                    boxes, {format(classroomCost.value.metalIngots)} metal ingots
+                    Costs {displayCost(trees.logs, classroomCost.value.wood, "logs")},
+                    {displayCost(paper.paper, classroomCost.value.paper, "paper")},{" "}
+                    {displayCost(boxes.boxes, classroomCost.value.boxes, "boxes")},{" "}
+                    {displayCost(metal.metal, classroomCost.value.metalIngots, "metal ingots")}
                 </div>
             </>
         )),

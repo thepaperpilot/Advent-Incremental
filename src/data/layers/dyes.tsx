@@ -241,7 +241,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
                                 {unref(costs).map(c =>
                                     render(
                                         jsx(() => (
-                                            <div>
+                                            <div
+                                                class={
+                                                    Decimal.lt(
+                                                        c.res.value,
+                                                        unref(
+                                                            Decimal.pow(
+                                                                unref(buyable.cost) ?? Decimal.dInf,
+                                                                unref(c.root ?? 1)
+                                                            ).times(unref(c.base))
+                                                        )
+                                                    )
+                                                        ? "unaffordable"
+                                                        : ""
+                                                }
+                                            >
                                                 {format(
                                                     unref(
                                                         Decimal.pow(

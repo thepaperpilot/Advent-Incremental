@@ -88,7 +88,13 @@ const layer = createLayer(id, () => {
                             {getCost.value.map(({ resource, cost }) => {
                                 return render(
                                     jsx(() => (
-                                        <div>
+                                        <div
+                                            class={
+                                                Decimal.lt(resource.value, cost)
+                                                    ? "unaffordable"
+                                                    : ""
+                                            }
+                                        >
                                             {format(cost)} {resource.displayName} <br />
                                         </div>
                                     ))

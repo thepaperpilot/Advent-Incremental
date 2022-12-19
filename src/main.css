@@ -137,3 +137,6 @@ ul {
     background: #070710;
 }
 
+.unaffordable {
+    color: var(--danger);
+}
