@@ -1056,6 +1056,47 @@ const layer = createLayer(id, () => {
             }
         }))
     ] as Array<GenericMilestone>;
+    const dyeElfMilestones = [
+        createMilestone(() => ({
+            display: {
+                requirement: "Carol Level 1",
+                effectDisplay: "Double primary dye gain"
+            },
+            shouldEarn: () => dyeElfTraining.level.value >= 1
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Carol Level 2",
+                effectDisplay: "Double secondary dye gain"
+            },
+            shouldEarn: () => dyeElfTraining.level.value >= 2,
+            visibility: () => showIf(dyeElfMilestones[0].earned.value)
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Carol Level 3",
+                effectDisplay: "Buy maximum primary dyes"
+            },
+            shouldEarn: () => dyeElfTraining.level.value >= 3,
+            visibility: () => showIf(dyeElfMilestones[1].earned.value)
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Carol Level 4",
+                effectDisplay: "Secondary dyes don't spend primary dyes"
+            },
+            shouldEarn: () => dyeElfTraining.level.value >= 4,
+            visibility: () => showIf(dyeElfMilestones[2].earned.value && main.day.value >= 16)
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Carol Level 5",
+                effectDisplay: "Buy maximum secondary dyes"
+            },
+            shouldEarn: () => dyeElfTraining.level.value >= 5,
+            visibility: () => showIf(dyeElfMilestones[3].earned.value && main.day.value >= 16)
+        }))
+    ] as Array<GenericMilestone>;
     // ------------------------------------------------------------------------------- Milestone display
 
     const currentShown = persistent<string>("Holly");
@@ -1132,10 +1173,10 @@ const layer = createLayer(id, () => {
     const oilElfTraining = createElfTraining(elves.elves.oilElf, oilElfMilestones);
     const heavyDrillElfTraining = createElfTraining(
         elves.elves.heavyDrillElf,
-        heavyDrillElfMilestones
-    );
+        heavyDrillElfMilestones);
+    const dyeElfTraining = createElfTraining(elves.elves.dyeElf, dyeElfMilestones);
     const row5Elves = [coalDrillElfTraining, heavyDrillElfTraining, oilElfTraining];
-    const row6Elves = [metalElfTraining];
+    const row6Elves = [metalElfTraining, dyeElfTraining];
     const elfTraining = {
         cutterElfTraining,
         planterElfTraining,
@@ -1152,7 +1193,8 @@ const layer = createLayer(id, () => {
         coalDrillElfTraining,
         metalElfTraining,
         oilElfTraining,
-        heavyDrillElfTraining
+        heavyDrillElfTraining,
+        dyeElfTraining
     };
     const day12Elves = [
         cutterElfTraining,
@@ -1637,6 +1679,7 @@ const layer = createLayer(id, () => {
             main.completeDay();
         } else if (
             main.day.value === advancedDay &&
+            day12Elves.every(elf => elf.level.value >= 5) &&
             day13Elves.every(elf => elf.level.value >= 5)
         ) {
             main.completeDay();
@@ -1804,6 +1847,16 @@ const layer = createLayer(id, () => {
                     { earned: persistent<boolean>(false) },
                     { earned: persistent<boolean>(false) }
                 ]
+            },
+            dyeElfTraining: {
+                exp: persistent<DecimalSource>(0),
+                milestones: [
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) }
+                ]
             }
         },
         teaching: { bought: persistent<boolean>(false) },
@@ -1860,8 +1913,9 @@ const layer = createLayer(id, () => {
                 {main.day.value === day
                     ? `Get all elves to level 3.`
                     : main.day.value === advancedDay && main.days[advancedDay - 1].opened.value
-                    ? `Get all elves to level 5.`
-                    : `${name} Complete!`}{" "}
+                        ? `Get all elves to level 5.`
+                        : `${name} Complete!`
+                }{" "}
                 -
                 <button
                     class="button"
@@ -1878,13 +1932,13 @@ const layer = createLayer(id, () => {
                 <Spacer />
                 {Decimal.gt(schools.amount.value, 0) ? (
                     <>
-                        <br />
+                        <Spacer />
                         Click on an elf to see their milestones.
-                        <br />
-                        <br />
+                        <Spacer />
+                        <Spacer />
                         {render(focusButton)}
                         {renderGrid(upgrades, upgrades2)}
-                        <br />
+                        <Spacer />
                         {renderGrid(
                             [focusMeter],
                             treeElfTraining,

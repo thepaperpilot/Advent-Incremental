@@ -283,11 +283,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buyableName: "Metal Machines",
         visibility: () => showIf(elves.elves.metalElf.bought.value)
     });
-    const dyeBook = createBook({
+    const primaryDyeBook = createBook({
         name: "Arts and Crafts",
         elfName: "Carol",
-        buyableName: "Dyes",
+        buyableName: "Primary Dyes",
         visibility: () => showIf(elves.elves.dyeElf.bought.value)
+    });
+    const secondaryDyeBook = createBook({
+        name: "",
+        elfName: "Carol",
+        buyableName: "Secondary Dyes",
+        visibility: () => showIf(elves.elves.dyeElf.bought.value && true) // ribbons secondary dye book milestone
     });
     const books = {
         cuttersBook,
@@ -306,7 +312,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         heavyDrillBook,
         oilBook,
         metalBook,
-        dyeBook
+        primaryDyeBook,
+        secondaryDyeBook
     };
     const sumBooks = computed(() =>
         Object.values(books).reduce((acc, curr) => acc.add(curr.amount.value), new Decimal(0))
@@ -488,7 +495,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             heavyDrillBook: { amount: persistent<DecimalSource>(0) },
             oilBook: { amount: persistent<DecimalSource>(0) },
             metalBook: { amount: persistent<DecimalSource>(0) },
-            dyeBook: { amount: persistent<DecimalSource>(0) }
+            primaryDyeBook: { amount: persistent<DecimalSource>(0) },
+            secondaryDyeBook: { amount: persistent<DecimalSource>(0) }
         },
         upgrades: {
             clothUpgrade: { bought: persistent<boolean>(false) },

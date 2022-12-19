@@ -36,7 +36,7 @@ import plastic from "./plastic";
 import trees from "./trees";
 import workshop from "./workshop";
 import wrappingPaper from "./wrapping-paper";
-import dyes from "./dyes";
+import dyes, { enumColor } from "./dyes";
 
 export interface ElfBuyable extends GenericBuyable {
     /** The inverse function of the cost formula, used to calculate the maximum amount that can be bought by elves. */
@@ -902,14 +902,25 @@ const layer = createLayer(id, function (this: BaseLayer) {
             showIf(management.elfTraining.fertilizerElfTraining.milestones[4].earned.value)
     });
     const managementElves2 = [metalElf];
+
+    const dyeColors = Object.fromEntries((["red", "yellow", "blue", "orange", "green", "purple"] as enumColor[])
+        .map(color => [dyes.dyes[color].buyable.id, color])) as Record<string, enumColor>;
     const dyeElf = createElf({
         name: "Carol",
         description:
             "Carol will automatically purchase all dyes you can afford, without actually spending any resources.",
         buyable: Object.values(dyes.dyes).map(dye => dye.buyable),
         cooldownModifier: dyeCooldown, // Note: Buy max will be unlocked at this point
-        visibility: () => showIf(wrappingPaper.milestones.unlockDyeElf.earned.value),
-        buyMax: true
+        visibility: () => showIf(wrappingPaper.unlockDyeElfMilestone.earned.value),
+        buyMax: management.elfTraining.dyeElfTraining.milestones[2].earned,
+        onAutoPurchase(buyable, amount) {
+            if (["orange", "green", "purple"].includes(dyeColors[buyable.id])) {
+                if (false) { // does not have ribbon milestone 1
+                    buyable.amount.value = Decimal.sub(buyable.amount.value, amount)
+                    return;
+                }
+            }
+        }
     });
     const wrappingPaperElves = [dyeElf];
     const elves = {
@@ -1076,11 +1087,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.gte(coal.coal.value, coalGoal)
         ) {
             main.completeDay();
-        } else if (
-            main.currentlyMastering.value?.name === name &&
-            Decimal.gte(coal.coal.value, options.masteryGoal ?? options.goal)
-        ) {
-            main.completeMastery();
         }
     });
 

@@ -1,9 +1,8 @@
 import Spacer from "components/layout/Spacer.vue";
-import { createCollapsibleMilestones } from "data/common";
 import { createBar, GenericBar } from "features/bars/bar";
 import { BuyableOptions, createBuyable, GenericBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
-import { jsx, JSXFunction, showIf } from "features/feature";
+import { jsx, JSXFunction } from "features/feature";
 import { createMilestone } from "features/milestones/milestone";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource, Resource } from "features/resources/resource";
@@ -16,7 +15,6 @@ import { render, renderRow } from "util/vue";
 import { computed, Ref, unref, watchEffect } from "vue";
 import { main } from "../projEntry";
 import { default as dyes, type enumColor } from "./dyes";
-import metal from "./metal";
 
 const id = "wrappingPaper";
 const day = 15;
@@ -270,70 +268,16 @@ const layer = createLayer(id, () => {
         "Total Wrapping Paper"
     );
 
-    const milestoneCosts = [10, 30, 90, 270, 810, 2430];
-
-    const primaryBoostMilestone = createMilestone(() => ({
-        display: {
-            requirement: milestoneCosts[0] + " Total Wrapping Paper",
-            effectDisplay: "Double primary colour dye gain"
-        },
-        shouldEarn: () => Decimal.gte(wrappingPaperSum.value, milestoneCosts[0]),
-        visibility: () => showIf(true)
-    }));
-    const secondaryBoostMilestone = createMilestone(() => ({
-        display: {
-            requirement: milestoneCosts[1] + " Total Wrapping Paper",
-            effectDisplay: "Double secondary colour dye gain"
-        },
-        shouldEarn: () => Decimal.gte(wrappingPaperSum.value, milestoneCosts[1]),
-        visibility: () => showIf(primaryBoostMilestone.earned.value)
-    }));
-    const buyMaxPrimaryMilestone = createMilestone(() => ({
-        display: {
-            requirement: milestoneCosts[2] + " Total Wrapping Paper",
-            effectDisplay: "Buy maximum primary colour dyes"
-        },
-        shouldEarn: () => Decimal.gte(wrappingPaperSum.value, milestoneCosts[2]),
-        visibility: () => showIf(secondaryBoostMilestone.earned.value)
-    }));
-    const secondaryNoResetMilestone = createMilestone(() => ({
-        display: {
-            requirement: milestoneCosts[3] + " Total Wrapping Paper",
-            effectDisplay: "Secondary colour dyes don't spend primary colour dyes"
-        },
-        shouldEarn: () => Decimal.gte(wrappingPaperSum.value, milestoneCosts[3]),
-        visibility: () => showIf(buyMaxPrimaryMilestone.earned.value)
-    }));
-    const buyMaxSecondaryMilestone = createMilestone(() => ({
-        display: {
-            requirement: milestoneCosts[4] + " Total Wrapping Paper",
-            effectDisplay: "Buy maximum secondary colour dyes"
-        },
-        shouldEarn: () => Decimal.gte(wrappingPaperSum.value, milestoneCosts[4]),
-        visibility: () => showIf(secondaryNoResetMilestone.earned.value)
-    }));
     const unlockDyeElfMilestone = createMilestone(() => ({
         display: {
-            requirement: milestoneCosts[5] + " Total Wrapping Paper",
+            requirement: "10 Total Wrapping Paper",
             effectDisplay: "Unlock a new elf to help with dyes"
         },
-        shouldEarn: () => Decimal.gte(wrappingPaperSum.value, milestoneCosts[5]),
-        visibility: () => showIf(buyMaxSecondaryMilestone.earned.value)
+        shouldEarn: () => Decimal.gte(wrappingPaperSum.value, 10)
     }));
 
-    const milestones = {
-        primaryBoost: primaryBoostMilestone,
-        secondaryBoost: secondaryBoostMilestone,
-        buyMaxPrimary: buyMaxPrimaryMilestone,
-        secondaryNoReset: secondaryNoResetMilestone,
-        buyMaxSecondary: buyMaxSecondaryMilestone,
-        unlockDyeElf: unlockDyeElfMilestone
-    };
-
-    const { collapseMilestones, display: milestonesDisplay } =
-        createCollapsibleMilestones(milestones);
-
     const masteryReq = computed(() => Decimal.pow(2, masteredDays.value).times(30));
+
     const enterMasteryButton = createClickable(() => ({
         display: () => ({
             title: main.isMastery.value ? "Stop Decorating" : "Begin Decoration",
@@ -444,14 +388,13 @@ const layer = createLayer(id, () => {
                     <Spacer />
                     {render(enterMasteryButton)}
                     <Spacer />
-                    {milestonesDisplay()}
+                    {render(unlockDyeElfMilestone)}
                 </div>
             );
         }),
         wrappingPaper,
         boosts,
-        milestones,
-        collapseMilestones,
+        unlockDyeElfMilestone,
         minWidth: 700
     };
 });

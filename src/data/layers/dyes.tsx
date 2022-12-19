@@ -112,7 +112,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     }))
                 );
             }
-            if (options.color === "red" || options.color === "yellow") {
+            if (["red", "yellow"].includes(options.color)) {
                 modifiers.push(
                     createMultiplicativeModifier(() => ({
                         multiplier: boosts.orange1,
@@ -120,7 +120,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     }))
                 );
             }
-            if (options.color == "yellow" || options.color == "blue") {
+            if (["yellow", "blue"].includes(options.color)) {
                 modifiers.push(
                     createMultiplicativeModifier(() => ({
                         multiplier: boosts.green1,
@@ -128,7 +128,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     }))
                 );
             }
-            if (options.color == "red" || options.color == "blue") {
+            if (["red", "blue"].includes(options.color)) {
                 modifiers.push(
                     createMultiplicativeModifier(() => ({
                         multiplier: boosts.purple1,
@@ -136,7 +136,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     }))
                 );
             }
-            if (options.color == "red" || options.color == "yellow" || options.color == "blue") {
+            if (["red", "yellow", "blue"].includes(options.color)) {
                 modifiers.push(
                     createMultiplicativeModifier(() => ({
                         multiplier: 2,
@@ -156,21 +156,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 modifiers.push(
                     createMultiplicativeModifier(() => ({
                         multiplier: 2,
-                        description: "Wrapping Paper Milestone 1",
-                        enabled: wrappingPaper.milestones.primaryBoost.earned
+                        description: "Carol Level 1",
+                        enabled: management.elfTraining.dyeElfTraining.milestones[0].earned
                     }))
                 );
             }
-            if (
-                options.color == "orange" ||
-                options.color == "green" ||
-                options.color == "purple"
-            ) {
+            if (["orange", "green", "purple"].includes(options.color)) {
                 modifiers.push(
                     createMultiplicativeModifier(() => ({
                         multiplier: 2,
-                        description: "Wrapping Paper Milestone 2",
-                        enabled: wrappingPaper.milestones.secondaryBoost.earned
+                        description: "Carol Level 2",
+                        enabled: management.elfTraining.dyeElfTraining.milestones[1].earned
                     }))
                 );
             }
@@ -193,6 +189,24 @@ const layer = createLayer(id, function (this: BaseLayer) {
             return modifiers;
         }) as WithRequired<Modifier, "description" | "revert">;
         const computedToGenerate = computed(() => toGenerate.apply(0));
+
+        let dyeBook: ElfBuyable & {
+            resource: Resource;
+            freeLevels: ComputedRef<DecimalSource>;
+            totalAmount: ComputedRef<DecimalSource>;
+        };
+        switch (options.color) {
+            case 'red':
+            case 'yellow':
+            case 'blue':
+                dyeBook = paper.books.primaryDyeBook;
+                break;
+            case 'orange':
+            case 'green':
+            case 'purple':
+                dyeBook = paper.books.secondaryDyeBook;
+                break;
+        }
 
         const buyable: ElfBuyable = createBuyable(() => {
             const costs = convertComputable(options.costs);
@@ -250,12 +264,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     let v = buyable.amount.value;
                     if (Decimal.gte(v, 25)) v = Decimal.pow(v, 2).div(20); // intentional price jump #2
                     if (Decimal.gte(v, 10)) v = Decimal.pow(v, 2).div(5); // intentional price jump
-                    v = Decimal.mul(v, Decimal.pow(0.95, paper.books.dyeBook.totalAmount.value));
+                    v = Decimal.mul(v, Decimal.pow(0.95, dyeBook.totalAmount.value));
                     return Decimal.div(v, 10).plus(1);
                 },
                 inverseCostPre(x: DecimalSource) {
                     let v = Decimal.sub(x, 1).mul(10);
-                    v = v.div(Decimal.pow(0.95, paper.books.dyeBook.totalAmount.value));
+                    v = v.div(Decimal.pow(0.95, dyeBook.totalAmount.value));
                     if (Decimal.gte(v, 10)) v = Decimal.mul(v, 5).root(2);
                     if (Decimal.gte(v, 25)) v = Decimal.mul(v, 20).root(2);
                     return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
@@ -283,12 +297,33 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     );
                 }),
                 onPurchase(cost?: DecimalSource) {
-                    const trueCost = cost ?? unref(buyable.cost) ?? Decimal.dInf;
+                    let buyMax = false;
+                    switch (options.color) {
+                        case 'red':
+                        case 'yellow':
+                        case 'blue':
+                            buyMax = management.elfTraining.dyeElfTraining.milestones[2].earned.value;
+                            break;
+                        case 'orange':
+                        case 'green':
+                        case 'purple':
+                            buyMax = management.elfTraining.dyeElfTraining.milestones[4].earned.value;
+                            break;
+                    }
 
-                    amount.value = Decimal.add(amount.value, computedToGenerate.value);
-                    buyable.amount.value = Decimal.add(buyable.amount.value, 1);
+                    if (buyMax) {
+                        const buyAmount = this.inverseCost().sub(this.amount.value).plus(1);
+                        if (buyAmount.lte(0)) return;
 
-                    if (!wrappingPaper.milestones.secondaryNoReset.earned.value) {
+                        amount.value = Decimal.times(computedToGenerate.value, buyAmount).add(amount.value);
+                        buyable.amount.value = Decimal.add(buyable.amount.value, buyAmount);
+                    }
+                    else {
+                        amount.value = Decimal.add(amount.value, computedToGenerate.value);
+                        buyable.amount.value = Decimal.add(buyable.amount.value, 1);
+                    }
+                    if (!management.elfTraining.dyeElfTraining.milestones[3].earned.value) {
+                        const trueCost = cost ?? unref(buyable.cost) ?? Decimal.dInf;
                         unref(costs).forEach(c => {
                             c.res.value = Decimal.sub(
                                 c.res.value,
