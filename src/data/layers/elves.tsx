@@ -911,13 +911,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cooldownModifier: dyeCooldown, // Note: Buy max will be unlocked at this point
         visibility: () => showIf(wrappingPaper.unlockDyeElfMilestone.earned.value),
         buyMax: management.elfTraining.dyeElfTraining.milestones[2].earned,
-        onAutoPurchase(buyable, amount) {
+        onAutoPurchase(buyable, amount) {            
+            buyable.amount.value = Decimal.sub(buyable.amount.value, amount);
             if (["orange", "green", "purple"].includes(dyeColors[buyable.id])) {
                 if (!ribbon.milestones.secondaryDyeElf.earned.value) {
-                    buyable.amount.value = Decimal.sub(buyable.amount.value, amount)
-                    return;
+                    return
                 }
             }
+            const dye = dyes.dyes[dyeColors[buyable.id]];
+            dye.amount.value = Decimal.times(2, buyable.amount.value).plus(amount).plus(1)
+                                     .times(amount).div(2)
+                                     .times(Decimal.add(buyable.amount.value, 1)).div(dye.computedToGenerate.value)
+
+            buyable.amount.value = Decimal.add(buyable.amount.value, amount);
         }
     });
     const wrappingPaperElves = [dyeElf];

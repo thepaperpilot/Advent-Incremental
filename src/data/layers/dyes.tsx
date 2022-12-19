@@ -316,7 +316,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         const buyAmount = this.inverseCost().sub(this.amount.value).plus(1);
                         if (buyAmount.lte(0)) return;
 
-                        amount.value = Decimal.times(computedToGenerate.value, buyAmount).add(amount.value);
+                        amount.value = Decimal.times(2, buyable.amount.value).plus(buyAmount).plus(1)
+                                                   .times(buyAmount).div(2)
+                                                   .times(Decimal.add(buyable.amount.value, 1)).div(computedToGenerate.value).plus(amount.value);
                         buyable.amount.value = Decimal.add(buyable.amount.value, buyAmount);
                     }
                     else {
