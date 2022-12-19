@@ -741,7 +741,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         description:
             "Noel will automatically purchase fertilized soil you can afford, without actually spending any ash.",
         buyable: coal.moreFertilizer,
-        cooldownModifier: fertilizerCooldown
+        cooldownModifier: fertilizerCooldown,
+        buyMax: () => management.elfTraining.heatedPlanterElfTraining.milestones[2].earned.value
     });
     const coalElves = [heatedCuttersElf, heatedPlantersElf, fertilizerElf];
     const smallFireElf = createElf({
