@@ -337,19 +337,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     if (buyMax) {
                         const buyAmount = this.inverseCost().sub(this.amount.value).plus(1);
                         if (buyAmount.lte(0)) return;
-
-                        amount.value = Decimal.times(2, buyable.amount.value)
-                            .plus(buyAmount)
-                            .plus(1)
-                            .times(buyAmount)
-                            .div(2)
-                            .times(computedToGenerate.value)
-                            .div(Decimal.add(buyable.amount.value, 1))
-                            .plus(amount.value);
                         buyable.amount.value = Decimal.add(buyable.amount.value, buyAmount);
+                        amount.value = Decimal.add(buyable.amount.value, 1).mul(buyable.amount.value).div(2).mul(computedToGenerate.value);
                     } else {
-                        amount.value = Decimal.add(amount.value, computedToGenerate.value);
                         buyable.amount.value = Decimal.add(buyable.amount.value, 1);
+                        amount.value = Decimal.add(buyable.amount.value, 1).mul(buyable.amount.value).div(2).mul(computedToGenerate.value);
                     }
                     if (!management.elfTraining.dyeElfTraining.milestones[3].earned.value) {
                         const trueCost = cost ?? unref(buyable.cost) ?? Decimal.dInf;
