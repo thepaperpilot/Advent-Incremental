@@ -430,7 +430,11 @@ const layer = createLayer(id, () => {
     })) as GenericBar;
 
     watchEffect(() => {
-        if (main.day.value === day && Decimal.gte(masteredDays.value, 6)) {
+        if (
+            main.day.value === day &&
+            Decimal.gte(masteredDays.value, 6) &&
+            main.showLoreModal.value === false
+        ) {
             main.completeDay();
         }
     });
