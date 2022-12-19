@@ -122,6 +122,9 @@ const factory = createLayer(id, () => {
             consumptionStock: {}
         }
     } as Record<"cursor" | "conveyor" | "square", FactoryComponentDeclaration>;
+    const RESOURCES = {
+        square: square
+    } as Record<string, string>;
 
     type FactoryCompNames = keyof typeof FACTORY_COMPONENTS;
     type BuildableCompName = Exclude<FactoryCompNames, "cursor">;
@@ -174,6 +177,7 @@ const factory = createLayer(id, () => {
     }
     interface FactoryInternalProducer extends FactoryInternalBase {
         type: Exclude<BuildableCompName, "conveyor">;
+        startingFrom: "up" | "right" | "down" | "left";
     }
     type FactoryInternal = FactoryInternalConveyor | FactoryInternalProducer;
 
@@ -251,6 +255,9 @@ const factory = createLayer(id, () => {
                     if (compData.type !== "conveyor") throw new TypeError("this should not happen");
                     // conveyor part
                     // use a copy
+                    console.log(compData)
+                    compData.packages = compData.packages.concat(compData.nextPackages);
+                    compData.nextPackages = [];
                     for (const [key, block] of [...compData.packages].entries()) {
                         const dirType = getDirection(data.directionOut);
                         const dirAmt = directionToNum(data.directionOut);
@@ -284,6 +291,7 @@ const factory = createLayer(id, () => {
                                     }
                                     // push it to the next conveyor, kill it from the
                                     // curent conveyor
+                                    block.lastX++;
                                     compBehind.nextPackages.push(block);
                                     compData.packages.splice(key, 1);
                                 } else {
@@ -330,6 +338,7 @@ const factory = createLayer(id, () => {
                                     }
                                     // push it to the next conveyor, kill it from the
                                     // curent conveyor
+                                    block.lastY++;
                                     compBehind.nextPackages.push(block);
                                     compData.packages.splice(key, 1);
                                 } else {
@@ -366,13 +375,59 @@ const factory = createLayer(id, () => {
                     }
                     // now look at each component direction and see if it accepts items coming in
                     // components are 1x1 so simple math for now
+
+                    const itemToMove = Object.entries(data.productionStock)[0];
+                    let yInc = 0;
+                    let xInc = 0;
                     if (
                         y < components.value.length - 1 &&
-                        components.value[y + 1][x]?.type === "conveyor"
+                        components.value[y + 1][x]?.type === "conveyor" &&
+                        (compInternalData[y + 1][x] as FactoryInternalProducer).startingFrom ===
+                            "up"
                     ) {
-                        const val = components.value[y + 1][x] as FactoryComponentConveyor;
-                        // todo: give this a predefined order
+                        yInc = 1;
+                    } else if (
+                        y > 0 &&
+                        components.value[y - 1][x]?.type === "conveyor" &&
+                        (compInternalData[y - 1][x] as FactoryInternalProducer).startingFrom ===
+                            "down"
+                    ) {
+                        yInc = -1;
+                    } else if (
+                        x < components.value[y].length - 1 &&
+                        components.value[y][x + 1]?.type === "conveyor" &&
+                        (compInternalData[y][x + 1] as FactoryInternalProducer).startingFrom ===
+                            "right"
+                    ) {
+                        xInc = 1;
+                    } else if (
+                        x > 0 &&
+                        components.value[y][x - 1]?.type === "conveyor" &&
+                        (compInternalData[y][x - 1] as FactoryInternalProducer).startingFrom ===
+                            "left"
+                    ) {
+                        xInc = -1;
                     }
+                    // no suitable location to dump stuff in
+                    if (xInc === 0 && yInc === 0) continue;
+                    const texture = await Assets.load(RESOURCES[itemToMove[0]]);
+                    const sprite = new Sprite(texture);
+                    sprite.x = (x + (xInc ? xInc : 0.5)) * blockSize;
+                    sprite.y = (y + (yInc ? yInc : 0.5)) * blockSize;
+                    sprite.width = blockSize;
+                    sprite.height = blockSize;
+                    const block: Block = {
+                        sprite,
+                        x: x + xInc,
+                        y: y + yInc,
+                        lastX: x + xInc,
+                        lastY: y + yInc,
+                        type: itemToMove[0]
+                    };
+                    (
+                        compInternalData[y + yInc][x + xInc] as FactoryInternalConveyor
+                    ).nextPackages.push(block);
+                    movingBlocks.addChild(sprite)
                 }
             }
         }
