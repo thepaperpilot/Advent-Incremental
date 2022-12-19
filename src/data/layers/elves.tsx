@@ -420,13 +420,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     ]);
 
-    const dyeCooldown = createSequentialModifier(() => [
-        createMultiplicativeModifier(() => ({
-            multiplier: Infinity,
-            description: "Dye",
-            enabled: () => true
-        }))
-    ]);
+    const dyeCooldown = createSequentialModifier(() => []);
 
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
         {

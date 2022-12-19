@@ -349,7 +349,10 @@ const layer = createLayer(id, () => {
                 effectDisplay: "Unlock an elf that autobuys oil drills and extractors."
             },
             visibility: () => showIf(cutterElfMilestones[3].earned.value && main.day.value >= 13),
-            shouldEarn: () => cutterElfTraining.level.value >= 5
+            shouldEarn: () => cutterElfTraining.level.value >= 5,
+            onComplete() {
+                main.days[3].recentlyUpdated.value = true;
+            }
         }))
     ] as Array<GenericMilestone>;
     const planterElfMilestones = [
@@ -1664,6 +1667,36 @@ const layer = createLayer(id, () => {
         {
             title: "Gingersnap XP Gain per Action",
             modifier: clothElfTraining.elfXPGain,
+            base: 0.1,
+            unit: " XP"
+        },
+        {
+            title: "Peppermint XP Gain per Action",
+            modifier: coalDrillElfTraining.elfXPGain,
+            base: 0.1,
+            unit: " XP"
+        },
+        {
+            title: "Frosty XP Gain per Action",
+            modifier: heavyDrillElfTraining.elfXPGain,
+            base: 0.1,
+            unit: " XP"
+        },
+        {
+            title: "Cocoa XP Gain per Action",
+            modifier: oilElfTraining.elfXPGain,
+            base: 0.1,
+            unit: " XP"
+        },
+        {
+            title: "Twinkle XP Gain per Action",
+            modifier: metalElfTraining.elfXPGain,
+            base: 0.1,
+            unit: " XP"
+        },
+        {
+            title: "Carol XP Gain per Action",
+            modifier: dyeElfTraining.elfXPGain,
             base: 0.1,
             unit: " XP"
         }

@@ -286,7 +286,10 @@ const layer = createLayer(id, () => {
             requirement: "10 Total Wrapping Paper",
             effectDisplay: "Unlock a new elf to help with dyes"
         },
-        shouldEarn: () => Decimal.gte(wrappingPaperSum.value, 10)
+        shouldEarn: () => Decimal.gte(wrappingPaperSum.value, 10),
+        onComplete() {
+            main.days[3].recentlyUpdated.value = true;
+        }
     }));
 
     const masteryReq = computed(() => Decimal.pow(2, masteredDays.value).times(30));
