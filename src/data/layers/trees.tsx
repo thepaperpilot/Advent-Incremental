@@ -2,6 +2,7 @@
  * @module
  * @hidden
  */
+import HotkeyVue from "components/Hotkey.vue";
 import Spacer from "components/layout/Spacer.vue";
 import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
@@ -564,7 +565,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const cutTree = createClickable(() => ({
         display: {
-            title: "Cut trees",
+            title: jsx(() => (
+                <h3>
+                    Cut trees <HotkeyVue hotkey={cutTreeHK} />
+                </h3>
+            )),
             description: jsx(() => (
                 <>
                     Cut down up to {formatWhole(Decimal.floor(computedManualCuttingAmount.value))}{" "}
@@ -620,7 +625,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const plantTree = createClickable(() => ({
         display: {
-            title: "Plant trees",
+            title: jsx(() => (
+                <h3>
+                    Plant trees <HotkeyVue hotkey={plantTreeHK} />
+                </h3>
+            )),
             description: jsx(() => (
                 <>
                     Plant up to {formatWhole(Decimal.floor(computedManualPlantingAmount.value))}{" "}
@@ -792,14 +801,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const cutTreeHK = createHotkey(() => ({
         key: "c",
-        description: 'Press the "Cut trees" button.',
+        description: "Cut trees",
         onPress: () => {
             if (cutTree.canClick.value) cutTree.onClick();
         }
     }));
     const plantTreeHK = createHotkey(() => ({
         key: "p",
-        description: 'Press the "Plant trees" button.',
+        description: "Plant trees",
         onPress: () => {
             if (plantTree.canClick.value) plantTree.onClick();
         }

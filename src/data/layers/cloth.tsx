@@ -2,6 +2,7 @@
  * @module
  * @hidden
  */
+import HotkeyVue from "components/Hotkey.vue";
 import Row from "components/layout/Row.vue";
 import Spacer from "components/layout/Spacer.vue";
 import Modal from "components/Modal.vue";
@@ -61,7 +62,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const breeding = createClickable(() => ({
         display: {
-            title: "Breed sheep",
+            title: jsx(() => (
+                <h3>
+                    Breed sheep <HotkeyVue hotkey={breedSheepHK} />
+                </h3>
+            )),
             description: jsx(() => (
                 <>
                     Breed {formatWhole(Decimal.floor(computedSheepGain.value))} sheep
@@ -99,7 +104,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const shearing = createClickable(() => ({
         display: {
-            title: "Shear sheep",
+            title: jsx(() => (
+                <h3>
+                    Shear sheep <HotkeyVue hotkey={shearSheepHK} />
+                </h3>
+            )),
             description: jsx(() => (
                 <>
                     Shear up to {formatWhole(Decimal.floor(computedShearingAmount.value))} sheep
@@ -137,7 +146,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const spinning = createClickable(() => ({
         display: {
-            title: "Spinning wool",
+            title: jsx(() => (
+                <h3>
+                    Spin wool <HotkeyVue hotkey={spinWoolHK} />
+                </h3>
+            )),
             description: jsx(() => (
                 <>
                     Spin {formatWhole(Decimal.floor(computedSpinningAmount.value))} wool
@@ -165,7 +178,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const breedSheepHK = createHotkey(() => ({
         key: "b",
-        description: 'Press the "Breed Sheep" button',
+        description: "Breed sheep",
         onPress: () => {
             if (breeding.canClick.value) breeding.onClick();
         }
@@ -173,7 +186,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const shearSheepHK = createHotkey(() => ({
         key: "h", // For some reason, "shift+s" doesn't work properly
-        description: 'Press the "Shear Sheep" button',
+        description: "Shear sheep",
         onPress: () => {
             if (shearing.canClick.value) shearing.onClick();
         }
@@ -181,7 +194,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const spinWoolHK = createHotkey(() => ({
         key: "s",
-        description: 'Press the "Spin Wool" button',
+        description: "Spin wool",
         onPress: () => {
             if (spinning.canClick.value) spinning.onClick();
         }
