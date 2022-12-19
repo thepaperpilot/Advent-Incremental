@@ -148,9 +148,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     createMultiplicativeModifier(() => ({
                         multiplier: () => Decimal.add(cloth.cloth.value, Math.E).ln(),
                         description: "Gingersnap Level 1",
-                        enabled: () =>
-                            management.elfTraining.clothElfTraining.milestones[0].earned.value &&
-                            !main.isMastery.value
+                        enabled: management.elfTraining.clothElfTraining.milestones[0].earned
                     }))
                 );
                 modifiers.push(
@@ -178,9 +176,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 createMultiplicativeModifier(() => ({
                     multiplier: 2,
                     description: "Gingersnap Level 3",
-                    enabled: () =>
-                        management.elfTraining.clothElfTraining.milestones[2].earned.value &&
-                        !main.isMastery.value
+                    enabled: management.elfTraining.clothElfTraining.milestones[2].earned
                 }))
             );
             modifiers.push(
@@ -274,7 +270,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     );
                 },
                 canPurchase: computed((cost?: DecimalSource) => {
-                    if (unref(buyable.visibility) != Visibility.Visible) return false;
+                    if (unref(buyable.visibility) != Visibility.Visible) {
+                        return false;
+                    }
+                    if (main.isMastery.value && !masteryEffectActive.value) {
+                        return false;
+                    }
                     const trueCost = cost ?? unref(buyable.cost) ?? Decimal.dInf;
                     return unref(costs).every(c =>
                         Decimal.div(c.res.value, unref(c.base))
@@ -283,6 +284,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     );
                 }),
                 onPurchase(cost?: DecimalSource) {
+                    if (!unref(buyable.canPurchase)) {
+                        return;
+                    }
                     const trueCost = cost ?? unref(buyable.cost) ?? Decimal.dInf;
 
                     amount.value = Decimal.add(amount.value, computedToGenerate.value);

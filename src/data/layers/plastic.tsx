@@ -101,7 +101,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: {
             width: "300px"
-        }
+        },
+        visibility: () => showIf(!main.isMastery.value || masteryEffectActive.value)
     })) as GenericBuyable & { resource: Resource };
     const {
         min: minRefinery,
@@ -384,8 +385,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         minimizedDisplay: jsx(() => (
             <div>
                 {name}{" "}
-                <span class="desc">{format(plastic.value)} {plastic.displayName}</span>
-            </div>   
+                <span class="desc">
+                    {format(plastic.value)} {plastic.displayName}
+                </span>
+            </div>
         )),
         mastery,
         mastered

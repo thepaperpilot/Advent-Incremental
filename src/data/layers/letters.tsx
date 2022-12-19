@@ -61,7 +61,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: {
             minHeight: "80px"
         },
-        canClick: () => Decimal.gte(processingProgress.value, computedProcessingCooldown.value),
+        canClick: () =>
+            Decimal.gte(processingProgress.value, computedProcessingCooldown.value) &&
+            (!main.isMastery.value || masteryEffectActive.value),
         onClick() {
             if (Decimal.lt(processingProgress.value, computedProcessingCooldown.value)) {
                 return;
@@ -87,7 +89,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         resource: metal.metal,
         cost() {
             return Decimal.pow(10, metalBuyable.amount.value).times(1e21);
-        }
+        },
+        visibility: () => showIf(!main.isMastery.value || masteryEffectActive.value)
     })) as GenericBuyable;
     const plasticBuyable = createBuyable(() => ({
         display: {
@@ -101,7 +104,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         resource: plastic.plastic,
         cost() {
             return Decimal.pow(1.5, plasticBuyable.amount.value).times(1e9);
-        }
+        },
+        visibility: () => showIf(!main.isMastery.value || masteryEffectActive.value)
     })) as GenericBuyable;
     const paperBuyable = createBuyable(() => ({
         display: {
@@ -114,7 +118,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         resource: paper.paper,
         cost() {
             return Decimal.pow(3, paperBuyable.amount.value).times(1e38);
-        }
+        },
+        visibility: () => showIf(!main.isMastery.value || masteryEffectActive.value)
     })) as GenericBuyable;
     const buyables = { metalBuyable, plasticBuyable, paperBuyable };
 
@@ -304,8 +309,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         minimizedDisplay: jsx(() => (
             <div>
                 {name}{" "}
-                <span class="desc">{format(letters.value)} {letters.displayName}</span>
-            </div>   
+                <span class="desc">
+                    {format(letters.value)} {letters.displayName}
+                </span>
+            </div>
         )),
         mastery,
         mastered

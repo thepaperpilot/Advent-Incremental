@@ -27,7 +27,7 @@ import Decimal, { DecimalSource, format } from "util/bignum";
 import { formatWhole } from "util/break_eternity";
 import { Direction } from "util/common";
 import { render, renderCol, renderRow } from "util/vue";
-import { computed, ref } from "vue";
+import { computed, ref, unref } from "vue";
 import boxes from "./boxes";
 import dyes from "./dyes";
 import { ElfBuyable } from "./elves";
@@ -73,9 +73,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: {
             minHeight: "80px"
         },
-        canClick: () => Decimal.gte(breedingProgress.value, computedBreedingCooldown.value),
+        canClick: () =>
+            Decimal.gte(breedingProgress.value, computedBreedingCooldown.value) &&
+            (!main.isMastery.value || masteryEffectActive.value),
         onClick() {
-            if (Decimal.lt(breedingProgress.value, computedBreedingCooldown.value)) {
+            if (!unref(breeding.canClick)) {
                 return;
             }
             const amount = Decimal.floor(computedSheepGain.value);
@@ -109,9 +111,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: {
             minHeight: "80px"
         },
-        canClick: () => Decimal.gte(shearingProgress.value, computedShearingCooldown.value),
+        canClick: () =>
+            Decimal.gte(shearingProgress.value, computedShearingCooldown.value) &&
+            (!main.isMastery.value || masteryEffectActive.value),
         onClick() {
-            if (Decimal.lt(shearingProgress.value, computedShearingCooldown.value)) {
+            if (!unref(shearing.canClick)) {
                 return;
             }
             const amount = Decimal.min(sheep.value, computedShearingAmount.value).floor();
@@ -145,9 +149,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: {
             minHeight: "80px"
         },
-        canClick: () => Decimal.gte(spinningProgress.value, computedSpinningCooldown.value),
+        canClick: () =>
+            Decimal.gte(spinningProgress.value, computedSpinningCooldown.value) &&
+            (!main.isMastery.value || masteryEffectActive.value),
         onClick() {
-            if (Decimal.lt(spinningProgress.value, computedSpinningCooldown.value)) {
+            if (!unref(spinning.canClick)) {
                 return;
             }
             const amount = Decimal.min(wool.value, computedSpinningAmount.value).floor();
@@ -375,16 +381,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: gingersnapEffect,
             description: "Gingersnap Level 2",
-            enabled: () =>
-                management.elfTraining.clothElfTraining.milestones[1].earned.value &&
-                !main.isMastery.value
+            enabled: management.elfTraining.clothElfTraining.milestones[1].earned
         })),
         createMultiplicativeModifier(() => ({
             multiplier: hollyEffect,
             description: "Holly Level 3",
-            enabled: () =>
-                management.elfTraining.cutterElfTraining.milestones[2].earned.value &&
-                !main.isMastery.value
+            enabled: management.elfTraining.cutterElfTraining.milestones[2].earned
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -419,16 +421,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: gingersnapEffect,
             description: "Gingersnap Level 2",
-            enabled: () =>
-                management.elfTraining.clothElfTraining.milestones[1].earned.value &&
-                !main.isMastery.value
+            enabled: management.elfTraining.clothElfTraining.milestones[1].earned
         })),
         createMultiplicativeModifier(() => ({
             multiplier: hollyEffect,
             description: "Holly Level 3",
-            enabled: () =>
-                management.elfTraining.cutterElfTraining.milestones[2].earned.value &&
-                !main.isMastery.value
+            enabled: management.elfTraining.cutterElfTraining.milestones[2].earned
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -463,16 +461,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: gingersnapEffect,
             description: "Gingersnap Level 2",
-            enabled: () =>
-                management.elfTraining.clothElfTraining.milestones[1].earned.value &&
-                !main.isMastery.value
+            enabled: management.elfTraining.clothElfTraining.milestones[1].earned
         })),
         createMultiplicativeModifier(() => ({
             multiplier: hollyEffect,
             description: "Holly Level 3",
-            enabled: () =>
-                management.elfTraining.cutterElfTraining.milestones[2].earned.value &&
-                !main.isMastery.value
+            enabled: management.elfTraining.cutterElfTraining.milestones[2].earned
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -659,8 +653,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         minimizedDisplay: jsx(() => (
             <div>
                 {name}{" "}
-                <span class="desc">{format(cloth.value)} {cloth.displayName}</span>
-            </div>   
+                <span class="desc">
+                    {format(cloth.value)} {cloth.displayName}
+                </span>
+            </div>
         )),
         mastery,
         mastered
