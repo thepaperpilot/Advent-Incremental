@@ -102,11 +102,13 @@ registerInfoComponent(
             <div>
                 <br />
                 <h4>Hotkeys</h4>
-                {keys.map(hotkey => (
-                    <div v-if={hotkey !== undefined}>
-                        <HotkeyVue hotkey={hotkey as GenericHotkey} /> {hotkey?.description}
-                    </div>
-                ))}
+                {keys
+                    .filter(key => key != null)
+                    .map(hotkey => (
+                        <div>
+                            <HotkeyVue hotkey={hotkey as GenericHotkey} /> {hotkey?.description}
+                        </div>
+                    ))}
             </div>
         );
     })
