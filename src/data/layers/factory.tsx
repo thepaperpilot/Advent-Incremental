@@ -238,6 +238,7 @@ const factory = createLayer(id, () => {
             }
         }
     });
+    window.internal = compInternalData
 
     globalBus.on("update", async diff => {
         // will change soon:tm:
@@ -452,11 +453,12 @@ const factory = createLayer(id, () => {
             productionStock:
                 type === "conveyor" ? undefined : structuredClone(factoryBaseData.productionStock)
         } as FactoryComponent;
-        const isConveyor = compSelected.value === "conveyor";
+        const isConveyor = type === "conveyor";
         compInternalData[y][x] = {
             type,
             packages: isConveyor ? [] : undefined,
             nextPackages: isConveyor ? [] : undefined,
+            startingFrom: "right",
             canProduce: computed(() => {
                 if (type === "conveyor") return true;
                 if (!(factoryBaseData.canProduce?.value ?? true)) return false;
