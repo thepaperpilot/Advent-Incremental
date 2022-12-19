@@ -420,7 +420,24 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     ]);
 
-    const dyeCooldown = createSequentialModifier(() => []);
+    const dyeCooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "6 Elves Trained",
+            enabled: elvesMilestone.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () =>
+                Decimal.times(paper.books.primaryDyeBook.totalAmount.value, 0.1).add(1),
+            description: "Arts and Crafts",
+            enabled: () => Decimal.gt(paper.books.primaryDyeBook.totalAmount.value, 0)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "10 Elves Trained",
+            enabled: elvesMilestone2.earned
+        }))
+    ]);
 
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
         {
