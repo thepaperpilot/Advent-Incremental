@@ -92,23 +92,25 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     description: `${options.name} Chambers`
                 }))
             ];
-            if (options.color === "yellow" && oil.row3Upgrades[0].bought.value) {
+            if (options.color === "yellow") {
                 modifiers.push(
                     createMultiplicativeModifier(() => ({
                         multiplier() {
                             return Decimal.add(dyes.red.amount.value, 1).log10().add(1).pow(0.75);
                         },
-                        description: "Dye Synergy I"
+                        description: "Dye Synergy I",
+                        enabled: oil.row3Upgrades[0].bought
                     }))
                 );
             }
-            if (options.color === "red" && oil.row3Upgrades[3].bought.value) {
+            if (options.color === "red") {
                 modifiers.push(
                     createMultiplicativeModifier(() => ({
                         multiplier() {
                             return Decimal.add(dyes.blue.amount.value, 1).log10();
                         },
-                        description: "Dye Synergy II"
+                        description: "Dye Synergy II",
+                        enabled: oil.row3Upgrades[3].bought
                     }))
                 );
             }
