@@ -446,9 +446,15 @@ export function setUpDailyProgressTracker(options: {
         textStyle: options.textColor ? { color: options.textColor } : undefined,
         progress: progressFunc,
         display: jsx(() =>
-            main.day.value === options.day ? (
+            main.day.value === options.day ||
+            main.currentlyMastering.value?.name === options.name ? (
                 <>
-                    {formatWhole(total.value)}/{formatWhole(options.goal)}
+                    {formatWhole(total.value)}/
+                    {formatWhole(
+                        main.currentlyMastering.value?.name === options.name
+                            ? options.masteryGoal ?? options.goal
+                            : options.goal
+                    )}
                 </>
             ) : (
                 ""
