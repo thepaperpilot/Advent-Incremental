@@ -821,6 +821,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         logs: persistent<DecimalSource>(0),
         totalLogs: persistent<DecimalSource>(0),
         saplings: persistent<DecimalSource>(0),
+        createdSaplings: persistent<DecimalSource>(0),
         row1Upgrades: [
             { bought: persistent<boolean>(false) },
             { bought: persistent<boolean>(false) },
