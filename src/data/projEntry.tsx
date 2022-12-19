@@ -233,7 +233,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             story: "Oh no! Santa forgot about Christmas and it's only 25 days away! He's asked for your help due to your history getting large quantities of things in short amounts of time. Unfortunately you're really starting from scratch here - let's start with getting wood, which you'll need for everything from building workshops to wrapping paper to many of the toys themselves!",
             completedStory:
                 "Santa looks at all the wood you've gathered and tells you you've done well! He says you should take the rest of the day off so you're refreshed for tomorrow's work. Good Job!",
-            masteredStory: ""
+            masteredStory:
+                "As you repeat the basic actions again, you feel like you've learned something that you didn't know the first time around. Santa is impressed at your new knowledge and inspires you to attempt this with more jobs."
         })),
         createDay(() => ({
             day: 2,
@@ -243,7 +244,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             story: "Santa looked over your tree farm and was impressed with how much you could accomplish in just one day. Today's goal is to get a workshop built up for the elves to work in - and apparently, they need quite a lot of space to work!",
             completedStory:
                 "The workshop complete, Santa once again dismisses you for the day. With a strong foundation, this workshop should suffice for supporting future work toward this impossible mission. Good Job!",
-            masteredStory: ""
+            masteredStory:
+                "As you attempt to build the workshop again with your newfound experiences and resources, you realize you could have built the workshop a little bit better. As you keep building and building, you realize that you could've built it without wasting any resources."
         })),
         createDay(() => ({
             day: 3,
@@ -253,7 +255,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             story: "Santa tells you that unfortunately there are quite a few naughty children out there this year, and he's going to need you to gather as much coal as you can for him to give out.",
             completedStory:
                 "Santa looks at all the coal you've gathered and tells you you've done well! He says you should take the rest of the day off so you're refreshed for tomorrow's work. Good Job!",
-            masteredStory: ""
+            masteredStory:
+                "It's another typical day, attempting to redo your work again, but this time for coal. While doing this tedious task, an elf comes up to you. It gives you a improved blueprint on how to make small fires. You try it, and you realize that it's a lot more efficent than your old buildings designs. You thank the elf, and resume your work."
         })),
         createDay(() => ({
             day: 4,
@@ -263,7 +266,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             story: "Alright, it seems you finally have enough things set up to start bringing in the elves! Unfortunately, it seems they'll need to be retrained on how to help, since they've stopped practicing for 11 months!",
             completedStory:
                 "The workshop now hums with the bustling elves working on everything. They can take it from here - you deserve a break after such a long day! Good Job!",
-            masteredStory: ""
+            masteredStory:
+                "This place feels a lot more better, with less naughty elves who are more excited than ever before to do something! As you collapse into a chair thinking of all of your hard work, Santa comes by yet again to congratulate you on your hard work. You feel a pang of jealousy as Santa is taking all the credit for your work, but you decide that saving Christmas is worth it."
         })),
         createDay(() => ({
             day: 5,
@@ -273,7 +277,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             story: "With the elves trained, we're almost ready to start working on these presents! Just a couple more pre-reqs first, starting with turning all this wood into wood pulp and finally into paper, which will be required for wrapping paper later on but in the meantime can be used to help write guides which will help these elves continue their education!",
             completedStory:
                 "You look upon your rivers of book pulp as you hand out stacks of papers to elves to read through. You've continued getting closer and closer to preparing for Christmas, and can go to bed satisfied with your progress. Good Job!",
-            masteredStory: ""
+            masteredStory:
+                "Paper. Who knew it could be so versatile? As you slowly but surely improve your skills on making paper, you find more efficent ways to make it, and as a bonus, it's also environmentally friendly (which kinda makes up for you chopping a bit too many trees)! As you pass this information along to Santa's elves, they become more excited. Good Job!"
         })),
         createDay(() => ({
             day: 6,
@@ -283,7 +288,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
             story: "You watch all these elves carrying incredibly large loads just in their open elf-sized hands, and realize there's probably a better way. You need to put the toys in boxes anyways, so why don't we get started working on those so the workers can take advantage as well?",
             completedStory:
                 "Wow, those boxes are really convenient! The workshop feels more and more proper with every day. You tick another requirement on your list and start looking towards tomorrow. Good Job!",
-            masteredStory: ""
+            masteredStory: "You look at your massive amounts of boxes, but something doesn't feel right. Oh wait, the elves are only filling the boxes to half the amount that it can actually store! As realisation hits you on how you can make boxes more efficent by using simple methods, you realize that you ought to teach the art of dumping-more-stuff-in-boxes-also-known-as-hoarding to the elves. Whew, that was a lot of work. Great Job!"
         })),
         createDay(() => ({
             day: 7,
@@ -293,7 +298,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
             story: "You woke up ready to make some toys, before realizing most toys these days are made out of more than just wood! You're sure you're close to really getting to work, but there's a few more materials you're going to need - like metal! Lots of things need metal!",
             completedStory:
                 "The sounds of drills and metal clanging join the already loud din as yet another piece of the puzzle fits into place. You're making solid progress, Good Job!",
-            masteredStory: ""
+            masteredStory: "Cling clang clang clang. The sounds of even more drills hit your ears. As you fondly look back at the terrific work you've done, you become more motivated to work harder. Just then, Santa appears in front of you and you scream. He says, \"I see you're working hard. I suggest that you take a break.\" You thank Santa for the break, sit in a chair made by the elves as a gift, and relax."
         })),
         createDay(() => ({
             day: 8,
