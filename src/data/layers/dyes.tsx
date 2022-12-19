@@ -493,22 +493,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     desc: computed(() => `/${format(boosts.orange2.value)} Box buyable costs.`)
                 }
             ],
-            dyesToReset: [
-                {
-                    name: "Red Dye",
-                    reset() {
-                        dyes.red.amount.value = 0;
-                        dyes.red.buyable.amount.value = 0;
-                    }
-                },
-                {
-                    name: "Yellow Dye",
-                    reset() {
-                        dyes.yellow.amount.value = 0;
-                        dyes.yellow.buyable.amount.value = 0;
-                    }
-                }
-            ]
+            dyesToReset: []
         }),
         green: createDye({
             name: "Green Dye",
@@ -541,22 +526,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     )
                 }
             ],
-            dyesToReset: [
-                {
-                    name: "Yellow Dye",
-                    reset() {
-                        dyes.yellow.amount.value = 0;
-                        dyes.yellow.buyable.amount.value = 0;
-                    }
-                },
-                {
-                    name: "Blue Dye",
-                    reset() {
-                        dyes.blue.amount.value = 0;
-                        dyes.blue.buyable.amount.value = 0;
-                    }
-                }
-            ]
+            dyesToReset: []
         }),
         purple: createDye({
             name: "Purple Dye",
@@ -586,22 +556,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     )
                 }
             ],
-            dyesToReset: [
-                {
-                    name: "Blue Dye",
-                    reset() {
-                        dyes.blue.amount.value = 0;
-                        dyes.blue.buyable.amount.value = 0;
-                    }
-                },
-                {
-                    name: "Red Dye",
-                    reset() {
-                        dyes.red.amount.value = 0;
-                        dyes.red.buyable.amount.value = 0;
-                    }
-                }
-            ]
+            dyesToReset: []
         })
     };
 
@@ -732,20 +687,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 ),
             display: {
                 title: "Wetter Dyes",
-                description: "Double Red, Yellow, and Blue Dye gain, but reset their amounts."
+                description: "Double Red, Yellow, and Blue Dye gain."
             },
             cost: 2000,
-            resource: noPersist(dyes.yellow.amount),
-            onPurchase() {
-                dyes.red.amount.value = 0;
-                dyes.red.buyable.amount.value = 0;
-
-                dyes.yellow.amount.value = 0;
-                dyes.yellow.buyable.amount.value = 0;
-
-                dyes.blue.amount.value = 0;
-                dyes.blue.buyable.amount.value = 0;
-            }
+            resource: noPersist(dyes.yellow.amount)
         })),
         yellowDyeUpg2: createUpgrade(() => ({
             visibility: () => showIf(upgrades.yellowDyeUpg.bought.value),
@@ -800,20 +745,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: "Denser Spectrum",
                 description:
-                    "Orange, Green, and Purple Dyes' first effect is raised ^1.2, and Green Dye's second effect is squared. Buying this resets Red, Yellow, and Blue Dyes."
+                    "Orange, Green, and Purple Dyes' first effect is raised ^1.2, and Green Dye's second effect is squared."
             },
             cost: "5e30",
-            resource: coal.coal,
-            onPurchase() {
-                dyes.red.amount.value = 0;
-                dyes.red.buyable.amount.value = 0;
-
-                dyes.yellow.amount.value = 0;
-                dyes.yellow.buyable.amount.value = 0;
-
-                dyes.blue.amount.value = 0;
-                dyes.blue.buyable.amount.value = 0;
-            }
+            resource: coal.coal
         }))
     };
 
