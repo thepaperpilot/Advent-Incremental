@@ -192,14 +192,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             totalAmount: ComputedRef<DecimalSource>;
         };
         switch (options.color) {
-            case 'red':
-            case 'yellow':
-            case 'blue':
+            case "red":
+            case "yellow":
+            case "blue":
                 dyeBook = paper.books.primaryDyeBook;
                 break;
-            case 'orange':
-            case 'green':
-            case 'purple':
+            case "orange":
+            case "green":
+            case "purple":
                 dyeBook = paper.books.secondaryDyeBook;
                 break;
         }
@@ -260,12 +260,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     let v = buyable.amount.value;
                     if (Decimal.gte(v, 25)) v = Decimal.pow(v, 2).div(20); // intentional price jump #2
                     if (Decimal.gte(v, 10)) v = Decimal.pow(v, 2).div(5); // intentional price jump
+                    if (Decimal.gte(v, 3125)) v = Decimal.pow(v, 2).div(3125);
                     v = Decimal.mul(v, Decimal.pow(0.95, dyeBook.totalAmount.value));
                     return Decimal.div(v, 10).plus(1);
                 },
                 inverseCostPre(x: DecimalSource) {
                     let v = Decimal.sub(x, 1).mul(10);
                     v = v.div(Decimal.pow(0.95, dyeBook.totalAmount.value));
+                    if (Decimal.gte(v, 3125)) v = Decimal.mul(v, 3125).root(2);
                     if (Decimal.gte(v, 10)) v = Decimal.mul(v, 5).root(2);
                     if (Decimal.gte(v, 25)) v = Decimal.mul(v, 20).root(2);
                     return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
@@ -300,15 +302,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 onPurchase(cost?: DecimalSource) {
                     let buyMax = false;
                     switch (options.color) {
-                        case 'red':
-                        case 'yellow':
-                        case 'blue':
-                            buyMax = management.elfTraining.dyeElfTraining.milestones[2].earned.value;
+                        case "red":
+                        case "yellow":
+                        case "blue":
+                            buyMax =
+                                management.elfTraining.dyeElfTraining.milestones[2].earned.value;
                             break;
-                        case 'orange':
-                        case 'green':
-                        case 'purple':
-                            buyMax = management.elfTraining.dyeElfTraining.milestones[4].earned.value;
+                        case "orange":
+                        case "green":
+                        case "purple":
+                            buyMax =
+                                management.elfTraining.dyeElfTraining.milestones[4].earned.value;
                             break;
                     }
 
@@ -316,13 +320,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         const buyAmount = this.inverseCost().sub(this.amount.value).plus(1);
                         if (buyAmount.lte(0)) return;
 
-                        amount.value = Decimal.times(2, buyable.amount.value).plus(buyAmount).plus(1)
-                                              .times(buyAmount).div(2)
-                                              .times(computedToGenerate.value).div(Decimal.add(buyable.amount.value, 1))
-                                              .plus(amount.value);
+                        amount.value = Decimal.times(2, buyable.amount.value)
+                            .plus(buyAmount)
+                            .plus(1)
+                            .times(buyAmount)
+                            .div(2)
+                            .times(computedToGenerate.value)
+                            .div(Decimal.add(buyable.amount.value, 1))
+                            .plus(amount.value);
                         buyable.amount.value = Decimal.add(buyable.amount.value, buyAmount);
-                    }
-                    else {
+                    } else {
                         amount.value = Decimal.add(amount.value, computedToGenerate.value);
                         buyable.amount.value = Decimal.add(buyable.amount.value, 1);
                     }

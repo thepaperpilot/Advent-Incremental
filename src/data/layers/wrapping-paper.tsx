@@ -283,16 +283,18 @@ const layer = createLayer(id, () => {
 
     const unlockDyeElfMilestone = createMilestone(() => ({
         display: {
-            requirement: "10 Total Wrapping Paper",
+            requirement: "80 Total Wrapping Paper",
             effectDisplay: "Unlock a new elf to help with dyes"
         },
-        shouldEarn: () => Decimal.gte(wrappingPaperSum.value, 10),
+        shouldEarn: () => Decimal.gte(wrappingPaperSum.value, 80),
         onComplete() {
             main.days[3].recentlyUpdated.value = true;
         }
     }));
 
-    const masteryReq = computed(() => Decimal.pow(2, masteredDays.value).times(30));
+    const masteryReq = computed(() =>
+        Decimal.add(masteredDays.value, 1).pow(0.6).times(10).add(120)
+    );
 
     const enterMasteryButton = createClickable(() => ({
         display: () => ({

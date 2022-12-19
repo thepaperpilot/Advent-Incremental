@@ -639,6 +639,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 computedAutoBuyCooldown,
                 amountOfTimesDone,
                 name: options.name,
+                canAfford() {
+                    return (
+                        Decimal.gte(coal.coal.value, unref(trainingCost)) && !main.isMastery.value
+                    );
+                },
                 display: () => ({
                     title: options.name,
                     description: jsx(() => (
@@ -911,20 +916,25 @@ const layer = createLayer(id, function (this: BaseLayer) {
             "Carol will automatically purchase all dyes you can afford, without actually spending any resources.",
         buyable: Object.values(dyes.dyes).map(dye => dye.buyable),
         cooldownModifier: dyeCooldown, // Note: Buy max will be unlocked at this point
-        visibility: () => showIf(wrappingPaper.unlockDyeElfMilestone.earned.value),
+        visibility: () =>
+            showIf(wrappingPaper.unlockDyeElfMilestone.earned.value && !main.isMastery.value),
         buyMax: () => management.elfTraining.dyeElfTraining.milestones[2].earned.value,
-        onAutoPurchase(buyable, amount) {            
+        onAutoPurchase(buyable, amount) {
             buyable.amount.value = Decimal.sub(buyable.amount.value, amount);
             if (["orange", "green", "purple"].includes(dyeColors[buyable.id])) {
                 if (!ribbon.milestones.secondaryDyeElf.earned.value) {
-                    return
+                    return;
                 }
             }
             const dye = dyes.dyes[dyeColors[buyable.id]];
-            dye.amount.value = Decimal.times(2, buyable.amount.value).plus(amount).plus(1)
-                                     .times(amount).div(2)
-                                     .times(dye.computedToGenerate.value).div(Decimal.add(buyable.amount.value, 1))
-                                     .plus(dye.amount.value)
+            dye.amount.value = Decimal.times(2, buyable.amount.value)
+                .plus(amount)
+                .plus(1)
+                .times(amount)
+                .div(2)
+                .times(dye.computedToGenerate.value)
+                .div(Decimal.add(buyable.amount.value, 1))
+                .plus(dye.amount.value);
 
             buyable.amount.value = Decimal.add(buyable.amount.value, amount);
         }
