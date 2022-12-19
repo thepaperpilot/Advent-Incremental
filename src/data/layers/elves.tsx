@@ -676,7 +676,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 style: "width: 190px",
                 onPurchase() {
                     options.onPurchase?.();
-                    if (!["Peppermint", "Twinkle", "Cocoa", "Frosty"].includes(options.name)) {
+                    if (
+                        !["Peppermint", "Twinkle", "Cocoa", "Frosty", "Carol"].includes(
+                            options.name
+                        )
+                    ) {
                         elfReset.reset();
                     }
                 }
