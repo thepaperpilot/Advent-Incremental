@@ -195,6 +195,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             (["red", "yellow", "blue", "orange", "green", "purple"] as const).forEach(dyeColor => {
                 dyes.dyes[dyeColor].amount.value = 0;
                 dyes.dyes[dyeColor].buyable.amount.value = 0;
+                main.days[10].recentlyUpdated.value = true;
             });
         }
     })) as GenericUpgrade;
