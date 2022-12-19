@@ -27,6 +27,7 @@ import dyes from "./dyes";
 import elves, { ElfBuyable } from "./elves";
 import management from "./management";
 import plastic from "./plastic";
+import ribbon from "./ribbon";
 import trees from "./trees";
 import workshop from "./workshop";
 import wrappingPaper from "./wrapping-paper";
@@ -294,7 +295,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         name: "",
         elfName: "Carol",
         buyableName: "Secondary Dyes",
-        visibility: () => showIf(elves.elves.dyeElf.bought.value && true) // ribbons secondary dye book milestone
+        visibility: () => showIf(elves.elves.dyeElf.bought.value && ribbon.milestones.dyeBook.earned.value)
     });
     const books = {
         cuttersBook,

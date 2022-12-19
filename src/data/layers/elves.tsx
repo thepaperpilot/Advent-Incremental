@@ -37,6 +37,7 @@ import trees from "./trees";
 import workshop from "./workshop";
 import wrappingPaper from "./wrapping-paper";
 import dyes, { enumColor } from "./dyes";
+import ribbon from "./ribbon";
 
 export interface ElfBuyable extends GenericBuyable {
     /** The inverse function of the cost formula, used to calculate the maximum amount that can be bought by elves. */
@@ -912,7 +913,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buyMax: management.elfTraining.dyeElfTraining.milestones[2].earned,
         onAutoPurchase(buyable, amount) {
             if (["orange", "green", "purple"].includes(dyeColors[buyable.id])) {
-                if (false) { // does not have ribbon milestone 1
+                if (!ribbon.milestones.secondaryDyeElf.earned.value) {
                     buyable.amount.value = Decimal.sub(buyable.amount.value, amount)
                     return;
                 }

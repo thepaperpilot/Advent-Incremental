@@ -2,7 +2,7 @@ import Spacer from "components/layout/Spacer.vue";
 import { createBar, GenericBar } from "features/bars/bar";
 import { BuyableOptions, createBuyable, GenericBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
-import { jsx, JSXFunction } from "features/feature";
+import { jsx, JSXFunction, showIf } from "features/feature";
 import { createMilestone } from "features/milestones/milestone";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource, Resource } from "features/resources/resource";

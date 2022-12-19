@@ -2,6 +2,7 @@ import Spacer from "components/layout/Spacer.vue";
 import { createBar, GenericBar } from "features/bars/bar";
 import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
+import { createMilestone } from "features/milestones/milestone";
 import { createResource } from "features/resources/resource";
 import { createLayer, layers } from "game/layers";
 import player from "game/player";
@@ -21,6 +22,23 @@ const layer = createLayer(id, () => {
     const color = "darkred";
 
     const ribbon = createResource<DecimalSource>(0, "Ribbon");
+
+    const milestones = {
+        secondaryDyeElf: createMilestone(() => ({
+            display: {
+                requirement: "10 Ribbons",
+                effectDisplay: "Carol will now mix secondary dyes for you"
+            },
+            shouldEarn: () => Decimal.gte(ribbon.value, 10)
+        })),
+        dyeBook: createMilestone(() => ({
+            display: {
+                requirement: "20 Ribbons",
+                effectDisplay: "Unlock a new book"
+            },
+            shouldEarn: () => Decimal.gte(ribbon.value, 20)
+        }))
+    }
 
     const masteryReq = computed(() => Decimal.pow(2, masteredDays.value).times(30));
     const enterMasteryButton = createClickable(() => ({
@@ -121,6 +139,7 @@ const layer = createLayer(id, () => {
         day,
         color,
         ribbon,
+        milestones,
         display: jsx(() => {
             return (
                 <div style="width: 620px">
