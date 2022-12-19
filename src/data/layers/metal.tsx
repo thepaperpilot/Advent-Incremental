@@ -49,6 +49,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const ore = createResource<DecimalSource>(0, "ore");
     const bestOre = trackBest(ore);
 
+    const lastOreGained = ref<DecimalSource>(0);
+    const lastOreSmelted = ref<DecimalSource>(0);
+
     const orePurity = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
             multiplier: 5,
@@ -94,23 +97,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.add(oil.buildHeavy.amount.value, 1).sqrt(),
             description: "Joy Level 4",
-            enabled: () =>
-                management.elfTraining.smallfireElfTraining.milestones[3].earned.value &&
-                !main.isMastery.value
+            enabled: management.elfTraining.smallfireElfTraining.milestones[3].earned
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.add(management.schools.amount.value, 1),
             description: "Twinkle Level 1",
-            enabled: () =>
-                management.elfTraining.metalElfTraining.milestones[0].earned.value &&
-                !main.isMastery.value
+            enabled: management.elfTraining.metalElfTraining.milestones[0].earned
         })),
         createExponentialModifier(() => ({
             exponent: 1.1,
             description: "Mary Level 2",
-            enabled: () =>
-                management.elfTraining.heatedPlanterElfTraining.milestones[1].earned.value &&
-                !main.isMastery.value
+            enabled: management.elfTraining.heatedPlanterElfTraining.milestones[1].earned
         }))
     ]);
     const computedOrePurity = computed(() => orePurity.apply(0.1));
@@ -124,23 +121,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createExponentialModifier(() => ({
             exponent: 1.1,
             description: "Joy Level 5",
-            enabled: () =>
-                management.elfTraining.smallfireElfTraining.milestones[4].earned.value &&
-                !main.isMastery.value
+            enabled: management.elfTraining.smallfireElfTraining.milestones[4].earned
         })),
         createExponentialModifier(() => ({
             exponent: 1.1,
             description: "Faith Level 5",
-            enabled: () =>
-                management.elfTraining.bonfireElfTraining.milestones[4].earned.value &&
-                !main.isMastery.value
+            enabled: management.elfTraining.bonfireElfTraining.milestones[4].earned
         })),
         createExponentialModifier(() => ({
             exponent: 1.1,
             description: "Snowball Level 5",
-            enabled: () =>
-                management.elfTraining.kilnElfTraining.milestones[4].earned.value &&
-                !main.isMastery.value
+            enabled: management.elfTraining.kilnElfTraining.milestones[4].earned
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -166,17 +157,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.div(management.totalElfExp.value, 1e6).add(1).sqrt(),
             description: "Mary Level 5",
-            enabled: () =>
-                management.elfTraining.heatedPlanterElfTraining.milestones[4].earned.value &&
-                !main.isMastery.value
+            enabled: management.elfTraining.heatedPlanterElfTraining.milestones[4].earned
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () =>
                 Decimal.pow(1.25, management.elfTraining.metalElfTraining.level.value),
             description: "Twinkle Level 2",
-            enabled: () =>
-                management.elfTraining.metalElfTraining.milestones[1].earned.value &&
-                !main.isMastery.value
+            enabled: management.elfTraining.metalElfTraining.milestones[1].earned
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () =>
@@ -191,6 +178,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: wrappingPaper.boosts.jazzy1,
             description: "Jazzy Wrapping Paper",
             enabled: computed(() => Decimal.gt(wrappingPaper.boosts.jazzy1.value, 1))
+        })),
+        createAdditiveModifier(() => ({
+            addend: () => Decimal.sub(lastOreGained.value, lastOreSmelted.value).max(0),
+            description: "Metal Decoration",
+            enabled: masteryEffectActive
         }))
     ]);
     const computedAutoSmeltSpeed = computed(() => autoSmeltSpeed.apply(0));
@@ -327,6 +319,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 ),
             description: "100 Letters Processed",
             enabled: letters.milestones.autoSmeltingMilestone.earned
+        })),
+        createAdditiveModifier(() => ({
+            addend: () =>
+                Decimal.sub(lastOreSmelted.value, lastOreGained.value)
+                    .max(0)
+                    .div(computedOreAmount.value),
+            description: "Metal Decoration",
+            enabled: masteryEffectActive
         }))
     ]);
     const computedOreSpeed = computed(() => oreSpeed.apply(Decimal.recip(maxOreProgress)));
@@ -336,7 +336,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         width: 400,
         height: 25,
         direction: Direction.Right,
-        fillStyle: { backgroundColor: color },
+        fillStyle: { backgroundColor: color, transitionDuration: "0s" },
         progress: () => oreProgress.value
     }));
 
@@ -583,6 +583,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
             return;
         }
 
+        const oreGained = Decimal.sub(
+            Decimal.times(computedOreSpeed.value, computedOreAmount.value),
+            Decimal.sub(lastOreSmelted.value, lastOreGained.value).max(0)
+        );
+        const oreSmelted = Decimal.sub(
+            computedAutoSmeltSpeed.value,
+            Decimal.sub(lastOreGained.value, lastOreSmelted.value).max(0)
+        );
+        lastOreGained.value = Decimal.isNaN(oreGained) ? 0 : oreGained;
+        lastOreSmelted.value = Decimal.isNaN(oreSmelted) ? 0 : oreSmelted;
+
         oreProgress.value = Decimal.times(diff, computedOreSpeed.value).plus(oreProgress.value);
         const oreGain = oreProgress.value.trunc();
         oreProgress.value = oreProgress.value.minus(oreGain);
@@ -603,7 +614,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             base: 0,
             unit: "/s",
             visible() {
-                return Decimal.gt(industrialCrucible.amount.value, 0);
+                return Decimal.gt(industrialCrucible.amount.value, 0) || masteryEffectActive.value;
             }
         },
         {
@@ -703,6 +714,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 {render(trackerDisplay)}
                 <Spacer />
+                {masteryEffectActive.value ? (
+                    <>
+                        Decoration effect: The lesser of ore mining amount x speed and auto smelting
+                        speed is increased to match the greater
+                        <Spacer />
+                    </>
+                ) : null}
                 <MainDisplay
                     resource={metal}
                     color={color}
@@ -711,7 +729,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     productionDisplay={jsx(() => (
                         <>
                             {autoSmeltEnabled.value &&
-                            Decimal.gte(industrialCrucible.amount.value, 1)
+                            (Decimal.gte(industrialCrucible.amount.value, 1) ||
+                                masteryEffectActive.value)
                                 ? `+${formatLimit(
                                       [
                                           [computedAutoSmeltSpeed.value, "smelting speed"],
@@ -733,7 +752,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 />
                 <Spacer />
                 {render(smeltOreButton)}
-                {Decimal.gte(industrialCrucible.amount.value, 1) ? (
+                {Decimal.gte(industrialCrucible.amount.value, 1) || masteryEffectActive.value ? (
                     <div style={{ width: "150px" }}>
                         <Toggle
                             title="Auto Smelt"
@@ -775,8 +794,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         minimizedDisplay: jsx(() => (
             <div>
                 {name}{" "}
-                <span class="desc">{format(metal.value)} {metal.displayName}</span>
-            </div>   
+                <span class="desc">
+                    {format(metal.value)} {metal.displayName}
+                </span>
+            </div>
         )),
         mastery,
         mastered
