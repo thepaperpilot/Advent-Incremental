@@ -6,8 +6,9 @@ import Spacer from "components/layout/Spacer.vue";
 import Sqrt from "components/math/Sqrt.vue";
 import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
-import { BuyableOptions, createBuyable, GenericBuyable } from "features/buyable";
+import { BuyableOptions, createBuyable } from "features/buyable";
 import { jsx, JSXFunction, showIf, Visibility } from "features/feature";
+import { createHotkey, GenericHotkey } from "features/hotkey";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource, Resource } from "features/resources/resource";
 import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
@@ -24,16 +25,15 @@ import { WithRequired } from "util/common";
 import { Computable, convertComputable } from "util/computed";
 import { render, renderCol, renderRow } from "util/vue";
 import { computed, ComputedRef, ref, Ref, unref } from "vue";
+import { main } from "../projEntry";
+import boxes from "./boxes";
 import cloth from "./cloth";
 import coal from "./coal";
+import { ElfBuyable } from "./elves";
 import management from "./management";
 import oil from "./oil";
-import trees from "./trees";
-import wrappingPaper from "./wrapping-paper";
 import paper from "./paper";
-import boxes from "./boxes";
-import { ElfBuyable } from "./elves";
-import { main } from "../projEntry";
+import trees from "./trees";
 
 interface Dye {
     name: string;
@@ -43,6 +43,7 @@ interface Dye {
     toGenerate: WithRequired<Modifier, "description" | "revert">;
     computedToGenerate: ComputedRef<DecimalSource>;
     display: JSXFunction;
+    hotkey: GenericHotkey;
 }
 
 type DyeUpg =
@@ -66,6 +67,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         options: {
             name: string;
             color: string;
+            key: string;
             costs: Computable<
                 {
                     base: Ref<DecimalSource> | DecimalSource;
@@ -349,10 +351,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
             };
         });
 
+        const hotkey = createHotkey(() => ({
+            key: options.key,
+            description: `${options.name} Chambers`,
+            onPress: () => {
+                if (unref(buyable.canClick)) buyable.onClick();
+            },
+            enabled: main.days[day - 1].opened
+        }));
+
         return {
             name: options.name,
             amount,
             buyable,
+            hotkey,
             toGenerate,
             computedToGenerate,
             display: jsx(() => (
@@ -370,6 +382,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         red: createDye({
             name: "Red Dye",
             color: "red",
+            key: "r",
             costs: () => [
                 {
                     base: "2e18",
@@ -398,6 +411,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         yellow: createDye({
             name: "Yellow Dye",
             color: "yellow",
+            key: "y",
             costs: () => [
                 {
                     base: "1e18",
@@ -421,6 +435,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         blue: createDye({
             name: "Blue Dye",
             color: "blue",
+            key: "u",
             costs: () => [
                 {
                     base: "5e17",
@@ -449,6 +464,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         orange: createDye({
             name: "Orange Dye",
             color: "orange",
+            key: "o",
             costs: () => [
                 {
                     base: 15,
@@ -491,6 +507,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         green: createDye({
             name: "Green Dye",
             color: "green",
+            key: "g",
             costs: () => [
                 {
                     base: 15,
@@ -538,6 +555,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         purple: createDye({
             name: "Purple Dye",
             color: "purple",
+            key: "e",
             costs: () => [
                 {
                     base: 15,
