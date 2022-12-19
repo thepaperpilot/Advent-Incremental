@@ -9,7 +9,7 @@ import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
 import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
-import { createBuyable, GenericBuyable } from "features/buyable";
+import { createBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
 import { createHotkey } from "features/hotkey";
@@ -85,9 +85,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (!unref(breeding.canClick)) {
                 return;
             }
+            // Breed
             const amount = Decimal.floor(computedSheepGain.value);
             sheep.value = Decimal.add(sheep.value, amount);
             breedingProgress.value = 0;
+            if (masteryEffectActive.value) {
+                // Then shear
+                let amount = Decimal.min(sheep.value, computedShearingAmount.value).floor();
+                wool.value = Decimal.add(wool.value, amount);
+                // Then spin
+                amount = Decimal.min(wool.value, computedSpinningAmount.value).floor();
+                cloth.value = Decimal.add(cloth.value, amount);
+            }
         }
     }));
 
@@ -127,9 +136,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (!unref(shearing.canClick)) {
                 return;
             }
+            if (masteryEffectActive.value) {
+                // Breed
+                const amount = Decimal.floor(computedSheepGain.value);
+                sheep.value = Decimal.add(sheep.value, amount);
+            }
+            // Then shear
             const amount = Decimal.min(sheep.value, computedShearingAmount.value).floor();
             wool.value = Decimal.add(wool.value, amount);
             shearingProgress.value = 0;
+            if (masteryEffectActive.value) {
+                // Then spin
+                const amount = Decimal.min(wool.value, computedSpinningAmount.value).floor();
+                cloth.value = Decimal.add(cloth.value, amount);
+            }
         }
     }));
 
@@ -169,9 +189,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (!unref(spinning.canClick)) {
                 return;
             }
+            if (masteryEffectActive.value) {
+                // Breed
+                let amount = Decimal.floor(computedSheepGain.value);
+                sheep.value = Decimal.add(sheep.value, amount);
+                // Then shear
+                amount = Decimal.min(sheep.value, computedShearingAmount.value).floor();
+                wool.value = Decimal.add(wool.value, amount);
+            }
+            // Then spin
             const amount = Decimal.min(wool.value, computedSpinningAmount.value).floor();
             cloth.value = Decimal.add(cloth.value, amount);
-            wool.value = Decimal.sub(wool.value, amount);
+            if (!masteryEffectActive.value) {
+                wool.value = Decimal.sub(wool.value, amount);
+            }
             spinningProgress.value = 0;
         }
     }));
@@ -653,6 +684,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 {render(trackerDisplay)}
                 <Spacer />
+                {masteryEffectActive.value ? (
+                    <>
+                        Decoration effect: Performing any action performs all actions and spinning
+                        doesn't spend wool
+                        <Spacer />
+                    </>
+                ) : null}
                 <MainDisplay resource={cloth} style="margin-bottom: 0" />
                 <MainDisplay resource={wool} style="margin-bottom: 0" />
                 <MainDisplay resource={sheep} style="margin-bottom: 0" />
