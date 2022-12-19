@@ -254,12 +254,24 @@ const layer = createLayer(id, () => {
         })
     };
     const boosts = {
-        christmas1: computed(() => Decimal.add(wrappingPaper.christmas.buyable.amount.value, 1)), // Probably not the best way to do this, but it works
-        rainbow1: computed(() => Decimal.pow(2, wrappingPaper.rainbow.buyable.amount.value)),
-        jazzy1: computed(() => Decimal.add(wrappingPaper.jazzy.buyable.amount.value, 1)),
-        sunshine1: computed(() => Decimal.add(wrappingPaper.sunshine.buyable.amount.value, 1)),
-        ocean1: computed(() => Decimal.pow(1.5, wrappingPaper.ocean.buyable.amount.value)),
-        beach1: computed(() => Decimal.add(wrappingPaper.beach.buyable.amount.value, 1))
+        christmas1: computed(() =>
+            main.isMastery.value ? 1 : Decimal.add(wrappingPaper.christmas.buyable.amount.value, 1)
+        ), // Probably not the best way to do this, but it works
+        rainbow1: computed(() =>
+            main.isMastery.value ? 1 : Decimal.pow(2, wrappingPaper.rainbow.buyable.amount.value)
+        ),
+        jazzy1: computed(() =>
+            main.isMastery.value ? 1 : Decimal.add(wrappingPaper.jazzy.buyable.amount.value, 1)
+        ),
+        sunshine1: computed(() =>
+            main.isMastery.value ? 1 : Decimal.add(wrappingPaper.sunshine.buyable.amount.value, 1)
+        ),
+        ocean1: computed(() =>
+            main.isMastery.value ? 1 : Decimal.pow(1.5, wrappingPaper.ocean.buyable.amount.value)
+        ),
+        beach1: computed(() =>
+            main.isMastery.value ? 1 : Decimal.add(wrappingPaper.beach.buyable.amount.value, 1)
+        )
     };
     const wrappingPaperSum = createResource(
         computed(() =>
