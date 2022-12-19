@@ -24,7 +24,7 @@ import {
     createSequentialModifier
 } from "game/modifiers";
 import { noPersist, persistent } from "game/persistence";
-import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
+import Decimal, { DecimalSource, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render } from "util/vue";
 import { computed, unref, watchEffect } from "vue";
@@ -371,10 +371,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <div>
                     {main.day.value === day
                         ? `Complete the foundation to complete the day`
+                        : main.currentlyMastering.value?.name === name
+                        ? `Complete the foundation to decorate the day`
                         : `${name} Complete!`}
                 </div>
                 {render(dayProgress)}
                 <Spacer />
+                {masteryEffectActive.value ? (
+                    <>
+                        Decoration effect: Logs are just a requirement instead of a cost
+                        <Spacer />
+                    </>
+                ) : null}
                 <div>
                     <span>The foundation is </span>
                     <h2 style={`color: ${color}; text-shadow: 0 0 10px ${color}`}>
@@ -394,7 +402,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         minimizedDisplay: jsx(() => (
             <div>
                 {name}{" "}
-                <span class="desc">{formatWhole(foundationProgress.value)}% {foundationProgress.displayName}</span>
+                <span class="desc">
+                    {formatWhole(foundationProgress.value)}% {foundationProgress.displayName}
+                </span>
             </div>
         )),
         mastery,

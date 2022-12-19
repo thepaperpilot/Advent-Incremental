@@ -141,7 +141,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             color: colorText,
             width: "160px",
             flexGrow: 1
-        }
+        },
+        visibility: () => showIf(!main.isMastery.value || masteryEffectActive.value)
     })) as ElfBuyable & { resource: Resource };
     const {
         min: minHeavy,
@@ -854,16 +855,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.add(totalOil.value, 1).log10().add(1),
             description: "Cocoa Level 2",
-            enabled: () =>
-                management.elfTraining.oilElfTraining.milestones[1].earned.value &&
-                !main.isMastery.value
+            enabled: management.elfTraining.oilElfTraining.milestones[1].earned
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
             description: "Cocoa Level 3",
-            enabled: () =>
-                management.elfTraining.oilElfTraining.milestones[2].earned.value &&
-                !main.isMastery.value
+            enabled: management.elfTraining.oilElfTraining.milestones[2].earned
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () => coalEffectiveness.value,
@@ -917,23 +914,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.sqrt(management.totalElfLevels.value),
             description: "Jack Level 4",
-            enabled: () =>
-                management.elfTraining.heatedCutterElfTraining.milestones[3].earned.value &&
-                !main.isMastery.value
+            enabled: management.elfTraining.heatedCutterElfTraining.milestones[3].earned
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.add(buildHeavy2.amount.value, 1).sqrt(),
             description: "Faith Level 4",
-            enabled: () =>
-                management.elfTraining.bonfireElfTraining.milestones[3].earned.value &&
-                !main.isMastery.value
+            enabled: management.elfTraining.bonfireElfTraining.milestones[3].earned
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
             description: "Cocoa Level 3",
-            enabled: () =>
-                management.elfTraining.oilElfTraining.milestones[2].earned.value &&
-                !main.isMastery.value
+            enabled: management.elfTraining.oilElfTraining.milestones[2].earned
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedOilSpeed = computed(() => oilSpeed.apply(0));
@@ -1353,8 +1344,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         minimizedDisplay: jsx(() => (
             <div>
                 {name}{" "}
-                <span class="desc">{format(oil.value)} {oil.displayName}</span>
-            </div>   
+                <span class="desc">
+                    {format(oil.value)} {oil.displayName}
+                </span>
+            </div>
         )),
         mastery,
         mastered

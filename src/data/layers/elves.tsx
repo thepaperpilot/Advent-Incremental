@@ -554,10 +554,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     ));
 
     const trainingCost = computed(() => {
-        let cost = Decimal.pow(
-            Decimal.sub(4, wrappingPaper.boosts.jazzy1.value),
-            totalElves.value
-        ).times(1e6);
+        let cost = Decimal.pow(4, totalElves.value).times(1e6);
         if (Decimal.gte(totalElves.value, 9)) {
             cost = Decimal.times(cost, 1e15);
         }
@@ -1022,7 +1019,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effectDisplay: "Elves work twice as fast (again)"
         },
         shouldEarn: () => Decimal.gte(totalElves.value, 10),
-        visibility: () => showIf(main.day.value >= 10)
+        visibility: () => showIf(main.day.value >= 10 && treeUpgradesMilestone.earned.value)
     }));
     const coalUpgradesMilestone = createMilestone(() => ({
         display: {
@@ -1199,10 +1196,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
             { earned: persistent<boolean>(false) }
         ]
     };
-    const mastered = persistent<boolean>(false);
-    const masteryEffectActive = computed(
-        () => mastered.value || main.currentlyMastering.value?.name === name
-    );
 
     return {
         name,
@@ -1247,8 +1240,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {milestonesDisplay()}
             </>
         )),
-        mastery,
-        mastered
+        mastery
     };
 });
 

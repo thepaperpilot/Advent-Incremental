@@ -15,6 +15,7 @@ import { render, renderRow } from "util/vue";
 import { computed, Ref, unref, watchEffect } from "vue";
 import { main } from "../projEntry";
 import { default as dyes, type enumColor } from "./dyes";
+import elves from "./elves";
 
 const id = "wrappingPaper";
 const day = 15;
@@ -49,7 +50,7 @@ interface WrappingPaperOptions {
 
 const layer = createLayer(id, () => {
     const name = "Wrapping Paper";
-    const color = "gold"; // todo: change
+    const color = "gold";
 
     const createWrappingPaper = (options: WrappingPaperOptions & Partial<BuyableOptions>) => {
         const getCost: Computable<
@@ -252,12 +253,24 @@ const layer = createLayer(id, () => {
         })
     };
     const boosts = {
-        christmas1: computed(() => Decimal.add(wrappingPaper.christmas.buyable.amount.value, 1)), // Probably not the best way to do this, but it works
-        rainbow1: computed(() => Decimal.pow(2, wrappingPaper.rainbow.buyable.amount.value)),
-        jazzy1: computed(() => Decimal.add(wrappingPaper.jazzy.buyable.amount.value, 1)),
-        sunshine1: computed(() => Decimal.add(wrappingPaper.sunshine.buyable.amount.value, 1)),
-        ocean1: computed(() => Decimal.pow(1.5, wrappingPaper.ocean.buyable.amount.value)),
-        beach1: computed(() => Decimal.add(wrappingPaper.beach.buyable.amount.value, 1))
+        christmas1: computed(() =>
+            main.isMastery.value ? 1 : Decimal.add(wrappingPaper.christmas.buyable.amount.value, 1)
+        ), // Probably not the best way to do this, but it works
+        rainbow1: computed(() =>
+            main.isMastery.value ? 1 : Decimal.pow(2, wrappingPaper.rainbow.buyable.amount.value)
+        ),
+        jazzy1: computed(() =>
+            main.isMastery.value ? 1 : Decimal.add(wrappingPaper.jazzy.buyable.amount.value, 1)
+        ),
+        sunshine1: computed(() =>
+            main.isMastery.value ? 1 : Decimal.add(wrappingPaper.sunshine.buyable.amount.value, 1)
+        ),
+        ocean1: computed(() =>
+            main.isMastery.value ? 1 : Decimal.pow(1.5, wrappingPaper.ocean.buyable.amount.value)
+        ),
+        beach1: computed(() =>
+            main.isMastery.value ? 1 : Decimal.add(wrappingPaper.beach.buyable.amount.value, 1)
+        )
     };
     const wrappingPaperSum = createResource(
         computed(() =>
@@ -280,7 +293,13 @@ const layer = createLayer(id, () => {
 
     const enterMasteryButton = createClickable(() => ({
         display: () => ({
-            title: main.isMastery.value ? "Stop Decorating" : "Begin Decoration",
+            title: `${main.isMastery.value ? "Stop Decorating" : "Begin Decorating"} ${
+                Object.values(layers).find(
+                    layer =>
+                        unref((layer as any).mastered) === false &&
+                        !["Elves", "Management"].includes(unref(layer?.name ?? ""))
+                )?.name
+            }`,
             description: jsx(() => {
                 return (
                     <>
@@ -301,6 +320,7 @@ const layer = createLayer(id, () => {
                 );
             })
         }),
+        visibility: () => showIf(main.day.value === day),
         canClick() {
             return main.isMastery.value || Decimal.gte(wrappingPaperSum.value, masteryReq.value);
         },
@@ -312,6 +332,15 @@ const layer = createLayer(id, () => {
             const layer = main.currentlyMastering.value?.id ?? "trees";
             if (!player.tabs.includes(layer)) {
                 main.openDay(layer);
+            }
+            if (layer === "paper") {
+                // Purchase first 6 elves
+                elves.elves.cuttersElf.bought.value = true;
+                elves.elves.plantersElf.bought.value = true;
+                elves.elves.expandersElf.bought.value = true;
+                elves.elves.heatedCuttersElf.bought.value = true;
+                elves.elves.heatedPlantersElf.bought.value = true;
+                elves.elves.fertilizerElf.bought.value = true;
             }
         },
         style: {
@@ -331,6 +360,7 @@ const layer = createLayer(id, () => {
         width: 600,
         height: 25,
         fillStyle: `backgroundColor: ${color}`,
+        textStyle: `color: var(--feature-foreground)`,
         progress: () => (main.day.value === day ? Decimal.div(masteredDays.value, 6) : 1),
         display: jsx(() =>
             main.day.value === day ? (
@@ -345,7 +375,11 @@ const layer = createLayer(id, () => {
     })) as GenericBar;
 
     watchEffect(() => {
-        if (main.day.value === day && Decimal.gte(masteredDays.value, 6)) {
+        if (
+            main.day.value === day &&
+            Decimal.gte(masteredDays.value, 6) &&
+            main.showLoreModal.value === false
+        ) {
             main.completeDay();
         }
     });
@@ -353,6 +387,7 @@ const layer = createLayer(id, () => {
     return {
         name,
         day,
+        color,
         display: jsx(() => {
             return (
                 <div style="width: 620px">

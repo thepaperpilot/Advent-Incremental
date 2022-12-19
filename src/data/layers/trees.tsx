@@ -596,7 +596,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         ).floor()
                     )
                 )
-            );
+            ).max(0);
+            if (masteryEffectActive.value) {
+                createdSaplings.value = Decimal.add(createdSaplings.value, amount).max(0);
+            }
             logs.value = Decimal.add(logs.value, Decimal.times(logGain.apply(1), amount));
             saplings.value = Decimal.mul(amount, masteryEffectActive.value ? 2 : 1).add(
                 saplings.value
@@ -649,7 +652,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         ).floor()
                     )
                 )
-            );
+            ).max(0);
             saplings.value = Decimal.sub(saplings.value, amount);
             manualPlantProgress.value = 0;
         }
@@ -759,7 +762,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const amountCut = Decimal.min(
             trees.value,
             Decimal.times(computedAutoCuttingAmount.value, diff)
-        );
+        ).max(0);
         const logsGained = Decimal.mul(logGain.apply(1), amountCut);
 
         const effectiveLogsGained = Decimal.div(logsGained, diff);
@@ -776,9 +779,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const amountPlanted = Decimal.min(
             saplings.value,
             Decimal.times(computedAutoPlantingAmount.value, diff)
-        );
+        ).max(0);
         saplings.value = Decimal.sub(saplings.value, amountPlanted);
-        if(Decimal.gte(saplings.value, computedTotalTrees.value)) saplings.value = computedTotalTrees.value;
     });
 
     const netSaplingGain = computed(() =>
@@ -919,8 +921,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         minimizedDisplay: jsx(() => (
             <div>
                 {name}{" "}
-                <span class="desc">{format(logs.value)} {logs.displayName}</span>
-            </div>   
+                <span class="desc">
+                    {format(logs.value)} {logs.displayName}
+                </span>
+            </div>
         )),
         mastery,
         mastered

@@ -91,7 +91,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
             paperConversion.convert();
         },
-        style: "width: 600px; min-height: unset"
+        style: "width: 600px; min-height: unset",
+        visibility: () => showIf(!main.isMastery.value || masteryEffectActive.value)
     }));
 
     function createBook(
@@ -419,9 +420,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: 0.1,
             description: "Star Level 2",
-            enabled: () =>
-                management.elfTraining.paperElfTraining.milestones[1].earned.value &&
-                !main.isMastery.value
+            enabled: management.elfTraining.paperElfTraining.milestones[1].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 0,
+            description: "Coal Decoration",
+            enabled: masteryEffectActive
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAshCost = computed(() => ashCost.apply(1e6));
@@ -465,6 +469,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const { total: totalPaper, trackerDisplay } = setUpDailyProgressTracker({
         resource: paper,
         goal: 5e3,
+        masteryGoal: 1e10,
         name,
         day,
         color,
@@ -530,20 +535,32 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 {render(trackerDisplay)}
                 <Spacer />
+                {masteryEffectActive.value ? (
+                    <>
+                        Decoration effect: Pulp no longer requires ash
+                        <Spacer />
+                    </>
+                ) : null}
                 <MainDisplay resource={paper} color={color} style="margin-bottom: 0" />
                 <Spacer />
-                {render(makePaper)}
-                <Spacer />
-                {renderGrid(Object.values(upgrades), Object.values(upgrades2))}
-                <Spacer />
-                {renderCol(...Object.values(books))}
+                {!main.isMastery.value || masteryEffectActive.value ? (
+                    <>
+                        {render(makePaper)}
+                        <Spacer />
+                        {renderGrid(Object.values(upgrades), Object.values(upgrades2))}
+                        <Spacer />
+                        {renderCol(...Object.values(books))}
+                    </>
+                ) : null}
             </>
         )),
         minimizedDisplay: jsx(() => (
             <div>
                 {name}{" "}
-                <span class="desc">{format(paper.value)} {paper.displayName}</span>
-            </div>   
+                <span class="desc">
+                    {format(paper.value)} {paper.displayName}
+                </span>
+            </div>
         )),
         mastery,
         mastered
