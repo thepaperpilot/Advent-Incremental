@@ -913,7 +913,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const dyeElf = createElf({
         name: "Carol",
         description:
-            "Carol will automatically purchase all dyes you can afford, without actually spending any resources.",
+            "Carol will automatically purchase all primary dyes you can afford, without actually spending any resources.",
         buyable: Object.values(dyes.dyes).map(dye => dye.buyable),
         cooldownModifier: dyeCooldown, // Note: Buy max will be unlocked at this point
         visibility: () =>
