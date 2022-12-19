@@ -99,7 +99,8 @@ const layer = createLayer(id, () => {
                 "The Elves probably need to be taught if they're to do better. Maybe you'll build a school so you can teach them?"
         },
         resource: trees.logs,
-        cost: 1e21
+        cost: 1e21,
+        visibility: () => showIf(!main.isMastery.value)
     }));
 
     const classroomUpgrade = createUpgrade(() => ({
@@ -120,7 +121,11 @@ const layer = createLayer(id, () => {
                 "Time for some advanced training! Now that all the elves know the basics, you have a foundation you can truly build off of. Everyone seems to be learning twice as quickly!"
         },
         visibility: () =>
-            showIf(main.day.value >= advancedDay && main.days[advancedDay - 1].opened.value),
+            showIf(
+                !main.isMastery.value &&
+                    main.day.value >= advancedDay &&
+                    main.days[advancedDay - 1].opened.value
+            ),
         resource: boxes.boxes,
         style: "width: 150px",
         cost: 1e25
@@ -1173,7 +1178,8 @@ const layer = createLayer(id, () => {
     const oilElfTraining = createElfTraining(elves.elves.oilElf, oilElfMilestones);
     const heavyDrillElfTraining = createElfTraining(
         elves.elves.heavyDrillElf,
-        heavyDrillElfMilestones);
+        heavyDrillElfMilestones
+    );
     const dyeElfTraining = createElfTraining(elves.elves.dyeElf, dyeElfMilestones);
     const row5Elves = [coalDrillElfTraining, heavyDrillElfTraining, oilElfTraining];
     const row6Elves = [metalElfTraining, dyeElfTraining];
@@ -1913,9 +1919,8 @@ const layer = createLayer(id, () => {
                 {main.day.value === day
                     ? `Get all elves to level 3.`
                     : main.day.value === advancedDay && main.days[advancedDay - 1].opened.value
-                        ? `Get all elves to level 5.`
-                        : `${name} Complete!`
-                }{" "}
+                    ? `Get all elves to level 5.`
+                    : `${name} Complete!`}{" "}
                 -
                 <button
                     class="button"
