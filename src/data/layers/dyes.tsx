@@ -55,7 +55,7 @@ type DyeUpg =
     | "blueDyeUpg2"
     | "coalUpg";
 
-export type enumColor = "red" | "green" | "blue" | "yellow" | "purple" | "orange";
+export type enumColor = "blue" | "red" | "green" | "yellow" | "purple" | "orange";
 
 const id = "dyes";
 const day = 11;
