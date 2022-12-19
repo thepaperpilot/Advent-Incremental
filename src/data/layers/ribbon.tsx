@@ -1,17 +1,24 @@
 import Spacer from "components/layout/Spacer.vue";
+import Modal from "components/Modal.vue";
+import { createCollapsibleMilestones, createCollapsibleModifierSections } from "data/common";
 import { createBar, GenericBar } from "features/bars/bar";
 import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
 import { createMilestone } from "features/milestones/milestone";
 import { createResource } from "features/resources/resource";
+import { globalBus } from "game/events";
 import { createLayer, layers } from "game/layers";
+import { createSequentialModifier } from "game/modifiers";
+import { persistent } from "game/persistence";
 import player from "game/player";
 import { DecimalSource } from "lib/break_eternity";
-import Decimal, { formatWhole } from "util/bignum";
+import Decimal, { format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render } from "util/vue";
-import { computed, unref, watchEffect } from "vue";
+import { computed, ref, unref, watchEffect } from "vue";
 import { main } from "../projEntry";
+import cloth from "./cloth";
+import dyes from "./dyes";
 import elves from "./elves";
 
 const id = "ribbon";
@@ -23,24 +30,101 @@ const layer = createLayer(id, () => {
 
     const ribbon = createResource<DecimalSource>(0, "Ribbon");
 
-    const milestones = {
-        secondaryDyeElf: createMilestone(() => ({
-            display: {
-                requirement: "10 Ribbons",
-                effectDisplay: "Carol will now mix secondary dyes for you"
-            },
-            shouldEarn: () => Decimal.gte(ribbon.value, 10)
-        })),
-        dyeBook: createMilestone(() => ({
-            display: {
-                requirement: "20 Ribbons",
-                effectDisplay: "Unlock a new book"
-            },
-            shouldEarn: () => Decimal.gte(ribbon.value, 20)
-        }))
-    }
+    const currentDyeCost = computed(() =>
+        Decimal.pow(10, ribbon.value).times(
+            [dyes.dyes.orange, dyes.dyes.green, dyes.dyes.purple].includes(currentDyeType.value)
+                ? 1e3
+                : 1e9
+        )
+    );
+    const currentDyeType = computed(
+        () => Object.values(dyes.dyes)[new Decimal(ribbon.value).toNumber() % 6]
+    );
 
-    const masteryReq = computed(() => Decimal.pow(2, masteredDays.value).times(30));
+    const ribbonProgress = persistent<DecimalSource>(0);
+    const ribbonProgressBar = createBar(() => ({
+        direction: Direction.Right,
+        width: 100,
+        height: 10,
+        style: "margin-top: 8px",
+        borderStyle: "border-color: black",
+        baseStyle: "margin-top: -1px",
+        fillStyle: "margin-top: -1px; transition-duration: 0s; background: black",
+        progress: () => Decimal.div(ribbonProgress.value, computedRibbonCooldown.value)
+    }));
+    const makeRibbon = createClickable(() => ({
+        display: {
+            title: "Make Ribbon",
+            description: jsx(() => (
+                <>
+                    Create another ribbon with {format(currentDyeCost.value)}{" "}
+                    {currentDyeType.value.name} and {format(1e9)} {cloth.cloth.displayName}
+                    <br />
+                    {render(ribbonProgressBar)}
+                </>
+            ))
+        },
+        style: {
+            minHeight: "80px"
+        },
+        canClick: () =>
+            Decimal.gte(ribbonProgress.value, computedRibbonCooldown.value) &&
+            Decimal.gte(currentDyeType.value.amount.value, currentDyeCost.value) &&
+            Decimal.gte(cloth.cloth.value, 1e9),
+        onClick() {
+            if (!unref(makeRibbon.canClick)) {
+                return;
+            }
+            currentDyeType.value.amount.value = 0;
+            currentDyeType.value.buyable.amount.value = 0;
+            cloth.cloth.value = Decimal.sub(cloth.cloth.value, 1e9);
+            ribbon.value = Decimal.add(ribbon.value, 1);
+            ribbonProgress.value = 0;
+        }
+    }));
+
+    const ribbonCooldown = createSequentialModifier(() => []);
+    const computedRibbonCooldown = computed(() => ribbonCooldown.apply(10));
+
+    const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
+        {
+            title: "Ribbon Cooldown",
+            modifier: ribbonCooldown,
+            base: 10
+        }
+    ]);
+    const showModifiersModal = ref(false);
+    const modifiersModal = jsx(() => (
+        <Modal
+            modelValue={showModifiersModal.value}
+            onUpdate:modelValue={(value: boolean) => (showModifiersModal.value = value)}
+            v-slots={{
+                header: () => <h2>{name} Modifiers</h2>,
+                body: generalTab
+            }}
+        />
+    ));
+
+    const secondaryDyeElf = createMilestone(() => ({
+        display: {
+            requirement: "5 Ribbons",
+            effectDisplay: "Carol will now mix secondary dyes for you"
+        },
+        shouldEarn: () => Decimal.gte(ribbon.value, 5)
+    }));
+    const dyeBook = createMilestone(() => ({
+        display: {
+            requirement: "10 Ribbons",
+            effectDisplay: "Unlock a new book"
+        },
+        shouldEarn: () => Decimal.gte(ribbon.value, 10),
+        visibility: () => showIf(secondaryDyeElf.earned.value)
+    }));
+    const milestones = { secondaryDyeElf, dyeBook };
+    const { collapseMilestones, display: milestonesDisplay } =
+        createCollapsibleMilestones(milestones);
+
+    const masteryReq = computed(() => Decimal.times(2, Decimal.sub(masteredDays.value, 5)));
     const enterMasteryButton = createClickable(() => ({
         display: () => ({
             title: `${main.isMastery.value ? "Stop Decorating" : "Begin Decorating"} ${
@@ -63,7 +147,7 @@ const layer = createLayer(id, () => {
                             <>
                                 <br />
                                 <br />
-                                Requires {formatWhole(masteryReq.value)} total wrapping paper
+                                Requires {formatWhole(masteryReq.value)} total ribbons
                             </>
                         )}
                     </>
@@ -110,7 +194,6 @@ const layer = createLayer(id, () => {
         width: 600,
         height: 25,
         fillStyle: `backgroundColor: ${color}`,
-        textStyle: `color: var(--feature-foreground)`,
         progress: () => (main.day.value === day ? Decimal.div(masteredDays.value - 6, 5) : 1),
         display: jsx(() =>
             main.day.value === day ? (
@@ -134,23 +217,54 @@ const layer = createLayer(id, () => {
         }
     });
 
+    globalBus.on("update", diff => {
+        if (Decimal.lt(main.day.value, day)) {
+            return;
+        }
+
+        if (Decimal.gte(ribbonProgress.value, computedRibbonCooldown.value)) {
+            ribbonProgress.value = computedRibbonCooldown.value;
+        } else {
+            ribbonProgress.value = Decimal.add(ribbonProgress.value, diff);
+            if (makeRibbon.isHolding.value) {
+                makeRibbon.onClick();
+            }
+        }
+    });
+
     return {
         name,
         day,
         color,
         ribbon,
+        ribbonProgress,
         milestones,
+        collapseMilestones,
+        generalTabCollapsed,
         display: jsx(() => {
             return (
                 <div style="width: 620px">
                     <div>
                         {main.day.value === day
                             ? `Decorate 5 previous days to complete the day`
-                            : `${name} Complete!`}
+                            : `${name} Complete!`}{" "}
+                        -{" "}
+                        <button
+                            class="button"
+                            style="display: inline-block;"
+                            onClick={() => (showModifiersModal.value = true)}
+                        >
+                            Check Modifiers
+                        </button>
                     </div>
                     {render(dayProgress)}
+                    {render(modifiersModal)}
+                    <Spacer />
+                    {render(makeRibbon)}
                     <Spacer />
                     {render(enterMasteryButton)}
+                    <Spacer />
+                    {render(milestonesDisplay)}
                 </div>
             );
         }),
