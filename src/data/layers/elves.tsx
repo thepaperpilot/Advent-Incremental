@@ -930,6 +930,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             dye.amount.value = Decimal.times(2, buyable.amount.value).plus(amount).plus(1)
                                      .times(amount).div(2)
                                      .times(Decimal.add(buyable.amount.value, 1)).div(dye.computedToGenerate.value)
+                                     .plus(dye.amount.value)
 
             buyable.amount.value = Decimal.add(buyable.amount.value, amount);
         }
