@@ -27,6 +27,8 @@ import paper from "./paper";
 import SqrtVue from "components/math/Sqrt.vue";
 import { globalBus } from "game/events";
 import { main } from "data/projEntry";
+import { createHotkey } from "features/hotkey";
+import HotkeyVue from "components/Hotkey.vue";
 
 const id = "letters";
 const day = 14;
@@ -43,13 +45,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
         height: 10,
         style: "margin-top: 8px",
         borderStyle: "border-color: black",
-        baseStyle: "margin-top: 0",
-        fillStyle: "margin-top: 0; transition-duration: 0s; background: black",
+        baseStyle: "margin-top: -1px",
+        fillStyle: "margin-top: -1px; transition-duration: 0s; background: black",
         progress: () => Decimal.div(processingProgress.value, computedProcessingCooldown.value)
     }));
     const process = createClickable(() => ({
         display: {
-            title: "Process Letters",
+            title: jsx(() => (
+                <h3>
+                    Process letters <HotkeyVue hotkey={processHK} />
+                </h3>
+            )),
             description: jsx(() => (
                 <>
                     Process {format(computedLettersGain.value, 1)} letters
@@ -74,6 +80,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             ).floor();
             letters.value = Decimal.times(amount, computedLettersGain.value).add(letters.value);
             processingProgress.value = 0;
+        }
+    }));
+
+    const processHK = createHotkey(() => ({
+        key: "l",
+        description: "Process letters",
+        onPress: () => {
+            if (process.canClick.value) process.onClick();
         }
     }));
 
@@ -285,6 +299,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         letters,
         totalLetters,
         processingProgress,
+        processHK,
         buyables,
         milestones,
         minWidth: 700,

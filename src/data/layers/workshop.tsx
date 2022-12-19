@@ -2,6 +2,7 @@
  * @module
  * @hidden
  */
+import HotkeyVue from "components/Hotkey.vue";
 import Spacer from "components/layout/Spacer.vue";
 import { createCollapsibleMilestones } from "data/common";
 import { main } from "data/projEntry";
@@ -76,7 +77,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         display: jsx(() => (
             <>
                 <b style="font-size: x-large">
-                    Build {formatWhole(foundationConversion.actualGain.value)}% of the foundation
+                    Build {formatWhole(foundationConversion.actualGain.value)}% of the foundation{" "}
+                    <HotkeyVue hotkey={buildFoundationHK} />
                 </b>
                 <br />
                 <br />
@@ -131,7 +133,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const buildFoundationHK = createHotkey(() => ({
         key: "w",
-        description: "Build part of the foundation.",
+        description: "Build foundation",
         onPress: () => {
             if (buildFoundation.canClick.value) buildFoundation.onClick();
         }
