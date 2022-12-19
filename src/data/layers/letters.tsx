@@ -88,7 +88,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         description: "Process letters",
         onPress: () => {
             if (process.canClick.value) process.onClick();
-        }
+        },
+        enabled: main.days[day - 1].opened
     }));
 
     const metalBuyable = createBuyable(() => ({

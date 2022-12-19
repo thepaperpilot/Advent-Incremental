@@ -136,7 +136,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         description: "Build foundation",
         onPress: () => {
             if (buildFoundation.canClick.value) buildFoundation.onClick();
-        }
+        },
+        enabled: main.days[day - 1].opened
     }));
 
     const shouldShowPopups = computed(() => !elves.milestones[6].earned.value);
