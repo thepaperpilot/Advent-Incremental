@@ -42,33 +42,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const foundationProgress = createResource<DecimalSource>(0, "foundation progress");
 
-    const costDecrease = createSequentialModifier(() => [
-        createMultiplicativeModifier(() => ({
-            multiplier: computed(() => Decimal.recip(wrappingPaper.boosts.beach1.value)),
-            description: "Beach Wrapping Paper",
-            enabled: computed(() => Decimal.gt(wrappingPaper.boosts.beach1.value, 1))
-        })),
-        createExponentialModifier(() => ({
-            exponent: 0.99,
-            description: "Holly Level 5",
-            enabled: management.elfTraining.cutterElfTraining.milestones[4].earned
-        }))
-    ]);
-
-    const addScaling = (value: DecimalSource) => computed(() => costDecrease.apply(value));
-
     const foundationConversion = createIndependentConversion(() => ({
         // note: 5423 is a magic number. Don't touch this or it'll self-destruct.
         scaling: addHardcap(
-            addSoftcap(
-                addSoftcap(
-                    createPolynomialScaling(addScaling(250), 1.5),
-                    addScaling(5423),
-                    1 / 1e10
-                ),
-                addScaling(1e20),
-                3e8
-            ),
+            addSoftcap(addSoftcap(createPolynomialScaling(250, 1.5), 5423, 1 / 1e10), 1e20, 3e8),
             computed(() =>
                 management.elfTraining.expandersElfTraining.milestones[2].earned.value ? 1000 : 100
             )
@@ -80,7 +57,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
         spend(gain, spent) {
             if (masteryEffectActive.value) return;
             trees.logs.value = Decimal.sub(trees.logs.value, spent);
-        }
+        },
+        costModifier: createSequentialModifier(() => [
+            createMultiplicativeModifier(() => ({
+                multiplier: wrappingPaper.boosts.beach1,
+                description: "Beach Wrapping Paper",
+                enabled: computed(() => Decimal.gt(wrappingPaper.boosts.beach1.value, 1))
+            })),
+            createExponentialModifier(() => ({
+                exponent: 1 / 0.99,
+                description: "Holly Level 5",
+                enabled: management.elfTraining.cutterElfTraining.milestones[4].earned
+            }))
+        ])
     }));
 
     const buildFoundation = createClickable(() => ({
