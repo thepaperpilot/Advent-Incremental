@@ -33,6 +33,7 @@ import plastic from "./layers/plastic";
 import trees from "./layers/trees";
 import workshop from "./layers/workshop";
 import wrappingPaper from "./layers/wrapping-paper";
+import ribbon from "./layers/ribbon";
 import boxesSymbol from "./symbols/cardboardBox.png";
 import clothSymbol from "./symbols/cloth.png";
 import coalSymbol from "./symbols/coal.png";
@@ -377,7 +378,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
             symbol: wrappingPaperSymbol,
             story: "You'll need to produce wrapping paper so the presents can be wrapped. The elves are getting a bit bored of their boring old workstations, so you decide to let them decorate with some wrapping paper.",
             completedStory:
-                "You've produced enough wrapping paper, and the elves are happy with their new workstations. However, some will need more than just wrapping paper to decorate.",
+                "You've produced enough wrapping paper, and the elves are happy with their new workstations. However, some will need more than just wrapping paper to decorate. For now, Good Job!",
             masteredStory: ""
         })),
         createDay(() => ({
@@ -385,8 +386,9 @@ export const main = createLayer("main", function (this: BaseLayer) {
             shouldNotify: false,
             layer: null, // "ribbons"
             symbol: ribbonsSymbol,
-            story: "",
-            completedStory: "",
+            story: "In addition to wrapping paper, you think some ribbons are in order! These should work pretty similarly, allowing you to decorate even more workstations!",
+            completedStory:
+                "Ribbon surrounds the north pole now - everything looks fantastic, and you're pretty sure now you have every single material you could possibly need to start making toys and preparing them for Christmas! With just under 10 days left until Christmas, you go to sleep giddy with anticipation. Good Job!",
             masteredStory: ""
         })),
         createDay(() => ({
@@ -555,9 +557,10 @@ export const getInitialLayers = (
     oil,
     plastic,
     dyes,
-    wrappingPaper,
     management,
-    letters
+    letters,
+    wrappingPaper,
+    ribbon
 ];
 
 /**
