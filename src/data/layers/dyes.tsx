@@ -317,8 +317,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         if (buyAmount.lte(0)) return;
 
                         amount.value = Decimal.times(2, buyable.amount.value).plus(buyAmount).plus(1)
-                                                   .times(buyAmount).div(2)
-                                                   .times(Decimal.add(buyable.amount.value, 1)).div(computedToGenerate.value).plus(amount.value);
+                                              .times(buyAmount).div(2)
+                                              .times(computedToGenerate.value).div(Decimal.add(buyable.amount.value, 1))
+                                              .plus(amount.value);
                         buyable.amount.value = Decimal.add(buyable.amount.value, buyAmount);
                     }
                     else {
