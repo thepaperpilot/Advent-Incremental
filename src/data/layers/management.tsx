@@ -517,7 +517,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Mary Level 3",
-                effectDisplay: "Mary and Faith now buy max."
+                effectDisplay: "Mary, Noel, and Faith now buy max."
             },
             visibility: () => showIf(heatedPlanterElfMilestones[1].earned.value),
             shouldEarn: () => heatedPlanterElfTraining.level.value >= 3
