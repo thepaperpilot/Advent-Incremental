@@ -923,7 +923,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const managementElves2 = [metalElf];
 
     const dyeColors = Object.fromEntries(
-        (["red", "yellow", "blue", "orange", "green", "purple"] as enumColor[]).map(color => [
+        (["blue", "red", "yellow", "orange", "green", "purple"] as enumColor[]).map(color => [
             dyes.dyes[color].buyable.id,
             color
         ])
