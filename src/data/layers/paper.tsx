@@ -539,7 +539,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {masteryEffectActive.value ? (
                     <>
-                        Decoration effect: Pulp no longer requires ash
+                        <div class="decoration-effect">
+                            Decoration effect:
+                            <br />
+                            Pulp no longer requires ash
+                        </div>
                         <Spacer />
                     </>
                 ) : null}

@@ -140,3 +140,10 @@ ul {
 .unaffordable {
     color: var(--danger);
 }
+
+.decoration-effect {    
+    border: solid 8px rgba(0, 0, 255, .8);
+    padding: 4px;
+    border-image: repeating-linear-gradient(-45deg, rgb(255, 76, 76) 0 10px, rgb(255, 255, 255) 10px 20px, rgb(65, 255, 95) 20px 30px, rgb(255, 255, 255) 30px 40px, rgb(255, 76, 76) 40px 50px, rgb(255, 255, 255) 50px 60px, rgb(65, 255, 95) 60px 70px, rgb(255, 255, 255) 70px 80px ) 12/10px;
+    width: 576px;
+}

@@ -1068,7 +1068,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {masteryEffectActive.value ? (
                     <>
-                        Decoration effect: Small fires' price increases drastically slower
+                        <div class="decoration-effect">
+                            Decoration effect:
+                            <br />
+                            Small fires' price increases drastically slower
+                        </div>
                         <Spacer />
                     </>
                 ) : null}

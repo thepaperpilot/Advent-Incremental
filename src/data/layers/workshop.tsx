@@ -371,7 +371,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {masteryEffectActive.value ? (
                     <>
-                        Decoration effect: Logs are just a requirement instead of a cost
+                        <div class="decoration-effect">
+                            Decoration effect:
+                            <br />
+                            Logs are just a requirement instead of a cost
+                        </div>
                         <Spacer />
                     </>
                 ) : null}

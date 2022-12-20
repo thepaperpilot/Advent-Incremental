@@ -885,7 +885,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {masteryEffectActive.value ? (
                     <>
-                        Decoration effect: Trees drop 2 saplings, and forest size increases log gain
+                        <div class="decoration-effect">
+                            Decoration effect:
+                            <br />
+                            Trees drop 2 saplings, and forest size increases log gain
+                        </div>
                         <Spacer />
                     </>
                 ) : null}

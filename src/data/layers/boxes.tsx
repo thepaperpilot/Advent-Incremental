@@ -685,7 +685,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {masteryEffectActive.value ? (
                     <>
-                        Decoration effect: Effective boxes buyables' levels are squared
+                        <div class="decoration-effect">
+                            Decoration effect:
+                            <br />
+                            Effective boxes buyables' levels are squared
+                        </div>
                         <Spacer />
                     </>
                 ) : null}

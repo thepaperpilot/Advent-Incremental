@@ -716,8 +716,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {masteryEffectActive.value ? (
                     <>
-                        Decoration effect: The lesser of ore mining amount x speed and auto smelting
-                        speed is increased to match the greater
+                        <div class="decoration-effect">
+                            Decoration effect:
+                            <br />
+                            The lesser of ore mining amount x speed and auto smelting speed is
+                            increased to match the greater
+                        </div>
                         <Spacer />
                     </>
                 ) : null}
