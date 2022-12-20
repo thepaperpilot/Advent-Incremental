@@ -3,6 +3,7 @@ import Modal from "components/Modal.vue";
 import { createCollapsibleMilestones, createCollapsibleModifierSections } from "data/common";
 import { createBar, GenericBar } from "features/bars/bar";
 import { createClickable } from "features/clickables/clickable";
+import { softcap } from "features/conversion";
 import { jsx, showIf } from "features/feature";
 import { createMilestone } from "features/milestones/milestone";
 import MainDisplay from "features/resources/MainDisplay.vue";
@@ -33,7 +34,7 @@ const layer = createLayer(id, () => {
 
     const currentDyeCost = computed(() =>
         Decimal.times(
-            ribbon.value,
+            softcap(ribbon.value, 10, 2),
             [dyes.dyes.orange, dyes.dyes.green, dyes.dyes.purple].includes(currentDyeType.value)
                 ? 2e6
                 : 1e13

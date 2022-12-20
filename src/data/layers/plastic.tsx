@@ -34,6 +34,7 @@ import oil from "./oil";
 import dyes from "./dyes";
 import management from "./management";
 import workshop from "./workshop";
+import elves from "./elves";
 
 const id = "plastic";
 const day = 10;
@@ -117,7 +118,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const upgradeCost = computed(() =>
         Decimal.pow(
-            5,
+            masteryEffectActive.value ? 4 : 5,
             Decimal.add(
                 [...Object.values(upgrades), ...Object.values(elfUpgrades)].filter(
                     upg => upg.bought.value
@@ -163,7 +164,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Paper Elf Recruitment",
             description: "Double plastic gain and unlock a new elf for training",
             showCost: !paperElf.bought.value
-        })
+        }),
+        onPurchase() {
+            if (masteryEffectActive.value) {
+                elves.elves.paperElf.bought.value = true;
+            }
+        }
     })) as GenericUpgrade;
     const boxElf = createUpgrade(() => ({
         resource: noPersist(plastic),
@@ -173,7 +179,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Box Elf Recruitment",
             description: "Double plastic gain and unlock a new elf for training",
             showCost: !boxElf.bought.value
-        })
+        }),
+        onPurchase() {
+            if (masteryEffectActive.value) {
+                elves.elves.boxElf.bought.value = true;
+            }
+        }
     })) as GenericUpgrade;
     const clothElf = createUpgrade(() => ({
         resource: noPersist(plastic),
@@ -183,7 +194,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Cloth Elf Recruitment",
             description: "Double plastic gain and unlock a new elf for training",
             showCost: !clothElf.bought.value
-        })
+        }),
+        onPurchase() {
+            if (masteryEffectActive.value) {
+                elves.elves.clothElf.bought.value = true;
+            }
+        }
     })) as GenericUpgrade;
     const elfUpgrades = { paperElf, boxElf, clothElf };
 
@@ -199,6 +215,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Gain +1% of your paper gain per second",
             effectDisplay: jsx(() => <>{formatWhole(passivePaper.amount.value)}%</>),
             showAmount: false
+        },
+        purchase() {
+            if (!unref(passivePaper.canClick)) {
+                return;
+            }
+            const cost = unref(passivePaper.cost) as DecimalSource;
+            if (!masteryEffectActive.value) {
+                passivePaper.resource!.value = Decimal.sub(
+                    passivePaper.resource!.value,
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    cost!
+                );
+            }
+            passivePaper.amount.value = Decimal.add(passivePaper.amount.value, 1);
+            passivePaper.onPurchase?.(cost);
         }
     })) as GenericBuyable;
     const passiveBoxes = createBuyable(() => ({
@@ -213,6 +244,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Gain +1% of your box gain per second",
             effectDisplay: jsx(() => <>{formatWhole(passiveBoxes.amount.value)}%</>),
             showAmount: false
+        },
+        purchase() {
+            if (!unref(passiveBoxes.canClick)) {
+                return;
+            }
+            const cost = unref(passiveBoxes.cost) as DecimalSource;
+            if (!masteryEffectActive.value) {
+                passiveBoxes.resource!.value = Decimal.sub(
+                    passiveBoxes.resource!.value,
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    cost!
+                );
+            }
+            passiveBoxes.amount.value = Decimal.add(passiveBoxes.amount.value, 1);
+            passiveBoxes.onPurchase?.(cost);
         }
     })) as GenericBuyable;
     const clothGains = createBuyable(() => ({
@@ -229,6 +275,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <>{formatWhole(Decimal.times(clothGains.amount.value, 10))}%</>
             )),
             showAmount: false
+        },
+        purchase() {
+            if (!unref(clothGains.canClick)) {
+                return;
+            }
+            const cost = unref(clothGains.cost) as DecimalSource;
+            if (!masteryEffectActive.value) {
+                clothGains.resource!.value = Decimal.sub(
+                    clothGains.resource!.value,
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    cost!
+                );
+            }
+            clothGains.amount.value = Decimal.add(clothGains.amount.value, 1);
+            clothGains.onPurchase?.(cost);
         }
     })) as GenericBuyable;
     const buyables = { passivePaper, passiveBoxes, clothGains };
@@ -356,6 +417,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 {render(trackerDisplay)}
                 <Spacer />
+                {masteryEffectActive.value ? (
+                    <>
+                        <div class="decoration-effect ribbon">
+                            Decoration effect:
+                            <br />
+                            Repeatable purchases don't spend plastic, and upgrades go up in cost
+                            slower
+                        </div>
+                        <Spacer />
+                    </>
+                ) : null}
                 <MainDisplay
                     resource={plastic}
                     color={color}
