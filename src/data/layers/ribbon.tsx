@@ -193,7 +193,7 @@ const layer = createLayer(id, () => {
         direction: Direction.Right,
         width: 600,
         height: 25,
-        fillStyle: `backgroundColor: ${color}`,
+        fillStyle: "animation: 15s ribbon-bar linear infinite",
         progress: () => (main.day.value === day ? Decimal.div(main.masteredDays.value - 6, 5) : 1),
         display: jsx(() =>
             main.day.value === day ? (

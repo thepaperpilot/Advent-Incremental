@@ -793,7 +793,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
 
     const netSaplingGain = computed(() =>
-        Decimal.sub(computedAutoCuttingAmount.value, computedAutoPlantingAmount.value)
+        Decimal.sub(
+            Decimal.mul(computedAutoCuttingAmount.value, mastered.value ? 2 : 1),
+            computedAutoPlantingAmount.value
+        )
     );
     const netTreeGain = computed(() =>
         Decimal.sub(computedAutoPlantingAmount.value, computedAutoCuttingAmount.value)

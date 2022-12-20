@@ -12,6 +12,13 @@
     aspect-ratio: 3151 / 4190;
 }
 
+.advent.decorating {
+    filter: hue-rotate(-150deg);
+}
+.advent.decorating > * {
+    filter: hue-rotate(150deg);
+}
+
 .advent > .table {
     width: 100%;
 }

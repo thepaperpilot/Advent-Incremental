@@ -202,7 +202,11 @@ export const main = createLayer("main", function (this: BaseLayer) {
                             const completed = main.day.value > day;
                             loreScene.value = completed ? day - 1 : -1;
                             const title = unref(layers[layer ?? "trees"]?.name ?? "");
-                            loreTitle.value = completed ? `${title} - Completed!` : title;
+                            loreTitle.value = mastered.value
+                                ? `${title} - Decorated!`
+                                : completed
+                                ? `${title} - Completed!`
+                                : title;
                             loreBody.value = completed
                                 ? unref(mastered)
                                     ? `${story}<hr style="
@@ -539,7 +543,13 @@ export const main = createLayer("main", function (this: BaseLayer) {
                     <div>Offline Time: {formatTime(player.offlineTime)}</div>
                 ) : null}
                 <Spacer />
-                <div class="advent">
+                {isMastery.value ? (
+                    <>
+                        <div>Now decorating {currentlyMastering.value?.name}</div>
+                        <Spacer />
+                    </>
+                ) : null}
+                <div class={{ advent: true, decorating: isMastery.value }}>
                     {days
                         .reduce(
                             (acc, curr) => {
