@@ -36,10 +36,14 @@ import paper from "./paper";
 import plastic from "./plastic";
 import workshop from "./workshop";
 <<<<<<< HEAD
+<<<<<<< HEAD
 import wrappingPaper from "./wrapping-paper";
 =======
 import toys from "./toys";
 >>>>>>> finish balancing toys layer
+=======
+import toys from "./toys";
+>>>>>>> 19d58d575e4f3e5ecb3adad514f7089e50360057
 
 const id = "metal";
 const day = 7;

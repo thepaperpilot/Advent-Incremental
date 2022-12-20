@@ -34,10 +34,14 @@ import trees from "./layers/trees";
 import workshop from "./layers/workshop";
 import wrappingPaper from "./layers/wrapping-paper";
 <<<<<<< HEAD
+<<<<<<< HEAD
 import ribbon from "./layers/ribbon";
 =======
 import toys from "./layers/toys";
 >>>>>>> fix toy sum
+=======
+import toys from "./layers/toys";
+>>>>>>> 19d58d575e4f3e5ecb3adad514f7089e50360057
 import boxesSymbol from "./symbols/cardboardBox.png";
 import clothSymbol from "./symbols/cloth.png";
 import coalSymbol from "./symbols/coal.png";
@@ -580,11 +584,15 @@ export const getInitialLayers = (
     management,
     letters,
 <<<<<<< HEAD
+<<<<<<< HEAD
     wrappingPaper,
     ribbon
 =======
     toys,
 >>>>>>> fix toy sum
+=======
+    toys,
+>>>>>>> 19d58d575e4f3e5ecb3adad514f7089e50360057
 ];
 
 /**

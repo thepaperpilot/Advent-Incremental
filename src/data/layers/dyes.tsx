@@ -40,7 +40,10 @@ import trees from "./trees";
 import boxes from "./boxes";
 import { ElfBuyable } from "./elves";
 import toys from "./toys"
+<<<<<<< HEAD
 >>>>>>> finish balancing toys layer
+=======
+>>>>>>> 19d58d575e4f3e5ecb3adad514f7089e50360057
 
 interface Dye {
     name: string;
@@ -62,10 +65,14 @@ type DyeUpg =
     | "coalUpg";
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 export type enumColor = "blue" | "red" | "green" | "yellow" | "purple" | "orange";
 =======
 export type enumColor = "red" | "green" | "blue" | "yellow" | "purple" | "orange" | "black";
 >>>>>>> finish balancing toys layer
+=======
+export type enumColor = "red" | "green" | "blue" | "yellow" | "purple" | "orange" | "black";
+>>>>>>> 19d58d575e4f3e5ecb3adad514f7089e50360057
 
 const id = "dyes";
 const day = 11;
@@ -493,6 +500,34 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {
                     visible: masteryEffectActive,
                     desc: computed(() => `/${format(boosts.blue2.value)} plastic buyables cost`)
+                }
+            ],
+            dyesToReset: []
+        }),
+        black: createDye({
+            name: "Black Dye",
+            color: "black",
+            costs: () => [
+                {
+                    base: "1e42",
+                    root: 5,
+                    res: trees.logs
+                },
+                {
+                    base: computed(() => (upgrades.yellowDyeUpg2.bought.value ? "1e15" : "2e15")),
+                    root: 2,
+                    res: oil.oil
+                }
+            ],
+            listedBoosts: [
+                {
+                    visible: true,
+                    desc: computed(
+                        () =>
+                            `*${format(
+                                boosts.black1.value
+                            )} letters processed.`
+                    )
                 }
             ],
             dyesToReset: []
