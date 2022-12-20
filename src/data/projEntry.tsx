@@ -289,7 +289,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             story: "You watch all these elves carrying incredibly large loads just in their open elf-sized hands, and realize there's probably a better way. You need to put the toys in boxes anyways, so why don't we get started working on those so the workers can take advantage as well?",
             completedStory:
                 "Wow, those boxes are really convenient! The workshop feels more and more proper with every day. You tick another requirement on your list and start looking towards tomorrow. Good Job!",
-            masteredStory: "You look at your massive amounts of boxes, but something doesn't feel right. Oh wait, the elves are only filling the boxes to half the amount that it can actually store! As realisation hits you on how you can make boxes more efficent by using simple methods, you realize that you ought to teach the art of dumping-more-stuff-in-boxes-also-known-as-hoarding to the elves. Whew, that was a lot of work. Great Job!"
+            masteredStory:
+                "You look at your massive amounts of boxes, but something doesn't feel right. Oh wait, the elves are only filling the boxes to half the amount that it can actually store! As realisation hits you on how you can make boxes more efficent by using simple methods, you realize that you ought to teach the art of dumping-more-stuff-in-boxes-also-known-as-hoarding to the elves. Whew, that was a lot of work. Great Job!"
         })),
         createDay(() => ({
             day: 7,
@@ -299,7 +300,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             story: "You woke up ready to make some toys, before realizing most toys these days are made out of more than just wood! You're sure you're close to really getting to work, but there's a few more materials you're going to need - like metal! Lots of things need metal!",
             completedStory:
                 "The sounds of drills and metal clanging join the already loud din as yet another piece of the puzzle fits into place. You're making solid progress, Good Job!",
-            masteredStory: "Cling clang clang clang. The sounds of even more drills hit your ears. As you fondly look back at the terrific work you've done, you become more motivated to work harder. Just then, Santa appears in front of you and you scream. He says, \"I see you're working hard. I suggest that you take a break.\" You thank Santa for the break, sit in a chair made by the elves as a gift, and relax."
+            masteredStory:
+                "Cling clang clang clang. The sounds of even more drills hit your ears. As you fondly look back at the terrific work you've done, you become more motivated to work harder. Just then, Santa appears in front of you and you scream. He says, \"I see you're working hard. I suggest that you take a break.\" You thank Santa for the break, sit in a chair made by the elves as a gift, and relax."
         })),
         createDay(() => ({
             day: 8,
@@ -489,6 +491,9 @@ export const main = createLayer("main", function (this: BaseLayer) {
             (completedLayer as any).mastered.value = true;
         }
         toggleMastery();
+        if (completedLayer.id === "cloth") {
+            elves.elves.plasticElf.bought.value = true;
+        }
     }
 
     return {

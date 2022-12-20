@@ -419,7 +419,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elvesMilestone2.earned
         }))
     ]);
-
     const dyeCooldown = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -431,6 +430,23 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 Decimal.times(paper.books.primaryDyeBook.totalAmount.value, 0.1).add(1),
             description: "Arts and Crafts",
             enabled: () => Decimal.gt(paper.books.primaryDyeBook.totalAmount.value, 0)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "10 Elves Trained",
+            enabled: elvesMilestone2.earned
+        }))
+    ]);
+    const plasticCooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "6 Elves Trained",
+            enabled: elvesMilestone.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.times(paper.books.plasticBook.totalAmount.value, 0.1).add(1),
+            description: "One Plastic Bag",
+            enabled: () => Decimal.gt(paper.books.plasticBook.totalAmount.value, 0)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -551,6 +567,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
             base: 10,
             unit: "/s",
             visible: management.elfTraining.fertilizerElfTraining.milestones[4].earned
+        },
+        {
+            title: "Carol Auto-Buy Frequency",
+            modifier: dyeCooldown,
+            base: 10,
+            unit: "/s",
+            visible: wrappingPaper.unlockDyeElfMilestone.earned.value && !main.isMastery.value
+        },
+        {
+            title: "Tinsel Auto-Buy Frequency",
+            modifier: plasticCooldown,
+            base: 10,
+            unit: "/s",
+            visible: plastic.masteryEffectActive.value
         }
     ]);
     const showModifiersModal = ref(false);
@@ -947,7 +977,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             buyable.amount.value = Decimal.add(buyable.amount.value, amount);
         }
     });
-    const wrappingPaperElves = [dyeElf];
+    const plasticElf = createElf({
+        name: "Tinsel",
+        description:
+            "Tinsel will automatically purchase all plastic buyables you can afford, without actually spending any resources.",
+        buyable: Object.values(plastic.buyables),
+        cooldownModifier: plasticCooldown,
+        visibility: () => showIf(plastic.masteryEffectActive.value),
+        buyMax: () => management.elfTraining.plasticElfTraining.milestones[4].earned.value
+    });
+    const wrappingPaperElves = [dyeElf, plasticElf];
     const elves = {
         cuttersElf,
         plantersElf,
@@ -965,7 +1004,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         heavyDrillElf,
         oilElf,
         metalElf,
-        dyeElf
+        dyeElf,
+        plasticElf
     };
     const totalElves = computed(() => Object.values(elves).filter(elf => elf.bought.value).length);
 
@@ -1204,6 +1244,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 bought: persistent<boolean>(false)
             },
             dyeElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                bought: persistent<boolean>(false)
+            },
+            plasticElf: {
                 buyProgress: persistent<DecimalSource>(0),
                 amountOfTimesDone: persistent<number>(0),
                 bought: persistent<boolean>(false)

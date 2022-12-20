@@ -28,13 +28,14 @@ import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { render, renderCol, renderRow } from "util/vue";
 import { computed, ComputedRef, ref, unref } from "vue";
-import boxes from "./boxes";
+import boxes, { BoxesBuyable } from "./boxes";
+import dyes from "./dyes";
+import elves from "./elves";
+import management from "./management";
 import metal from "./metal";
 import oil from "./oil";
-import dyes from "./dyes";
-import management from "./management";
+import paper from "./paper";
 import workshop from "./workshop";
-import elves from "./elves";
 
 const id = "plastic";
 const day = 10;
@@ -65,9 +66,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const activeRefinery = persistent<DecimalSource>(0);
     const oilCost = computed(() =>
-        Decimal.times(activeRefinery.value, 100).times(
-            management.elfTraining.oilElfTraining.milestones[3].earned.value ? 5 : 1
-        )
+        management.elfTraining.plasticElfTraining.milestones[2].earned.value
+            ? 0
+            : Decimal.times(activeRefinery.value, 100).times(
+                  management.elfTraining.oilElfTraining.milestones[3].earned.value ? 5 : 1
+              )
     ) as ComputedRef<DecimalSource>;
     const buildRefinery = createBuyable(() => ({
         resource: metal.metal,
@@ -206,92 +209,104 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const passivePaper = createBuyable(() => ({
         resource: noPersist(plastic),
         cost() {
-            const amount = this.amount.value;
-            return Decimal.pow(1.3, amount).times(100);
+            let v = passivePaper.amount.value;
+            v = Decimal.pow(0.95, paper.books.plasticBook.totalAmount.value).times(v);
+            return Decimal.pow(1.3, v).times(100);
+        },
+        inverseCost(x: DecimalSource) {
+            let v = Decimal.div(x, 100).log(1.3);
+            v = v.div(Decimal.pow(0.95, paper.books.plasticBook.totalAmount.value));
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         visibility: () => showIf(paperElf.bought.value),
         display: {
             title: "Plastic Printing Press",
             description: "Gain +1% of your paper gain per second",
-            effectDisplay: jsx(() => <>{formatWhole(passivePaper.amount.value)}%</>),
+            effectDisplay: jsx(() => <>{formatWhole(passivePaper.totalAmount.value)}%</>),
             showAmount: false
         },
-        purchase() {
-            if (!unref(passivePaper.canClick)) {
-                return;
+        freeLevels: computed(() => {
+            let levels: DecimalSource = 0;
+            if (management.elfTraining.plasticElfTraining.milestones[1].earned.value) {
+                levels = Decimal.max(passiveBoxes.amount.value, 1)
+                    .sqrt()
+                    .floor()
+                    .add(Decimal.max(clothGains.amount.value, 1).sqrt().floor());
             }
-            const cost = unref(passivePaper.cost) as DecimalSource;
-            if (!masteryEffectActive.value) {
-                passivePaper.resource!.value = Decimal.sub(
-                    passivePaper.resource!.value,
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    cost!
-                );
-            }
-            passivePaper.amount.value = Decimal.add(passivePaper.amount.value, 1);
-            passivePaper.onPurchase?.(cost);
-        }
-    })) as GenericBuyable;
+            return levels;
+        }),
+        totalAmount: computed(() =>
+            Decimal.add(passivePaper.amount.value, passivePaper.freeLevels.value)
+        )
+    })) as BoxesBuyable;
     const passiveBoxes = createBuyable(() => ({
         resource: noPersist(plastic),
         cost() {
-            const amount = this.amount.value;
-            return Decimal.pow(1.3, amount).times(100);
+            let v = passiveBoxes.amount.value;
+            v = Decimal.pow(0.95, paper.books.plasticBook.totalAmount.value).times(v);
+            return Decimal.pow(1.3, v).times(100);
+        },
+        inverseCost(x: DecimalSource) {
+            let v = Decimal.div(x, 100).log(1.3);
+            v = v.div(Decimal.pow(0.95, paper.books.plasticBook.totalAmount.value));
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         visibility: () => showIf(boxElf.bought.value),
         display: {
             title: "Plastic Box Folder",
             description: "Gain +1% of your box gain per second",
-            effectDisplay: jsx(() => <>{formatWhole(passiveBoxes.amount.value)}%</>),
+            effectDisplay: jsx(() => <>{formatWhole(passiveBoxes.totalAmount.value)}%</>),
             showAmount: false
         },
-        purchase() {
-            if (!unref(passiveBoxes.canClick)) {
-                return;
+        freeLevels: computed(() => {
+            let levels: DecimalSource = 0;
+            if (management.elfTraining.plasticElfTraining.milestones[1].earned.value) {
+                levels = Decimal.max(passivePaper.amount.value, 1)
+                    .sqrt()
+                    .floor()
+                    .add(Decimal.max(clothGains.amount.value, 1).sqrt().floor());
             }
-            const cost = unref(passiveBoxes.cost) as DecimalSource;
-            if (!masteryEffectActive.value) {
-                passiveBoxes.resource!.value = Decimal.sub(
-                    passiveBoxes.resource!.value,
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    cost!
-                );
-            }
-            passiveBoxes.amount.value = Decimal.add(passiveBoxes.amount.value, 1);
-            passiveBoxes.onPurchase?.(cost);
-        }
-    })) as GenericBuyable;
+            return levels;
+        }),
+        totalAmount: computed(() =>
+            Decimal.add(passiveBoxes.amount.value, passiveBoxes.freeLevels.value)
+        )
+    })) as BoxesBuyable;
     const clothGains = createBuyable(() => ({
         resource: noPersist(plastic),
         cost() {
-            const amount = this.amount.value;
-            return Decimal.pow(1.3, amount).times(100);
+            let v = clothGains.amount.value;
+            v = Decimal.pow(0.95, paper.books.plasticBook.totalAmount.value).times(v);
+            return Decimal.pow(1.3, v).times(100);
+        },
+        inverseCost(x: DecimalSource) {
+            let v = Decimal.div(x, 100).log(1.3);
+            v = v.div(Decimal.pow(0.95, paper.books.plasticBook.totalAmount.value));
+            return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
         visibility: () => showIf(clothElf.bought.value),
         display: {
             title: "Plastic Shepherd",
             description: "All cloth actions are +10% more efficient",
             effectDisplay: jsx(() => (
-                <>{formatWhole(Decimal.times(clothGains.amount.value, 10))}%</>
+                <>{formatWhole(Decimal.times(clothGains.totalAmount.value, 10))}%</>
             )),
             showAmount: false
         },
-        purchase() {
-            if (!unref(clothGains.canClick)) {
-                return;
+        freeLevels: computed(() => {
+            let levels: DecimalSource = 0;
+            if (management.elfTraining.plasticElfTraining.milestones[1].earned.value) {
+                levels = Decimal.max(passivePaper.amount.value, 1)
+                    .sqrt()
+                    .floor()
+                    .add(Decimal.max(passiveBoxes.amount.value, 1).sqrt().floor());
             }
-            const cost = unref(clothGains.cost) as DecimalSource;
-            if (!masteryEffectActive.value) {
-                clothGains.resource!.value = Decimal.sub(
-                    clothGains.resource!.value,
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    cost!
-                );
-            }
-            clothGains.amount.value = Decimal.add(clothGains.amount.value, 1);
-            clothGains.onPurchase?.(cost);
-        }
-    })) as GenericBuyable;
+            return levels;
+        }),
+        totalAmount: computed(() =>
+            Decimal.add(clothGains.amount.value, clothGains.freeLevels.value)
+        )
+    })) as BoxesBuyable;
     const buyables = { passivePaper, passiveBoxes, clothGains };
 
     const plasticGain = createSequentialModifier(() => [
@@ -348,6 +363,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.add(dyes.secondaryDyeSum.value, 1).cbrt(),
             description: "Colorful Plastic",
             enabled: oil.row3Upgrades[2].bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Tinsel Level 1",
+            enabled: management.elfTraining.plasticElfTraining.milestones[0].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.div(buildRefinery.amount.value, 100).add(1),
+            description: "Tinsel Level 4",
+            enabled: management.elfTraining.plasticElfTraining.milestones[3].earned
         }))
     ]);
     const computedPlasticGain = computed(() => plasticGain.apply(0));
@@ -422,8 +447,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         <div class="decoration-effect ribbon">
                             Decoration effect:
                             <br />
-                            Repeatable purchases don't spend plastic, and upgrades go up in cost
-                            slower
+                            Unlock a new elf for training, and upgrades go up in cost slower
                         </div>
                         <Spacer />
                     </>
@@ -463,7 +487,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             </div>
         )),
         mastery,
-        mastered
+        mastered,
+        masteryEffectActive
     };
 });
 

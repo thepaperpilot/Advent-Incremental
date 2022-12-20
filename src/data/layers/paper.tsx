@@ -298,6 +298,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () =>
             showIf(elves.elves.dyeElf.bought.value && ribbon.milestones.dyeBook.earned.value)
     });
+    const plasticBook = createBook({
+        name: "One Plastic Bag",
+        elfName: "Tinsel",
+        buyableName: "Plastic Buyables",
+        visibility: () => showIf(plastic.masteryEffectActive.value)
+    });
     const books = {
         cuttersBook,
         plantersBook,
@@ -316,7 +322,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         oilBook,
         metalBook,
         primaryDyeBook,
-        secondaryDyeBook
+        secondaryDyeBook,
+        plasticBook
     };
     const sumBooks = computed(() =>
         Object.values(books).reduce((acc, curr) => acc.add(curr.amount.value), new Decimal(0))
@@ -503,7 +510,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             oilBook: { amount: persistent<DecimalSource>(0) },
             metalBook: { amount: persistent<DecimalSource>(0) },
             primaryDyeBook: { amount: persistent<DecimalSource>(0) },
-            secondaryDyeBook: { amount: persistent<DecimalSource>(0) }
+            secondaryDyeBook: { amount: persistent<DecimalSource>(0) },
+            plasticBook: { amount: persistent<DecimalSource>(0) }
         },
         upgrades: {
             clothUpgrade: { bought: persistent<boolean>(false) },

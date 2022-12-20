@@ -172,14 +172,8 @@ const layer = createLayer(id, () => {
             if (!player.tabs.includes(layer)) {
                 main.openDay(layer);
             }
-            if (layer === "paper") {
-                // Purchase first 6 elves
-                elves.elves.cuttersElf.bought.value = true;
-                elves.elves.plantersElf.bought.value = true;
-                elves.elves.expandersElf.bought.value = true;
-                elves.elves.heatedCuttersElf.bought.value = true;
-                elves.elves.heatedPlantersElf.bought.value = true;
-                elves.elves.fertilizerElf.bought.value = true;
+            if (layer === "cloth") {
+                elves.elves.plasticElf.bought.value = true;
             }
         },
         style: {

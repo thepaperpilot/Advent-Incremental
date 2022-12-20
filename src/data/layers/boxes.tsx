@@ -6,7 +6,7 @@ import Spacer from "components/layout/Spacer.vue";
 import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
 import { main } from "data/projEntry";
-import { createBuyable, GenericBuyable } from "features/buyable";
+import { createBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
 import { createCumulativeConversion, createPolynomialScaling } from "features/conversion";
 import { jsx, showIf } from "features/feature";
@@ -21,10 +21,10 @@ import {
     createSequentialModifier,
     Modifier
 } from "game/modifiers";
-import { isPersistent, noPersist, persistent } from "game/persistence";
+import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { WithRequired } from "util/common";
-import { render, renderGrid, renderRow } from "util/vue";
+import { render, renderGrid } from "util/vue";
 import { computed, ComputedRef, ref, unref } from "vue";
 import dyes from "./dyes";
 import elves, { ElfBuyable } from "./elves";
@@ -419,7 +419,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         resource: noPersist(boxes),
         cost() {
             let v = this.amount.value;
-            v = Decimal.pow(0.95, paper.books.boxBook.amount.value).times(v);
+            v = Decimal.pow(0.95, paper.books.boxBook.totalAmount.value).times(v);
             let scaling = 10;
             if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
                 scaling--;
@@ -487,7 +487,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         resource: noPersist(boxes),
         cost() {
             let v = this.amount.value;
-            v = Decimal.pow(0.95, paper.books.boxBook.amount.value).times(v);
+            v = Decimal.pow(0.95, paper.books.boxBook.totalAmount.value).times(v);
             let scaling = 15;
             if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
                 scaling--;
@@ -549,7 +549,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         resource: noPersist(boxes),
         cost() {
             let v = this.amount.value;
-            v = Decimal.pow(0.95, paper.books.boxBook.amount.value).times(v);
+            v = Decimal.pow(0.95, paper.books.boxBook.totalAmount.value).times(v);
             let scaling = 20;
             if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
                 scaling--;

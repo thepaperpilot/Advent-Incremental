@@ -187,7 +187,8 @@ const layer = createLayer(id, () => {
                 "Frosty",
                 "Cocoa",
                 "Twinkle",
-                "Carol"
+                "Carol",
+                "Tinsel"
             ].indexOf(elf.name) + 1;
         if (elf.name == "Star" || elf.name == "Bell") {
             costMulti /= 3;
@@ -849,8 +850,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Gingersnap Level 4",
-                effectDisplay:
-                    "Raise secondary dyes' first effects to the 1.1"
+                effectDisplay: "Raise secondary dyes' first effects to the 1.1"
             },
             visibility: () => showIf(clothElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => clothElfTraining.level.value >= 4
@@ -1093,6 +1093,52 @@ const layer = createLayer(id, () => {
             visibility: () => showIf(dyeElfMilestones[3].earned.value && main.day.value >= 16)
         }))
     ] as Array<GenericMilestone>;
+    const plasticElfMilestones = [
+        createMilestone(() => ({
+            display: {
+                requirement: "Tinsel Level 1",
+                effectDisplay: "Double plastic gain"
+            },
+            shouldEarn: () => plasticElfTraining.level.value >= 1
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Tinsel Level 2",
+                effectDisplay: jsx(() => (
+                    <>
+                        Every plastic buyable adds <Sqrt>level</Sqrt> levels to the other plastic
+                        buyables.
+                    </>
+                ))
+            },
+            shouldEarn: () => plasticElfTraining.level.value >= 2,
+            visibility: () => showIf(plasticElfMilestones[0].earned.value)
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Tinsel Level 3",
+                effectDisplay: "Refineries don't spend oil"
+            },
+            shouldEarn: () => plasticElfTraining.level.value >= 3,
+            visibility: () => showIf(plasticElfMilestones[1].earned.value)
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Tinsel Level 4",
+                effectDisplay: "Increase plastic gain by +1% for each refinery"
+            },
+            shouldEarn: () => plasticElfTraining.level.value >= 4,
+            visibility: () => showIf(plasticElfMilestones[2].earned.value && main.day.value >= 16)
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Tinsel Level 5",
+                effectDisplay: "Buy maximum plastic buyables"
+            },
+            shouldEarn: () => plasticElfTraining.level.value >= 5,
+            visibility: () => showIf(plasticElfMilestones[3].earned.value && main.day.value >= 16)
+        }))
+    ] as Array<GenericMilestone>;
     // ------------------------------------------------------------------------------- Milestone display
 
     const currentShown = persistent<string>("Holly");
@@ -1160,7 +1206,7 @@ const layer = createLayer(id, () => {
         }))
     );
     const clothElfTraining = createElfTraining(elves.elves.clothElf, clothElfMilestones);
-    const plasticElfTraining = [paperElfTraining, boxElfTraining, clothElfTraining];
+    const plasticElvesTraining = [paperElfTraining, boxElfTraining, clothElfTraining];
     const coalDrillElfTraining = createElfTraining(
         elves.elves.coalDrillElf,
         coalDrillElfMilestones
@@ -1172,8 +1218,9 @@ const layer = createLayer(id, () => {
         heavyDrillElfMilestones
     );
     const dyeElfTraining = createElfTraining(elves.elves.dyeElf, dyeElfMilestones);
+    const plasticElfTraining = createElfTraining(elves.elves.plasticElf, plasticElfMilestones);
     const row5Elves = [coalDrillElfTraining, heavyDrillElfTraining, oilElfTraining];
-    const row6Elves = [metalElfTraining, dyeElfTraining];
+    const row6Elves = [metalElfTraining, dyeElfTraining, plasticElfTraining];
     const elfTraining = {
         cutterElfTraining,
         planterElfTraining,
@@ -1191,7 +1238,8 @@ const layer = createLayer(id, () => {
         metalElfTraining,
         oilElfTraining,
         heavyDrillElfTraining,
-        dyeElfTraining
+        dyeElfTraining,
+        plasticElfTraining
     };
     const day12Elves = [
         cutterElfTraining,
@@ -1707,6 +1755,12 @@ const layer = createLayer(id, () => {
             modifier: dyeElfTraining.elfXPGain,
             base: 0.1,
             unit: " XP"
+        },
+        {
+            title: "Tinsel XP Gain per Action",
+            modifier: plasticElfTraining.elfXPGain,
+            base: 0.1,
+            unit: " XP"
         }
     ]);
     const showModifiersModal = ref(false);
@@ -1904,6 +1958,16 @@ const layer = createLayer(id, () => {
                     { earned: persistent<boolean>(false) },
                     { earned: persistent<boolean>(false) }
                 ]
+            },
+            plasticElfTraining: {
+                exp: persistent<DecimalSource>(0),
+                milestones: [
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) },
+                    { earned: persistent<boolean>(false) }
+                ]
             }
         },
         teaching: { bought: persistent<boolean>(false) },
@@ -1990,7 +2054,7 @@ const layer = createLayer(id, () => {
                             treeElfTraining,
                             coalElfTraining,
                             fireElfTraining,
-                            plasticElfTraining,
+                            plasticElvesTraining,
                             row5Elves,
                             row6Elves
                         )}
