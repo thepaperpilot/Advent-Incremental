@@ -1,12 +1,16 @@
 <template>
     <div
         class="day feature dontMerge opened"
-        :class="{ mastered: unref(mastered), wallpaper: day < 8 }"
+        :class="{
+            mastered: unref(mastered),
+            masteryLock,
+            wallpaper: day < 8
+        }"
         v-if="opened.value"
     >
         <div class="ribbon" v-if="day >= 8" />
         <Tooltip :display="layers[layer ?? '']?.name ?? ''" :direction="Direction.Up" yoffset="5px">
-            <Transition appear name="door">
+            <Transition appear :name="masteryLock ? 'door-close' : 'door'">
                 <div class="doors" @click="emit('openLayer')">
                     <div class="date">Dec<br />{{ day }}</div>
                     <div class="date">Dec<br />{{ day }}</div>
@@ -33,7 +37,7 @@
         <div v-if="main.day.value === day && !canOpen" class="timer">
             {{
                 main.timeUntilNewDay.value < 0
-                    ? "NYI, sorry"
+                    ? "Not Ready"
                     : formatTime(main.timeUntilNewDay.value, 0)
             }}
         </div>
@@ -49,9 +53,11 @@ import { layers } from "game/layers";
 import { Direction } from "util/common";
 import { formatTime } from "util/break_eternity";
 import { ProcessedComputable } from "util/computed";
-import type { Ref } from "vue";
+import { Ref, Transition } from "vue";
 import { computed, unref } from "vue";
 import { main } from "./projEntry";
+import coal from "./layers/coal";
+import dyes from "./layers/dyes";
 
 const props = defineProps<{
     day: number;
@@ -77,6 +83,17 @@ const canOpen = computed(
         new Date().getDate() >= props.day
 );
 
+const isMastering = main.isMastery;
+const includeMastery = computed(
+    () =>
+        props.mastered.value ||
+        main.currentlyMastering.value == layers[props.layer ?? ""] ||
+        ["wrappingPaper", "ribbon"].includes(props.layer || "") ||
+        (coal.mastered.value && props.layer == "elves") ||
+        (dyes.mastered.value && props.layer == "elves")
+);
+const masteryLock = computed(() => isMastering.value && !includeMastery.value);
+
 function tryUnlock() {
     if (canOpen.value) {
         emit("unlockLayer");
@@ -94,11 +111,8 @@ function tryUnlock() {
     margin: 5%;
 }
 
-.mastered.day {
-    box-shadow: rgb(0 0 0 / 25%) 0px 0px 0px 3px inset;
-}
-
 .mastered.day.wallpaper {
+    box-shadow: rgb(0 0 0 / 25%) 0px 0px 0px 3px inset;
     background: linear-gradient(
         225deg,
         rgb(255, 76, 76) 11.1%,
@@ -115,54 +129,66 @@ function tryUnlock() {
 
 .door-enter-from::before,
 .door-enter-from::after,
-.door-leave-to::before,
-.door-leave-to::after {
+.door-close-enter-to::before,
+.door-close-enter-to::after {
     transform: perspective(150px) rotateY(0) !important;
 }
 
 .door-enter-from .date,
-.door-leave-to .date {
+.door-close-enter-to .date {
     transform: translate(-50%, -50%) perspective(150px) rotateY(0) !important;
 }
 
 .door-enter-active::before,
 .door-enter-active::after,
-.door-leave-active::before,
-.door-leave-active::after {
+.door-close-enter-active::before,
+.door-close-enter-active::after {
     z-index: 2;
 }
 
 .door-enter-active .date,
-.door-leave-active .date {
+.door-close-enter-active .date {
     z-index: 3;
 }
 
-.day.opened .doors::before,
-.day.opened .doors::after,
-.day.opened .doors .date {
+.day .doors::before,
+.day .doors::after,
+.day .doors .date {
     transition: 1s;
 }
 
 .day.opened .doors::before {
     transform-origin: left;
-    transform: perspective(150px) rotateY(-135deg);
 }
 
 .day.opened .doors::after {
     transform-origin: right;
+}
+
+.day.opened:not(.masteryLock) .doors::before {
+    transform: perspective(150px) rotateY(-135deg);
+}
+
+.day.opened:not(.masteryLock) .doors::after {
     transform: perspective(150px) rotateY(135deg);
 }
 
 .day.opened .doors .date:first-child {
     transform-origin: left;
-    transform: translate(-50%, -50%) perspective(150px) rotateY(-135deg);
     clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%);
 }
 
 .day.opened .doors .date:last-child {
     transform-origin: right;
-    transform: translate(-50%, -50%) perspective(150px) rotateY(135deg);
     clip-path: polygon(100% 0, 50% 0, 50% 100%, 100% 100%);
+}
+
+.day.opened:not(.masteryLock) .doors .date:first-child {
+    transform: translate(-50%, -50%) perspective(150px) rotateY(-135deg);
+}
+
+.day.opened:not(.masteryLock) .doors .date:last-child {
+    transform: translate(-50%, -50%) perspective(150px) rotateY(135deg);
 }
 
 .tooltip-container,
@@ -186,6 +212,7 @@ function tryUnlock() {
     width: 50%;
     height: 100%;
     pointer-events: none;
+    z-index: 1;
 }
 
 .doors::before {
@@ -196,6 +223,20 @@ function tryUnlock() {
 .doors::after {
     top: 0;
     right: 0;
+}
+
+.masteryLock {
+    cursor: not-allowed;
+}
+.masteryLock > * {
+    pointer-events: none;
+}
+.masteryLock > * > :not(.doors) {
+    opacity: 0;
+}
+.masteryLock .icon {
+    transition-duration: 0.2s;
+    transition-delay: 0.8s;
 }
 
 .mastered.wallpaper .doors::before,
@@ -228,6 +269,7 @@ function tryUnlock() {
 
 .mastered .ribbon::after {
     content: "🎀";
+    color: red;
     position: absolute;
     top: -5px;
     left: -5px;
@@ -260,7 +302,7 @@ function tryUnlock() {
     pointer-events: none;
     user-select: none;
     backface-visibility: hidden;
-    width: 100%;
+    width: calc(100% - 14px);
 }
 
 .timer {
@@ -310,5 +352,6 @@ function tryUnlock() {
     transform: translate(-50%, -50%);
     opacity: 0.2;
     font-size: 400%;
+    z-index: 2;
 }
 </style>

@@ -14,17 +14,14 @@
             );
     }
 }
+
 @keyframes wrapping-paper-bar {
     from {
         background: 0 0 / 113px 113px repeat repeating-linear-gradient(-45deg,
                 rgb(255, 76, 76) 0 10px,
                 rgb(255, 255, 255) 10px 20px,
                 rgb(65, 255, 95) 20px 30px,
-                rgb(255, 255, 255) 30px 40px,
-                rgb(255, 76, 76) 40px 50px,
-                rgb(255, 255, 255) 50px 60px,
-                rgb(65, 255, 95) 60px 70px,
-                rgb(255, 255, 255) 70px 80px
+                rgb(255, 255, 255) 30px 40px
             );
     }
     to {
@@ -32,11 +29,22 @@
                 rgb(255, 76, 76) 0 10px,
                 rgb(255, 255, 255) 10px 20px,
                 rgb(65, 255, 95) 20px 30px,
-                rgb(255, 255, 255) 30px 40px,
-                rgb(255, 76, 76) 40px 50px,
-                rgb(255, 255, 255) 50px 60px,
-                rgb(65, 255, 95) 60px 70px,
-                rgb(255, 255, 255) 70px 80px
+                rgb(255, 255, 255) 30px 40px
+            );
+    }
+}
+
+@keyframes ribbon-bar {
+    from {
+        background: 0 0 / 114px 114px repeat repeating-linear-gradient(-45deg,
+                darkred 0 10px,
+                #af0000 10px 20px
+            );
+    }
+    to {
+        background: 114px 0px / 114px 114px repeat repeating-linear-gradient(-45deg, 
+                darkred 0 10px,
+                #af0000 10px 20px
             );
     }
 }
