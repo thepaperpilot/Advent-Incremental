@@ -217,21 +217,29 @@ const factory = createLayer(id, () => {
     });
     const graphicContainer = new Graphics();
     let spriteContainer = new Container();
-    const movingBlocks = new Container();
-
-    graphicContainer.zIndex = 1;
-    movingBlocks.zIndex = 2;
-    app.stage.addChild(graphicContainer, spriteContainer, movingBlocks);
+    let movingBlocks = new Container();
+    resetContainers();
+    app.stage.addChild(graphicContainer);
     app.stage.sortableChildren = true;
     let loaded = false;
 
+    function resetContainers() {
+        spriteContainer.destroy({ children: true });
+        movingBlocks.destroy({ children: true });
+        spriteContainer = new Container();
+        movingBlocks = new Container();
+        graphicContainer.zIndex = 1;
+        /*graphicContainer.position.x = 0.5
+        graphicContainer.position.y = 0.5
+        movingBlocks.position.x = 0.5
+        movingBlocks.position.y = 0.5*/
+        movingBlocks.zIndex = 2;
+        app.stage.addChild(spriteContainer, movingBlocks);
+    }
+
     globalBus.on("onLoad", async () => {
         loaded = false;
-        spriteContainer.destroy({
-            children: true
-        });
-        spriteContainer = new Container();
-        app.stage.addChild(spriteContainer);
+        resetContainers();
         for (const y of components.value.keys()) {
             for (const x of components.value[y].keys()) {
                 const data = components.value[y][x];
@@ -287,6 +295,13 @@ const factory = createLayer(id, () => {
                                 if (compBehind.type === "conveyor") {
                                     // push it to the next conveyor, kill it from the
                                     // curent conveyor
+                                    // too many packages
+                                    if (
+                                        compBehind.nextPackages.length +
+                                            compBehind.packages.length >=
+                                        1
+                                    )
+                                        continue;
                                     block.lastX += dirAmt;
                                     compBehind.nextPackages.push(block);
                                     compData.packages.splice(key, 1);
