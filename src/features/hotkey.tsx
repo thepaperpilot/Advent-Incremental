@@ -13,6 +13,7 @@ import type {
 import { processComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { shallowReactive, unref } from "vue";
+import HotkeyVue from "components/Hotkey.vue";
 
 export const hotkeys: Record<string, GenericHotkey | undefined> = shallowReactive({});
 export const HotkeyType = Symbol("Hotkey");
@@ -101,11 +102,13 @@ registerInfoComponent(
             <div>
                 <br />
                 <h4>Hotkeys</h4>
-                {keys.map(hotkey => (
-                    <div>
-                        {hotkey?.key}: {hotkey?.description}
-                    </div>
-                ))}
+                <div style="column-count: 2">
+                    {keys.map(hotkey => (
+                        <div>
+                            <HotkeyVue hotkey={hotkey as GenericHotkey} /> {hotkey?.description}
+                        </div>
+                    ))}
+                </div>
             </div>
         );
     })

@@ -1,3 +1,4 @@
+import { main } from "data/projEntry";
 import { globalBus } from "game/events";
 import { NonPersistent, Persistent, State } from "game/persistence";
 import { persistent } from "game/persistence";
@@ -67,7 +68,7 @@ export function trackBest(resource: Resource): Ref<DecimalSource> {
 export function trackTotal(resource: Resource): Ref<DecimalSource> {
     const total = persistent(resource.value);
     watch(resource, (amount, prevAmount) => {
-        if (loadingSave.value) {
+        if (loadingSave.value || main.swappingMastery.value) {
             return;
         }
         if (Decimal.gt(amount, prevAmount)) {

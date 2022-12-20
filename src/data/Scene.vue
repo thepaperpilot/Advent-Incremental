@@ -56,6 +56,8 @@
             <img v-if="day >= 5" :src="boxes" class="scene-item" />
             <img v-if="day >= 9" :src="plastic" class="scene-item" />
             <img v-if="day >= 10" :src="dyes" class="scene-item" />
+            <img v-if="day >= 14" :src="wrappingPaper" class="scene-item" />
+            <img v-if="day >= 15" :src="ribbons" class="scene-item" />
         </div>
     </div>
 </template>
@@ -75,6 +77,8 @@ import dyes from "./symbols/dyes.png";
 import management from "./symbols/elfManagement.png";
 import advManagement from "./symbols/workshopMansion.png";
 import letters from "./symbols/letterbox.png";
+import wrappingPaper from "./symbols/wrappingPaper.png";
+import ribbons from "./symbols/ribbons.png";
 
 defineProps<{
     day: number;

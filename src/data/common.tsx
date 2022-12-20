@@ -16,12 +16,13 @@ import { GenericMilestone } from "features/milestones/milestone";
 import { displayResource, Resource, trackTotal } from "features/resources/resource";
 import type { GenericTree, GenericTreeNode, TreeNode, TreeNodeOptions } from "features/trees/tree";
 import { createTreeNode } from "features/trees/tree";
+import { BaseLayer, Layer } from "game/layers";
 import type { Modifier } from "game/modifiers";
 import type { Persistent } from "game/persistence";
 import { DefaultValue, persistent } from "game/persistence";
 import player from "game/player";
 import settings from "game/settings";
-import type { DecimalSource } from "util/bignum";
+import { DecimalSource, formatSmall } from "util/bignum";
 import Decimal, { format } from "util/bignum";
 import { formatWhole } from "util/break_eternity";
 import { Direction, WithRequired } from "util/common";
@@ -36,6 +37,7 @@ import { getFirstFeature, render, renderColJSX, renderJSX, VueFeature } from "ut
 import { Ref, watchEffect } from "vue";
 import { computed, unref } from "vue";
 import "./common.css";
+import "data/layers/styles/day-gradients.css";
 import { main } from "./projEntry";
 
 /** An object that configures a {@link ResetButton} */
@@ -334,7 +336,11 @@ export function createCollapsibleModifierSections(
             return (
                 <>
                     {hasPreviousSection ? <br /> : null}
-                    <div style={{"--unit": settings.alignUnits && s.unit ? "'" + s.unit + "'" : ""}}>
+                    <div
+                        style={{
+                            "--unit": settings.alignUnits && s.unit ? "'" + s.unit + "'" : ""
+                        }}
+                    >
                         {header}
                         <br />
                         {modifiers}
@@ -342,7 +348,7 @@ export function createCollapsibleModifierSections(
                         <div class="modifier-container">
                             <span class="modifier-description">Total</span>
                             <span class="modifier-amount">
-                                {format(s.modifier.apply(unref(processed.base[i]) ?? 1))}
+                                {formatSmall(s.modifier.apply(unref(processed.base[i]) ?? 1))}
                                 {s.unit}
                             </span>
                         </div>
@@ -409,9 +415,15 @@ export function createCollapsibleMilestones(milestones: Record<string, GenericMi
 export function setUpDailyProgressTracker(options: {
     resource: Resource;
     goal: DecimalSource;
+    masteryGoal?: DecimalSource;
     name: string;
     day: number;
-    color: string;
+    background:
+        | string
+        | {
+              gradient: string;
+              duration: string;
+          };
     textColor?: string;
     modal?: {
         show: Ref<boolean>;
@@ -422,9 +434,10 @@ export function setUpDailyProgressTracker(options: {
 }) {
     const total = options.ignoreTotal ? options.resource : trackTotal(options.resource);
     const progressFunc = () => {
-        if (main.day.value !== options.day) return 1;
+        const isMastering = main.currentlyMastering.value?.name === options.name;
+        if (main.day.value !== options.day && !isMastering) return 1;
         let progress = Decimal.add(total.value, 1);
-        let requirement = options.goal;
+        let requirement = isMastering ? options.masteryGoal ?? options.goal : options.goal;
         if (options.usingLog?.value ?? settings.usingLog) {
             progress = progress.log10();
             requirement = Decimal.log10(requirement);
@@ -435,13 +448,25 @@ export function setUpDailyProgressTracker(options: {
         direction: Direction.Right,
         width: 600,
         height: 25,
-        fillStyle: { backgroundColor: options.color },
+        /* eslint-disable prettier/prettier */
+        fillStyle: typeof options.background == "string" ? {
+            backgroundColor: options.background,
+        } : {
+            animation: options.background.duration + " " + options.background.gradient + " linear infinite",
+        },
+        /* eslint-enable prettier/prettier */
         textStyle: options.textColor ? { color: options.textColor } : undefined,
         progress: progressFunc,
         display: jsx(() =>
-            main.day.value === options.day ? (
+            main.day.value === options.day ||
+            main.currentlyMastering.value?.name === options.name ? (
                 <>
-                    {formatWhole(total.value)}/{formatWhole(options.goal)}
+                    {formatWhole(total.value)}/
+                    {formatWhole(
+                        main.currentlyMastering.value?.name === options.name
+                            ? options.masteryGoal ?? options.goal
+                            : options.goal
+                    )}
                 </>
             ) : (
                 ""
@@ -456,6 +481,12 @@ export function setUpDailyProgressTracker(options: {
                     <>
                         Reach {formatWhole(options.goal)} {options.ignoreTotal ? "" : "total "}
                         {options.resource.displayName} to complete the day
+                    </>
+                ) : main.currentlyMastering.value?.name === options.name ? (
+                    <>
+                        Reach {formatWhole(options.masteryGoal ?? options.goal)}{" "}
+                        {options.ignoreTotal ? "" : "total "}
+                        {options.resource.displayName} to decorate the day
                     </>
                 ) : (
                     <>{options.name} Complete!</>
@@ -482,6 +513,11 @@ export function setUpDailyProgressTracker(options: {
     watchEffect(() => {
         if (main.day.value === options.day && Decimal.gte(total.value, options.goal)) {
             main.completeDay();
+        } else if (
+            main.currentlyMastering.value?.name === options.name &&
+            Decimal.gte(total.value, options.masteryGoal ?? options.goal)
+        ) {
+            main.completeMastery();
         }
     });
 
@@ -544,3 +580,11 @@ export function changeActiveBuyables(options: {
         max
     };
 }
+/* ugh
+export function masteryHelper(layer: BaseLayer & {mastery: Partial<typeof layer>}, main: Layer<any> & { isMastery: Ref<boolean> }): ProxyHandler<typeof layer.mastery>{
+    return new Proxy({}, {
+        get (__, key: keyof typeof layer.mastery) {
+            return main.isMastery.value ? layer.mastery[key] : layer[key]
+        }
+    })
+} */

@@ -16,7 +16,7 @@ import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier, Modifier } from "game/modifiers";
-import { noPersist } from "game/persistence";
+import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatSmall, formatWhole } from "util/bignum";
 import { WithRequired } from "util/common";
 import { render, renderCol, renderGrid } from "util/vue";
@@ -27,6 +27,7 @@ import dyes from "./dyes";
 import elves, { ElfBuyable } from "./elves";
 import management from "./management";
 import plastic from "./plastic";
+import ribbon from "./ribbon";
 import trees from "./trees";
 import workshop from "./workshop";
 import wrappingPaper from "./wrapping-paper";
@@ -91,7 +92,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
             paperConversion.convert();
         },
-        style: "width: 600px; min-height: unset"
+        style: "width: 600px; min-height: unset",
+        visibility: () => showIf(!main.isMastery.value || masteryEffectActive.value)
     }));
 
     function createBook(
@@ -283,11 +285,24 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buyableName: "Metal Machines",
         visibility: () => showIf(elves.elves.metalElf.bought.value)
     });
-    const dyeBook = createBook({
+    const primaryDyeBook = createBook({
         name: "Arts and Crafts",
         elfName: "Carol",
-        buyableName: "Dyes",
+        buyableName: "Primary Dyes",
         visibility: () => showIf(elves.elves.dyeElf.bought.value)
+    });
+    const secondaryDyeBook = createBook({
+        name: "Natural Dyeing",
+        elfName: "Carol",
+        buyableName: "Secondary Dyes",
+        visibility: () =>
+            showIf(elves.elves.dyeElf.bought.value && ribbon.milestones.dyeBook.earned.value)
+    });
+    const plasticBook = createBook({
+        name: "One Plastic Bag",
+        elfName: "Tinsel",
+        buyableName: "Plastic Buyables",
+        visibility: () => showIf(plastic.masteryEffectActive.value)
     });
     const books = {
         cuttersBook,
@@ -306,7 +321,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         heavyDrillBook,
         oilBook,
         metalBook,
-        dyeBook
+        primaryDyeBook,
+        secondaryDyeBook,
+        plasticBook
     };
     const sumBooks = computed(() =>
         Object.values(books).reduce((acc, curr) => acc.add(curr.amount.value), new Decimal(0))
@@ -413,6 +430,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 0.1,
             description: "Star Level 2",
             enabled: management.elfTraining.paperElfTraining.milestones[1].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 0,
+            description: "Coal Decoration",
+            enabled: masteryEffectActive
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedAshCost = computed(() => ashCost.apply(1e6));
@@ -456,15 +478,56 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const { total: totalPaper, trackerDisplay } = setUpDailyProgressTracker({
         resource: paper,
         goal: 5e3,
+        masteryGoal: 5e7,
         name,
         day,
-        color,
+        background: color,
         textColor: "var(--feature-foreground)",
         modal: {
             show: showModifiersModal,
             display: modifiersModal
         }
     });
+
+    const mastery = {
+        paper: persistent<DecimalSource>(0),
+        totalPaper: persistent<DecimalSource>(0),
+        books: {
+            cuttersBook: { amount: persistent<DecimalSource>(0) },
+            plantersBook: { amount: persistent<DecimalSource>(0) },
+            expandersBook: { amount: persistent<DecimalSource>(0) },
+            heatedCuttersBook: { amount: persistent<DecimalSource>(0) },
+            heatedPlantersBook: { amount: persistent<DecimalSource>(0) },
+            fertilizerBook: { amount: persistent<DecimalSource>(0) },
+            smallFireBook: { amount: persistent<DecimalSource>(0) },
+            bonfireBook: { amount: persistent<DecimalSource>(0) },
+            kilnBook: { amount: persistent<DecimalSource>(0) },
+            paperBook: { amount: persistent<DecimalSource>(0) },
+            boxBook: { amount: persistent<DecimalSource>(0) },
+            clothBook: { amount: persistent<DecimalSource>(0) },
+            coalDrillBook: { amount: persistent<DecimalSource>(0) },
+            heavyDrillBook: { amount: persistent<DecimalSource>(0) },
+            oilBook: { amount: persistent<DecimalSource>(0) },
+            metalBook: { amount: persistent<DecimalSource>(0) },
+            primaryDyeBook: { amount: persistent<DecimalSource>(0) },
+            secondaryDyeBook: { amount: persistent<DecimalSource>(0) },
+            plasticBook: { amount: persistent<DecimalSource>(0) }
+        },
+        upgrades: {
+            clothUpgrade: { bought: persistent<boolean>(false) },
+            drillingUpgrade: { bought: persistent<boolean>(false) },
+            oilUpgrade: { bought: persistent<boolean>(false) }
+        },
+        upgrades2: {
+            ashUpgrade: { bought: persistent<boolean>(false) },
+            bookUpgrade: { bought: persistent<boolean>(false) },
+            treeUpgrade: { bought: persistent<boolean>(false) }
+        }
+    };
+    const mastered = persistent<boolean>(false);
+    const masteryEffectActive = computed(
+        () => mastered.value || main.currentlyMastering.value?.name === name
+    );
 
     return {
         name,
@@ -482,21 +545,39 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 {render(trackerDisplay)}
                 <Spacer />
+                {masteryEffectActive.value ? (
+                    <>
+                        <div class="decoration-effect">
+                            Decoration effect:
+                            <br />
+                            Pulp no longer requires ash
+                        </div>
+                        <Spacer />
+                    </>
+                ) : null}
                 <MainDisplay resource={paper} color={color} style="margin-bottom: 0" />
                 <Spacer />
-                {render(makePaper)}
-                <Spacer />
-                {renderGrid(Object.values(upgrades), Object.values(upgrades2))}
-                <Spacer />
-                {renderCol(...Object.values(books))}
+                {!main.isMastery.value || masteryEffectActive.value ? (
+                    <>
+                        {render(makePaper)}
+                        <Spacer />
+                        {renderGrid(Object.values(upgrades), Object.values(upgrades2))}
+                        <Spacer />
+                        {renderCol(...Object.values(books))}
+                    </>
+                ) : null}
             </>
         )),
         minimizedDisplay: jsx(() => (
             <div>
                 {name}{" "}
-                <span class="desc">{format(paper.value)} {paper.displayName}</span>
-            </div>   
+                <span class="desc">
+                    {format(paper.value)} {paper.displayName}
+                </span>
+            </div>
         )),
+        mastery,
+        mastered
     };
 });
 

@@ -12,7 +12,7 @@ import {
     setUpDailyProgressTracker
 } from "data/common";
 import { main } from "data/projEntry";
-import { createBuyable, GenericBuyable } from "features/buyable";
+import { createBuyable } from "features/buyable";
 import { jsx, JSXFunction, showIf, StyleValue, Visibility } from "features/feature";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource, Resource } from "features/resources/resource";
@@ -33,15 +33,15 @@ import { render, renderGrid, renderRow } from "util/vue";
 import { computed, ref, unref } from "vue";
 import boxes from "./boxes";
 import cloth from "./cloth";
+import dyes from "./dyes";
 import elves, { ElfBuyable } from "./elves";
+import management from "./management";
 import metal from "./metal";
 import oil from "./oil";
 import paper from "./paper";
-import trees from "./trees";
-import dyes from "./dyes";
-import management from "./management";
-import wrappingPaper from "./wrapping-paper";
 import plastic from "./plastic";
+import trees from "./trees";
+import wrappingPaper from "./wrapping-paper";
 
 interface BetterFertilizerUpgOptions {
     canAfford: () => boolean;
@@ -101,10 +101,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
             if (Decimal.gte(v, 10000)) v = Decimal.pow(v, 2).div(10000);
             v = Decimal.pow(0.95, paper.books.smallFireBook.totalAmount.value).times(v);
-            return v.pow(1.5).times(1e4);
+            return v.pow(masteryEffectActive.value ? 1.1 : 1.5).times(1e4);
         },
         inverseCost(x: DecimalSource) {
-            let v = Decimal.div(x, 1e4).root(1.5);
+            let v = Decimal.div(x, 1e4).root(masteryEffectActive.value ? 1.1 : 1.5);
             v = v.div(Decimal.pow(0.95, paper.books.smallFireBook.totalAmount.value));
             if (Decimal.gte(v, 10000)) v = Decimal.mul(v, 10000).root(2);
             if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(2);
@@ -134,7 +134,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             color: colorText,
             width: "160px",
             flexGrow: 1
-        }
+        },
+        visibility: () => showIf(!main.isMastery.value || masteryEffectActive.value)
     })) as ElfBuyable & { resource: Resource };
 
     const {
@@ -617,7 +618,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: 2,
             description: "Dedicated Cutter Heaters",
-            enabled: dedicatedCutters.bought
+            enabled: () => dedicatedCutters.bought.value
         }))
     ]);
     const computedHeatedCutterEffect = computed(() => heatedCutterEffect.apply(1));
@@ -635,7 +636,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: 2,
             description: "Dedicated Planter Heaters",
-            enabled: dedicatedPlanters.bought
+            enabled: () => dedicatedPlanters.bought.value
         }))
     ]);
     const computedHeatedPlanterEffect = computed(() => heatedPlanterEffect.apply(1));
@@ -653,7 +654,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: 2,
             description: "Mulched Soil",
-            enabled: betterFertilizer.bought
+            enabled: () => betterFertilizer.bought.value
         }))
     ]);
     const computedFertilizerEffect = computed(() => fertilizerEffect.apply(1));
@@ -788,6 +789,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             exponent: 1.05,
             description: "Jack Level 2",
             enabled: management.elfTraining.heatedCutterElfTraining.milestones[1].earned
+        })),
+        createAdditiveModifier(() => ({
+            addend: oil.burnerCoal,
+            description: "Oil Decoration",
+            enabled: oil.masteryEffectActive
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedCoalGain = computed(() => coalGain.apply(0));
@@ -985,15 +991,49 @@ const layer = createLayer(id, function (this: BaseLayer) {
         goal: 1e7,
         name,
         day,
-        color: colorCoal,
+        background: colorCoal,
         modal: {
             show: showModifiersModal,
             display: modifiersModal
         }
     });
 
+    const mastery = {
+        coal: persistent<DecimalSource>(0),
+        totalCoal: persistent<DecimalSource>(0),
+        ash: persistent<DecimalSource>(0),
+        activeFires: persistent<DecimalSource>(0),
+        buildFire: { amount: persistent<DecimalSource>(0) },
+        activeBonfires: persistent<DecimalSource>(0),
+        buildBonfire: { amount: persistent<DecimalSource>(0) },
+        activeKilns: persistent<DecimalSource>(0),
+        buildKiln: { amount: persistent<DecimalSource>(0) },
+        activeDrills: persistent<DecimalSource>(0),
+        buildDrill: { amount: persistent<DecimalSource>(0) },
+        warmerCutters: { bought: persistent<boolean>(false) },
+        warmerPlanters: { bought: persistent<boolean>(false) },
+        basicFertilizer: { bought: persistent<boolean>(false) },
+        unlockBonfire: { bought: persistent<boolean>(false) },
+        dedicatedCutters: { bought: persistent<boolean>(false) },
+        dedicatedPlanters: { bought: persistent<boolean>(false) },
+        betterFertilizer: { bought: persistent<boolean>(false) },
+        unlockKiln: { bought: persistent<boolean>(false) },
+        efficientSmelther: { bought: persistent<boolean>(false) },
+        arsonistAssistance: { bought: persistent<boolean>(false) },
+        refinedCoal: { bought: persistent<boolean>(false) },
+        coloredFire: { bought: persistent<boolean>(false) },
+        heatedCutters: { amount: persistent<DecimalSource>(0) },
+        heatedPlanters: { amount: persistent<DecimalSource>(0) },
+        moreFertilizer: { amount: persistent<DecimalSource>(0) }
+    };
+    const mastered = persistent<boolean>(false);
+    const masteryEffectActive = computed(
+        () => mastered.value || main.currentlyMastering.value?.name === name
+    );
+
     return {
         name,
+        day,
         color: colorCoal,
         coal,
         totalCoal,
@@ -1031,6 +1071,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 {render(trackerDisplay)}
                 <Spacer />
+                {masteryEffectActive.value ? (
+                    <>
+                        <div class="decoration-effect">
+                            Decoration effect:
+                            <br />
+                            Small fires' price increases drastically slower
+                        </div>
+                        <Spacer />
+                    </>
+                ) : null}
                 <MainDisplay
                     resource={coal}
                     color={colorCoal}
@@ -1111,9 +1161,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         minimizedDisplay: jsx(() => (
             <div>
                 {name}{" "}
-                <span class="desc">{format(coal.value)} {coal.displayName}</span>
-            </div>   
+                <span class="desc">
+                    {format(coal.value)} {coal.displayName}
+                </span>
+            </div>
         )),
+        mastery,
+        mastered
     };
 });
 

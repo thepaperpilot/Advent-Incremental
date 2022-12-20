@@ -87,12 +87,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const activeHeavy = persistent<DecimalSource>(0);
     const heavyCoal = computed(() =>
-        Decimal.times(
-            Decimal.pow(activeHeavy.value, heavy2Power.value).pow(
-                management.elfTraining.coalDrillElfTraining.milestones[0].earned.value ? 2.5 : 2
-            ),
-            1e14
-        )
+        masteryEffectActive.value
+            ? 0
+            : Decimal.times(
+                  Decimal.pow(activeHeavy.value, heavy2Power.value).pow(
+                      management.elfTraining.coalDrillElfTraining.milestones[0].earned.value
+                          ? 2.5
+                          : 2
+                  ),
+                  1e14
+              )
     );
     const heavyPower = computed(() =>
         Decimal.times(Decimal.pow(activeHeavy.value, heavy2Power.value), 1)
@@ -141,7 +145,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             color: colorText,
             width: "160px",
             flexGrow: 1
-        }
+        },
+        visibility: () => showIf(!main.isMastery.value || masteryEffectActive.value)
     })) as ElfBuyable & { resource: Resource };
     const {
         min: minHeavy,
@@ -222,7 +227,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
 
     const activeExtractor = persistent<DecimalSource>(0);
-    const extractorPower = computed(() => Decimal.pow(1 / 3, activeExtractor.value));
+    const extractorPower = computed(() =>
+        masteryEffectActive.value ? 1 : Decimal.pow(1 / 3, activeExtractor.value)
+    );
     const extractorCoal = computed(() => Decimal.pow(2, activeExtractor.value));
     const extractorOre = computed(() => Decimal.pow(1.2, activeExtractor.value));
     const buildExtractor = createBuyable(() => ({
@@ -279,7 +286,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const activePump = persistent<DecimalSource>(0);
     const pumpCoal = computed(() =>
-        Decimal.pow(row2Upgrades[3].bought.value ? 4 : 5, activePump.value)
+        masteryEffectActive.value
+            ? 1
+            : Decimal.pow(row2Upgrades[3].bought.value ? 4 : 5, activePump.value)
     );
     const pumpOil = computed(() =>
         Decimal.add(activePump.value, computedExtraOilPumps.value)
@@ -367,7 +376,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
         return burners;
     });
-    const burnerOil = computed(() => Decimal.pow(effectiveBurners.value, 2));
+    const burnerOil = computed(() =>
+        masteryEffectActive.value ? 0 : Decimal.pow(effectiveBurners.value, 2)
+    );
     const burnerCoal = computed(() => Decimal.pow(effectiveBurners.value, 3).mul(1e19));
     const burnerMetal = computed(() => Decimal.add(effectiveBurners.value, 1));
     const buildBurner = createBuyable(() => ({
@@ -429,7 +440,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
 
     const activeSmelter = persistent<DecimalSource>(0);
-    const smelterOil = computed(() => Decimal.pow(activeSmelter.value, 2).mul(100));
+    const smelterOil = computed(() =>
+        masteryEffectActive.value ? 0 : Decimal.pow(activeSmelter.value, 2).mul(100)
+    );
     const smelterMetal = computed(() => Decimal.add(activeSmelter.value, 1));
     const buildSmelter = createBuyable(() => ({
         resource: metal.metal,
@@ -862,9 +875,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: management.elfTraining.oilElfTraining.milestones[2].earned
         })),
         createMultiplicativeModifier(() => ({
+            multiplier: 4,
+            description: "Workshop 1200%",
+            enabled: workshop.milestones.extraExpansionMilestone6.earned
+        })),
+        createMultiplicativeModifier(() => ({
             multiplier: () => coalEffectiveness.value,
             description: "Effectiveness",
             enabled: () => Decimal.lt(coalEffectiveness.value, 1)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: dyes.boosts.red2,
+            description: "Red Dye",
+            enabled: dyes.masteryEffectActive
         }))
     ]);
     const computedDrillPower = computed(() => drillPower.apply(0));
@@ -1079,12 +1102,71 @@ const layer = createLayer(id, function (this: BaseLayer) {
         goal: 250000,
         name,
         day,
-        color,
+        background: color,
         modal: {
             show: showModifiersModal,
             display: modifiersModal
         }
     });
+
+    const mastery = {
+        oil: persistent<DecimalSource>(0),
+        totalOil: persistent<DecimalSource>(0),
+        depth: persistent<DecimalSource>(0),
+        drillProgress: persistent<DecimalSource>(0),
+        activeHeavy: persistent<DecimalSource>(0),
+        buildHeavy: { amount: persistent<DecimalSource>(0) },
+        activeHeavy2: persistent<DecimalSource>(0),
+        buildHeavy2: { amount: persistent<DecimalSource>(0) },
+        activeExtractor: persistent<DecimalSource>(0),
+        buildExtractor: { amount: persistent<DecimalSource>(0) },
+        activePump: persistent<DecimalSource>(0),
+        buildPump: { amount: persistent<DecimalSource>(0) },
+        activeBurner: persistent<DecimalSource>(0),
+        buildBurner: { amount: persistent<DecimalSource>(0) },
+        activeSmelter: persistent<DecimalSource>(0),
+        buildSmelter: { amount: persistent<DecimalSource>(0) },
+        depthMilestones: [
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) }
+        ],
+        oilMilestones: [
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) }
+        ],
+        row1Upgrades: [
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) }
+        ],
+        row2Upgrades: [
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) }
+        ],
+        row3Upgrades: [
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) }
+        ]
+    };
+    const mastered = persistent<boolean>(false);
+    const masteryEffectActive = computed(
+        () => mastered.value || main.currentlyMastering.value?.name === name
+    );
 
     return {
         name,
@@ -1104,6 +1186,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buildExtractor,
         activePump,
         buildPump,
+        burnerCoal,
         activeBurner,
         effectiveBurners,
         buildBurner,
@@ -1145,6 +1228,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <>
                     {render(trackerDisplay)}
                     <Spacer />
+                    {masteryEffectActive.value ? (
+                        <>
+                            <div class="decoration-effect ribbon">
+                                Decoration effect:
+                                <br />
+                                Remove all negative effects of mining drills and oil machines, and
+                                oil burner produces coal
+                            </div>
+                            <Spacer />
+                        </>
+                    ) : null}
                     {Decimal.lt(coalEffectiveness.value, 1) ? (
                         <div>
                             Coal efficiency: {format(Decimal.mul(coalEffectiveness.value, 100))}%
@@ -1284,10 +1378,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         minimizedDisplay: jsx(() => (
             <div>
                 {name}{" "}
-                <span class="desc">{format(oil.value)} {oil.displayName}</span>
-            </div>   
+                <span class="desc">
+                    {format(oil.value)} {oil.displayName}
+                </span>
+            </div>
         )),
-
+        mastery,
+        mastered,
+        masteryEffectActive
     };
 });
 
