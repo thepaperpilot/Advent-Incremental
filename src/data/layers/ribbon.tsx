@@ -126,7 +126,9 @@ const layer = createLayer(id, () => {
     const { collapseMilestones, display: milestonesDisplay } =
         createCollapsibleMilestones(milestones);
 
-    const masteryReq = computed(() => Decimal.times(2, Decimal.sub(masteredDays.value, 5)));
+    const masteryReq = computed(() =>
+        Decimal.sub(masteredDays.value, 5).times(Decimal.sub(masteredDays.value, 4).div(2))
+    );
     const enterMasteryButton = createClickable(() => ({
         display: () => ({
             title: `${main.isMastery.value ? "Stop Decorating" : "Begin Decorating"} ${

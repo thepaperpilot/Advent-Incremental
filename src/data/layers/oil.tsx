@@ -87,12 +87,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const activeHeavy = persistent<DecimalSource>(0);
     const heavyCoal = computed(() =>
-        Decimal.times(
-            Decimal.pow(activeHeavy.value, heavy2Power.value).pow(
-                management.elfTraining.coalDrillElfTraining.milestones[0].earned.value ? 2.5 : 2
-            ),
-            1e14
-        )
+        masteryEffectActive.value
+            ? 0
+            : Decimal.times(
+                  Decimal.pow(activeHeavy.value, heavy2Power.value).pow(
+                      management.elfTraining.coalDrillElfTraining.milestones[0].earned.value
+                          ? 2.5
+                          : 2
+                  ),
+                  1e14
+              )
     );
     const heavyPower = computed(() =>
         Decimal.times(Decimal.pow(activeHeavy.value, heavy2Power.value), 1)
@@ -223,7 +227,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
 
     const activeExtractor = persistent<DecimalSource>(0);
-    const extractorPower = computed(() => Decimal.pow(1 / 3, activeExtractor.value));
+    const extractorPower = computed(() =>
+        masteryEffectActive.value ? 1 : Decimal.pow(1 / 3, activeExtractor.value)
+    );
     const extractorCoal = computed(() => Decimal.pow(2, activeExtractor.value));
     const extractorOre = computed(() => Decimal.pow(1.2, activeExtractor.value));
     const buildExtractor = createBuyable(() => ({
@@ -280,7 +286,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const activePump = persistent<DecimalSource>(0);
     const pumpCoal = computed(() =>
-        Decimal.pow(row2Upgrades[3].bought.value ? 4 : 5, activePump.value)
+        masteryEffectActive.value
+            ? 1
+            : Decimal.pow(row2Upgrades[3].bought.value ? 4 : 5, activePump.value)
     );
     const pumpOil = computed(() =>
         Decimal.add(activePump.value, computedExtraOilPumps.value)
@@ -368,7 +376,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
         return burners;
     });
-    const burnerOil = computed(() => Decimal.pow(effectiveBurners.value, 2));
+    const burnerOil = computed(() =>
+        masteryEffectActive.value ? 0 : Decimal.pow(effectiveBurners.value, 2)
+    );
     const burnerCoal = computed(() => Decimal.pow(effectiveBurners.value, 3).mul(1e19));
     const burnerMetal = computed(() => Decimal.add(effectiveBurners.value, 1));
     const buildBurner = createBuyable(() => ({
@@ -430,7 +440,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
 
     const activeSmelter = persistent<DecimalSource>(0);
-    const smelterOil = computed(() => Decimal.pow(activeSmelter.value, 2).mul(100));
+    const smelterOil = computed(() =>
+        masteryEffectActive.value ? 0 : Decimal.pow(activeSmelter.value, 2).mul(100)
+    );
     const smelterMetal = computed(() => Decimal.add(activeSmelter.value, 1));
     const buildSmelter = createBuyable(() => ({
         resource: metal.metal,
@@ -1164,6 +1176,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buildExtractor,
         activePump,
         buildPump,
+        burnerCoal,
         activeBurner,
         effectiveBurners,
         buildBurner,
@@ -1205,6 +1218,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <>
                     {render(trackerDisplay)}
                     <Spacer />
+                    {masteryEffectActive.value ? (
+                        <>
+                            <div class="decoration-effect ribbon">
+                                Decoration effect:
+                                <br />
+                                Remove all negative effects of mining drills and oil machines, and
+                                oil burner produces coal
+                            </div>
+                            <Spacer />
+                        </>
+                    ) : null}
                     {Decimal.lt(coalEffectiveness.value, 1) ? (
                         <div>
                             Coal efficiency: {format(Decimal.mul(coalEffectiveness.value, 100))}%
@@ -1350,7 +1374,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             </div>
         )),
         mastery,
-        mastered
+        mastered,
+        masteryEffectActive
     };
 });
 

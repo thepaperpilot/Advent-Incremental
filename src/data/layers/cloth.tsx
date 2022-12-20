@@ -686,7 +686,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {masteryEffectActive.value ? (
                     <>
-                        <div class="decoration-effect">
+                        <div class="decoration-effect ribbon">
                             Decoration effect:
                             <br />
                             Performing any action performs all actions and spinning doesn't spend
