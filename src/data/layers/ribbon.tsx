@@ -63,7 +63,7 @@ const layer = createLayer(id, () => {
                     Create another ribbon with{" "}
                     <span
                         class={
-                            Decimal.lt(currentDyeType.value.value, currentDyeCost.value)
+                            Decimal.lt(currentDyeType.value.amount.value, currentDyeCost.value)
                                 ? "unaffordable"
                                 : ""
                         }
