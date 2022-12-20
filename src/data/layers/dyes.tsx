@@ -2,6 +2,7 @@
  * @module
  * @hidden
  */
+import HotkeyVue from "components/Hotkey.vue";
 import Spacer from "components/layout/Spacer.vue";
 import Sqrt from "components/math/Sqrt.vue";
 import Modal from "components/Modal.vue";
@@ -227,7 +228,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 display: jsx(() => {
                     return (
                         <span>
-                            <h3>{options.name} Chambers</h3>
+                            <h3>
+                                {options.name} Chambers <HotkeyVue hotkey={hotkey} />
+                            </h3>
                             <br />
                             Create {format(computedToGenerate.value)} {options.name}
                             {options.dyesToReset.length > 0
