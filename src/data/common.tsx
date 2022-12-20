@@ -22,7 +22,7 @@ import type { Persistent } from "game/persistence";
 import { DefaultValue, persistent } from "game/persistence";
 import player from "game/player";
 import settings from "game/settings";
-import type { DecimalSource } from "util/bignum";
+import { DecimalSource, formatSmall } from "util/bignum";
 import Decimal, { format } from "util/bignum";
 import { formatWhole } from "util/break_eternity";
 import { Direction, WithRequired } from "util/common";
@@ -348,7 +348,7 @@ export function createCollapsibleModifierSections(
                         <div class="modifier-container">
                             <span class="modifier-description">Total</span>
                             <span class="modifier-amount">
-                                {format(s.modifier.apply(unref(processed.base[i]) ?? 1))}
+                                {formatSmall(s.modifier.apply(unref(processed.base[i]) ?? 1))}
                                 {s.unit}
                             </span>
                         </div>
