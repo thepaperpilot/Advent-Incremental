@@ -34,16 +34,7 @@ import { ElfBuyable } from "./elves";
 import management from "./management";
 import oil from "./oil";
 import paper from "./paper";
-<<<<<<< HEAD
 import trees from "./trees";
-=======
-import boxes from "./boxes";
-import { ElfBuyable } from "./elves";
-import toys from "./toys"
-<<<<<<< HEAD
->>>>>>> finish balancing toys layer
-=======
->>>>>>> 19d58d575e4f3e5ecb3adad514f7089e50360057
 
 interface Dye {
     name: string;
@@ -64,15 +55,7 @@ type DyeUpg =
     | "blueDyeUpg2"
     | "coalUpg";
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-export type enumColor = "blue" | "red" | "green" | "yellow" | "purple" | "orange";
-=======
 export type enumColor = "red" | "green" | "blue" | "yellow" | "purple" | "orange" | "black";
->>>>>>> finish balancing toys layer
-=======
-export type enumColor = "red" | "green" | "blue" | "yellow" | "purple" | "orange" | "black";
->>>>>>> 19d58d575e4f3e5ecb3adad514f7089e50360057
 
 const id = "dyes";
 const day = 11;
@@ -229,6 +212,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             case "red":
             case "yellow":
             case "blue":
+            case "black":
                 dyeBook = paper.books.primaryDyeBook;
                 break;
             case "orange":
@@ -507,6 +491,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         black: createDye({
             name: "Black Dye",
             color: "black",
+            key: "a",
             costs: () => [
                 {
                     base: "1e42",
@@ -522,40 +507,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             listedBoosts: [
                 {
                     visible: true,
-                    desc: computed(
-                        () =>
-                            `*${format(
-                                boosts.black1.value
-                            )} letters processed.`
-                    )
-                }
-            ],
-            dyesToReset: []
-        }),
-        black: createDye({
-            name: "Black Dye",
-            color: "black",
-            costs: () => [
-                {
-                    base: "1e42",
-                    root: 5,
-                    res: trees.logs
-                },
-                {
-                    base: computed(() => (upgrades.yellowDyeUpg2.bought.value ? "1e15" : "2e15")),
-                    root: 2,
-                    res: oil.oil
-                }
-            ],
-            listedBoosts: [
-                {
-                    visible: true,
-                    desc: computed(
-                        () =>
-                            `*${format(
-                                boosts.black1.value
-                            )} letters processed.`
-                    )
+                    desc: computed(() => `*${format(boosts.black1.value)} letters processed.`)
                 }
             ],
             dyesToReset: []
@@ -739,7 +691,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         ),
         purple2: computed(() => Decimal.add(dyes.purple.amount.value, 1).log2().plus(1)),
         black1: computed(() =>
-                Decimal.pow(2, Decimal.add(dyes.black.amount.value, 1).log2().sqrt())
+            Decimal.pow(2, Decimal.add(dyes.black.amount.value, 1).log2().sqrt())
                 .pow(upgrades.coalUpg.bought.value ? 1.2 : 1)
                 .pow(management.elfTraining.clothElfTraining.milestones[3].earned.value ? 1.1 : 1)
         )

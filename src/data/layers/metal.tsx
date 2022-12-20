@@ -35,15 +35,8 @@ import oil from "./oil";
 import paper from "./paper";
 import plastic from "./plastic";
 import workshop from "./workshop";
-<<<<<<< HEAD
-<<<<<<< HEAD
 import wrappingPaper from "./wrapping-paper";
-=======
 import toys from "./toys";
->>>>>>> finish balancing toys layer
-=======
-import toys from "./toys";
->>>>>>> 19d58d575e4f3e5ecb3adad514f7089e50360057
 
 const id = "metal";
 const day = 7;
@@ -300,7 +293,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.add(toys.clothes.value, 1),
             description: "Give elves clothes to wear",
             enabled: toys.row1Upgrades[1].bought
-        })),
+        }))
     ]);
     const computedOreAmount = computed(() => oreAmount.apply(1));
     const oreSpeed = createSequentialModifier(() => [

@@ -537,21 +537,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: computed(() => Decimal.gt(wrappingPaper.boosts.christmas1.value, 1))
         })),
         createMultiplicativeModifier(() => ({
-<<<<<<< HEAD
-<<<<<<< HEAD
             multiplier: () => Decimal.add(computedTotalTrees.value, 1).log10(),
             description: "Trees Decoration",
             enabled: masteryEffectActive
-=======
+        })),
+        createMultiplicativeModifier(() => ({
             multiplier: 2,
             description: "Load logs onto trucks",
             enabled: toys.row1Upgrades[0].bought
->>>>>>> finish balancing toys layer
-=======
-            multiplier: 2,
-            description: "Load logs onto trucks",
-            enabled: toys.row1Upgrades[0].bought
->>>>>>> 19d58d575e4f3e5ecb3adad514f7089e50360057
         })),
         createExponentialModifier(() => ({
             exponent: 1.2,
