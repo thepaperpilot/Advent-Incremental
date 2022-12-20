@@ -60,8 +60,20 @@ const layer = createLayer(id, () => {
             title: "Make Ribbon",
             description: jsx(() => (
                 <>
-                    Create another ribbon with {format(currentDyeCost.value)}{" "}
-                    {currentDyeType.value.name} and {format(1e9)} {cloth.cloth.displayName}
+                    Create another ribbon with{" "}
+                    <span
+                        class={
+                            Decimal.lt(currentDyeType.value.value, currentDyeCost.value)
+                                ? "unaffordable"
+                                : ""
+                        }
+                    >
+                        {format(currentDyeCost.value)} {currentDyeType.value.name}
+                    </span>{" "}
+                    and{" "}
+                    <span class={Decimal.lt(cloth.cloth.value, 1e9) ? "unaffordable" : ""}>
+                        {format(1e9)} {cloth.cloth.displayName}
+                    </span>
                     <br />
                     {render(ribbonProgressBar)}
                 </>
