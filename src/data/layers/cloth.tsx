@@ -686,8 +686,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {masteryEffectActive.value ? (
                     <>
-                        Decoration effect: Performing any action performs all actions and spinning
-                        doesn't spend wool
+                        <div class="decoration-effect">
+                            Decoration effect:
+                            <br />
+                            Performing any action performs all actions and spinning doesn't spend
+                            wool
+                        </div>
                         <Spacer />
                     </>
                 ) : null}

@@ -5,6 +5,7 @@ import { createBar, GenericBar } from "features/bars/bar";
 import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
 import { createMilestone } from "features/milestones/milestone";
+import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource } from "features/resources/resource";
 import { globalBus } from "game/events";
 import { createLayer, layers } from "game/layers";
@@ -31,10 +32,11 @@ const layer = createLayer(id, () => {
     const ribbon = createResource<DecimalSource>(0, "Ribbon");
 
     const currentDyeCost = computed(() =>
-        Decimal.pow(10, ribbon.value).times(
+        Decimal.times(
+            ribbon.value,
             [dyes.dyes.orange, dyes.dyes.green, dyes.dyes.purple].includes(currentDyeType.value)
-                ? 1e3
-                : 1e9
+                ? 2e6
+                : 1e13
         )
     );
     const currentDyeType = computed(
@@ -260,6 +262,7 @@ const layer = createLayer(id, () => {
                     {render(dayProgress)}
                     {render(modifiersModal)}
                     <Spacer />
+                    <MainDisplay resource={ribbon} color={color} />
                     {render(makeRibbon)}
                     <Spacer />
                     {render(enterMasteryButton)}
