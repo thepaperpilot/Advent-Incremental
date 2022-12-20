@@ -494,12 +494,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             key: "a",
             costs: () => [
                 {
-                    base: "1e42",
+                    base: "1e60",
                     root: 5,
                     res: trees.logs
                 },
                 {
-                    base: computed(() => (upgrades.yellowDyeUpg2.bought.value ? "1e15" : "2e15")),
+                    base: computed(() => (upgrades.yellowDyeUpg2.bought.value ? "1e17" : "2e17")),
                     root: 2,
                     res: oil.oil
                 }
@@ -507,10 +507,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             listedBoosts: [
                 {
                     visible: true,
-                    desc: computed(() => `*${format(boosts.black1.value)} letters processed.`)
+                    desc: computed(() => `*${format(boosts.black1.value)} oil gain.`)
                 }
             ],
-            dyesToReset: []
+            dyesToReset: [],
         }),
         orange: createDye({
             name: "Orange Dye",

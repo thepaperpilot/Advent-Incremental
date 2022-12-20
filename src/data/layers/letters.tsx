@@ -215,10 +215,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.div(paperBuyable.amount.value, 2).add(1),
             description: "Printed Labels"
-        })),
-        createMultiplicativeModifier(() => ({
-            multiplier: () => dyes.boosts.black1.value,
-            description: "Black Dye Boost"
         }))
         
     ]);

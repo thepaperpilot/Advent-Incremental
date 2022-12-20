@@ -947,6 +947,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "Cocoa Level 3",
             enabled: management.elfTraining.oilElfTraining.milestones[2].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => dyes.boosts.black1.value,
+            description: "Black Dye Boost"
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedOilSpeed = computed(() => oilSpeed.apply(0));

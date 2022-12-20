@@ -59,14 +59,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const clothesCost = computed(() => {
         let clothFactor = Decimal.add(1, clothesBuyable.amount.value);
-        if (milestones.milestone1.earned) {
+        if (milestones.milestone1.earned.value) {
             clothFactor = clothFactor.div(
                 Decimal.div(workshop.foundationProgress.value, 100).floor()
             );
         }
         return {
-            cloth: clothFactor.mul(1e8),
-            dye: clothFactor.mul(1e6)
+            cloth: clothFactor.mul(1e12),
+            dye: clothFactor.mul(1e14)
         };
     });
     const clothesBuyable = createBuyable(() => ({
@@ -100,13 +100,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
     })) as GenericBuyable;
     const woodenBlocksCost = computed(() => {
         let woodFactor = Decimal.add(1, woodenBlocksBuyable.amount.value).pow(5);
-        if (milestones.milestone1.earned) {
+        if (milestones.milestone1.earned.value) {
             woodFactor = woodFactor.div(
                 Decimal.div(workshop.foundationProgress.value, 100).floor()
             );
         }
         return {
-            wood: woodFactor.mul(1e40)
+            wood: woodFactor.mul(1e63)
         };
     });
     const woodenBlocksBuyable = createBuyable(() => ({
@@ -133,15 +133,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const trucksCost = computed(() => {
         let factor = Decimal.add(1, trucksBuyable.amount.value).pow(3);
         let plasticFactor = Decimal.add(1, trucksBuyable.amount.value);
-        if (milestones.milestone1.earned) {
+        if (milestones.milestone1.earned.value) {
             factor = factor.div(Decimal.div(workshop.foundationProgress.value, 100).floor());
             plasticFactor = plasticFactor.div(
                 Decimal.div(workshop.foundationProgress.value, 100).floor()
             );
         }
         return {
-            metal: factor.mul(1e25),
-            plastic: plasticFactor.mul(1e10)
+            metal: factor.mul(1e43),
+            plastic: plasticFactor.mul(1e15)
         };
     });
     const trucksBuyable = createBuyable(() => ({
