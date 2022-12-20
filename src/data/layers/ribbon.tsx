@@ -128,7 +128,9 @@ const layer = createLayer(id, () => {
         createCollapsibleMilestones(milestones);
 
     const masteryReq = computed(() =>
-        Decimal.sub(masteredDays.value, 5).times(Decimal.sub(masteredDays.value, 4).div(2))
+        Decimal.sub(main.masteredDays.value, 5).times(
+            Decimal.sub(main.masteredDays.value, 4).div(2)
+        )
     );
     const enterMasteryButton = createClickable(() => ({
         display: () => ({
@@ -174,6 +176,11 @@ const layer = createLayer(id, () => {
             }
             if (layer === "cloth") {
                 elves.elves.plasticElf.bought.value = true;
+            } else if (layer === "letters") {
+                elves.elves.coalDrillElf.bought.value = true;
+                elves.elves.heavyDrillElf.bought.value = true;
+                elves.elves.oilElf.bought.value = true;
+                elves.elves.metalElf.bought.value = true;
             }
         },
         style: {
@@ -182,22 +189,16 @@ const layer = createLayer(id, () => {
         }
     }));
 
-    const masteredDays = computed(() =>
-        Object.values(layers)
-            .filter(l => l && "mastered" in l)
-            .findIndex(l => (l as any).mastered.value === false)
-    );
-
     const dayProgress = createBar(() => ({
         direction: Direction.Right,
         width: 600,
         height: 25,
         fillStyle: `backgroundColor: ${color}`,
-        progress: () => (main.day.value === day ? Decimal.div(masteredDays.value - 6, 5) : 1),
+        progress: () => (main.day.value === day ? Decimal.div(main.masteredDays.value - 6, 5) : 1),
         display: jsx(() =>
             main.day.value === day ? (
                 <>
-                    {masteredDays.value - 6}
+                    {main.masteredDays.value - 6}
                     /5 days decorated
                 </>
             ) : (
@@ -209,7 +210,7 @@ const layer = createLayer(id, () => {
     watchEffect(() => {
         if (
             main.day.value === day &&
-            Decimal.gte(masteredDays.value, 11) &&
+            Decimal.gte(main.masteredDays.value, 11) &&
             main.showLoreModal.value === false
         ) {
             main.completeDay();

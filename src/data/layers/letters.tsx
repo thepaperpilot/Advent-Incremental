@@ -189,13 +189,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createCollapsibleMilestones(milestones);
 
     const synergy = computed(() => {
-        const amount = Decimal.add(totalLetters.value, 1);
+        let amount = Decimal.add(totalLetters.value, 1);
         if (synergyMilestone.earned.value) {
             const preSoftcap = Decimal.log2(10001).add(1);
-            return preSoftcap.add(amount.sub(9999).sqrt());
+            amount = preSoftcap.add(amount.sub(9999).sqrt());
         } else {
-            return Decimal.log2(amount).add(1);
+            amount = Decimal.log2(amount).add(1);
         }
+        if (masteryEffectActive.value) {
+            amount = Decimal.pow(amount, 2);
+        }
+        return amount;
     });
 
     const lettersGain = createSequentialModifier(() => [
@@ -217,6 +221,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.div(metalBuyable.amount.value, 2).add(1).recip(),
             description: "Sorting Machine"
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.sqrt(synergy.value).recip(),
+            description: "Letters Decoration",
+            enabled: masteryEffectActive
         }))
     ]);
     const computedProcessingCooldown = computed(() => processingCooldown.apply(5));
@@ -313,6 +322,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 {render(trackerDisplay)}
                 <Spacer />
+                {masteryEffectActive.value ? (
+                    <>
+                        <div class="decoration-effect ribbon">
+                            Decoration effect:
+                            <br />
+                            Letter processing experience is stronger and affects processing cooldown
+                            at reduced rate
+                        </div>
+                        <Spacer />
+                    </>
+                ) : null}
                 <MainDisplay resource={letters} color={color} />
                 {render(process)}
                 <div>
@@ -334,7 +354,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             </div>
         )),
         mastery,
-        mastered
+        mastered,
+        masteryEffectActive
     };
 });
 

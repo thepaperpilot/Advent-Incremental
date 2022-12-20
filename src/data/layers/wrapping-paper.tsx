@@ -300,7 +300,9 @@ const layer = createLayer(id, () => {
         }
     }));
 
-    const masteryReq = computed(() => Decimal.add(masteredDays.value, 1).times(20).add(140).ceil());
+    const masteryReq = computed(() =>
+        Decimal.add(main.masteredDays.value, 1).times(20).add(140).ceil()
+    );
 
     const enterMasteryButton = createClickable(() => ({
         display: () => ({
@@ -360,23 +362,17 @@ const layer = createLayer(id, () => {
         }
     }));
 
-    const masteredDays = computed(() =>
-        Object.values(layers)
-            .filter(l => l && "mastered" in l)
-            .findIndex(l => (l as any).mastered.value === false)
-    );
-
     const dayProgress = createBar(() => ({
         direction: Direction.Right,
         width: 600,
         height: 25,
         fillStyle: `animation: 15s wrapping-paper-bar linear infinite`,
         textStyle: `color: var(--feature-foreground)`,
-        progress: () => (main.day.value === day ? Decimal.div(masteredDays.value, 6) : 1),
+        progress: () => (main.day.value === day ? Decimal.div(main.masteredDays.value, 6) : 1),
         display: jsx(() =>
             main.day.value === day ? (
                 <>
-                    {masteredDays.value}
+                    {main.masteredDays.value}
                     /6 days decorated
                 </>
             ) : (
@@ -388,7 +384,7 @@ const layer = createLayer(id, () => {
     watchEffect(() => {
         if (
             main.day.value === day &&
-            Decimal.gte(masteredDays.value, 6) &&
+            Decimal.gte(main.masteredDays.value, 6) &&
             main.showLoreModal.value === false
         ) {
             main.completeDay();

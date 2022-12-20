@@ -119,6 +119,16 @@ export const main = createLayer("main", function (this: BaseLayer) {
         }
     }
 
+    const masteredDays = computed(() => {
+        let index = Object.values(layers)
+            .filter(l => l && "mastered" in l)
+            .findIndex(l => (l as any).mastered.value === false);
+        if (index === -1) {
+            index = Object.values(layers).filter(l => l && "mastered" in l).length;
+        }
+        return index;
+    });
+
     function openDay(layer: string) {
         // 1468 is because two tabs with minWidth of 700px plus the minimized calendar of 60px plus 2 dividers of 4px each
         if (window.matchMedia("(min-width: 1468px)").matches) {
@@ -513,6 +523,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         toggleMastery,
         swappingMastery,
         currentlyMastering,
+        masteredDays,
         display: jsx(() => (
             <>
                 {player.devSpeed === 0 ? <div>Game Paused</div> : null}

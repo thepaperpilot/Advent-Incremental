@@ -38,6 +38,7 @@ import workshop from "./workshop";
 import wrappingPaper from "./wrapping-paper";
 import dyes, { enumColor } from "./dyes";
 import ribbon from "./ribbon";
+import letters from "./letters";
 
 export interface ElfBuyable extends GenericBuyable {
     /** The inverse function of the cost formula, used to calculate the maximum amount that can be bought by elves. */
@@ -545,28 +546,36 @@ const layer = createLayer(id, function (this: BaseLayer) {
             modifier: coalDrillCooldown,
             base: 10,
             unit: "/s",
-            visible: management.elfTraining.expandersElfTraining.milestones[3].earned
+            visible: () =>
+                management.elfTraining.expandersElfTraining.milestones[3].earned.value ||
+                letters.masteryEffectActive.value
         },
         {
             title: "Frosty Auto-Buy Frequency",
             modifier: heavyDrillCooldown,
             base: 10,
             unit: "/s",
-            visible: management.elfTraining.cutterElfTraining.milestones[4].earned.value
+            visible: () =>
+                management.elfTraining.cutterElfTraining.milestones[4].earned.value ||
+                letters.masteryEffectActive.value
         },
         {
             title: "Cocoa Auto-Buy Frequency",
             modifier: oilCooldown,
             base: 10,
             unit: "/s",
-            visible: management.elfTraining.heatedCutterElfTraining.milestones[4].earned.value
+            visible: () =>
+                management.elfTraining.heatedCutterElfTraining.milestones[4].earned.value ||
+                letters.masteryEffectActive.value
         },
         {
             title: "Twinkle Auto-Buy Frequency",
             modifier: metalCooldown,
             base: 10,
             unit: "/s",
-            visible: management.elfTraining.fertilizerElfTraining.milestones[4].earned
+            visible: () =>
+                management.elfTraining.fertilizerElfTraining.milestones[4].earned.value ||
+                letters.masteryEffectActive.value
         },
         {
             title: "Carol Auto-Buy Frequency",
@@ -580,7 +589,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             modifier: plasticCooldown,
             base: 10,
             unit: "/s",
-            visible: plastic.masteryEffectActive.value
+            visible: plastic.masteryEffectActive
         }
     ]);
     const showModifiersModal = ref(false);
@@ -887,7 +896,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buyable: coal.buildDrill,
         cooldownModifier: coalDrillCooldown,
         visibility: () =>
-            showIf(management.elfTraining.expandersElfTraining.milestones[3].earned.value),
+            showIf(
+                management.elfTraining.expandersElfTraining.milestones[3].earned.value ||
+                    letters.masteryEffectActive.value
+            ),
         hasToggle: true,
         toggleDesc: "Activate auto-purchased coal drills",
         onAutoPurchase(_, amount) {
@@ -903,7 +915,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buyable: [oil.buildHeavy, oil.buildHeavy2, oil.buildExtractor],
         cooldownModifier: heavyDrillCooldown,
         visibility: () =>
-            showIf(management.elfTraining.cutterElfTraining.milestones[4].earned.value),
+            showIf(
+                management.elfTraining.cutterElfTraining.milestones[4].earned.value ||
+                    letters.masteryEffectActive.value
+            ),
         hasToggle: true,
         toggleDesc: "Activate auto-purchased oil drills",
         onAutoPurchase(buyable, amount) {
@@ -925,7 +940,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buyable: [oil.buildPump, oil.buildBurner, oil.buildSmelter],
         cooldownModifier: oilCooldown,
         visibility: () =>
-            showIf(management.elfTraining.heatedCutterElfTraining.milestones[4].earned.value),
+            showIf(
+                management.elfTraining.heatedCutterElfTraining.milestones[4].earned.value ||
+                    letters.masteryEffectActive.value
+            ),
         hasToggle: true,
         toggleDesc: "Activate auto-purchased oil-using machines",
         onAutoPurchase(buyable, amount) {
@@ -948,7 +966,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buyable: [metal.oreDrill, metal.industrialCrucible, metal.hotterForge],
         cooldownModifier: metalCooldown,
         visibility: () =>
-            showIf(management.elfTraining.fertilizerElfTraining.milestones[4].earned.value)
+            showIf(
+                management.elfTraining.fertilizerElfTraining.milestones[4].earned.value ||
+                    letters.masteryEffectActive.value
+            )
     });
     const managementElves2 = [metalElf];
 
