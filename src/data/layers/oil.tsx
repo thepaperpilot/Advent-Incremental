@@ -878,6 +878,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => coalEffectiveness.value,
             description: "Effectiveness",
             enabled: () => Decimal.lt(coalEffectiveness.value, 1)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: dyes.boosts.red2,
+            description: "Red Dye",
+            enabled: dyes.masteryEffectActive
         }))
     ]);
     const computedDrillPower = computed(() => drillPower.apply(0));

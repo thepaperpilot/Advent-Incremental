@@ -444,6 +444,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "Carry cloth in boxes",
             enabled: boxes.row3Upgrades.clothUpgrade.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: dyes.boosts.yellow2,
+            description: "Yellow Dye",
+            enabled: dyes.masteryEffectActive
         }))
     ]);
     const computedSheepGain = computed(() => sheepGain.apply(1));
@@ -484,6 +489,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "Carry cloth in boxes",
             enabled: boxes.row3Upgrades.clothUpgrade.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: dyes.boosts.yellow2,
+            description: "Yellow Dye",
+            enabled: dyes.masteryEffectActive
         }))
     ]);
     const computedShearingAmount = computed(() => shearingAmount.apply(1));
@@ -524,6 +534,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "Carry cloth in boxes",
             enabled: boxes.row3Upgrades.clothUpgrade.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: dyes.boosts.yellow2,
+            description: "Yellow Dye",
+            enabled: dyes.masteryEffectActive
         }))
     ]);
     const computedSpinningAmount = computed(() => spinningAmount.apply(1));

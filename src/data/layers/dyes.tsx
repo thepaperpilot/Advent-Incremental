@@ -63,6 +63,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Dyes";
     const color = "#D4D4F4";
 
+    const masteryEffectActive = computed(
+        () => mastered.value || main.currentlyMastering.value?.name === name
+    );
+
     function createDye(
         options: {
             name: string;
@@ -413,6 +417,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                                 boosts.red1.value
                             )} effective Oil Pumps (does not impact coal consumption)`
                     )
+                },
+                {
+                    visible: masteryEffectActive,
+                    desc: computed(() => `x${format(boosts.red2.value)} drill power`)
                 }
             ],
             dyesToReset: []
@@ -437,6 +445,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {
                     visible: true,
                     desc: computed(() => `x${format(boosts.yellow1.value)} Paper \& Plastic gain`)
+                },
+                {
+                    visible: masteryEffectActive,
+                    desc: computed(() => `x${format(boosts.yellow2.value)} cloth actions`)
                 }
             ],
             dyesToReset: []
@@ -465,8 +477,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         () =>
                             `+${formatWhole(
                                 boosts.blue1.value
-                            )} forest size (after all other modifiers).`
+                            )} forest size (after all other modifiers)`
                     )
+                },
+                {
+                    visible: masteryEffectActive,
+                    desc: computed(() => `/${format(boosts.blue2.value)} plastic buyables cost`)
                 }
             ],
             dyesToReset: []
@@ -610,8 +626,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 upgrades.blueDyeUpg2.bought.value ? 1.5 : 1
             )
         ),
+        red2: computed(() =>
+            Decimal.pow(
+                Decimal.add(dyes.red.amount.value, 1).log2().plus(1),
+                upgrades.blueDyeUpg2.bought.value ? 1.5 : 1
+            )
+        ),
         yellow1: computed(() => Decimal.add(dyes.yellow.amount.value, 1).log2().plus(1)),
+        yellow2: computed(() => Decimal.add(dyes.yellow.amount.value, 1).log2().plus(1).times(3)),
         blue1: computed(() => Decimal.add(dyes.blue.amount.value, 1).log2().sqrt().times(5e6)),
+        blue2: computed(() => Decimal.add(dyes.blue.amount.value, 1).log2().plus(1).pow(2)),
 
         orange1: computed(() =>
             Decimal.pow(2, Decimal.add(dyes.orange.amount.value, 1).log2().sqrt())
@@ -861,9 +885,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     };
     const mastered = persistent<boolean>(false);
-    const masteryEffectActive = computed(
-        () => mastered.value || main.currentlyMastering.value?.name === name
-    );
 
     return {
         name,
@@ -881,6 +902,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 {render(trackerDisplay)}
                 <Spacer />
+                {masteryEffectActive.value ? (
+                    <>
+                        <div class="decoration-effect ribbon">
+                            Decoration effect:
+                            <br />
+                            Each primary dye gains a second effect
+                        </div>
+                        <Spacer />
+                    </>
+                ) : null}
                 <div style="width: 620px">
                     {renderRow(dyes.red.display, dyes.yellow.display, dyes.blue.display)}
                     {renderRow(dyes.red.buyable, dyes.yellow.buyable, dyes.blue.buyable)}
@@ -898,7 +929,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             </>
         )),
         mastery,
-        mastered
+        mastered,
+        masteryEffectActive
     };
 });
 

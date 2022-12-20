@@ -211,10 +211,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost() {
             let v = passivePaper.amount.value;
             v = Decimal.pow(0.95, paper.books.plasticBook.totalAmount.value).times(v);
-            return Decimal.pow(1.3, v).times(100);
+            return Decimal.pow(1.3, v).times(100).div(dyes.boosts.blue2.value);
         },
         inverseCost(x: DecimalSource) {
-            let v = Decimal.div(x, 100).log(1.3);
+            let v = Decimal.times(x, dyes.boosts.blue2.value).div(100).log(1.3);
             v = v.div(Decimal.pow(0.95, paper.books.plasticBook.totalAmount.value));
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
@@ -244,10 +244,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost() {
             let v = passiveBoxes.amount.value;
             v = Decimal.pow(0.95, paper.books.plasticBook.totalAmount.value).times(v);
-            return Decimal.pow(1.3, v).times(100);
+            return Decimal.pow(1.3, v).times(100).div(dyes.boosts.blue2.value);
         },
         inverseCost(x: DecimalSource) {
-            let v = Decimal.div(x, 100).log(1.3);
+            let v = Decimal.times(x, dyes.boosts.blue2.value).div(100).log(1.3);
             v = v.div(Decimal.pow(0.95, paper.books.plasticBook.totalAmount.value));
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
@@ -277,10 +277,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         cost() {
             let v = clothGains.amount.value;
             v = Decimal.pow(0.95, paper.books.plasticBook.totalAmount.value).times(v);
-            return Decimal.pow(1.3, v).times(100);
+            return Decimal.pow(1.3, v).times(100).div(dyes.boosts.blue2.value);
         },
         inverseCost(x: DecimalSource) {
-            let v = Decimal.div(x, 100).log(1.3);
+            let v = Decimal.times(x, dyes.boosts.blue2.value).div(100).log(1.3);
             v = v.div(Decimal.pow(0.95, paper.books.plasticBook.totalAmount.value));
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
