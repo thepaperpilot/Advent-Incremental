@@ -1,4 +1,10 @@
-import type { CoercableComponent, GenericComponent, OptionsFunc, Replace, StyleValue } from "features/feature";
+import type {
+    CoercableComponent,
+    GenericComponent,
+    OptionsFunc,
+    Replace,
+    StyleValue
+} from "features/feature";
 import {
     Component,
     findFeatures,
@@ -23,7 +29,7 @@ import type {
 } from "util/computed";
 import { processComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
-import type { Ref } from "vue";
+import { isReadonly, Ref } from "vue";
 import { computed, unref } from "vue";
 
 export const UpgradeType = Symbol("Upgrade");
@@ -120,7 +126,11 @@ export function createUpgrade<T extends UpgradeOptions>(
             if (!unref(genericUpgrade.canPurchase)) {
                 return;
             }
-            if (genericUpgrade.resource != null && genericUpgrade.cost != null) {
+            if (
+                genericUpgrade.resource != null &&
+                !isReadonly(genericUpgrade.resource) &&
+                genericUpgrade.cost != null
+            ) {
                 genericUpgrade.resource.value = Decimal.sub(
                     genericUpgrade.resource.value,
                     unref(genericUpgrade.cost)

@@ -7,7 +7,12 @@
         >
             <div class="main-display">
                 <span v-if="showPrefix">You have </span>
-                <ResourceVue :resource="resource" :color="color || 'white'" :style="resourceStyle" />
+                <ResourceVue
+                    :resource="resource"
+                    :color="color || 'white'"
+                    :shadow-color="shadowColor"
+                    :style="resourceStyle"
+                />
                 {{ resource.displayName
                 }}<!-- remove whitespace -->
                 <span v-if="effectComponent"
@@ -20,14 +25,20 @@
             </div>
         </div>
     </Sticky>
-    <div v-else
+    <div
+        v-else
         class="main-display-container"
         :class="classes ?? {}"
         :style="[{ 'min-height': '50px' }, style ?? {}]"
     >
         <div class="main-display">
             <span v-if="showPrefix">You have </span>
-            <ResourceVue :resource="resource" :color="color || 'white'" :style="resourceStyle" />
+            <ResourceVue
+                :resource="resource"
+                :color="color || 'white'"
+                :shadow-color="shadowColor"
+                :style="resourceStyle"
+            />
             {{ resource.displayName
             }}<!-- remove whitespace -->
             <span v-if="effectComponent"
@@ -51,16 +62,20 @@ import { computeOptionalComponent } from "util/vue";
 import { ComponentPublicInstance, ref, Ref, StyleValue } from "vue";
 import { computed, toRefs } from "vue";
 
-const _props = withDefaults(defineProps<{
-    resource: Resource;
-    color?: string;
-    classes?: Record<string, boolean>;
-    style?: StyleValue;
-    resourceStyle?: StyleValue;
-    effectDisplay?: CoercableComponent;
-    productionDisplay?: CoercableComponent;
-    sticky?: boolean
-}>(), {sticky: true});
+const _props = withDefaults(
+    defineProps<{
+        resource: Resource;
+        color?: string;
+        shadowColor?: string;
+        classes?: Record<string, boolean>;
+        style?: StyleValue;
+        resourceStyle?: StyleValue;
+        effectDisplay?: CoercableComponent;
+        productionDisplay?: CoercableComponent;
+        sticky?: boolean;
+    }>(),
+    { sticky: true }
+);
 const props = toRefs(_props);
 
 const effectRef = ref<ComponentPublicInstance | null>(null);

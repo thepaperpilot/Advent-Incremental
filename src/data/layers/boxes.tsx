@@ -189,14 +189,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () => showIf(management.elfTraining.boxElfTraining.milestones[4].earned.value),
         display: {
             title: "Carry dye in boxes",
-            description: "Double all dye gain but reset all dyes"
-        },
-        onPurchase() {
-            (["red", "yellow", "blue", "orange", "green", "purple"] as const).forEach(dyeColor => {
-                dyes.dyes[dyeColor].amount.value = 0;
-                dyes.dyes[dyeColor].buyable.amount.value = 0;
-                main.days[10].recentlyUpdated.value = true;
-            });
+            description: "Double all dye gain"
         }
     })) as GenericUpgrade;
     const xpUpgrade = createUpgrade(() => ({

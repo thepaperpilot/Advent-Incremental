@@ -300,9 +300,7 @@ const layer = createLayer(id, () => {
         }
     }));
 
-    const masteryReq = computed(() =>
-        Decimal.add(masteredDays.value, 1).pow(0.6).times(10).add(120).ceil()
-    );
+    const masteryReq = computed(() => Decimal.add(masteredDays.value, 1).times(20).add(140).ceil());
 
     const enterMasteryButton = createClickable(() => ({
         display: () => ({

@@ -19,7 +19,7 @@ import {
     createSequentialModifier,
     Modifier
 } from "game/modifiers";
-import { NonPersistent, noPersist, persistent, Persistent } from "game/persistence";
+import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { WithRequired } from "util/common";
 import { Computable, convertComputable } from "util/computed";
@@ -37,8 +37,7 @@ import trees from "./trees";
 
 interface Dye {
     name: string;
-    amount: Resource<DecimalSource> &
-        Persistent<DecimalSource> & { [NonPersistent]: Resource<DecimalSource> };
+    amount: Resource<DecimalSource>;
     buyable: ElfBuyable;
     toGenerate: WithRequired<Modifier, "description" | "revert">;
     computedToGenerate: ComputedRef<DecimalSource>;
@@ -67,6 +66,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         options: {
             name: string;
             color: string;
+            shadowColor?: string;
             key: string;
             costs: Computable<
                 {
@@ -85,7 +85,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }[];
         } & Partial<BuyableOptions>
     ): Dye {
-        const amount = createResource<DecimalSource>(0, options.name);
+        const amount = createResource(
+            computed(() =>
+                Decimal.add(buyable.amount.value, 1)
+                    .mul(buyable.amount.value)
+                    .div(2)
+                    .mul(computedToGenerate.value)
+            ),
+            options.name
+        );
 
         const toGenerate = createSequentialModifier(() => {
             const modifiers = [
@@ -338,19 +346,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         const buyAmount = this.inverseCost().sub(this.amount.value).plus(1);
                         if (buyAmount.lte(0)) return;
                         buyable.amount.value = Decimal.add(buyable.amount.value, buyAmount);
-                        amount.value = Decimal.add(buyable.amount.value, 1).mul(buyable.amount.value).div(2).mul(computedToGenerate.value);
                     } else {
                         buyable.amount.value = Decimal.add(buyable.amount.value, 1);
-                        amount.value = Decimal.add(buyable.amount.value, 1).mul(buyable.amount.value).div(2).mul(computedToGenerate.value);
                     }
                     if (!management.elfTraining.dyeElfTraining.milestones[3].earned.value) {
-                        const trueCost = cost ?? unref(buyable.cost) ?? Decimal.dInf;
-                        unref(costs).forEach(c => {
-                            c.res.value = Decimal.sub(
-                                c.res.value,
-                                Decimal.pow(trueCost, unref(c.root ?? 1)).times(unref(c.base))
-                            );
-                        });
                         options.dyesToReset.forEach(dye => dye.reset());
                     }
                 }
@@ -377,6 +376,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <MainDisplay
                     resource={amount}
                     color={options.color}
+                    shadowColor={options.shadowColor ?? options.color}
                     style="margin: 0; width: 200px; width: 180px; padding: 10px;"
                     sticky={false}
                 />
@@ -441,6 +441,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         blue: createDye({
             name: "Blue Dye",
             color: "blue",
+            shadowColor: "lightblue",
             key: "u",
             costs: () => [
                 {
@@ -493,7 +494,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     desc: computed(() => `/${format(boosts.orange2.value)} Box buyable costs.`)
                 }
             ],
-            dyesToReset: []
+            dyesToReset: [
+                {
+                    name: "Red Dye",
+                    reset() {
+                        dyes.red.buyable.amount.value = 0;
+                    }
+                },
+                {
+                    name: "Yellow Dye",
+                    reset() {
+                        dyes.yellow.buyable.amount.value = 0;
+                    }
+                }
+            ]
         }),
         green: createDye({
             name: "Green Dye",
@@ -526,7 +540,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     )
                 }
             ],
-            dyesToReset: []
+            dyesToReset: [
+                {
+                    name: "Yellow Dye",
+                    reset() {
+                        dyes.yellow.buyable.amount.value = 0;
+                    }
+                },
+                {
+                    name: "Blue Dye",
+                    reset() {
+                        dyes.blue.buyable.amount.value = 0;
+                    }
+                }
+            ]
         }),
         purple: createDye({
             name: "Purple Dye",
@@ -556,7 +583,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     )
                 }
             ],
-            dyesToReset: []
+            dyesToReset: [
+                {
+                    name: "Blue Dye",
+                    reset() {
+                        dyes.blue.buyable.amount.value = 0;
+                    }
+                },
+                {
+                    name: "Red Dye",
+                    reset() {
+                        dyes.red.buyable.amount.value = 0;
+                    }
+                }
+            ]
         })
     };
 
@@ -650,9 +690,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 ))
             },
             cost: 1000,
-            resource: noPersist(dyes.blue.amount),
+            resource: dyes.blue.amount,
             onPurchase() {
-                dyes.blue.amount.value = 0;
                 dyes.blue.buyable.amount.value = 0;
             }
         })),
@@ -672,9 +711,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 ))
             },
             cost: 1500,
-            resource: noPersist(dyes.red.amount),
+            resource: dyes.red.amount,
             onPurchase() {
-                dyes.red.amount.value = 0;
                 dyes.red.buyable.amount.value = 0;
             }
         })),
@@ -690,7 +728,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: "Double Red, Yellow, and Blue Dye gain."
             },
             cost: 2000,
-            resource: noPersist(dyes.yellow.amount)
+            resource: dyes.yellow.amount
         })),
         yellowDyeUpg2: createUpgrade(() => ({
             visibility: () => showIf(upgrades.yellowDyeUpg.bought.value),
@@ -699,9 +737,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: "Halve the Oil cost of Red, Yellow, and Blue Dyes."
             },
             cost: 5000,
-            resource: noPersist(dyes.yellow.amount),
+            resource: dyes.yellow.amount,
             onPurchase() {
-                dyes.yellow.amount.value = 0;
                 dyes.yellow.buyable.amount.value = 0;
             }
         })),
@@ -716,9 +753,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 ))
             },
             cost: 6000,
-            resource: noPersist(dyes.red.amount),
+            resource: dyes.red.amount,
             onPurchase() {
-                dyes.red.amount.value = 0;
                 dyes.red.buyable.amount.value = 0;
             }
         })),
@@ -729,9 +765,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: "Raise Red Dye's effect ^1.5."
             },
             cost: 7500,
-            resource: noPersist(dyes.blue.amount),
+            resource: dyes.blue.amount,
             onPurchase() {
-                dyes.blue.amount.value = 0;
                 dyes.blue.buyable.amount.value = 0;
             }
         })),
@@ -794,27 +829,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const mastery = {
         dyes: {
             red: {
-                amount: persistent<DecimalSource>(0),
                 buyable: { amount: persistent<DecimalSource>(0) }
             },
             green: {
-                amount: persistent<DecimalSource>(0),
                 buyable: { amount: persistent<DecimalSource>(0) }
             },
             blue: {
-                amount: persistent<DecimalSource>(0),
                 buyable: { amount: persistent<DecimalSource>(0) }
             },
             yellow: {
-                amount: persistent<DecimalSource>(0),
                 buyable: { amount: persistent<DecimalSource>(0) }
             },
             purple: {
-                amount: persistent<DecimalSource>(0),
                 buyable: { amount: persistent<DecimalSource>(0) }
             },
             orange: {
-                amount: persistent<DecimalSource>(0),
                 buyable: { amount: persistent<DecimalSource>(0) }
             }
         },
