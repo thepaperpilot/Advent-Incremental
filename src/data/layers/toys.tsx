@@ -335,7 +335,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 <MainDisplay
                     resource={clothes}
-                    color="lightblur"
+                    color="lightblue"
                     style="margin-bottom: 0"
                     productionDisplay={undefined}
                 />
