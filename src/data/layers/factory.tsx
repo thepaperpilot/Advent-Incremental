@@ -93,7 +93,7 @@ const factory = createLayer(id, () => {
         conveyor: {
             imageSrc: conveyor,
             name: "Conveyor",
-            description: "Moves 1 item per tick.",
+            description: "Moves items at 1 block per second.",
             tick: 1,
             ports: {
                 [Direction.Left]: {
@@ -107,7 +107,7 @@ const factory = createLayer(id, () => {
         square: {
             imageSrc: square,
             name: "Producer",
-            description: "Produces 1 square every 1 tick.",
+            description: "Produces 1 square every 1 second.",
             tick: 1,
             outputs: {
                 square: {
@@ -707,6 +707,7 @@ const factory = createLayer(id, () => {
     }
     function onFactoryMouseLeave() {
         isMouseHoverShown.value = false;
+        compHovered.value = undefined;
     }
 
     function onComponentMouseEnter(name: FactoryCompNames | "") {
@@ -748,9 +749,18 @@ const factory = createLayer(id, () => {
                 {compHovered.value !== undefined ? (
                     <div
                         class="info-container"
+                        id="factory-info"
                         style={{
-                            left: mouseCoords.x + "px",
-                            top: mouseCoords.y + "px"
+                            ...(mouseCoords.x +
+                                (document.getElementById("factory-info")?.clientWidth ?? 0) >
+                            app.view.width - 30
+                                ? { right: app.view.width - mouseCoords.x + "px" }
+                                : { left: mouseCoords.x + "px" }),
+                            ...(mouseCoords.y +
+                                (document.getElementById("factory-info")?.clientHeight ?? 0) >
+                            app.view.height - 30
+                                ? { bottom: app.view.height - mouseCoords.y + "px" }
+                                : { top: mouseCoords.y + "px" })
                         }}
                     >
                         <h3>{FACTORY_COMPONENTS[compHovered.value.type].name}</h3>

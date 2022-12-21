@@ -20,7 +20,7 @@
     width: max-content;
     max-width: 300px;
 
-    margin: 20px 0 0 10px;
+    margin: 20px 0 10px 10px;
     padding: 5px 10px;
 
     background: var(--background);
