@@ -1,7 +1,9 @@
 import { Application } from "@pixi/app";
 import { Assets } from "@pixi/assets";
+import { Resource, Texture } from "@pixi/core";
 import { Container } from "@pixi/display";
 import { Graphics } from "@pixi/graphics";
+import { Matrix } from "@pixi/math";
 import { Sprite } from "@pixi/sprite";
 import { jsx } from "features/feature";
 import { globalBus } from "game/events";
@@ -94,6 +96,8 @@ const factory = createLayer(id, () => {
     const name = "The Factory";
     const color = "grey";
 
+    // ---------------------------------------------- Components
+
     const FACTORY_COMPONENTS = {
         cursor: {
             imageSrc: cursor,
@@ -147,17 +151,19 @@ const factory = createLayer(id, () => {
             consumption: {},
             consumptionStock: {}
         }
-    } as const;
+    } as Record<string, FactoryComponentDeclaration>;
     const RESOURCES = {
         square: square
     } as Record<string, string>;
 
     type FactoryCompNames = keyof typeof FACTORY_COMPONENTS;
     type BuildableCompName = Exclude<FactoryCompNames, "cursor">;
+
     interface FactoryComponentBase extends Record<string, State> {
         direction: Direction;
     }
-    interface FactoryComponentProducers extends FactoryComponentBase {
+
+    interface FactoryComponentProducer extends FactoryComponentBase {
         type: Exclude<BuildableCompName, "conveyor">;
         consumptionStock: Record<string, number>;
 
@@ -165,11 +171,14 @@ const factory = createLayer(id, () => {
         productionStock: Record<string, number>;
         ticksDone: number;
     }
+
     interface FactoryComponentConveyor extends FactoryComponentBase {
         type: "conveyor";
     }
+
     type FactoryComponent = FactoryComponentBase &
-        (FactoryComponentConveyor | FactoryComponentProducers);
+        (FactoryComponentConveyor | FactoryComponentProducer);
+
     interface FactoryComponentDeclaration {
         tick: number;
         imageSrc: string;
@@ -263,8 +272,8 @@ const factory = createLayer(id, () => {
         const floorGraphics = new Graphics();
         floorGraphics.beginFill(0x70645d);
         floorGraphics.drawRect(
-            -factorySize.width * blockSize,
-            -factorySize.height * blockSize,
+            (-factorySize.width - 0.5) * blockSize,
+            (-factorySize.height - 0.5) * blockSize,
             factorySize.width * 2 * blockSize,
             factorySize.height * 2 * blockSize
         );
@@ -305,13 +314,14 @@ const factory = createLayer(id, () => {
         // make them produce
         for (const id in components.value) {
             const [x, y] = id.split("x").map(p => +p);
-            const data = components.value[id];
-            const compData = compInternalData[id];
-            //console.log(compData, data)
-            if (data === undefined || compData === undefined) continue;
-            const factoryData = FACTORY_COMPONENTS[data.type];
+            const _data = components.value[id];
+            const _compData = compInternalData[id];
+            if (_data === undefined || _compData === undefined) continue;
+            const factoryData = FACTORY_COMPONENTS[_data.type];
             //debugger;
-            if (data.type === "conveyor") {
+            if (_data.type === "conveyor") {
+                const data = _data as FactoryComponentConveyor;
+                const compData = _compData as FactoryInternalConveyor;
                 if (compData.type !== "conveyor") throw new TypeError("this should not happen");
                 // conveyor part
                 // use a copy
@@ -336,14 +346,13 @@ const factory = createLayer(id, () => {
                                 // push it to the next conveyor, kill it from the
                                 // curent conveyor
                                 block.lastX += dirAmt;
-                                compBehind.nextPackages.push(block);
+                                (compBehind as FactoryInternalConveyor).nextPackages.push(block);
                                 compData.packages.splice(key, 1);
                             } else {
                                 // send it to the factory
                                 // destory its sprite and data
-                                (storedComp as FactoryComponentProducers).consumptionStock[
-                                    block.type
-                                ]++;
+                                const factoryData = storedComp as FactoryComponentProducer;
+                                factoryData.consumptionStock[block.type]++;
                                 movingBlocks.removeChild(block.sprite);
                                 compData.packages.splice(key, 1);
                             }
@@ -367,12 +376,12 @@ const factory = createLayer(id, () => {
                                 // push it to the next conveyor, kill it from the
                                 // curent conveyor
                                 block.lastY += dirAmt;
-                                compBehind.nextPackages.push(block);
+                                (compBehind as FactoryInternalConveyor).nextPackages.push(block);
                                 compData.packages.splice(key, 1);
                             } else {
                                 // send it to the factory
                                 // destory its sprite and data
-                                const factoryData = storedComp as FactoryComponentProducers;
+                                const factoryData = storedComp as FactoryComponentProducer;
                                 factoryData.consumptionStock[block.type]++;
                                 movingBlocks.removeChild(block.sprite);
                                 compData.packages.splice(key, 1);
@@ -385,6 +394,8 @@ const factory = createLayer(id, () => {
                     }
                 }
             } else {
+                const data = _data as FactoryComponentProducer;
+                const compData = _compData as FactoryInternalProducer;
                 // factory part
                 // PRODUCTION
                 if (data.ticksDone >= factoryData.tick) {
@@ -406,27 +417,16 @@ const factory = createLayer(id, () => {
 
                 let yInc = 0;
                 let xInc = 0;
-                //debugger;
-                if (
-                    components.value[x + "x" + (y + 1)]?.type === "conveyor" &&
-                    components.value[x + "x" + (y + 1)].direction === Direction.Up
-                ) {
-                    yInc = 1;
-                } else if (
-                    components.value[x + "x" + (y - 1)]?.type === "conveyor" &&
-                    components.value[x + "x" + (y + 1)].direction === Direction.Down
-                ) {
-                    yInc = -1;
-                } else if (
-                    components.value[x + 1 + "x" + y]?.type === "conveyor" &&
-                    components.value[x + "x" + (y + 1)].direction === Direction.Right
-                ) {
-                    xInc = 1;
-                } else if (
-                    components.value[x - 1 + "x" + y]?.type === "conveyor" &&
-                    components.value[x + "x" + (y + 1)].direction === Direction.Left
-                ) {
-                    xInc = -1;
+                if (components.value[x + "x" + (y + 1)]?.type === "conveyor") {
+                    if (components.value[x + "x" + (y + 1)].direction === Direction.Up) {
+                        yInc = 1;
+                    } else if (components.value[x + "x" + (y - 1)].direction === Direction.Down) {
+                        yInc = -1;
+                    } else if (components.value[x + 1 + "x" + y].direction === Direction.Right) {
+                        xInc = 1;
+                    } else if (components.value[x - 1 + "x" + y].direction === Direction.Left) {
+                        xInc = -1;
+                    }
                 }
                 // no suitable location to dump stuff in
                 //console.log(x, y)
@@ -535,7 +535,7 @@ const factory = createLayer(id, () => {
                 if (data.type === "conveyor") return true;
                 if (!(factoryBaseData.canProduce?.value ?? true)) return false;
                 // this should NEVER be null
-                const compData = components.value[x + "x" + y] as FactoryComponentProducers;
+                const compData = components.value[x + "x" + y] as FactoryComponentProducer;
                 for (const [key, res] of Object.entries(compData.productionStock)) {
                     // if the current stock + production is more than you can handle
                     if (
@@ -551,7 +551,7 @@ const factory = createLayer(id, () => {
                 return true;
             }),
             sprite
-        } as FactoryInternal;
+        } as FactoryInternalProducer;
         spriteContainer.addChild(sprite);
     }
 
@@ -572,7 +572,7 @@ const factory = createLayer(id, () => {
             compSelected.value !== "rotate"
         ) {
             const { tx, ty } = spriteContainer.localTransform;
-            graphicContainer.beginFill(0x808080);
+            graphicContainer.lineStyle(4, 0x808080, 1);
             graphicContainer.drawRect(
                 roundDownTo(mouseCoords.x - tx, blockSize) + tx - blockSize / 2,
                 roundDownTo(mouseCoords.y - ty, blockSize) + ty - blockSize / 2,
@@ -603,8 +603,14 @@ const factory = createLayer(id, () => {
             mapOffset.y += e.movementY / blockSize;
             // the maximum you can see currently
             // total size of blocks - current size = amount you should move
-            mapOffset.x = Math.min(Math.max(mapOffset.x, -factorySize.width), factorySize.width);
-            mapOffset.y = Math.min(Math.max(mapOffset.y, -factorySize.height), factorySize.height);
+            mapOffset.x = Math.min(
+                Math.max(mapOffset.x, -factorySize.width + 0.5),
+                factorySize.width + 0.5
+            );
+            mapOffset.y = Math.min(
+                Math.max(mapOffset.y, -factorySize.height + 0.5),
+                factorySize.height + 0.5
+            );
         }
         if (!pointerDown.value && !pointerDrag.value) {
             const { tx, ty } = spriteContainer.localTransform;
@@ -721,8 +727,14 @@ const factory = createLayer(id, () => {
                             <>
                                 Stock:{" "}
                                 {Object.entries({
-                                    ...compHovered.value.productionStock,
-                                    ...compHovered.value.consumptionStock
+                                    ...(compHovered.value.productionStock as Record<
+                                        string,
+                                        number
+                                    >),
+                                    ...(compHovered.value.consumptionStock as Record<
+                                        string,
+                                        number
+                                    >)
                                 }).map(i => {
                                     return `${i[0]}: ${i[1]}/${
                                         FACTORY_COMPONENTS[compHovered.value?.type ?? "cursor"]

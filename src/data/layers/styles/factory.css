@@ -17,6 +17,7 @@
 
 .info-container {
     position: absolute;
+    width: max-content;
     max-width: 300px;
 
     margin: 20px 0 0 10px;
