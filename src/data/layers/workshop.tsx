@@ -99,12 +99,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <br />
                 <span style="font-size: large">
                     {masteryEffectActive.value ? "Requirement" : "Cost"}:{" "}
-                    {displayResource(
-                        trees.logs,
-                        Decimal.gte(foundationConversion.actualGain.value, 1)
-                            ? foundationConversion.currentAt.value
-                            : foundationConversion.nextAt.value
-                    )}{" "}
+                    {displayResource(trees.logs, foundationConversion.nextAt.value)}{" "}
                     {trees.logs.displayName}
                 </span>
             </>
