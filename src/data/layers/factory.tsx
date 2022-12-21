@@ -1,16 +1,14 @@
 import { Application } from "@pixi/app";
 import { Assets } from "@pixi/assets";
-import { Resource, Texture } from "@pixi/core";
 import { Container } from "@pixi/display";
 import { Graphics } from "@pixi/graphics";
-import { Matrix } from "@pixi/math";
 import { Sprite } from "@pixi/sprite";
 import { jsx } from "features/feature";
 import { globalBus } from "game/events";
 import { createLayer } from "game/layers";
 import { Persistent, persistent, State } from "game/persistence";
 import player from "game/player";
-import { format, formatWhole } from "util/bignum";
+import { formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { computed, ComputedRef, reactive, ref, watchEffect } from "vue";
 import conveyor from "./factory-components/conveyor.png";
@@ -28,12 +26,6 @@ const day = 20;
 // 20x20 block size
 // TODO: unhardcode stuff
 
-enum FactoryDirections {
-    Any = "ANY",
-    None = "NONE"
-}
-type FactoryDirection = FactoryDirections | Direction;
-
 function roundDownTo(num: number, multiple: number) {
     return Math.floor((num + multiple / 2) / multiple) * multiple;
 }
@@ -43,20 +35,6 @@ function getRelativeCoords(e: MouseEvent) {
         x: e.clientX - rect.left,
         y: e.clientY - rect.top
     };
-}
-function iterateDirection(dir: FactoryDirection, func: (dir: FactoryDirection) => void) {
-    switch (dir) {
-        case FactoryDirections.None:
-            return;
-        case FactoryDirections.Any:
-            func(Direction.Up);
-            func(Direction.Right);
-            func(Direction.Down);
-            func(Direction.Left);
-            break;
-        default:
-            func(dir);
-    }
 }
 function rotateDir(dir: Direction, relative = Direction.Right) {
     const directions = [Direction.Up, Direction.Right, Direction.Down, Direction.Left];
@@ -284,20 +262,6 @@ const factory = createLayer(id, () => {
     app.stage.sortableChildren = true;
     let loaded = false;
 
-    function resetContainers() {
-        spriteContainer.destroy({ children: true });
-        movingBlocks.destroy({ children: true });
-        spriteContainer = new Container();
-        movingBlocks = new Container();
-        graphicContainer.zIndex = 1;
-        /*graphicContainer.position.x = 0.5
-        graphicContainer.position.y = 0.5
-        movingBlocks.position.x = 0.5
-        movingBlocks.position.y = 0.5*/
-        movingBlocks.zIndex = 2;
-        app.stage.addChild(spriteContainer, movingBlocks);
-    }
-
     globalBus.on("onLoad", async () => {
         loaded = false;
 
@@ -340,10 +304,9 @@ const factory = createLayer(id, () => {
     (window as any).internal = compInternalData;
     (window as any).comp = components;
     (window as any).blocks = movingBlocks;
-    let taskIsRunning = false;
 
     globalBus.on("update", diff => {
-        if (taskIsRunning || !loaded) return;
+        if (!loaded) return;
         //debugger
         // make them produce
         for (const id in components.value) {
@@ -544,7 +507,6 @@ const factory = createLayer(id, () => {
                 movingBlocks.addChild(sprite);
             }
         }
-        taskIsRunning = false;
     });
 
     function addFactoryComp(
