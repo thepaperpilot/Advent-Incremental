@@ -167,12 +167,12 @@ const factory = createLayer(id, () => {
                 }
             }
         }
-    } as Record<string, FactoryComponentDeclaration>;
+    } as Record<FactoryCompNames, FactoryComponentDeclaration>;
     const RESOURCES = {
         square: square
     } as Record<string, string>;
 
-    type FactoryCompNames = keyof typeof FACTORY_COMPONENTS;
+    type FactoryCompNames = "cursor" | "rotate" | "conveyor" | "square" | "receiver" | "shrinker";
     type BuildableCompName = Exclude<FactoryCompNames, "cursor">;
 
     interface FactoryComponentBase extends Record<string, State> {
