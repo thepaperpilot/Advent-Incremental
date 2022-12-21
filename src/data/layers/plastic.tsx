@@ -36,6 +36,7 @@ import metal from "./metal";
 import oil from "./oil";
 import paper from "./paper";
 import workshop from "./workshop";
+import toys from "./toys";
 
 const id = "plastic";
 const day = 10;
@@ -373,6 +374,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.div(buildRefinery.amount.value, 100).add(1),
             description: "Tinsel Level 4",
             enabled: management.elfTraining.plasticElfTraining.milestones[3].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 50,
+            description: "400 toys",
+            enabled: toys.milestones.milestone4.earned.value
         }))
     ]);
     const computedPlasticGain = computed(() => plasticGain.apply(0));

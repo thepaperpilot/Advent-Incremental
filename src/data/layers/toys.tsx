@@ -215,7 +215,22 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         shouldEarn: () => Decimal.gte(toySum.value, 100)
     }));
-    const milestones = { milestone1, milestone2 };
+    
+    const milestone3 = createMilestone(() => ({
+        display: {
+            requirement: "200 toys",
+            effectDisplay: "Beach wrapping paper is much more powerful."
+        },
+        shouldEarn: () => Decimal.gte(toySum.value, 200)
+    }));
+    const milestone4 = createMilestone(() => ({
+        display: {
+            requirement: "350 toys",
+            effectDisplay: "Gain 50x oil and plastic."
+        },
+        shouldEarn: () => Decimal.gte(toySum.value, 350)
+    }));
+    const milestones = { milestone1, milestone2, milestone3, milestone4 };
     const { collapseMilestones, display: milestonesDisplay } =
         createCollapsibleMilestones(milestones);
 
@@ -256,7 +271,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const { total: totalToys, trackerDisplay } = setUpDailyProgressTracker({
         resource: toySum,
-        goal: 2000,
+        goal: 500,
         name,
         day,
         background: {
