@@ -374,6 +374,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: main.days[day - 1].opened
         }));
 
+        const visibility = convertComputable(options.visibility ?? Visibility.Visible);
+
         return {
             name: options.name,
             amount,
@@ -381,15 +383,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
             hotkey,
             toGenerate,
             computedToGenerate,
-            display: jsx(() => (
-                <MainDisplay
-                    resource={amount}
-                    color={options.color}
-                    shadowColor={options.shadowColor ?? options.color}
-                    style="margin: 0; width: 200px; width: 180px; padding: 10px;"
-                    sticky={false}
-                />
-            ))
+            display: jsx(() =>
+                unref(visibility) === Visibility.Visible ? (
+                    <MainDisplay
+                        resource={amount}
+                        color={options.color}
+                        shadowColor={options.shadowColor ?? options.color}
+                        style="margin: 0; width: 200px; width: 180px; padding: 10px;"
+                        sticky={false}
+                    />
+                ) : (
+                    ""
+                )
+            )
         };
     }
 

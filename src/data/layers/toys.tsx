@@ -4,49 +4,38 @@
  */
 import Spacer from "components/layout/Spacer.vue";
 import Modal from "components/Modal.vue";
-import { main } from "data/projEntry";
-import { createBar } from "features/bars/bar";
 import {
     createCollapsibleMilestones,
     createCollapsibleModifierSections,
     setUpDailyProgressTracker
 } from "data/common";
+import { main } from "data/projEntry";
 import { createBuyable, GenericBuyable } from "features/buyable";
-import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
-import { createHotkey } from "features/hotkey";
-import MainDisplay from "features/resources/MainDisplay.vue";
 import { createMilestone } from "features/milestones/milestone";
-import { createResource, Resource } from "features/resources/resource";
+import MainDisplay from "features/resources/MainDisplay.vue";
+import { createResource } from "features/resources/resource";
 import { createUpgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
-import {
-    createAdditiveModifier,
-    createExponentialModifier,
-    createMultiplicativeModifier,
-    createSequentialModifier,
-    Modifier
-} from "game/modifiers";
-import { noPersist, persistent } from "game/persistence";
-import Decimal, { DecimalSource, format, formatGain, formatLimit, formatWhole } from "util/bignum";
-import { Direction, WithRequired } from "util/common";
+import { createSequentialModifier } from "game/modifiers";
+import { noPersist } from "game/persistence";
+import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { render, renderGrid, renderRow } from "util/vue";
 import { computed, ref } from "vue";
+import cloth from "./cloth";
+import dyes from "./dyes";
 import metal from "./metal";
 import plastic from "./plastic";
-import cloth from "./cloth";
 import trees from "./trees";
-import dyes from "./dyes";
-import paper from "./paper";
 import workshop from "./workshop";
+
 const id = "toys";
 const day = 17;
 
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Toys";
-    const colorBright = "#4BDC13";
-    const colorDark = "green";
+    const color = "cornflowerblue";
 
     const clothes = createResource<DecimalSource>(0, "clothes");
     const woodenBlocks = createResource<DecimalSource>(0, " wooden blocks");
@@ -79,8 +68,28 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <div>You have {formatWhole(clothes.value)} clothes.</div>
 
                 <div>
-                    Costs {format(clothesCost.value.cloth)} cloth and requires{" "}
-                    {format(clothesCost.value.dye)} of red, yellow, and blue dye
+                    Costs{" "}
+                    <span
+                        class={
+                            Decimal.lt(cloth.cloth.value, clothesCost.value.cloth)
+                                ? "unaffordable"
+                                : ""
+                        }
+                    >
+                        {format(clothesCost.value.cloth)} cloth
+                    </span>{" "}
+                    and requires{" "}
+                    <span
+                        class={
+                            [dyes.dyes.red, dyes.dyes.yellow, dyes.dyes.blue].some(d =>
+                                Decimal.lt(d.amount.value, clothesCost.value.dye)
+                            )
+                                ? "unaffordable"
+                                : ""
+                        }
+                    >
+                        {format(clothesCost.value.dye)} of red, yellow, and blue dye
+                    </span>
                 </div>
             </>
         )),
@@ -154,8 +163,26 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <div>You have {formatWhole(trucks.value)} trucks.</div>
 
                 <div>
-                    Costs {format(trucksCost.value.metal)} metal and{" "}
-                    {format(trucksCost.value.plastic)} plastic
+                    Costs{" "}
+                    <span
+                        class={
+                            Decimal.lt(metal.metal.value, trucksCost.value.metal)
+                                ? "unaffordable"
+                                : ""
+                        }
+                    >
+                        {format(trucksCost.value.metal)} metal
+                    </span>{" "}
+                    and{" "}
+                    <span
+                        class={
+                            Decimal.lt(plastic.plastic.value, trucksCost.value.plastic)
+                                ? "unaffordable"
+                                : ""
+                        }
+                    >
+                        {format(trucksCost.value.plastic)} plastic
+                    </span>
                 </div>
             </>
         )),
@@ -213,22 +240,25 @@ const layer = createLayer(id, function (this: BaseLayer) {
             requirement: "100 toys",
             effectDisplay: "Unlock black dyes."
         },
-        shouldEarn: () => Decimal.gte(toySum.value, 100)
+        shouldEarn: () => Decimal.gte(toySum.value, 100),
+        visibility: () => showIf(milestone1.earned.value)
     }));
-    
+
     const milestone3 = createMilestone(() => ({
         display: {
             requirement: "200 toys",
             effectDisplay: "Beach wrapping paper is much more powerful."
         },
-        shouldEarn: () => Decimal.gte(toySum.value, 200)
+        shouldEarn: () => Decimal.gte(toySum.value, 200),
+        visibility: () => showIf(milestone2.earned.value)
     }));
     const milestone4 = createMilestone(() => ({
         display: {
             requirement: "350 toys",
             effectDisplay: "Gain 50x oil and plastic."
         },
-        shouldEarn: () => Decimal.gte(toySum.value, 350)
+        shouldEarn: () => Decimal.gte(toySum.value, 350),
+        visibility: () => showIf(milestone3.earned.value)
     }));
     const milestones = { milestone1, milestone2, milestone3, milestone4 };
     const { collapseMilestones, display: milestonesDisplay } =
@@ -287,7 +317,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     return {
         name,
         day,
-        color: colorBright,
+        color,
         clothes,
         woodenBlocks,
         trucks,
@@ -305,19 +335,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 <MainDisplay
                     resource={clothes}
-                    color={colorBright}
+                    color="lightblur"
                     style="margin-bottom: 0"
                     productionDisplay={undefined}
                 />
                 <MainDisplay
                     resource={woodenBlocks}
-                    color={colorDark}
+                    color="cornflowerblue"
                     style="margin-bottom: 0"
                     productionDisplay={undefined}
                 />
                 <MainDisplay
                     resource={trucks}
-                    color={colorDark}
+                    color="cadetblue"
                     style="margin-bottom: 0"
                     productionDisplay={undefined}
                 />
@@ -326,6 +356,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {renderGrid(row1Upgrades)}
                 <Spacer />
+                <div>You have made {formatWhole(toySum.value)} total toys</div>
                 {milestonesDisplay()}
             </>
         )),
