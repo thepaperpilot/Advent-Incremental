@@ -278,7 +278,10 @@ const layer = createLayer(id, () => {
         beach1: computed(() =>
             main.isMastery.value
                 ? 1
-                : Decimal.add(wrappingPaper.beach.buyable.amount.value, 1).log10().add(1).pow(toys.milestones.milestone3.earned.value ? 1.6 : 1)
+                : Decimal.add(wrappingPaper.beach.buyable.amount.value, 1)
+                      .log10()
+                      .add(1)
+                      .pow(toys.milestones.milestone3.earned.value ? 1.6 : 1)
         )
     };
     const wrappingPaperSum = createResource(

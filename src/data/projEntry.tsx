@@ -224,7 +224,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
                             openDay(layer ?? "trees");
                         },
                         onUnlockLayer() {
-                            if (layer) {
+                            if (layer != null) {
                                 opened.value = true;
                                 setTimeout(() => {
                                     loreScene.value = -1;

@@ -49,7 +49,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         scaling: addHardcap(
             addSoftcap(addSoftcap(createPolynomialScaling(250, 1.5), 5423, 1 / 1e10), 1e20, 3e8),
             computed(() =>
-                toys.row1Upgrades[2].bought
+                toys.row1Upgrades[2].bought.value
                     ? 1200
                     : management.elfTraining.expandersElfTraining.milestones[2].earned.value
                     ? 1000
