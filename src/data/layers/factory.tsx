@@ -20,7 +20,7 @@ import "./styles/factory.css";
 const id = "factory";
 
 // what is the actual day?
-const day = 20;
+const day = 18;
 
 // 20x20 block size
 // TODO: unhardcode stuff
@@ -84,8 +84,8 @@ function getDirection(dir: Direction) {
 }
 
 const factorySize = {
-    width: 6,
-    height: 6
+    width: 3,
+    height: 3
 };
 const blockSize = 50;
 
