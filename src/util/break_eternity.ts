@@ -196,7 +196,11 @@ export function invertOOM(x: DecimalSource): Decimal {
     return x;
 }
 
-export function formatLimit(list: [DecimalSource, string][], unit: string, gainMultiplier: DecimalSource = Decimal.dOne): string {
+export function formatLimit(
+    list: [DecimalSource, string][],
+    unit: string,
+    gainMultiplier: DecimalSource = Decimal.dOne
+): string {
     let num = list[0][0];
     let str = list[0][1];
     for (let i = 1; i < list.length; i++) {

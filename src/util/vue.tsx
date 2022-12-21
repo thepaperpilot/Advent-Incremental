@@ -229,7 +229,10 @@ export function computeOptionalComponent(
     const comp = shallowRef<Component | "" | null>(null);
     watchEffect(() => {
         const currComponent = unwrapRef(component);
-        comp.value = !currComponent ? null : coerceComponent(currComponent, defaultWrapper);
+        comp.value =
+            currComponent == "" || currComponent == null
+                ? null
+                : coerceComponent(currComponent, defaultWrapper);
     });
     return comp;
 }
