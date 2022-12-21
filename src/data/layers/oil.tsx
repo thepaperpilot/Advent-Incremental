@@ -40,6 +40,7 @@ import management from "./management";
 import workshop from "./workshop";
 import { WithRequired } from "util/common";
 import { ElfBuyable } from "./elves";
+import toys from "./toys";
 
 const id = "oil";
 const day = 9;
@@ -947,6 +948,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "Cocoa Level 3",
             enabled: management.elfTraining.oilElfTraining.milestones[2].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => dyes.boosts.black1.value,
+            description: "Black Dye Boost"
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 50,
+            description: "350 toys",
+            enabled: toys.milestones.milestone4.earned
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedOilSpeed = computed(() => oilSpeed.apply(0));

@@ -404,7 +404,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createAdditiveModifier(() => ({
             addend: 1,
             description: "Automated Spade",
-            enabled: autoPlantUpgrade1.bought.value
+            enabled: autoPlantUpgrade1.bought
         })),
         createAdditiveModifier(() => ({
             addend: () => Decimal.div(autoPlantingBuyable1.amount.value, 2),

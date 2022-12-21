@@ -12,9 +12,7 @@
             </Context>
         </div>
 
-        <button v-if="unref(minimizable)" class="minimize" @click="setMinimized(true)">
-            ▼
-        </button>
+        <button v-if="unref(minimizable)" class="minimize" @click="setMinimized(true)">▼</button>
     </div>
 </template>
 
@@ -114,7 +112,6 @@ export default defineComponent({
             }
         }
 
-
         return {
             component,
             minimizedComponent,
@@ -124,7 +121,7 @@ export default defineComponent({
             goBack,
             setMinimized,
             minimized,
-            minWidth,
+            minWidth
         };
     }
 });
@@ -207,7 +204,7 @@ export default defineComponent({
     pointer-events: none;
 }
 </style>
-<style> 
+<style>
 .layer-tab.minimized > * > .desc {
     color: var(--accent1);
     font-size: 30px;

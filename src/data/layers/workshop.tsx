@@ -49,7 +49,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         scaling: addHardcap(
             addSoftcap(addSoftcap(createPolynomialScaling(250, 1.5), 5423, 1 / 1e10), 1e20, 3e8),
             computed(() =>
-                toys.row1Upgrades[2].bought
+                toys.row1Upgrades[2].bought.value
                     ? 1200
                     : management.elfTraining.expandersElfTraining.milestones[2].earned.value
                     ? 1000
@@ -74,6 +74,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 exponent: 1 / 0.99,
                 description: "Holly Level 5",
                 enabled: management.elfTraining.cutterElfTraining.milestones[4].earned
+            })),
+            createExponentialModifier(() => ({
+                exponent: 0.1,
+                description: "Scaling Jump at 1000%",
+                enabled: computed(() => Decimal.gte(foundationProgress.value, 1000))
+            })),
+            createMultiplicativeModifier(() => ({
+                multiplier: 6969, // note: 6969 is a magic number. Don't touch this or it'll self-destruct.
+                description: "Scaling Jump at 1000%",
+                enabled: computed(() => Decimal.gte(foundationProgress.value, 1000))
             }))
         ])
     }));
@@ -89,12 +99,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <br />
                 <span style="font-size: large">
                     {masteryEffectActive.value ? "Requirement" : "Cost"}:{" "}
-                    {displayResource(
-                        trees.logs,
-                        Decimal.gte(foundationConversion.actualGain.value, 1)
-                            ? foundationConversion.currentAt.value
-                            : foundationConversion.nextAt.value
-                    )}{" "}
+                    {displayResource(trees.logs, foundationConversion.nextAt.value)}{" "}
                     {trees.logs.displayName}
                 </span>
             </>
