@@ -41,7 +41,10 @@ const layer = createLayer(id, () => {
         )
     );
     const currentDyeType = computed(
-        () => Object.values(dyes.dyes)[new Decimal(ribbon.value).toNumber() % 6]
+        () =>
+            Object.values(dyes.dyes).filter(d => d !== dyes.dyes.black)[
+                new Decimal(ribbon.value).toNumber() % 6
+            ]
     );
 
     const ribbonProgress = persistent<DecimalSource>(0);
