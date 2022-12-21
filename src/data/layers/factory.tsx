@@ -200,7 +200,10 @@ const factory = createLayer(id, () => {
         y: 0
     });
     const isMouseHoverShown = ref(false);
+
+    const isComponentHover = ref(false);
     const whatIsHovered = ref<FactoryCompNames | "">("");
+
     const compSelected = ref<FactoryCompNames>("cursor");
     const components: Persistent<{ [key: string]: FactoryComponent }> = persistent({});
     const compInternalData: Record<string, FactoryInternal> = {};
@@ -610,14 +613,19 @@ const factory = createLayer(id, () => {
         isMouseHoverShown.value = false;
     }
 
-    function goBack() {
-        player.tabs.splice(0, Infinity, "main");
-    }
-    function onComponentHover(name: FactoryCompNames | "") {
+    function onComponentMouseEnter(name: FactoryCompNames | "") {
         whatIsHovered.value = name;
+        isComponentHover.value = true;
+    }
+    function onComponentMouseLeave() {
+        isComponentHover.value = false;
     }
     function onCompClick(name: FactoryCompNames) {
         compSelected.value = name;
+    }
+
+    function goBack() {
+        player.tabs.splice(0, Infinity, "main");
     }
     return {
         name,
@@ -640,54 +648,77 @@ const factory = createLayer(id, () => {
                     onPointerleave={onFactoryMouseLeave}
                     onContextmenu={(e: MouseEvent) => e.preventDefault()}
                 />
-                <div class="info-container">
-                    {compHovered.value !== undefined ? (
-                        <>
-                            <b>{FACTORY_COMPONENTS[compHovered.value.type].name}</b>
-                            <br />
-                            {FACTORY_COMPONENTS[compHovered.value.type].description}
-                            <br />
-                            {compHovered.value.type !== "conveyor" ? (
-                                <>
-                                    Stock:{" "}
-                                    {Object.entries({
-                                        ...compHovered.value.productionStock,
-                                        ...compHovered.value.consumptionStock
-                                    }).map(i => {
-                                        return `${i[0]}: ${i[1]}/${
-                                            FACTORY_COMPONENTS[compHovered.value?.type ?? "cursor"]
-                                                .consumptionStock[i[0]] ??
-                                            FACTORY_COMPONENTS[compHovered.value?.type ?? "cursor"]
-                                                .productionStock[i[0]]
-                                        }`;
-                                    })}
-                                </>
-                            ) : undefined}
-                        </>
-                    ) : undefined}
-                </div>
-                <div class="factory-container">
-                    <div style="line-height: 2.5em; min-height: 2.5em">
-                        {whatIsHovered.value === ""
-                            ? undefined
-                            : FACTORY_COMPONENTS[whatIsHovered.value].description}
+
+                {compHovered.value !== undefined ? (
+                    <div
+                        class="info-container"
+                        style={{
+                            left: mouseCoords.x + "px",
+                            top: mouseCoords.y + "px"
+                        }}
+                    >
+                        <h3>{FACTORY_COMPONENTS[compHovered.value.type].name}</h3>
+                        <br />
+                        {FACTORY_COMPONENTS[compHovered.value.type].description}
+                        <br />
+                        {compHovered.value.type !== "conveyor" ? (
+                            <>
+                                Stock:{" "}
+                                {Object.entries({
+                                    ...compHovered.value.productionStock,
+                                    ...compHovered.value.consumptionStock
+                                }).map(i => {
+                                    return `${i[0]}: ${i[1]}/${
+                                        FACTORY_COMPONENTS[compHovered.value?.type ?? "cursor"]
+                                            .consumptionStock[i[0]] ??
+                                        FACTORY_COMPONENTS[compHovered.value?.type ?? "cursor"]
+                                            .productionStock[i[0]]
+                                    }`;
+                                })}
+                            </>
+                        ) : undefined}
                     </div>
-                    <div class="comps">
-                        <div>
-                            {Object.entries(FACTORY_COMPONENTS).map(value => {
-                                const key = value[0] as FactoryCompNames;
-                                const item = value[1];
-                                return (
-                                    <img
-                                        src={item.imageSrc}
-                                        class={{ selected: compSelected.value === key }}
-                                        onMouseenter={() => onComponentHover(key)}
-                                        onMouseleave={() => onComponentHover("")}
-                                        onClick={() => onCompClick(key)}
-                                    ></img>
-                                );
-                            })}
-                        </div>
+                ) : undefined}
+
+                <div class="factory-container">
+                    <div
+                        class={{
+                            "comp-info": true,
+                            active: isComponentHover.value
+                        }}
+                        style={{
+                            top:
+                                Math.max(
+                                    Object.keys(FACTORY_COMPONENTS).indexOf(whatIsHovered.value),
+                                    0
+                                ) *
+                                    50 +
+                                10 +
+                                "px"
+                        }}
+                    >
+                        {whatIsHovered.value === "" ? undefined : (
+                            <>
+                                <h3>{FACTORY_COMPONENTS[whatIsHovered.value].name}</h3>
+                                <br />
+                                {FACTORY_COMPONENTS[whatIsHovered.value].description}
+                            </>
+                        )}
+                    </div>
+                    <div class="comp-list">
+                        {Object.entries(FACTORY_COMPONENTS).map(value => {
+                            const key = value[0] as FactoryCompNames;
+                            const item = value[1];
+                            return (
+                                <img
+                                    src={item.imageSrc}
+                                    class={{ selected: compSelected.value === key }}
+                                    onMouseenter={() => onComponentMouseEnter(key)}
+                                    onMouseleave={() => onComponentMouseLeave()}
+                                    onClick={() => onCompClick(key)}
+                                ></img>
+                            );
+                        })}
                     </div>
                 </div>
             </div>
