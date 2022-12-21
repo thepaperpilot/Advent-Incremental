@@ -417,20 +417,30 @@ const factory = createLayer(id, () => {
 
                 let yInc = 0;
                 let xInc = 0;
-                if (components.value[x + "x" + (y + 1)]?.type === "conveyor") {
-                    if (components.value[x + "x" + (y + 1)].direction === Direction.Up) {
-                        yInc = 1;
-                    } else if (components.value[x + "x" + (y - 1)].direction === Direction.Down) {
-                        yInc = -1;
-                    } else if (components.value[x + 1 + "x" + y].direction === Direction.Right) {
-                        xInc = 1;
-                    } else if (components.value[x - 1 + "x" + y].direction === Direction.Left) {
-                        xInc = -1;
-                    }
+                if (
+                    components.value[x + "x" + (y + 1)]?.type === "conveyor" &&
+                    components.value[x + "x" + (y + 1)].direction === Direction.Up
+                ) {
+                    yInc = 1;
+                } else if (
+                    components.value[x + "x" + (y - 1)]?.type === "conveyor" &&
+                    components.value[x + "x" + (y - 1)].direction === Direction.Down
+                ) {
+                    yInc = -1;
+                } else if (
+                    components.value[x + 1 + "x" + y]?.type === "conveyor" &&
+                    components.value[x + 1 + "x" + y].direction === Direction.Right
+                ) {
+                    xInc = 1;
+                } else if (
+                    components.value[x - 1 + "x" + y]?.type === "conveyor" &&
+                    components.value[x - 1 + "x" + y].direction === Direction.Left
+                ) {
+                    xInc = -1;
                 }
                 // no suitable location to dump stuff in
-                //console.log(x, y)
-                //debugger;
+                console.log(x, y);
+                debugger;
                 if (xInc === 0 && yInc === 0) continue;
                 let itemToMove: [string, number] | undefined = undefined;
                 for (const [name, amt] of Object.entries(data.productionStock)) {
