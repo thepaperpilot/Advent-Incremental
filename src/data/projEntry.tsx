@@ -48,6 +48,7 @@ import paperSymbol from "./symbols/paperStacks.png";
 import plasticSymbol from "./symbols/plastic.png";
 import ribbonsSymbol from "./symbols/ribbons.png";
 import workshopSymbol from "./symbols/sws.png";
+import toysSymbol from "./symbols/truck.png";
 import treeSymbol from "./symbols/tree.png";
 import advManagementSymbol from "./symbols/workshopMansion.png";
 import wrappingPaperSymbol from "./symbols/wrappingPaper.png";
@@ -416,10 +417,11 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 17,
             shouldNotify: false,
-            layer: "toys", // "toys1"
-            symbol: "",
-            story: "",
-            completedStory: "",
+            layer: "toys",
+            symbol: toysSymbol,
+            story: "You've had enough of this running around and stalling - it is time to create some toys NOW! You have everything you need and then some, so let's finally just sit down and get this process started!",
+            completedStory:
+                "In your haste you may have been a bit wasteful with resources, but it feels really good to finally make some meaningful process on making toys for Santa. You already envision plans on how to get elves to help you out and start pumping out these toys, but for now... Good Job!",
             masteredStory: ""
         })),
         createDay(() => ({
