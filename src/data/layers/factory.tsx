@@ -254,6 +254,7 @@ const factory = createLayer(id, () => {
     const graphicContainer = new Graphics();
     let spriteContainer = new Container();
     const movingBlocks = new Container();
+    let hoverSprite = new Sprite();
 
     spriteContainer.zIndex = 0;
     movingBlocks.zIndex = 1;
@@ -591,6 +592,7 @@ const factory = createLayer(id, () => {
         spriteContainer.x = movingBlocks.x = calculatedX;
         spriteContainer.y = movingBlocks.y = calculatedY;
 
+        graphicContainer.removeChild(hoverSprite);
         if (
             isMouseHoverShown.value &&
             compSelected.value !== "cursor" &&
@@ -604,6 +606,14 @@ const factory = createLayer(id, () => {
                 blockSize,
                 blockSize
             );
+            const factoryBaseData = FACTORY_COMPONENTS[compSelected.value];
+            const sheet = Assets.get(factoryBaseData.imageSrc);
+            hoverSprite = new Sprite(sheet);
+            hoverSprite.x = roundDownTo(mouseCoords.x - tx, blockSize) + tx - blockSize / 2;
+            hoverSprite.y = roundDownTo(mouseCoords.y - ty, blockSize) + ty - blockSize / 2;
+            hoverSprite.width = blockSize;
+            hoverSprite.height = blockSize;
+            graphicContainer.addChild(hoverSprite);
         }
     }
     watchEffect(updateGraphics);
@@ -862,7 +872,7 @@ const factory = createLayer(id, () => {
                                     onMouseenter={() => onComponentMouseEnter(key)}
                                     onMouseleave={() => onComponentMouseLeave()}
                                     onClick={() => onCompClick(key)}
-                                ></img>
+                                />
                             );
                         })}
                     </div>
