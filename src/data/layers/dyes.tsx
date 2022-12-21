@@ -35,6 +35,7 @@ import management from "./management";
 import oil from "./oil";
 import paper from "./paper";
 import trees from "./trees";
+import toys from "./toys";
 
 interface Dye {
     name: string;
@@ -511,6 +512,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 }
             ],
             dyesToReset: [],
+            visibility: () => showIf(toys.milestones.milestone2.earned.value)
         }),
         orange: createDye({
             name: "Orange Dye",

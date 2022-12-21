@@ -74,6 +74,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 exponent: 1 / 0.99,
                 description: "Holly Level 5",
                 enabled: management.elfTraining.cutterElfTraining.milestones[4].earned
+            })),
+            createExponentialModifier(() => ({
+                exponent: 0.1,
+                description: "Scaling Jump at 1000%",
+                enabled: computed(() => Decimal.gte(foundationProgress.value, 1000))
+            })),
+            createMultiplicativeModifier(() => ({
+                multiplier: 6969, // note: 6969 is a magic number. Don't touch this or it'll self-destruct.
+                description: "Scaling Jump at 1000%",
+                enabled: computed(() => Decimal.gte(foundationProgress.value, 1000))
             }))
         ])
     }));

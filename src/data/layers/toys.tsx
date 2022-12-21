@@ -65,8 +65,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             );
         }
         return {
-            cloth: clothFactor.mul(1e12),
-            dye: clothFactor.mul(1e14)
+            cloth: clothFactor.mul(1e13),
+            dye: clothFactor.mul(2e14)
         };
     });
     const clothesBuyable = createBuyable(() => ({
@@ -141,7 +141,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
         return {
             metal: factor.mul(1e43),
-            plastic: plasticFactor.mul(1e15)
+            plastic: plasticFactor.mul(1e14)
         };
     });
     const trucksBuyable = createBuyable(() => ({
@@ -256,7 +256,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const { total: totalToys, trackerDisplay } = setUpDailyProgressTracker({
         resource: toySum,
-        goal: 200,
+        goal: 2000,
         name,
         day,
         background: {
