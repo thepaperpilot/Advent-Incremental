@@ -33,6 +33,7 @@ import elves from "./elves";
 import management from "./management";
 import trees from "./trees";
 import wrappingPaper from "./wrapping-paper";
+import toys from "./toys";
 
 const id = "workshop";
 const day = 2;
@@ -48,7 +49,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         scaling: addHardcap(
             addSoftcap(addSoftcap(createPolynomialScaling(250, 1.5), 5423, 1 / 1e10), 1e20, 3e8),
             computed(() =>
-                management.elfTraining.expandersElfTraining.milestones[2].earned.value ? 1000 : 100
+                toys.row1Upgrades[2].bought
+                    ? 1200
+                    : management.elfTraining.expandersElfTraining.milestones[2].earned.value
+                    ? 1000
+                    : 100
             )
         ),
         baseResource: trees.logs,
@@ -69,6 +74,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 exponent: 1 / 0.99,
                 description: "Holly Level 5",
                 enabled: management.elfTraining.cutterElfTraining.milestones[4].earned
+            })),
+            createExponentialModifier(() => ({
+                exponent: 0.1,
+                description: "Scaling Jump at 1000%",
+                enabled: computed(() => Decimal.gte(foundationProgress.value, 1000))
+            })),
+            createMultiplicativeModifier(() => ({
+                multiplier: 6969, // note: 6969 is a magic number. Don't touch this or it'll self-destruct.
+                description: "Scaling Jump at 1000%",
+                enabled: computed(() => Decimal.gte(foundationProgress.value, 1000))
             }))
         ])
     }));
@@ -98,7 +113,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             showIf(
                 Decimal.lt(
                     foundationProgress.value,
-                    management.elfTraining.expandersElfTraining.milestones[2].earned.value
+                    toys.row1Upgrades[2].bought.value
+                        ? 1200
+                        : management.elfTraining.expandersElfTraining.milestones[2].earned.value
                         ? 1000
                         : 100
                 )
@@ -110,14 +127,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (main.isMastery.value && main.currentlyMastering.value?.name === "Trees") {
                 return false;
             }
-            if (
-                Decimal.gte(
-                    foundationProgress.value,
-                    management.elfTraining.expandersElfTraining.milestones[2].earned.value
-                        ? 1000
-                        : 100
-                )
-            ) {
+            let cap = 100;
+            if (management.elfTraining.expandersElfTraining.milestones[2].earned.value) {
+                cap = 1000;
+            }
+            if (toys.row1Upgrades[2].bought.value) {
+                cap = 1200;
+            }
+            if (Decimal.gte(foundationProgress.value, cap)) {
                 return false;
             }
             return true;
@@ -278,6 +295,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             ),
         showPopups: shouldShowPopups
     }));
+    const extraExpansionMilestone6 = createMilestone(() => ({
+        display: {
+            requirement: "1200% Foundation Completed",
+            effectDisplay: "Quadruple oil gain"
+        },
+        shouldEarn: () => Decimal.gte(foundationProgress.value, 1200),
+        visibility: () =>
+            showIf(extraExpansionMilestone5.earned.value && toys.row1Upgrades[2].bought.value),
+        showPopups: shouldShowPopups
+    }));
     const milestones = {
         logGainMilestone1,
         autoCutMilestone1,
@@ -291,7 +318,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         extraExpansionMilestone2,
         extraExpansionMilestone3,
         extraExpansionMilestone4,
-        extraExpansionMilestone5
+        extraExpansionMilestone5,
+        extraExpansionMilestone6
     };
     const { collapseMilestones, display: milestonesDisplay } =
         createCollapsibleMilestones(milestones);

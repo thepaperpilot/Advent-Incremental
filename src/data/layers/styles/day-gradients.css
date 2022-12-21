@@ -48,3 +48,18 @@
             );
     }
 }
+
+@keyframes toys-bar {
+    from {
+        background: 0 0 / 114px 114px repeat repeating-linear-gradient(-45deg,
+                #4bdc13 0 10px,
+                green 10px 20px
+            );
+    }
+    to {
+        background: 114px 0px / 114px 114px repeat repeating-linear-gradient(-45deg, 
+                #4bdc13 0 10px,
+                green 10px 20px
+            );
+    }
+}

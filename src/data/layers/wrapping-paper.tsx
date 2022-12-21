@@ -16,6 +16,7 @@ import { computed, Ref, unref, watchEffect } from "vue";
 import { main } from "../projEntry";
 import { default as dyes, type enumColor } from "./dyes";
 import elves from "./elves";
+import toys from "./toys";
 
 const id = "wrappingPaper";
 const day = 15;
@@ -277,7 +278,7 @@ const layer = createLayer(id, () => {
         beach1: computed(() =>
             main.isMastery.value
                 ? 1
-                : Decimal.add(wrappingPaper.beach.buyable.amount.value, 1).log10().add(1)
+                : Decimal.add(wrappingPaper.beach.buyable.amount.value, 1).log10().add(1).pow(toys.milestones.milestone3.earned.value ? 1.6 : 1)
         )
     };
     const wrappingPaperSum = createResource(

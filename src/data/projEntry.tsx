@@ -30,10 +30,11 @@ import metal from "./layers/metal";
 import oil from "./layers/oil";
 import paper from "./layers/paper";
 import plastic from "./layers/plastic";
+import ribbon from "./layers/ribbon";
+import toys from "./layers/toys";
 import trees from "./layers/trees";
 import workshop from "./layers/workshop";
 import wrappingPaper from "./layers/wrapping-paper";
-import ribbon from "./layers/ribbon";
 import boxesSymbol from "./symbols/cardboardBox.png";
 import clothSymbol from "./symbols/cloth.png";
 import coalSymbol from "./symbols/coal.png";
@@ -415,7 +416,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 17,
             shouldNotify: false,
-            layer: null, // "toys 1"
+            layer: "toys", // "toys1"
             symbol: "",
             story: "",
             completedStory: "",
@@ -424,7 +425,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 18,
             shouldNotify: false,
-            layer: null, // "toys 2"
+            layer: null, // "toys2"
             symbol: "",
             story: "",
             completedStory: "",
@@ -433,7 +434,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 19,
             shouldNotify: false,
-            layer: null, // "toys 3"
+            layer: null, // "toys3"
             symbol: "",
             story: "",
             completedStory: "",
@@ -591,7 +592,8 @@ export const getInitialLayers = (
     management,
     letters,
     wrappingPaper,
-    ribbon
+    ribbon,
+    toys
 ];
 
 /**
