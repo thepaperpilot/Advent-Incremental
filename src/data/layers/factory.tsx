@@ -288,7 +288,6 @@ const factory = createLayer(id, () => {
         } else {
             for (const id in components.value) {
                 const data = components.value[id];
-                console.log(id, data);
                 if (data?.type === undefined) {
                     delete components.value[id];
                     continue;
@@ -305,9 +304,8 @@ const factory = createLayer(id, () => {
     (window as any).blocks = movingBlocks;
     let taskIsRunning = false;
 
-    globalBus.on("update", async diff => {
+    globalBus.on("update", diff => {
         if (taskIsRunning || !loaded) return;
-        taskIsRunning = true;
         //debugger
         // will change soon:tm:
         const tick = diff;
@@ -318,14 +316,13 @@ const factory = createLayer(id, () => {
             const _compData = compInternalData[id];
             if (_data === undefined || _compData === undefined) continue;
             const factoryData = FACTORY_COMPONENTS[_data.type];
-            //debugger;
+            // debugger;
             if (_data.type === "conveyor") {
                 const data = _data as FactoryComponentConveyor;
                 const compData = _compData as FactoryInternalConveyor;
                 if (compData.type !== "conveyor") throw new TypeError("this should not happen");
                 // conveyor part
                 // use a copy
-                //console.log(compData);
                 compData.packages = compData.packages.concat(compData.nextPackages);
                 compData.nextPackages = [];
                 for (const [key, block] of [...compData.packages].entries()) {
@@ -439,8 +436,8 @@ const factory = createLayer(id, () => {
                     xInc = -1;
                 }
                 // no suitable location to dump stuff in
-                console.log(x, y);
-                debugger;
+                // console.log(x, y);
+                // debugger;
                 if (xInc === 0 && yInc === 0) continue;
                 let itemToMove: [string, number] | undefined = undefined;
                 for (const [name, amt] of Object.entries(data.productionStock)) {
