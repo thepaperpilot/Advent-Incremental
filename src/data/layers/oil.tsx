@@ -513,7 +513,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 requirement: "5m Well Depth",
                 effectDisplay:
-                    "Gain 25% more coal for each metre of well depth (after the 3 elf milestone)."
+                    "Gain 25% more coal for each metre of well depth (after the 3 elf milestone)"
             },
             shouldEarn: () => Decimal.gte(depth.value, 5)
         })),
@@ -528,7 +528,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMilestone(() => ({
             display: {
                 requirement: "25m Well Depth",
-                effectDisplay: "Gain 5% more ore for each metre of well depth."
+                effectDisplay: "Gain 5% more ore for each metre of well depth"
             },
             shouldEarn: () => Decimal.gte(depth.value, 25),
             visibility: () => showIf(depthMilestones[1].earned.value)
