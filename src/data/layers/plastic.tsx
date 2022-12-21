@@ -377,7 +377,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 50,
-            description: "400 toys",
+            description: "350 toys",
             enabled: toys.milestones.milestone4.earned.value
         }))
     ]);
