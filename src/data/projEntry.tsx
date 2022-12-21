@@ -49,6 +49,7 @@ import paperSymbol from "./symbols/paperStacks.png";
 import plasticSymbol from "./symbols/plastic.png";
 import ribbonsSymbol from "./symbols/ribbons.png";
 import workshopSymbol from "./symbols/sws.png";
+import toysSymbol from "./symbols/truck.png";
 import treeSymbol from "./symbols/tree.png";
 import advManagementSymbol from "./symbols/workshopMansion.png";
 import wrappingPaperSymbol from "./symbols/wrappingPaper.png";
@@ -244,7 +245,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
                             }
                         },
                         onUnlockLayer() {
-                            if (layer) {
+                            if (layer != null) {
                                 opened.value = true;
                                 setTimeout(() => {
                                     loreScene.value = -1;
@@ -437,16 +438,17 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 17,
             shouldNotify: false,
-            layer: "toys", // "toys1"
-            symbol: "",
-            story: "",
-            completedStory: "",
+            layer: "toys",
+            symbol: toysSymbol,
+            story: "You've had enough of this running around and stalling - it is time to create some toys NOW! You have everything you need and then some, so let's finally just sit down and get this process started!",
+            completedStory:
+                "In your haste you may have been a bit wasteful with resources, but it feels really good to finally make some meaningful process on making toys for Santa. You already envision plans on how to get elves to help you out and start pumping out these toys, but for now... Good Job!",
             masteredStory: ""
         })),
         createDay(() => ({
             day: 18,
             shouldNotify: false,
-            layer: null, // "toys2"
+            layer: "factory",
             symbol: "",
             story: "",
             completedStory: "",
@@ -558,10 +560,10 @@ export const main = createLayer("main", function (this: BaseLayer) {
         display: jsx(() => (
             <>
                 {player.devSpeed === 0 ? <div>Game Paused</div> : null}
-                {player.devSpeed && player.devSpeed !== 1 ? (
+                {player.devSpeed != null && player.devSpeed !== 0 && player.devSpeed !== 1 ? (
                     <div>Dev Speed: {format(player.devSpeed)}x</div>
                 ) : null}
-                {player.offlineTime ? (
+                {player.offlineTime != null && player.offlineTime !== 0 ? (
                     <div>Offline Time: {formatTime(player.offlineTime)}</div>
                 ) : null}
                 <Spacer />
@@ -635,29 +637,5 @@ export function fixOldSave(
     oldVersion: string | undefined,
     player: Partial<PlayerData>
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-): void {
-    if (!["0.0", "0.1", "0.2", "0.3", "0.4"].includes(oldVersion ?? "")) {
-        return;
-    }
-    if ((player.layers?.workshop as LayerData<typeof workshop> | undefined)?.foundationProgress) {
-        (player.layers?.workshop as LayerData<typeof workshop> | undefined)!.foundationProgress =
-            Decimal.min(
-                (player.layers!.workshop as LayerData<typeof workshop> | undefined)!
-                    .foundationProgress!,
-                1000
-            );
-    }
-    /*player.offlineProd = false;
-    delete player.layers?.management;
-    if ((player.layers?.main as LayerData<typeof main> | undefined)?.days?.[11]) {
-        (player.layers!.main as LayerData<typeof main>).days![11].opened = false;
-    }
-    if ((player.layers?.main as LayerData<typeof main> | undefined)?.day === 12) {
-        (player.layers!.main as LayerData<typeof main>).day === 11;
-        player.devSpeed = 0;
-    }
-    if (player.tabs) {
-        player.tabs = player.tabs.filter(l => l !== "management");
-    }*/
-}
+): void {}
 /* eslint-enable @typescript-eslint/no-unused-vars */

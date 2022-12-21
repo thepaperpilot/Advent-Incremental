@@ -33,9 +33,9 @@ const state = reactive<Partial<Settings>>({
     showTPS: true,
     theme: Themes.Nordic,
     unthrottled: false,
-    
+
     usingLog: false,
-    alignUnits: false,
+    alignUnits: false
 });
 
 watch(
@@ -68,9 +68,9 @@ export const hardResetSettings = (window.hardResetSettings = () => {
         saves: [],
         showTPS: true,
         theme: Themes.Nordic,
-        
+
         usingLog: false,
-        alignUnits: false,
+        alignUnits: false
     };
     globalBus.emit("loadSettings", settings);
     Object.assign(state, settings);

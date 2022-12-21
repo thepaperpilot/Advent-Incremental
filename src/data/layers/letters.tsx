@@ -79,7 +79,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 processingProgress.value,
                 computedProcessingCooldown.value
             ).floor();
-            letters.value = Decimal.times(amount, computedLettersGain.value).add(letters.value);
+            letters.value = Decimal.times(amount, computedLettersGain.value)
+                .add(letters.value)
+                .min(8e9);
             processingProgress.value = 0;
         }
     }));
@@ -215,12 +217,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.div(paperBuyable.amount.value, 2).add(1),
             description: "Printed Labels"
-        })),
-        createMultiplicativeModifier(() => ({
-            multiplier: () => dyes.boosts.black1.value,
-            description: "Black Dye Boost"
         }))
-        
     ]);
     const computedLettersGain = computed(() => lettersGain.apply(1));
     const processingCooldown = createSequentialModifier(() => [

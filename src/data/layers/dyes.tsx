@@ -35,6 +35,7 @@ import management from "./management";
 import oil from "./oil";
 import paper from "./paper";
 import trees from "./trees";
+import toys from "./toys";
 
 interface Dye {
     name: string;
@@ -373,6 +374,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: main.days[day - 1].opened
         }));
 
+        const visibility = convertComputable(options.visibility ?? Visibility.Visible);
+
         return {
             name: options.name,
             amount,
@@ -380,15 +383,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
             hotkey,
             toGenerate,
             computedToGenerate,
-            display: jsx(() => (
-                <MainDisplay
-                    resource={amount}
-                    color={options.color}
-                    shadowColor={options.shadowColor ?? options.color}
-                    style="margin: 0; width: 200px; width: 180px; padding: 10px;"
-                    sticky={false}
-                />
-            ))
+            display: jsx(() =>
+                unref(visibility) === Visibility.Visible ? (
+                    <MainDisplay
+                        resource={amount}
+                        color={options.color}
+                        shadowColor={options.shadowColor ?? options.color}
+                        style="margin: 0; width: 200px; width: 180px; padding: 10px;"
+                        sticky={false}
+                    />
+                ) : (
+                    ""
+                )
+            )
         };
     }
 
@@ -494,12 +501,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             key: "a",
             costs: () => [
                 {
-                    base: "1e42",
+                    base: "1e60",
                     root: 5,
                     res: trees.logs
                 },
                 {
-                    base: computed(() => (upgrades.yellowDyeUpg2.bought.value ? "1e15" : "2e15")),
+                    base: computed(() => (upgrades.yellowDyeUpg2.bought.value ? "1e17" : "2e17")),
                     root: 2,
                     res: oil.oil
                 }
@@ -507,10 +514,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             listedBoosts: [
                 {
                     visible: true,
-                    desc: computed(() => `*${format(boosts.black1.value)} letters processed.`)
+                    desc: computed(() => `*${format(boosts.black1.value)} oil gain.`)
                 }
             ],
-            dyesToReset: []
+            dyesToReset: [],
+            visibility: () => showIf(toys.milestones.milestone2.earned.value)
         }),
         orange: createDye({
             name: "Orange Dye",

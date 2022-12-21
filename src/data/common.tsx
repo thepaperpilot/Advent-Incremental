@@ -1,4 +1,5 @@
 import Collapsible from "components/layout/Collapsible.vue";
+import "data/layers/styles/day-gradients.css";
 import { createBar } from "features/bars/bar";
 import { GenericBuyable } from "features/buyable";
 import type { Clickable, ClickableOptions, GenericClickable } from "features/clickables/clickable";
@@ -16,14 +17,12 @@ import { GenericMilestone } from "features/milestones/milestone";
 import { displayResource, Resource, trackTotal } from "features/resources/resource";
 import type { GenericTree, GenericTreeNode, TreeNode, TreeNodeOptions } from "features/trees/tree";
 import { createTreeNode } from "features/trees/tree";
-import { BaseLayer, Layer } from "game/layers";
 import type { Modifier } from "game/modifiers";
 import type { Persistent } from "game/persistence";
 import { DefaultValue, persistent } from "game/persistence";
 import player from "game/player";
 import settings from "game/settings";
-import { DecimalSource, formatSmall } from "util/bignum";
-import Decimal, { format } from "util/bignum";
+import Decimal, { DecimalSource, format, formatSmall } from "util/bignum";
 import { formatWhole } from "util/break_eternity";
 import { Direction, WithRequired } from "util/common";
 import type {
@@ -34,10 +33,8 @@ import type {
 } from "util/computed";
 import { convertComputable, processComputable } from "util/computed";
 import { getFirstFeature, render, renderColJSX, renderJSX, VueFeature } from "util/vue";
-import { Ref, watchEffect } from "vue";
-import { computed, unref } from "vue";
+import { computed, Ref, unref, watchEffect } from "vue";
 import "./common.css";
-import "data/layers/styles/day-gradients.css";
 import { main } from "./projEntry";
 
 /** An object that configures a {@link ResetButton} */
@@ -138,7 +135,7 @@ export function createResetButton<T extends ClickableOptions & ResetButtonOption
                         )}
                     </b>{" "}
                     {resetButton.conversion.gainResource.displayName}
-                    {unref(resetButton.showNextAt) ? (
+                    {unref(resetButton.showNextAt) != null ? (
                         <div>
                             <br />
                             {unref(resetButton.conversion.buyMax) ? "Next:" : "Req:"}{" "}
@@ -167,7 +164,7 @@ export function createResetButton<T extends ClickableOptions & ResetButtonOption
 
         const onClick = resetButton.onClick;
         resetButton.onClick = function () {
-            if (!unref(resetButton.canClick)) {
+            if (unref(resetButton.canClick) === false) {
                 return;
             }
             resetButton.conversion.convert();
@@ -311,7 +308,7 @@ export function createCollapsibleModifierSections(
                         ▼
                     </span>
                     {s.title}
-                    {s.subtitle ? <span class="subtitle"> ({s.subtitle})</span> : null}
+                    {s.subtitle != null ? <span class="subtitle"> ({s.subtitle})</span> : null}
                 </h3>
             );
 
@@ -338,7 +335,8 @@ export function createCollapsibleModifierSections(
                     {hasPreviousSection ? <br /> : null}
                     <div
                         style={{
-                            "--unit": settings.alignUnits && s.unit ? "'" + s.unit + "'" : ""
+                            "--unit":
+                                settings.alignUnits && s.unit != null ? "'" + s.unit + "'" : ""
                         }}
                     >
                         {header}
@@ -455,7 +453,7 @@ export function setUpDailyProgressTracker(options: {
             animation: options.background.duration + " " + options.background.gradient + " linear infinite",
         },
         /* eslint-enable prettier/prettier */
-        textStyle: options.textColor ? { color: options.textColor } : undefined,
+        textStyle: options.textColor != null ? { color: options.textColor } : undefined,
         progress: progressFunc,
         display: jsx(() =>
             main.day.value === options.day ||

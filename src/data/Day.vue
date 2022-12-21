@@ -48,16 +48,15 @@
 <script setup lang="ts">
 import Notif from "components/Notif.vue";
 import Tooltip from "features/tooltips/Tooltip.vue";
-import Decimal from "util/bignum";
 import { layers } from "game/layers";
-import { Direction } from "util/common";
+import Decimal from "util/bignum";
 import { formatTime } from "util/break_eternity";
+import { Direction } from "util/common";
 import { ProcessedComputable } from "util/computed";
-import { Ref, Transition } from "vue";
-import { computed, unref } from "vue";
-import { main } from "./projEntry";
+import { computed, Ref, Transition, unref } from "vue";
 import coal from "./layers/coal";
 import dyes from "./layers/dyes";
+import { main } from "./projEntry";
 
 const props = defineProps<{
     day: number;
@@ -77,7 +76,7 @@ const emit = defineEmits<{
 
 const canOpen = computed(
     () =>
-        props.layer &&
+        props.layer != null &&
         Decimal.gte(main.day.value, props.day) &&
         new Date().getMonth() === 11 &&
         new Date().getDate() >= props.day
@@ -88,14 +87,14 @@ const includeMastery = computed(
     () =>
         props.mastered.value ||
         main.currentlyMastering.value == layers[props.layer ?? ""] ||
-        ["wrappingPaper", "ribbon"].includes(props.layer || "") ||
+        ["wrappingPaper", "ribbon"].includes(props.layer ?? "") ||
         (coal.mastered.value && props.layer == "elves") ||
         (dyes.mastered.value && props.layer == "elves")
 );
 const masteryLock = computed(() => isMastering.value && !includeMastery.value);
 
 function tryUnlock() {
-    if (canOpen.value) {
+    if (canOpen.value === true) {
         emit("unlockLayer");
     }
 }

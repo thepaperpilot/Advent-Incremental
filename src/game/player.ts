@@ -70,7 +70,7 @@ const state = reactive<PlayerData>({
     modVersion: "",
     layers: {},
 
-    autoPause: true,
+    autoPause: true
 });
 
 /** Convert a player save data object into a JSON string. Unwraps refs. */
