@@ -293,7 +293,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const extraExpansionMilestone6 = createMilestone(() => ({
         display: {
             requirement: "1200% Foundation Completed",
-            effectDisplay: "Quadruple oil gain"
+            effectDisplay: "Quadruple drill power"
         },
         shouldEarn: () => Decimal.gte(foundationProgress.value, 1200),
         visibility: () =>
