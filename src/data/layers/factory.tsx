@@ -10,7 +10,7 @@ import cursor from "./factory-components/cursor.jpg";
 import square from "./factory-components/square.jpg";
 import { computed, ComputedRef, reactive, Ref, ref, watchEffect } from "vue";
 import { Direction } from "util/common";
-import { persistent } from "game/persistence";
+import { Persistent, persistent, State } from "game/persistence";
 import player from "game/player";
 import "./styles/factory.css";
 import { globalBus } from "game/events";
@@ -25,8 +25,8 @@ const day = 20;
 // TODO: unhardcode stuff
 
 enum FactoryDirections {
-    Any,
-    None
+    Any = "ANY",
+    None = "NONE"
 }
 type FactoryDirection = FactoryDirections | Direction;
 
@@ -76,8 +76,8 @@ function getDirection(dir: Direction) {
 }
 
 const factorySize = {
-    width: 50,
-    height: 50
+    width: 6,
+    height: 6
 };
 const blockSize = 50;
 
@@ -128,7 +128,7 @@ const factory = createLayer(id, () => {
 
     type FactoryCompNames = keyof typeof FACTORY_COMPONENTS;
     type BuildableCompName = Exclude<FactoryCompNames, "cursor">;
-    interface FactoryComponentProducers {
+    interface FactoryComponentProducers extends Record<string, State> {
         type: Exclude<BuildableCompName, "conveyor">;
         consumptionStock: Record<string, number>;
 
@@ -136,7 +136,7 @@ const factory = createLayer(id, () => {
         productionStock: Record<string, number>;
         ticksDone: number;
     }
-    interface FactoryComponentConveyor {
+    interface FactoryComponentConveyor extends Record<string, State> {
         type: "conveyor";
         directionOut: Direction;
     }
@@ -147,18 +147,18 @@ const factory = createLayer(id, () => {
         name: string;
         description: string;
 
-        // amount it consumes
+        /** amount it consumes */
         consumption: Record<string, number>;
-        // maximum stock of consumption
+        /** maximum stock of consumption */
         consumptionStock: Record<string, number>;
-        // amount it produces
+        /** amount it produces */
         production: Record<string, number>;
-        // maximum stock of production
+        /** maximum stock of production */
         productionStock: Record<string, number>;
 
-        // on produce, do something
+        /** on produce, do something */
         onProduce?: (times: number) => void;
-        // can it produce? (in addtion to the stock check)
+        /** can it produce? (in addtion to the stock check) */
         canProduce?: ComputedRef<boolean>;
     }
 
@@ -202,14 +202,8 @@ const factory = createLayer(id, () => {
     const isMouseHoverShown = ref(false);
     const whatIsHovered = ref<FactoryCompNames | "">("");
     const compSelected = ref<FactoryCompNames>("cursor");
-    const components: Ref<(FactoryComponent | null)[][]> = persistent(
-        Array(factorySize.width)
-            .fill(undefined)
-            .map(() => Array(factorySize.height).fill(null))
-    );
-    const compInternalData: (FactoryInternal | null)[][] = Array(factorySize.width)
-        .fill(undefined)
-        .map(() => Array(factorySize.height).fill(null));
+    const components: Persistent<{ [key: string]: FactoryComponent }> = persistent({});
+    const compInternalData: Record<string, FactoryInternal> = {};
 
     // pixi
     const app = new Application({
@@ -217,9 +211,12 @@ const factory = createLayer(id, () => {
     });
     const graphicContainer = new Graphics();
     let spriteContainer = new Container();
-    let movingBlocks = new Container();
-    resetContainers();
-    app.stage.addChild(graphicContainer);
+    const movingBlocks = new Container();
+
+    spriteContainer.zIndex = 0;
+    movingBlocks.zIndex = 1;
+    graphicContainer.zIndex = 2;
+    app.stage.addChild(graphicContainer, spriteContainer, movingBlocks);
     app.stage.sortableChildren = true;
     let loaded = false;
 
@@ -239,19 +236,45 @@ const factory = createLayer(id, () => {
 
     globalBus.on("onLoad", async () => {
         loaded = false;
-        resetContainers();
-        for (const y of components.value.keys()) {
-            for (const x of components.value[y].keys()) {
-                const data = components.value[y][x];
-                if (data === null) continue;
-                await addFactoryComp(x, y, data.type);
+
+        spriteContainer.destroy({
+            children: true
+        });
+        spriteContainer = new Container();
+        app.stage.addChild(spriteContainer);
+
+        const floorGraphics = new Graphics();
+        floorGraphics.beginFill(0x70645d);
+        floorGraphics.drawRect(
+            -factorySize.width * blockSize,
+            -factorySize.height * blockSize,
+            factorySize.width * 2 * blockSize,
+            factorySize.height * 2 * blockSize
+        );
+        floorGraphics.endFill();
+        spriteContainer.addChild(floorGraphics);
+
+        // load every sprite here so pixi doesn't complain about loading multiple times
+        await Assets.load(Object.values(FACTORY_COMPONENTS).map(x => x.imageSrc));
+
+        if (Array.isArray(components.value)) components.value = {};
+        else
+            for (const id in components.value) {
+                const data = components.value[id];
+                console.log(id, data);
+                if (data?.type === undefined) {
+                    delete components.value[id];
+                    continue;
+                }
+                const [x, y] = id.split("x").map(p => +p);
+                addFactoryComp(x, y, data.type);
             }
-        }
+
         loaded = true;
     });
-    window.internal = compInternalData;
-    window.comp = components;
-    window.blocks = movingBlocks;
+    (window as any).internal = compInternalData;
+    (window as any).comp = components;
+    (window as any).blocks = movingBlocks;
     let taskIsRunning = false;
 
     globalBus.on("update", async diff => {
@@ -261,170 +284,152 @@ const factory = createLayer(id, () => {
         // will change soon:tm:
         const tick = diff;
         // make them produce
-        for (const y of components.value.keys()) {
-            for (const x of components.value[y].keys()) {
-                const data = components.value[y][x];
-                const compData = compInternalData[y][x];
-                //console.log(compData, data)
-                if (data === null || compData === null) continue;
-                const factoryData = FACTORY_COMPONENTS[data.type];
-                //debugger;
-                if (data.type === "conveyor") {
-                    if (compData.type !== "conveyor") throw new TypeError("this should not happen");
-                    // conveyor part
-                    // use a copy
-                    //console.log(compData);
-                    compData.packages = compData.packages.concat(compData.nextPackages);
-                    compData.nextPackages = [];
-                    for (const [key, block] of [...compData.packages].entries()) {
-                        const dirType = getDirection(data.directionOut);
-                        const dirAmt = directionToNum(data.directionOut);
-                        if (dirType === "h") {
-                            if (block.x <= block.lastX + dirAmt) {
-                                // hit border
-                                if (
-                                    (dirAmt === -1 && x === 0) ||
-                                    (dirAmt === 1 && x === components.value[y].length - 1)
-                                )
-                                    continue;
-                                const compBehind = compInternalData[y][x + dirAmt];
-                                const storedComp = components.value[y][x + dirAmt];
+        for (const id in components.value) {
+            const [x, y] = id.split("x").map(p => +p);
+            const data = components.value[id];
+            const compData = compInternalData[id];
+            //console.log(compData, data)
+            if (data === undefined || compData === undefined) continue;
+            const factoryData = FACTORY_COMPONENTS[data.type];
+            //debugger;
+            if (data.type === "conveyor") {
+                if (compData.type !== "conveyor") throw new TypeError("this should not happen");
+                // conveyor part
+                // use a copy
+                //console.log(compData);
+                compData.packages = compData.packages.concat(compData.nextPackages);
+                compData.nextPackages = [];
+                for (const [key, block] of [...compData.packages].entries()) {
+                    const dirType = getDirection(data.directionOut);
+                    const dirAmt = directionToNum(data.directionOut);
+                    if (dirType === "h") {
+                        if (block.x <= block.lastX + dirAmt) {
+                            const compBehind = compInternalData[x + dirAmt + "x" + y];
+                            const storedComp = components.value[x + dirAmt + "x" + y];
 
-                                // empty spot
-                                if (compBehind === null) continue;
-                                if (compBehind.type === "conveyor") {
-                                    // push it to the next conveyor, kill it from the
-                                    // curent conveyor
-                                    // too many packages
-                                    if (
-                                        compBehind.nextPackages.length +
-                                            compBehind.packages.length >=
-                                        1
-                                    )
-                                        continue;
-                                    block.lastX += dirAmt;
-                                    compBehind.nextPackages.push(block);
-                                    compData.packages.splice(key, 1);
-                                } else {
-                                    // send it to the factory
-                                    // destory its sprite and data
-                                    (storedComp as FactoryComponentProducers).consumptionStock[
-                                        block.type
-                                    ]++;
-                                    movingBlocks.removeChild(block.sprite);
-                                    compData.packages.splice(key, 1);
-                                }
+                            // empty spot
+                            if (compBehind === undefined) {
+                                // just delete it
+                                movingBlocks.removeChild(block.sprite);
+                                compData.packages.splice(key, 1);
+                            } else if (compBehind.type === "conveyor") {
+                                // push it to the next conveyor, kill it from the
+                                // curent conveyor
+                                block.lastX += dirAmt;
+                                compBehind.nextPackages.push(block);
+                                compData.packages.splice(key, 1);
                             } else {
-                                const change =
-                                    dirAmt * Math.min(Math.abs(block.x + 1 - block.lastX), tick);
-                                block.x += change;
-                                block.sprite.x += change * blockSize;
+                                // send it to the factory
+                                // destory its sprite and data
+                                (storedComp as FactoryComponentProducers).consumptionStock[
+                                    block.type
+                                ]++;
+                                movingBlocks.removeChild(block.sprite);
+                                compData.packages.splice(key, 1);
                             }
                         } else {
-                            if (block.y <= block.lastY + dirAmt) {
-                                // hit border
-                                if (
-                                    (dirAmt === -1 && y === 0) ||
-                                    (dirAmt === 1 && y === components.value.length - 1)
-                                )
-                                    continue;
-                                const compBehind = compInternalData[y + dirAmt][x];
-                                const storedComp = components.value[y + dirAmt][x];
-
-                                // empty spot
-                                if (compBehind === null) continue;
-                                if (compBehind.type === "conveyor") {
-                                    // push it to the next conveyor, kill it from the
-                                    // curent conveyor
-                                    block.lastY += dirAmt;
-                                    compBehind.nextPackages.push(block);
-                                    compData.packages.splice(key, 1);
-                                } else {
-                                    // send it to the factory
-                                    // destory its sprite and data
-                                    const factoryData = storedComp as FactoryComponentProducers;
-                                    factoryData.consumptionStock[block.type]++;
-                                    movingBlocks.removeChild(block.sprite);
-                                    compData.packages.splice(key, 1);
-                                }
-                            } else {
-                                const change =
-                                    dirAmt * Math.min(Math.abs(block.y - block.lastY), tick);
-                                block.y += change;
-                                block.sprite.y += change * blockSize;
-                            }
+                            const change =
+                                dirAmt * Math.min(Math.abs(block.x + 1 - block.lastX), tick);
+                            block.x += change;
+                            block.sprite.x += change * blockSize;
                         }
-                    }
-                } else {
-                    // factory part
-                    // PRODUCTION
-                    if (data.ticksDone >= factoryData.tick) {
-                        if (!compData.canProduce.value) continue;
-                        const cyclesDone = Math.floor(data.ticksDone / factoryData.tick);
-                        factoryData.onProduce?.(cyclesDone);
-                        for (const [key, val] of Object.entries(factoryData.consumption)) {
-                            data.consumptionStock[key] -= val;
-                        }
-                        for (const [key, val] of Object.entries(factoryData.production)) {
-                            data.productionStock[key] += val;
-                        }
-                        data.ticksDone -= cyclesDone * factoryData.tick;
                     } else {
-                        data.ticksDone += tick;
-                    }
-                    // now look at each component direction and see if it accepts items coming in
-                    // components are 1x1 so simple math for now
+                        if (block.y <= block.lastY + dirAmt) {
+                            const compBehind = compInternalData[x + "x" + (y + dirAmt)];
+                            const storedComp = components.value[x + "x" + (y + dirAmt)];
 
-                    let yInc = 0;
-                    let xInc = 0;
-                    //debugger;
-                    if (
-                        y < components.value.length - 1 &&
-                        components.value[y + 1][x]?.type === "conveyor" &&
-                        (compInternalData[y + 1][x] as FactoryInternalProducer).startingFrom ===
-                            "up"
-                    ) {
-                        yInc = 1;
-                    } else if (
-                        y > 0 &&
-                        components.value[y - 1][x]?.type === "conveyor" &&
-                        (compInternalData[y - 1][x] as FactoryInternalProducer).startingFrom ===
-                            "down"
-                    ) {
-                        yInc = -1;
-                    } else if (
-                        x < components.value[y].length - 1 &&
-                        components.value[y][x + 1]?.type === "conveyor" &&
-                        (compInternalData[y][x + 1] as FactoryInternalProducer).startingFrom ===
-                            "right"
-                    ) {
-                        xInc = 1;
-                    } else if (
-                        x > 0 &&
-                        components.value[y][x - 1]?.type === "conveyor" &&
-                        (compInternalData[y][x - 1] as FactoryInternalProducer).startingFrom ===
-                            "left"
-                    ) {
-                        xInc = -1;
-                    }
-                    // no suitable location to dump stuff in
-                    //console.log(x, y)
-                    //debugger;
-                    if (xInc === 0 && yInc === 0) continue;
-                    let itemToMove: [string, number] | undefined = undefined;
-                    for (const [name, amt] of Object.entries(data.productionStock)) {
-                        if (amt >= 1) {
-                            itemToMove = [name, amt];
-                            data.productionStock[name]--;
-                            break;
+                            // empty spot
+                            if (compBehind === undefined) {
+                                // just delete it
+                                movingBlocks.removeChild(block.sprite);
+                                compData.packages.splice(key, 1);
+                            } else if (compBehind.type === "conveyor") {
+                                // push it to the next conveyor, kill it from the
+                                // curent conveyor
+                                block.lastY += dirAmt;
+                                compBehind.nextPackages.push(block);
+                                compData.packages.splice(key, 1);
+                            } else {
+                                // send it to the factory
+                                // destory its sprite and data
+                                const factoryData = storedComp as FactoryComponentProducers;
+                                factoryData.consumptionStock[block.type]++;
+                                movingBlocks.removeChild(block.sprite);
+                                compData.packages.splice(key, 1);
+                            }
+                        } else {
+                            const change = dirAmt * Math.min(Math.abs(block.y - block.lastY), tick);
+                            block.y += change;
+                            block.sprite.y += change * blockSize;
                         }
                     }
-                    // there is nothing to move
-                    if (itemToMove === undefined) continue;
-                    const texture = await Assets.load(RESOURCES[itemToMove[0]]);
-                    const sprite = new Sprite(texture);
+                }
+            } else {
+                // factory part
+                // PRODUCTION
+                if (data.ticksDone >= factoryData.tick) {
+                    if (!compData.canProduce.value) continue;
+                    const cyclesDone = Math.floor(data.ticksDone / factoryData.tick);
+                    factoryData.onProduce?.(cyclesDone);
+                    for (const [key, val] of Object.entries(factoryData.consumption)) {
+                        data.consumptionStock[key] -= val;
+                    }
+                    for (const [key, val] of Object.entries(factoryData.production)) {
+                        data.productionStock[key] += val;
+                    }
+                    data.ticksDone -= cyclesDone * factoryData.tick;
+                } else {
+                    data.ticksDone += tick;
+                }
+                // now look at each component direction and see if it accepts items coming in
+                // components are 1x1 so simple math for now
 
-                    /*
+                let yInc = 0;
+                let xInc = 0;
+                //debugger;
+                if (
+                    components.value[x + "x" + (y + 1)]?.type === "conveyor" &&
+                    (compInternalData[x + "x" + (y + 1)] as FactoryInternalProducer)
+                        .startingFrom === "up"
+                ) {
+                    yInc = 1;
+                } else if (
+                    components.value[x + "x" + (y - 1)]?.type === "conveyor" &&
+                    (compInternalData[x + "x" + (y - 1)] as FactoryInternalProducer)
+                        .startingFrom === "down"
+                ) {
+                    yInc = -1;
+                } else if (
+                    components.value[x + 1 + "x" + y]?.type === "conveyor" &&
+                    (compInternalData[x + 1 + "x" + y] as FactoryInternalProducer).startingFrom ===
+                        "right"
+                ) {
+                    xInc = 1;
+                } else if (
+                    components.value[x - 1 + "x" + y]?.type === "conveyor" &&
+                    (compInternalData[x - 1 + "x" + y] as FactoryInternalProducer).startingFrom ===
+                        "left"
+                ) {
+                    xInc = -1;
+                }
+                // no suitable location to dump stuff in
+                //console.log(x, y)
+                //debugger;
+                if (xInc === 0 && yInc === 0) continue;
+                let itemToMove: [string, number] | undefined = undefined;
+                for (const [name, amt] of Object.entries(data.productionStock)) {
+                    if (amt >= 1) {
+                        itemToMove = [name, amt];
+                        data.productionStock[name]--;
+                        break;
+                    }
+                }
+                // there is nothing to move
+                if (itemToMove === undefined) continue;
+                const texture = Assets.get(RESOURCES[itemToMove[0]]);
+                const sprite = new Sprite(texture);
+
+                /*
                     go left     go right
                               go top
                                 x
@@ -434,46 +439,48 @@ const factory = createLayer(id, () => {
                                 x
                               go bottom
                     */
-                    // if X is being moved, then we don't need to adjust x
-                    // however it needs to be aligned if Y is being moved
-                    // vice-versa
-                    const spriteDiffX = xInc !== 0 ? 0 : 0.5;
-                    const spriteDiffY = yInc !== 0 ? 0 : 0.5;
-                    sprite.x = (x + spriteDiffX) * blockSize;
-                    sprite.y = (y + spriteDiffY) * blockSize;
-                    sprite.anchor.set(0.5);
-                    sprite.width = blockSize / 2.5;
-                    sprite.height = blockSize / 5;
-                    //console.log(sprite);
-                    const block: Block = {
-                        sprite,
-                        x: x,
-                        y: y,
-                        lastX: x,
-                        lastY: y,
-                        type: itemToMove[0]
-                    };
+                // if X is being moved, then we don't need to adjust x
+                // however it needs to be aligned if Y is being moved
+                // vice-versa
+                const spriteDiffX = xInc !== 0 ? 0 : 0.5;
+                const spriteDiffY = yInc !== 0 ? 0 : 0.5;
+                sprite.x = (x + spriteDiffX) * blockSize;
+                sprite.y = (y + spriteDiffY) * blockSize;
+                sprite.anchor.set(0.5);
+                sprite.width = blockSize / 2.5;
+                sprite.height = blockSize / 5;
+                //console.log(sprite);
+                const block: Block = {
+                    sprite,
+                    x: x,
+                    y: y,
+                    lastX: x,
+                    lastY: y,
+                    type: itemToMove[0]
+                };
 
-                    (
-                        compInternalData[y + yInc][x + xInc] as FactoryInternalConveyor
-                    ).nextPackages.push(block);
-                    movingBlocks.addChild(sprite);
-                }
+                (
+                    compInternalData[x + xInc + "x" + (y + yInc)] as FactoryInternalConveyor
+                ).nextPackages.push(block);
+                movingBlocks.addChild(sprite);
             }
         }
         taskIsRunning = false;
     });
 
-    async function addFactoryComp(x: number, y: number, type: BuildableCompName) {
+    function addFactoryComp(x: number, y: number, type: BuildableCompName) {
+        if (x < -factorySize.width || x >= factorySize.width) return;
+        if (y < -factorySize.height || y >= factorySize.height) return;
+
         const factoryBaseData = FACTORY_COMPONENTS[type];
-        const sheet = await Assets.load(factoryBaseData.imageSrc);
+        const sheet = Assets.get(factoryBaseData.imageSrc);
         const sprite = new Sprite(sheet);
 
         sprite.x = x * blockSize;
         sprite.y = y * blockSize;
         sprite.width = blockSize;
         sprite.height = blockSize;
-        components.value[y][x] = {
+        components.value[x + "x" + y] = {
             type,
             ticksDone: 0,
             directionIn: type === "conveyor" ? Direction.Right : undefined,
@@ -492,7 +499,7 @@ const factory = createLayer(id, () => {
                       )
         } as FactoryComponent;
         const isConveyor = type === "conveyor";
-        compInternalData[y][x] = {
+        compInternalData[x + "x" + y] = {
             type,
             packages: isConveyor ? [] : undefined,
             nextPackages: isConveyor ? [] : undefined,
@@ -501,7 +508,7 @@ const factory = createLayer(id, () => {
                 if (type === "conveyor") return true;
                 if (!(factoryBaseData.canProduce?.value ?? true)) return false;
                 // this should NEVER be null
-                const compData = components.value[y][x] as FactoryComponentProducers;
+                const compData = components.value[x + "x" + y] as FactoryComponentProducers;
                 for (const [key, res] of Object.entries(compData.productionStock)) {
                     // if the current stock + production is more than you can handle
                     if (
@@ -525,14 +532,12 @@ const factory = createLayer(id, () => {
     function updateGraphics() {
         app.resize();
         graphicContainer.clear();
-        // I honestly have no clue how this works
-        const calculatedX = mapOffset.x * blockSize;
-        const calculatedY = mapOffset.y * blockSize;
+        // make (0, 0) the center of the screen
+        const calculatedX = mapOffset.x * blockSize + app.view.width / 2;
+        const calculatedY = mapOffset.y * blockSize + app.view.height / 2;
 
-        movingBlocks.x = calculatedX;
-        movingBlocks.y = calculatedY;
-        spriteContainer.x = calculatedX;
-        spriteContainer.y = calculatedY;
+        spriteContainer.x = movingBlocks.x = calculatedX;
+        spriteContainer.y = movingBlocks.y = calculatedY;
 
         if (isMouseHoverShown.value && compSelected.value !== "cursor") {
             const { tx, ty } = spriteContainer.localTransform;
@@ -549,7 +554,7 @@ const factory = createLayer(id, () => {
 
     const pointerDown = ref(false),
         pointerDrag = ref(false),
-        compHovered = ref<FactoryComponent | null>(null);
+        compHovered = ref<FactoryComponent | undefined>(undefined);
 
     function onFactoryPointerMove(e: PointerEvent) {
         const { x, y } = getRelativeCoords(e);
@@ -566,28 +571,24 @@ const factory = createLayer(id, () => {
             mapOffset.y += e.movementY / blockSize;
             // the maximum you can see currently
             // total size of blocks - current size = amount you should move
-            mapOffset.x = Math.min(
-                Math.max(mapOffset.x, 0),
-                blockSize * factorySize.width - app.screen.width
-            );
-            mapOffset.y = Math.min(
-                Math.max(mapOffset.y, 0),
-                blockSize * factorySize.height - app.screen.height
-            );
+            mapOffset.x = Math.min(Math.max(mapOffset.x, -factorySize.width), factorySize.width);
+            mapOffset.y = Math.min(Math.max(mapOffset.y, -factorySize.height), factorySize.height);
         }
         if (!pointerDown.value && !pointerDrag.value && compSelected.value === "cursor") {
             const { tx, ty } = spriteContainer.localTransform;
             compHovered.value =
-                components.value[roundDownTo(y - ty, blockSize) / blockSize][
-                    roundDownTo(x - tx, blockSize) / blockSize
+                components.value[
+                    Math.round(roundDownTo(x - tx, blockSize) / blockSize) +
+                        "x" +
+                        Math.round(roundDownTo(y - ty, blockSize) / blockSize)
                 ];
         }
     }
-    async function onFactoryPointerDown() {
+    function onFactoryPointerDown() {
         window.addEventListener("pointerup", onFactoryPointerUp);
         pointerDown.value = true;
     }
-    async function onFactoryPointerUp(e: PointerEvent) {
+    function onFactoryPointerUp(e: PointerEvent) {
         // make sure they're not dragging and that
         // they aren't trying to put down a cursor
         if (!pointerDrag.value) {
@@ -597,13 +598,13 @@ const factory = createLayer(id, () => {
             y = roundDownTo(y - ty, blockSize) / blockSize;
             if (e.button === 0) {
                 if (compSelected.value !== "cursor") {
-                    await addFactoryComp(x, y, compSelected.value);
+                    if (!components.value[x + "x" + y]) addFactoryComp(x, y, compSelected.value);
                 }
             } else if (e.button === 2) {
-                const data = compInternalData[y][x];
-                if (data === null) return;
-                components.value[y][x] = null;
-                compInternalData[y][x] = null;
+                const data = compInternalData[x + "x" + y];
+                if (data === undefined) return;
+                delete components.value[x + "x" + y];
+                delete compInternalData[x + "x" + y];
                 spriteContainer.removeChild(data.sprite);
             }
         }
@@ -622,7 +623,6 @@ const factory = createLayer(id, () => {
         player.tabs.splice(0, Infinity, "main");
     }
     function onComponentHover(name: FactoryCompNames | "") {
-        if (compSelected.value !== "cursor") return;
         whatIsHovered.value = name;
     }
     function onCompClick(name: FactoryCompNames) {
@@ -650,7 +650,7 @@ const factory = createLayer(id, () => {
                     onContextmenu={(e: MouseEvent) => e.preventDefault()}
                 />
                 <div class="info-container">
-                    {compHovered.value !== null ? (
+                    {compHovered.value !== undefined ? (
                         <>
                             <b>{FACTORY_COMPONENTS[compHovered.value.type].name}</b>
                             <br />
@@ -664,9 +664,9 @@ const factory = createLayer(id, () => {
                                         ...compHovered.value.consumptionStock
                                     }).map(i => {
                                         return `${i[0]}: ${i[1]}/${
-                                            FACTORY_COMPONENTS[compHovered.value.type]
+                                            FACTORY_COMPONENTS[compHovered.value?.type ?? "cursor"]
                                                 .consumptionStock[i[0]] ??
-                                            FACTORY_COMPONENTS[compHovered.value.type]
+                                            FACTORY_COMPONENTS[compHovered.value?.type ?? "cursor"]
                                                 .productionStock[i[0]]
                                         }`;
                                     })}

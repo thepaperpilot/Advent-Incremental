@@ -2,17 +2,18 @@
  * @module
  * @hidden
  */
+import HotkeyVue from "components/Hotkey.vue";
 import Spacer from "components/layout/Spacer.vue";
 import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
 import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
-import { createBuyable, GenericBuyable } from "features/buyable";
+import { createBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
 import { createHotkey } from "features/hotkey";
 import MainDisplay from "features/resources/MainDisplay.vue";
-import { createResource, Resource } from "features/resources/resource";
+import { createResource, Resource, trackTotal } from "features/resources/resource";
 import { createUpgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
@@ -37,6 +38,7 @@ import management from "./management";
 import paper from "./paper";
 import workshop from "./workshop";
 import wrappingPaper from "./wrapping-paper";
+import toys from "./toys";
 const id = "trees";
 const day = 1;
 
@@ -51,8 +53,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const logs = createResource<DecimalSource>(0, "logs");
     // Think of saplings as spent trees
     const saplings = createResource<DecimalSource>(0, "saplings");
+    const createdSaplings = persistent<DecimalSource>(0);
 
-    const ema = ref<DecimalSource>(0);
+    const averageLogGain = ref<DecimalSource>(0);
 
     const lastAutoCuttingAmount = ref<DecimalSource>(0);
     const lastAutoPlantedAmount = ref<DecimalSource>(0);
@@ -92,6 +95,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             addend: () => Decimal.pow(computedManualCuttingAmount.value, 0.99),
             description: "Hope Level 1",
             enabled: management.elfTraining.expandersElfTraining.milestones[0].earned
+        })),
+        createAdditiveModifier(() => ({
+            addend: createdSaplings,
+            description: "Trees Decoration",
+            enabled: masteryEffectActive
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const trees = createResource(
@@ -396,7 +404,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createAdditiveModifier(() => ({
             addend: 1,
             description: "Automated Spade",
-            enabled: autoPlantUpgrade1.bought
+            enabled: autoPlantUpgrade1.bought.value
         })),
         createAdditiveModifier(() => ({
             addend: () => Decimal.div(autoPlantingBuyable1.amount.value, 2),
@@ -528,6 +536,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Christmas Wrapping Paper",
             enabled: computed(() => Decimal.gt(wrappingPaper.boosts.christmas1.value, 1))
         })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(computedTotalTrees.value, 1).log10(),
+            description: "Trees Decoration",
+            enabled: masteryEffectActive
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Load logs onto trucks",
+            enabled: toys.row1Upgrades[0].bought
+        })),
         createExponentialModifier(() => ({
             exponent: 1.2,
             description: "100% Foundation Completed",
@@ -553,7 +571,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const cutTree = createClickable(() => ({
         display: {
-            title: "Cut trees",
+            title: jsx(() => (
+                <h3>
+                    Cut trees <HotkeyVue hotkey={cutTreeHK} />
+                </h3>
+            )),
             description: jsx(() => (
                 <>
                     Cut down up to {formatWhole(Decimal.floor(computedManualCuttingAmount.value))}{" "}
@@ -585,9 +607,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         ).floor()
                     )
                 )
-            );
+            ).max(0);
+            if (masteryEffectActive.value) {
+                createdSaplings.value = Decimal.add(createdSaplings.value, amount).max(0);
+            }
             logs.value = Decimal.add(logs.value, Decimal.times(logGain.apply(1), amount));
-            saplings.value = Decimal.add(saplings.value, amount);
+            saplings.value = Decimal.mul(amount, masteryEffectActive.value ? 2 : 1).add(
+                saplings.value
+            );
             manualCutProgress.value = 0;
         }
     }));
@@ -604,7 +631,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const plantTree = createClickable(() => ({
         display: {
-            title: "Plant trees",
+            title: jsx(() => (
+                <h3>
+                    Plant trees <HotkeyVue hotkey={plantTreeHK} />
+                </h3>
+            )),
             description: jsx(() => (
                 <>
                     Plant up to {formatWhole(Decimal.floor(computedManualPlantingAmount.value))}{" "}
@@ -636,7 +667,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         ).floor()
                     )
                 )
-            );
+            ).max(0);
             saplings.value = Decimal.sub(saplings.value, amount);
             manualPlantProgress.value = 0;
         }
@@ -688,14 +719,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: `Auto Planting Amount`,
             modifier: autoPlantingAmount,
             base: 0,
-            visible: autoPlantUpgrade1.bought,
+            visible: autoCutUpgrade1.bought,
             unit: "/s"
         },
         {
             title: `Forest Size`,
             modifier: totalTrees,
             base: 10,
-            visible: researchUpgrade2.bought
+            visible: () => researchUpgrade2.bought.value || masteryEffectActive.value
         }
     ]);
     const showModifiersModal = ref(false);
@@ -746,27 +777,32 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const amountCut = Decimal.min(
             trees.value,
             Decimal.times(computedAutoCuttingAmount.value, diff)
-        );
+        ).max(0);
         const logsGained = Decimal.mul(logGain.apply(1), amountCut);
 
         const effectiveLogsGained = Decimal.div(logsGained, diff);
-        ema.value = Decimal.mul(effectiveLogsGained, SMOOTHING_FACTOR).add(
-            Decimal.mul(ema.value, Decimal.dOne.sub(SMOOTHING_FACTOR))
+        averageLogGain.value = Decimal.mul(effectiveLogsGained, SMOOTHING_FACTOR).add(
+            Decimal.mul(averageLogGain.value, Decimal.dOne.sub(SMOOTHING_FACTOR))
         );
-
         logs.value = Decimal.add(logs.value, logsGained);
-        saplings.value = Decimal.add(saplings.value, amountCut);
-
+        saplings.value = Decimal.mul(amountCut, masteryEffectActive.value ? 2 : 1).add(
+            saplings.value
+        );
+        if (masteryEffectActive.value) {
+            createdSaplings.value = Decimal.add(createdSaplings.value, amountCut);
+        }
         const amountPlanted = Decimal.min(
             saplings.value,
             Decimal.times(computedAutoPlantingAmount.value, diff)
-        );
+        ).max(0);
         saplings.value = Decimal.sub(saplings.value, amountPlanted);
-        if(Decimal.gte(saplings.value, computedTotalTrees.value)) saplings.value = computedTotalTrees.value;
     });
 
     const netSaplingGain = computed(() =>
-        Decimal.sub(computedAutoCuttingAmount.value, computedAutoPlantingAmount.value)
+        Decimal.sub(
+            Decimal.mul(computedAutoCuttingAmount.value, mastered.value ? 2 : 1),
+            computedAutoPlantingAmount.value
+        )
     );
     const netTreeGain = computed(() =>
         Decimal.sub(computedAutoPlantingAmount.value, computedAutoCuttingAmount.value)
@@ -774,17 +810,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const cutTreeHK = createHotkey(() => ({
         key: "c",
-        description: 'Press the "Cut trees" button.',
+        description: "Cut trees",
         onPress: () => {
             if (cutTree.canClick.value) cutTree.onClick();
-        }
+        },
+        enabled: main.days[day - 1].opened
     }));
     const plantTreeHK = createHotkey(() => ({
         key: "p",
-        description: 'Press the "Plant trees" button.',
+        description: "Plant trees",
         onPress: () => {
             if (plantTree.canClick.value) plantTree.onClick();
-        }
+        },
+        enabled: main.days[day - 1].opened
     }));
 
     const { total: totalLogs, trackerDisplay } = setUpDailyProgressTracker({
@@ -792,20 +830,52 @@ const layer = createLayer(id, function (this: BaseLayer) {
         goal: 1e4,
         name,
         day,
-        color: colorDark,
+        background: colorDark,
         modal: {
             show: showModifiersModal,
             display: modifiersModal
         }
     });
 
+    const mastery = {
+        logs: persistent<DecimalSource>(0),
+        totalLogs: persistent<DecimalSource>(0),
+        saplings: persistent<DecimalSource>(0),
+        createdSaplings: persistent<DecimalSource>(0),
+        row1Upgrades: [
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) }
+        ],
+        row2Upgrades: [
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) },
+            { bought: persistent<boolean>(false) }
+        ],
+        row1Buyables: [
+            { amount: persistent<DecimalSource>(0) },
+            { amount: persistent<DecimalSource>(0) },
+            { amount: persistent<DecimalSource>(0) }
+        ]
+    };
+    const mastered = persistent<boolean>(false);
+    const masteryEffectActive = computed(
+        () => mastered.value || main.currentlyMastering.value?.name === name
+    );
+
     return {
         name,
+        day,
         color: colorBright,
         logs,
         totalLogs,
         trees,
         saplings,
+        createdSaplings,
         cutTree,
         plantTree,
         cutTreeHK,
@@ -822,13 +892,25 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 {render(trackerDisplay)}
                 <Spacer />
+                {masteryEffectActive.value ? (
+                    <>
+                        <div class="decoration-effect">
+                            Decoration effect:
+                            <br />
+                            Trees drop 2 saplings, and forest size increases log gain
+                        </div>
+                        <Spacer />
+                    </>
+                ) : null}
                 <MainDisplay
                     resource={logs}
                     color={colorBright}
                     style="margin-bottom: 0"
                     productionDisplay={
                         Decimal.gt(computedAutoCuttingAmount.value, 0)
-                            ? `+${format(ema.value)}/s average<br/>equilibrium: +${formatLimit(
+                            ? `+${format(
+                                  averageLogGain.value
+                              )}/s average<br/>equilibrium: +${formatLimit(
                                   [
                                       [computedAutoCuttingAmount.value, "cutting speed"],
                                       [computedAutoPlantingAmount.value, "planting speed"],
@@ -864,9 +946,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         minimizedDisplay: jsx(() => (
             <div>
                 {name}{" "}
-                <span class="desc">{format(logs.value)} {logs.displayName}</span>
-            </div>   
+                <span class="desc">
+                    {format(logs.value)} {logs.displayName}
+                </span>
+            </div>
         )),
+        mastery,
+        mastered
     };
 });
 

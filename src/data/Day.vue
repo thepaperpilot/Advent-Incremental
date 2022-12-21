@@ -1,13 +1,26 @@
 <template>
-    <div class="day feature dontMerge opened" v-if="opened.value">
-        <Tooltip :display="(layers[layer ?? '']?.name ?? '')" :direction="Direction.Up" yoffset="5px">
-            <Transition appear name="door">
+    <div
+        class="day feature dontMerge opened"
+        :class="{
+            mastered: unref(mastered),
+            masteryLock,
+            wallpaper: day < 8
+        }"
+        v-if="opened.value"
+    >
+        <div class="ribbon" v-if="day >= 8" />
+        <Tooltip :display="layers[layer ?? '']?.name ?? ''" :direction="Direction.Up" yoffset="5px">
+            <Transition appear :name="masteryLock ? 'door-close' : 'door'">
                 <div class="doors" @click="emit('openLayer')">
                     <div class="date">Dec<br />{{ day }}</div>
                     <div class="date">Dec<br />{{ day }}</div>
                 </div>
             </Transition>
-            <div class="icon" @click="emit('openLayer')" :style="{ backgroundImage: `url(${symbol})` }"></div>
+            <div
+                class="icon"
+                @click="emit('openLayer')"
+                :style="{ backgroundImage: `url(${symbol})` }"
+            ></div>
             <div class="lore" @click="emit('openLore')">?</div>
             <Notif v-if="unref(shouldNotify)" />
         </Tooltip>
@@ -15,14 +28,18 @@
     <div
         v-else
         class="day feature dontMerge"
-        :class="{ can: canOpen, locked: !canOpen, canOpen }"
+        :class="{ can: canOpen, locked: !canOpen, canOpen, mastered: unref(mastered) }"
         @click="tryUnlock"
     >
         <div class="doors"></div>
         <div class="date">Dec<br />{{ day }}</div>
         <div v-if="!canOpen" class="material-icons lock">lock</div>
         <div v-if="main.day.value === day && !canOpen" class="timer">
-            {{ main.timeUntilNewDay.value < 0 ? "NYI, sorry" : formatTime(main.timeUntilNewDay.value, 0) }}
+            {{
+                main.timeUntilNewDay.value < 0
+                    ? "Not Ready"
+                    : formatTime(main.timeUntilNewDay.value, 0)
+            }}
         </div>
         <Notif v-if="canOpen" />
     </div>
@@ -36,9 +53,11 @@ import { layers } from "game/layers";
 import { Direction } from "util/common";
 import { formatTime } from "util/break_eternity";
 import { ProcessedComputable } from "util/computed";
-import type { Ref } from "vue";
+import { Ref, Transition } from "vue";
 import { computed, unref } from "vue";
 import { main } from "./projEntry";
+import coal from "./layers/coal";
+import dyes from "./layers/dyes";
 
 const props = defineProps<{
     day: number;
@@ -47,6 +66,7 @@ const props = defineProps<{
     opened: Ref<boolean>;
     recentlyUpdated: Ref<boolean>;
     shouldNotify: ProcessedComputable<boolean>;
+    mastered: Ref<boolean>;
 }>();
 
 const emit = defineEmits<{
@@ -62,6 +82,17 @@ const canOpen = computed(
         new Date().getMonth() === 11 &&
         new Date().getDate() >= props.day
 );
+
+const isMastering = main.isMastery;
+const includeMastery = computed(
+    () =>
+        props.mastered.value ||
+        main.currentlyMastering.value == layers[props.layer ?? ""] ||
+        ["wrappingPaper", "ribbon"].includes(props.layer || "") ||
+        (coal.mastered.value && props.layer == "elves") ||
+        (dyes.mastered.value && props.layer == "elves")
+);
+const masteryLock = computed(() => isMastering.value && !includeMastery.value);
 
 function tryUnlock() {
     if (canOpen.value) {
@@ -80,59 +111,88 @@ function tryUnlock() {
     margin: 5%;
 }
 
+.mastered.day.wallpaper {
+    box-shadow: rgb(0 0 0 / 25%) 0px 0px 0px 3px inset;
+    background: linear-gradient(
+        225deg,
+        rgb(255, 76, 76) 11.1%,
+        rgb(255, 255, 255) 11.1% 22.2%,
+        rgb(65, 255, 95) 22.2% 33.3%,
+        rgb(255, 255, 255) 33.3% 44.4%,
+        rgb(255, 76, 76) 44.4% 55.5%,
+        rgb(255, 255, 255) 55.5% 66.6%,
+        rgb(65, 255, 95) 66.6% 77.7%,
+        rgb(255, 255, 255) 77.7% 88.8%,
+        rgb(255, 76, 76) 88.8%
+    );
+}
+
 .door-enter-from::before,
 .door-enter-from::after,
-.door-leave-to::before,
-.door-leave-to::after {
+.door-close-enter-to::before,
+.door-close-enter-to::after {
     transform: perspective(150px) rotateY(0) !important;
 }
 
 .door-enter-from .date,
-.door-leave-to .date {
+.door-close-enter-to .date {
     transform: translate(-50%, -50%) perspective(150px) rotateY(0) !important;
 }
 
 .door-enter-active::before,
 .door-enter-active::after,
-.door-leave-active::before,
-.door-leave-active::after {
+.door-close-enter-active::before,
+.door-close-enter-active::after {
     z-index: 2;
 }
 
 .door-enter-active .date,
-.door-leave-active .date {
+.door-close-enter-active .date {
     z-index: 3;
 }
 
-.day.opened .doors::before,
-.day.opened .doors::after,
-.day.opened .doors .date {
+.day .doors::before,
+.day .doors::after,
+.day .doors .date {
     transition: 1s;
 }
 
 .day.opened .doors::before {
     transform-origin: left;
-    transform: perspective(150px) rotateY(-135deg);
 }
 
 .day.opened .doors::after {
     transform-origin: right;
+}
+
+.day.opened:not(.masteryLock) .doors::before {
+    transform: perspective(150px) rotateY(-135deg);
+}
+
+.day.opened:not(.masteryLock) .doors::after {
     transform: perspective(150px) rotateY(135deg);
 }
 
 .day.opened .doors .date:first-child {
     transform-origin: left;
-    transform: translate(-50%, -50%) perspective(150px) rotateY(-135deg);
     clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%);
 }
 
 .day.opened .doors .date:last-child {
     transform-origin: right;
-    transform: translate(-50%, -50%) perspective(150px) rotateY(135deg);
     clip-path: polygon(100% 0, 50% 0, 50% 100%, 100% 100%);
 }
 
-.tooltip-container, .doors {
+.day.opened:not(.masteryLock) .doors .date:first-child {
+    transform: translate(-50%, -50%) perspective(150px) rotateY(-135deg);
+}
+
+.day.opened:not(.masteryLock) .doors .date:last-child {
+    transform: translate(-50%, -50%) perspective(150px) rotateY(135deg);
+}
+
+.tooltip-container,
+.doors {
     position: absolute;
     width: 100%;
     height: 100%;
@@ -152,6 +212,7 @@ function tryUnlock() {
     width: 50%;
     height: 100%;
     pointer-events: none;
+    z-index: 1;
 }
 
 .doors::before {
@@ -164,6 +225,73 @@ function tryUnlock() {
     right: 0;
 }
 
+.masteryLock {
+    cursor: not-allowed;
+}
+.masteryLock > * {
+    pointer-events: none;
+}
+.masteryLock > * > :not(.doors) {
+    opacity: 0;
+}
+.masteryLock .icon {
+    transition-duration: 0.2s;
+    transition-delay: 0.8s;
+}
+
+.mastered.wallpaper .doors::before,
+.mastered.wallpaper .doors::after {
+    background: linear-gradient(
+        225deg,
+        rgb(255, 76, 76) 11.1%,
+        rgb(255, 255, 255) 11.1% 22.2%,
+        rgb(65, 255, 95) 22.2% 33.3%,
+        rgb(255, 255, 255) 33.3% 44.4%,
+        rgb(255, 76, 76) 44.4% 55.5%,
+        rgb(255, 255, 255) 55.5% 66.6%,
+        rgb(65, 255, 95) 66.6% 77.7%,
+        rgb(255, 255, 255) 77.7% 88.8%,
+        rgb(255, 76, 76) 88.8%
+    );
+}
+
+.mastered .ribbon {
+    position: absolute;
+    top: -2px;
+    left: 0px;
+    width: calc(100% + 0px);
+    height: calc(100% + 4px);
+    overflow: hidden;
+    pointer-events: none;
+    user-select: none;
+    z-index: 11;
+}
+
+.mastered .ribbon::after {
+    content: "🎀";
+    color: red;
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    font-size: xx-large;
+    transform: rotateZ(-45deg);
+    z-index: 1;
+}
+
+.mastered .ribbon::before {
+    content: "";
+    width: calc(100% - 24px);
+    height: 100%;
+    border: solid darkred 8px;
+    transform: rotateZ(45deg);
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-top: none;
+    border-bottom: none;
+    z-index: 1;
+}
+
 .date {
     position: absolute;
     top: 50%;
@@ -174,7 +302,7 @@ function tryUnlock() {
     pointer-events: none;
     user-select: none;
     backface-visibility: hidden;
-    width: 100%;
+    width: calc(100% - 14px);
 }
 
 .timer {
@@ -224,5 +352,6 @@ function tryUnlock() {
     transform: translate(-50%, -50%);
     opacity: 0.2;
     font-size: 400%;
+    z-index: 2;
 }
 </style>

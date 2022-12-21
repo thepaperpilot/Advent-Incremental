@@ -2,6 +2,7 @@
  * @module
  * @hidden
  */
+import HotkeyVue from "components/Hotkey.vue";
 import Spacer from "components/layout/Spacer.vue";
 import { createCollapsibleMilestones } from "data/common";
 import { main } from "data/projEntry";
@@ -23,8 +24,8 @@ import {
     createMultiplicativeModifier,
     createSequentialModifier
 } from "game/modifiers";
-import { noPersist } from "game/persistence";
-import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
+import { noPersist, persistent } from "game/persistence";
+import Decimal, { DecimalSource, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render } from "util/vue";
 import { computed, unref, watchEffect } from "vue";
@@ -32,6 +33,7 @@ import elves from "./elves";
 import management from "./management";
 import trees from "./trees";
 import wrappingPaper from "./wrapping-paper";
+import toys from "./toys";
 
 const id = "workshop";
 const day = 2;
@@ -47,7 +49,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         scaling: addHardcap(
             addSoftcap(addSoftcap(createPolynomialScaling(250, 1.5), 5423, 1 / 1e10), 1e20, 3e8),
             computed(() =>
-                management.elfTraining.expandersElfTraining.milestones[2].earned.value ? 1000 : 100
+                toys.row1Upgrades[2].bought
+                    ? 1200
+                    : management.elfTraining.expandersElfTraining.milestones[2].earned.value
+                    ? 1000
+                    : 100
             )
         ),
         baseResource: trees.logs,
@@ -55,18 +61,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
         roundUpCost: true,
         // buyMax: management.elfTraining.expandersElfTraining.milestones[2].earned,
         spend(gain, spent) {
+            if (masteryEffectActive.value) return;
             trees.logs.value = Decimal.sub(trees.logs.value, spent);
         },
         costModifier: createSequentialModifier(() => [
             createMultiplicativeModifier(() => ({
-                multiplier: computed(() => wrappingPaper.boosts.beach1.value),
+                multiplier: wrappingPaper.boosts.beach1,
                 description: "Beach Wrapping Paper",
                 enabled: computed(() => Decimal.gt(wrappingPaper.boosts.beach1.value, 1))
             })),
             createExponentialModifier(() => ({
                 exponent: 1 / 0.99,
-                description: "Hope Level 5",
-                enabled: management.elfTraining.expandersElfTraining.milestones[4].earned
+                description: "Holly Level 5",
+                enabled: management.elfTraining.cutterElfTraining.milestones[4].earned
             }))
         ])
     }));
@@ -75,12 +82,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         display: jsx(() => (
             <>
                 <b style="font-size: x-large">
-                    Build {formatWhole(foundationConversion.actualGain.value)}% of the foundation
+                    Build {formatWhole(foundationConversion.actualGain.value)}% of the foundation{" "}
+                    <HotkeyVue hotkey={buildFoundationHK} />
                 </b>
                 <br />
                 <br />
                 <span style="font-size: large">
-                    Cost:{" "}
+                    {masteryEffectActive.value ? "Requirement" : "Cost"}:{" "}
                     {displayResource(
                         trees.logs,
                         Decimal.gte(foundationConversion.actualGain.value, 1)
@@ -95,17 +103,32 @@ const layer = createLayer(id, function (this: BaseLayer) {
             showIf(
                 Decimal.lt(
                     foundationProgress.value,
-                    management.elfTraining.expandersElfTraining.milestones[2].earned.value
+                    toys.row1Upgrades[2].bought.value
+                        ? 1200
+                        : management.elfTraining.expandersElfTraining.milestones[2].earned.value
                         ? 1000
                         : 100
                 )
             ),
-        canClick: () =>
-            Decimal.gte(trees.logs.value, foundationConversion.nextAt.value) &&
-            Decimal.lt(
-                foundationProgress.value,
-                management.elfTraining.expandersElfTraining.milestones[2].earned.value ? 1000 : 100
-            ),
+        canClick: () => {
+            if (Decimal.lt(trees.logs.value, foundationConversion.nextAt.value)) {
+                return false;
+            }
+            if (main.isMastery.value && main.currentlyMastering.value?.name === "Trees") {
+                return false;
+            }
+            let cap = 100;
+            if (management.elfTraining.expandersElfTraining.milestones[2].earned.value) {
+                cap = 1000;
+            }
+            if (toys.row1Upgrades[2].bought.value) {
+                cap = 1200;
+            }
+            if (Decimal.gte(foundationProgress.value, cap)) {
+                return false;
+            }
+            return true;
+        },
         onClick() {
             if (!unref(this.canClick)) {
                 return;
@@ -117,10 +140,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const buildFoundationHK = createHotkey(() => ({
         key: "w",
-        description: "Build part of the foundation.",
+        description: "Build foundation",
         onPress: () => {
             if (buildFoundation.canClick.value) buildFoundation.onClick();
-        }
+        },
+        enabled: main.days[day - 1].opened
     }));
 
     const shouldShowPopups = computed(() => !elves.milestones[6].earned.value);
@@ -261,6 +285,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             ),
         showPopups: shouldShowPopups
     }));
+    const extraExpansionMilestone6 = createMilestone(() => ({
+        display: {
+            requirement: "1200% Foundation Completed",
+            effectDisplay: "Quadruple oil gain"
+        },
+        shouldEarn: () => Decimal.gte(foundationProgress.value, 1200),
+        visibility: () =>
+            showIf(extraExpansionMilestone5.earned.value && toys.row1Upgrades[2].bought.value),
+        showPopups: shouldShowPopups
+    }));
     const milestones = {
         logGainMilestone1,
         autoCutMilestone1,
@@ -274,7 +308,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         extraExpansionMilestone2,
         extraExpansionMilestone3,
         extraExpansionMilestone4,
-        extraExpansionMilestone5
+        extraExpansionMilestone5,
+        extraExpansionMilestone6
     };
     const { collapseMilestones, display: milestonesDisplay } =
         createCollapsibleMilestones(milestones);
@@ -284,17 +319,52 @@ const layer = createLayer(id, function (this: BaseLayer) {
         width: 600,
         height: 25,
         fillStyle: `backgroundColor: ${colorDark}`,
-        progress: () => (main.day.value === day ? Decimal.div(foundationProgress.value, 100) : 1),
+        progress: () =>
+            main.day.value === day || main.currentlyMastering.value?.name === name
+                ? Decimal.div(foundationProgress.value, 100)
+                : 1,
         display: jsx(() =>
-            main.day.value === day ? <>{formatWhole(foundationProgress.value)}%</> : ""
+            main.day.value === day || main.currentlyMastering.value?.name === name ? (
+                <>{formatWhole(foundationProgress.value)}%</>
+            ) : (
+                ""
+            )
         )
     }));
 
     watchEffect(() => {
         if (main.day.value === day && Decimal.gte(foundationProgress.value, 100)) {
             main.completeDay();
+        } else if (
+            main.currentlyMastering.value?.name === name &&
+            Decimal.gte(foundationProgress.value, 100)
+        ) {
+            main.completeMastery();
         }
     });
+
+    const mastery = {
+        foundationProgress: persistent<DecimalSource>(0),
+        milestones: {
+            logGainMilestone1: { earned: persistent<boolean>(false) },
+            autoCutMilestone1: { earned: persistent<boolean>(false) },
+            autoPlantMilestone1: { earned: persistent<boolean>(false) },
+            autoCutMilestone2: { earned: persistent<boolean>(false) },
+            autoPlantMilestone2: { earned: persistent<boolean>(false) },
+            logGainMilestone2: { earned: persistent<boolean>(false) },
+            morePlantsMilestone1: { earned: persistent<boolean>(false) },
+            logGainMilestone3: { earned: persistent<boolean>(false) },
+            extraExpansionMilestone1: { earned: persistent<boolean>(false) },
+            extraExpansionMilestone2: { earned: persistent<boolean>(false) },
+            extraExpansionMilestone3: { earned: persistent<boolean>(false) },
+            extraExpansionMilestone4: { earned: persistent<boolean>(false) },
+            extraExpansionMilestone5: { earned: persistent<boolean>(false) }
+        }
+    };
+    const mastered = persistent<boolean>(false);
+    const masteryEffectActive = computed(
+        () => mastered.value || main.currentlyMastering.value?.name === name
+    );
 
     return {
         name,
@@ -311,10 +381,22 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <div>
                     {main.day.value === day
                         ? `Complete the foundation to complete the day`
+                        : main.currentlyMastering.value?.name === name
+                        ? `Complete the foundation to decorate the day`
                         : `${name} Complete!`}
                 </div>
                 {render(dayProgress)}
                 <Spacer />
+                {masteryEffectActive.value ? (
+                    <>
+                        <div class="decoration-effect">
+                            Decoration effect:
+                            <br />
+                            Logs are just a requirement instead of a cost
+                        </div>
+                        <Spacer />
+                    </>
+                ) : null}
                 <div>
                     <span>The foundation is </span>
                     <h2 style={`color: ${color}; text-shadow: 0 0 10px ${color}`}>
@@ -334,9 +416,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         minimizedDisplay: jsx(() => (
             <div>
                 {name}{" "}
-                <span class="desc">{formatWhole(foundationProgress.value)}% {foundationProgress.displayName}</span>
+                <span class="desc">
+                    {formatWhole(foundationProgress.value)}% {foundationProgress.displayName}
+                </span>
             </div>
         )),
+        mastery,
+        mastered
     };
 });
 

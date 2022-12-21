@@ -35,6 +35,8 @@ import oil from "./oil";
 import paper from "./paper";
 import plastic from "./plastic";
 import workshop from "./workshop";
+import wrappingPaper from "./wrapping-paper";
+import toys from "./toys";
 
 const id = "metal";
 const day = 7;
@@ -47,6 +49,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const ore = createResource<DecimalSource>(0, "ore");
     const bestOre = trackBest(ore);
+
+    const lastOreGained = ref<DecimalSource>(0);
+    const lastOreSmelted = ref<DecimalSource>(0);
 
     const orePurity = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
@@ -169,6 +174,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     .log10(),
             description: "The Ultimate Metal Dye",
             enabled: oil.row3Upgrades[4].bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: wrappingPaper.boosts.jazzy1,
+            description: "Jazzy Wrapping Paper",
+            enabled: computed(() => Decimal.gt(wrappingPaper.boosts.jazzy1.value, 1))
+        })),
+        createAdditiveModifier(() => ({
+            addend: () => Decimal.sub(lastOreGained.value, lastOreSmelted.value).max(0),
+            description: "Metal Decoration",
+            enabled: masteryEffectActive
         }))
     ]);
     const computedAutoSmeltSpeed = computed(() => autoSmeltSpeed.apply(0));
@@ -193,6 +208,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.add(industrialCrucible.amount.value, 1).sqrt(),
             description: "100,000 Letters Processed",
             enabled: letters.milestones.industrialCrucibleMilestone.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(toys.clothes.value, 1),
+            description: "Give elves clothes to wear",
+            enabled: toys.row1Upgrades[1].bought
         }))
     ]);
     const computedAutoSmeltMulti = computed(() => autoSmeltMulti.apply(1));
@@ -268,6 +288,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.add(dyes.dyes.blue.amount.value, 1).sqrt(),
             description: "1000 Letters Processed",
             enabled: letters.milestones.miningMilestone.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(toys.clothes.value, 1),
+            description: "Give elves clothes to wear",
+            enabled: toys.row1Upgrades[1].bought
         }))
     ]);
     const computedOreAmount = computed(() => oreAmount.apply(1));
@@ -305,6 +330,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 ),
             description: "100 Letters Processed",
             enabled: letters.milestones.autoSmeltingMilestone.earned
+        })),
+        createAdditiveModifier(() => ({
+            addend: () =>
+                Decimal.sub(lastOreSmelted.value, lastOreGained.value)
+                    .max(0)
+                    .div(computedOreAmount.value),
+            description: "Metal Decoration",
+            enabled: masteryEffectActive
         }))
     ]);
     const computedOreSpeed = computed(() => oreSpeed.apply(Decimal.recip(maxOreProgress)));
@@ -314,7 +347,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         width: 400,
         height: 25,
         direction: Direction.Right,
-        fillStyle: { backgroundColor: color },
+        fillStyle: { backgroundColor: color, transitionDuration: "0s" },
         progress: () => oreProgress.value
     }));
 
@@ -552,6 +585,26 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const hotterForgeEffect = computed(() => Decimal.times(hotterForge.amount.value, 0.25));
 
     globalBus.on("update", diff => {
+        if (
+            Decimal.lt(main.day.value, day) ||
+            (main.isMastery.value &&
+                !mastered.value &&
+                main.currentlyMastering.value?.name !== name)
+        ) {
+            return;
+        }
+
+        const oreGained = Decimal.sub(
+            Decimal.times(computedOreSpeed.value, computedOreAmount.value),
+            Decimal.sub(lastOreSmelted.value, lastOreGained.value).max(0)
+        );
+        const oreSmelted = Decimal.sub(
+            computedAutoSmeltSpeed.value,
+            Decimal.sub(lastOreGained.value, lastOreSmelted.value).max(0)
+        );
+        lastOreGained.value = Decimal.isNaN(oreGained) ? 0 : oreGained;
+        lastOreSmelted.value = Decimal.isNaN(oreSmelted) ? 0 : oreSmelted;
+
         oreProgress.value = Decimal.times(diff, computedOreSpeed.value).plus(oreProgress.value);
         const oreGain = oreProgress.value.trunc();
         oreProgress.value = oreProgress.value.minus(oreGain);
@@ -572,7 +625,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             base: 0,
             unit: "/s",
             visible() {
-                return Decimal.gt(industrialCrucible.amount.value, 0);
+                return Decimal.gt(industrialCrucible.amount.value, 0) || masteryEffectActive.value;
             }
         },
         {
@@ -617,12 +670,34 @@ const layer = createLayer(id, function (this: BaseLayer) {
         goal: 25000,
         name,
         day,
-        color,
+        background: color,
         modal: {
             show: showModifiersModal,
             display: modifiersModal
         }
     });
+
+    const mastery = {
+        ore: persistent<DecimalSource>(0),
+        bestOre: persistent<DecimalSource>(0),
+        oreProgress: persistent<DecimalSource>(0),
+        metal: persistent<DecimalSource>(0),
+        bestMetal: persistent<DecimalSource>(0),
+        totalMetal: persistent<DecimalSource>(0),
+        simplePickaxe: { bought: persistent<boolean>(false) },
+        doublePickaxe: { bought: persistent<boolean>(false) },
+        crucible: { bought: persistent<boolean>(false) },
+        coalDrill: { bought: persistent<boolean>(false) },
+        industrialFurnace: { bought: persistent<boolean>(false) },
+        efficientDrill: { bought: persistent<boolean>(false) },
+        oreDrill: { amount: persistent<DecimalSource>(0) },
+        industrialCrucible: { amount: persistent<DecimalSource>(0) },
+        hotterForge: { amount: persistent<DecimalSource>(0) }
+    };
+    const mastered = persistent<boolean>(false);
+    const masteryEffectActive = computed(
+        () => mastered.value || main.currentlyMastering.value?.name === name
+    );
 
     return {
         name,
@@ -650,6 +725,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 {render(trackerDisplay)}
                 <Spacer />
+                {masteryEffectActive.value ? (
+                    <>
+                        <div class="decoration-effect">
+                            Decoration effect:
+                            <br />
+                            The lesser of ore mining amount x speed and auto smelting speed is
+                            increased to match the greater
+                        </div>
+                        <Spacer />
+                    </>
+                ) : null}
                 <MainDisplay
                     resource={metal}
                     color={color}
@@ -658,7 +744,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     productionDisplay={jsx(() => (
                         <>
                             {autoSmeltEnabled.value &&
-                            Decimal.gte(industrialCrucible.amount.value, 1)
+                            (Decimal.gte(industrialCrucible.amount.value, 1) ||
+                                masteryEffectActive.value)
                                 ? `+${formatLimit(
                                       [
                                           [computedAutoSmeltSpeed.value, "smelting speed"],
@@ -680,7 +767,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 />
                 <Spacer />
                 {render(smeltOreButton)}
-                {Decimal.gte(industrialCrucible.amount.value, 1) ? (
+                {Decimal.gte(industrialCrucible.amount.value, 1) || masteryEffectActive.value ? (
                     <div style={{ width: "150px" }}>
                         <Toggle
                             title="Auto Smelt"
@@ -722,9 +809,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         minimizedDisplay: jsx(() => (
             <div>
                 {name}{" "}
-                <span class="desc">{format(metal.value)} {metal.displayName}</span>
-            </div>   
+                <span class="desc">
+                    {format(metal.value)} {metal.displayName}
+                </span>
+            </div>
         )),
+        mastery,
+        mastered
     };
 });
 

@@ -2,13 +2,14 @@
  * @module
  * @hidden
  */
+import HotkeyVue from "components/Hotkey.vue";
 import Row from "components/layout/Row.vue";
 import Spacer from "components/layout/Spacer.vue";
 import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
 import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
-import { createBuyable, GenericBuyable } from "features/buyable";
+import { createBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
 import { createHotkey } from "features/hotkey";
@@ -27,7 +28,7 @@ import Decimal, { DecimalSource, format } from "util/bignum";
 import { formatWhole } from "util/break_eternity";
 import { Direction } from "util/common";
 import { render, renderCol, renderRow } from "util/vue";
-import { computed, ref } from "vue";
+import { computed, ref, unref } from "vue";
 import boxes from "./boxes";
 import dyes from "./dyes";
 import { ElfBuyable } from "./elves";
@@ -61,7 +62,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const breeding = createClickable(() => ({
         display: {
-            title: "Breed sheep",
+            title: jsx(() => (
+                <h3>
+                    Breed sheep <HotkeyVue hotkey={breedSheepHK} />
+                </h3>
+            )),
             description: jsx(() => (
                 <>
                     Breed {formatWhole(Decimal.floor(computedSheepGain.value))} sheep
@@ -73,14 +78,25 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: {
             minHeight: "80px"
         },
-        canClick: () => Decimal.gte(breedingProgress.value, computedBreedingCooldown.value),
+        canClick: () =>
+            Decimal.gte(breedingProgress.value, computedBreedingCooldown.value) &&
+            (!main.isMastery.value || masteryEffectActive.value),
         onClick() {
-            if (Decimal.lt(breedingProgress.value, computedBreedingCooldown.value)) {
+            if (!unref(breeding.canClick)) {
                 return;
             }
+            // Breed
             const amount = Decimal.floor(computedSheepGain.value);
             sheep.value = Decimal.add(sheep.value, amount);
             breedingProgress.value = 0;
+            if (masteryEffectActive.value) {
+                // Then shear
+                let amount = Decimal.min(sheep.value, computedShearingAmount.value).floor();
+                wool.value = Decimal.add(wool.value, amount);
+                // Then spin
+                amount = Decimal.min(wool.value, computedSpinningAmount.value).floor();
+                cloth.value = Decimal.add(cloth.value, amount);
+            }
         }
     }));
 
@@ -97,7 +113,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const shearing = createClickable(() => ({
         display: {
-            title: "Shear sheep",
+            title: jsx(() => (
+                <h3>
+                    Shear sheep <HotkeyVue hotkey={shearSheepHK} />
+                </h3>
+            )),
             description: jsx(() => (
                 <>
                     Shear up to {formatWhole(Decimal.floor(computedShearingAmount.value))} sheep
@@ -109,14 +129,27 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: {
             minHeight: "80px"
         },
-        canClick: () => Decimal.gte(shearingProgress.value, computedShearingCooldown.value),
+        canClick: () =>
+            Decimal.gte(shearingProgress.value, computedShearingCooldown.value) &&
+            (!main.isMastery.value || masteryEffectActive.value),
         onClick() {
-            if (Decimal.lt(shearingProgress.value, computedShearingCooldown.value)) {
+            if (!unref(shearing.canClick)) {
                 return;
             }
+            if (masteryEffectActive.value) {
+                // Breed
+                const amount = Decimal.floor(computedSheepGain.value);
+                sheep.value = Decimal.add(sheep.value, amount);
+            }
+            // Then shear
             const amount = Decimal.min(sheep.value, computedShearingAmount.value).floor();
             wool.value = Decimal.add(wool.value, amount);
             shearingProgress.value = 0;
+            if (masteryEffectActive.value) {
+                // Then spin
+                const amount = Decimal.min(wool.value, computedSpinningAmount.value).floor();
+                cloth.value = Decimal.add(cloth.value, amount);
+            }
         }
     }));
 
@@ -133,7 +166,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const spinning = createClickable(() => ({
         display: {
-            title: "Spinning wool",
+            title: jsx(() => (
+                <h3>
+                    Spin wool <HotkeyVue hotkey={spinWoolHK} />
+                </h3>
+            )),
             description: jsx(() => (
                 <>
                     Spin {formatWhole(Decimal.floor(computedSpinningAmount.value))} wool
@@ -145,40 +182,56 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: {
             minHeight: "80px"
         },
-        canClick: () => Decimal.gte(spinningProgress.value, computedSpinningCooldown.value),
+        canClick: () =>
+            Decimal.gte(spinningProgress.value, computedSpinningCooldown.value) &&
+            (!main.isMastery.value || masteryEffectActive.value),
         onClick() {
-            if (Decimal.lt(spinningProgress.value, computedSpinningCooldown.value)) {
+            if (!unref(spinning.canClick)) {
                 return;
             }
+            if (masteryEffectActive.value) {
+                // Breed
+                let amount = Decimal.floor(computedSheepGain.value);
+                sheep.value = Decimal.add(sheep.value, amount);
+                // Then shear
+                amount = Decimal.min(sheep.value, computedShearingAmount.value).floor();
+                wool.value = Decimal.add(wool.value, amount);
+            }
+            // Then spin
             const amount = Decimal.min(wool.value, computedSpinningAmount.value).floor();
             cloth.value = Decimal.add(cloth.value, amount);
-            wool.value = Decimal.sub(wool.value, amount);
+            if (!masteryEffectActive.value) {
+                wool.value = Decimal.sub(wool.value, amount);
+            }
             spinningProgress.value = 0;
         }
     }));
 
     const breedSheepHK = createHotkey(() => ({
         key: "b",
-        description: 'Press the "Breed Sheep" button',
+        description: "Breed sheep",
         onPress: () => {
             if (breeding.canClick.value) breeding.onClick();
-        }
+        },
+        enabled: main.days[day - 1].opened
     }));
 
     const shearSheepHK = createHotkey(() => ({
         key: "h", // For some reason, "shift+s" doesn't work properly
-        description: 'Press the "Shear Sheep" button',
+        description: "Shear sheep",
         onPress: () => {
             if (shearing.canClick.value) shearing.onClick();
-        }
+        },
+        enabled: main.days[day - 1].opened
     }));
 
     const spinWoolHK = createHotkey(() => ({
         key: "s",
-        description: 'Press the "Spin Wool" button',
+        description: "Spin wool",
         onPress: () => {
             if (spinning.canClick.value) spinning.onClick();
-        }
+        },
+        enabled: main.days[day - 1].opened
     }));
 
     const buildPens = createBuyable(() => ({
@@ -391,6 +444,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "Carry cloth in boxes",
             enabled: boxes.row3Upgrades.clothUpgrade.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: dyes.boosts.yellow2,
+            description: "Yellow Dye",
+            enabled: dyes.masteryEffectActive
         }))
     ]);
     const computedSheepGain = computed(() => sheepGain.apply(1));
@@ -431,6 +489,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "Carry cloth in boxes",
             enabled: boxes.row3Upgrades.clothUpgrade.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: dyes.boosts.yellow2,
+            description: "Yellow Dye",
+            enabled: dyes.masteryEffectActive
         }))
     ]);
     const computedShearingAmount = computed(() => shearingAmount.apply(1));
@@ -471,6 +534,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 2,
             description: "Carry cloth in boxes",
             enabled: boxes.row3Upgrades.clothUpgrade.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: dyes.boosts.yellow2,
+            description: "Yellow Dye",
+            enabled: dyes.masteryEffectActive
         }))
     ]);
     const computedSpinningAmount = computed(() => spinningAmount.apply(1));
@@ -565,7 +633,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         goal: 1e3,
         name,
         day,
-        color,
+        background: color,
         textColor: "var(--feature-foreground)",
         modal: {
             show: showModifiersModal,
@@ -573,8 +641,41 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     });
 
+    const mastery = {
+        cloth: persistent<DecimalSource>(0),
+        totalCloth: persistent<DecimalSource>(0),
+        wool: persistent<DecimalSource>(0),
+        sheep: persistent<DecimalSource>(0),
+        buildPens: { amount: persistent<DecimalSource>(0) },
+        betterShears: { amount: persistent<DecimalSource>(0) },
+        fasterSpinning: { amount: persistent<DecimalSource>(0) },
+        treesUpgrades: {
+            treesUpgrade1: { bought: persistent<boolean>(false) },
+            treesUpgrade2: { bought: persistent<boolean>(false) },
+            treesUpgrade3: { bought: persistent<boolean>(false) },
+            treesUpgrade4: { bought: persistent<boolean>(false) }
+        },
+        metalUpgrades: {
+            metalUpgrade1: { bought: persistent<boolean>(false) },
+            metalUpgrade2: { bought: persistent<boolean>(false) },
+            metalUpgrade3: { bought: persistent<boolean>(false) },
+            metalUpgrade4: { bought: persistent<boolean>(false) }
+        },
+        paperUpgrades: {
+            paperUpgrade1: { bought: persistent<boolean>(false) },
+            paperUpgrade2: { bought: persistent<boolean>(false) },
+            paperUpgrade3: { bought: persistent<boolean>(false) },
+            paperUpgrade4: { bought: persistent<boolean>(false) }
+        }
+    };
+    const mastered = persistent<boolean>(false);
+    const masteryEffectActive = computed(
+        () => mastered.value || main.currentlyMastering.value?.name === name
+    );
+
     return {
         name,
+        day,
         color,
         cloth,
         totalCloth,
@@ -598,6 +699,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 {render(trackerDisplay)}
                 <Spacer />
+                {masteryEffectActive.value ? (
+                    <>
+                        <div class="decoration-effect ribbon">
+                            Decoration effect:
+                            <br />
+                            Performing any action performs all actions and spinning doesn't spend
+                            wool
+                        </div>
+                        <Spacer />
+                    </>
+                ) : null}
                 <MainDisplay resource={cloth} style="margin-bottom: 0" />
                 <MainDisplay resource={wool} style="margin-bottom: 0" />
                 <MainDisplay resource={sheep} style="margin-bottom: 0" />
@@ -614,9 +726,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         minimizedDisplay: jsx(() => (
             <div>
                 {name}{" "}
-                <span class="desc">{format(cloth.value)} {cloth.displayName}</span>
-            </div>   
+                <span class="desc">
+                    {format(cloth.value)} {cloth.displayName}
+                </span>
+            </div>
         )),
+        mastery,
+        mastered
     };
 });
 

@@ -28,7 +28,7 @@
         <div
             class="overlayTextContainer border"
             :style="[
-                { width: unref(width) + 'px', height: (unref(height) - 1) + 'px' },
+                { width: unref(width) - 1 + 'px', height: unref(height) - 1 + 'px' },
                 unref(borderStyle) ?? {}
             ]"
         >

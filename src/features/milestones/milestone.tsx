@@ -1,5 +1,5 @@
 import Select from "components/fields/Select.vue";
-import type { CoercableComponent, OptionsFunc, Replace, StyleValue } from "features/feature";
+import type { CoercableComponent, GenericComponent, OptionsFunc, Replace, StyleValue } from "features/feature";
 import { Component, GatherProps, getUniqueID, jsx, setDefault, Visibility } from "features/feature";
 import MilestoneComponent from "features/milestones/Milestone.vue";
 import { globalBus } from "game/events";
@@ -55,7 +55,7 @@ export interface BaseMilestone {
     earned: Persistent<boolean>;
     complete: VoidFunction;
     type: typeof MilestoneType;
-    [Component]: typeof MilestoneComponent;
+    [Component]: GenericComponent;
     [GatherProps]: () => Record<string, unknown>;
 }
 
@@ -85,7 +85,7 @@ export function createMilestone<T extends MilestoneOptions>(
         const milestone = optionsFunc?.() ?? ({} as ReturnType<NonNullable<typeof optionsFunc>>);
         milestone.id = getUniqueID("milestone-");
         milestone.type = MilestoneType;
-        milestone[Component] = MilestoneComponent;
+        milestone[Component] = MilestoneComponent as GenericComponent;
 
         milestone.earned = earned;
         milestone.complete = function () {

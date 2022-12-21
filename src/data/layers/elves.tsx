@@ -36,7 +36,9 @@ import plastic from "./plastic";
 import trees from "./trees";
 import workshop from "./workshop";
 import wrappingPaper from "./wrapping-paper";
-import dyes from "./dyes";
+import dyes, { enumColor } from "./dyes";
+import ribbon from "./ribbon";
+import letters from "./letters";
 
 export interface ElfBuyable extends GenericBuyable {
     /** The inverse function of the cost formula, used to calculate the maximum amount that can be bought by elves. */
@@ -418,12 +420,39 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elvesMilestone2.earned
         }))
     ]);
-
     const dyeCooldown = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
-            multiplier: Infinity,
-            description: "Dye",
-            enabled: () => true
+            multiplier: 2,
+            description: "6 Elves Trained",
+            enabled: elvesMilestone.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () =>
+                Decimal.times(paper.books.primaryDyeBook.totalAmount.value, 0.1).add(1),
+            description: "Arts and Crafts",
+            enabled: () => Decimal.gt(paper.books.primaryDyeBook.totalAmount.value, 0)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "10 Elves Trained",
+            enabled: elvesMilestone2.earned
+        }))
+    ]);
+    const plasticCooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "6 Elves Trained",
+            enabled: elvesMilestone.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.times(paper.books.plasticBook.totalAmount.value, 0.1).add(1),
+            description: "One Plastic Bag",
+            enabled: () => Decimal.gt(paper.books.plasticBook.totalAmount.value, 0)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "10 Elves Trained",
+            enabled: elvesMilestone2.earned
         }))
     ]);
 
@@ -517,28 +546,50 @@ const layer = createLayer(id, function (this: BaseLayer) {
             modifier: coalDrillCooldown,
             base: 10,
             unit: "/s",
-            visible: management.elfTraining.expandersElfTraining.milestones[3].earned
+            visible: () =>
+                management.elfTraining.expandersElfTraining.milestones[3].earned.value ||
+                letters.masteryEffectActive.value
         },
         {
             title: "Frosty Auto-Buy Frequency",
             modifier: heavyDrillCooldown,
             base: 10,
             unit: "/s",
-            visible: management.elfTraining.cutterElfTraining.milestones[4].earned.value
+            visible: () =>
+                management.elfTraining.cutterElfTraining.milestones[4].earned.value ||
+                letters.masteryEffectActive.value
         },
         {
             title: "Cocoa Auto-Buy Frequency",
             modifier: oilCooldown,
             base: 10,
             unit: "/s",
-            visible: management.elfTraining.heatedCutterElfTraining.milestones[4].earned.value
+            visible: () =>
+                management.elfTraining.heatedCutterElfTraining.milestones[4].earned.value ||
+                letters.masteryEffectActive.value
         },
         {
             title: "Twinkle Auto-Buy Frequency",
             modifier: metalCooldown,
             base: 10,
             unit: "/s",
-            visible: management.elfTraining.fertilizerElfTraining.milestones[4].earned
+            visible: () =>
+                management.elfTraining.fertilizerElfTraining.milestones[4].earned.value ||
+                letters.masteryEffectActive.value
+        },
+        {
+            title: "Carol Auto-Buy Frequency",
+            modifier: dyeCooldown,
+            base: 10,
+            unit: "/s",
+            visible: wrappingPaper.unlockDyeElfMilestone.earned.value && !main.isMastery.value
+        },
+        {
+            title: "Tinsel Auto-Buy Frequency",
+            modifier: plasticCooldown,
+            base: 10,
+            unit: "/s",
+            visible: plastic.masteryEffectActive
         }
     ]);
     const showModifiersModal = ref(false);
@@ -554,10 +605,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     ));
 
     const trainingCost = computed(() => {
-        let cost = Decimal.pow(
-            Decimal.sub(4, wrappingPaper.boosts.jazzy1.value),
-            totalElves.value
-        ).times(1e6);
+        let cost = Decimal.pow(4, totalElves.value).times(1e6);
         if (Decimal.gte(totalElves.value, 9)) {
             cost = Decimal.times(cost, 1e15);
         }
@@ -588,7 +636,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         } & Partial<ClickableOptions>
     ) {
         const buyProgress = persistent<DecimalSource>(0);
-        const amountOfTimesDone = persistent(0);
+        const amountOfTimesDone = persistent<number>(0);
         const toggle = options.hasToggle ? persistent<boolean>(false) : ref(true);
 
         const computedAutoBuyCooldown = computed(() => options.cooldownModifier.apply(10));
@@ -647,6 +695,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 computedAutoBuyCooldown,
                 amountOfTimesDone,
                 name: options.name,
+                canAfford() {
+                    return (
+                        Decimal.gte(coal.coal.value, unref(trainingCost)) && !main.isMastery.value
+                    );
+                },
                 display: () => ({
                     title: options.name,
                     description: jsx(() => (
@@ -678,13 +731,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 style: "width: 190px",
                 onPurchase() {
                     options.onPurchase?.();
-                    if (!["Peppermint", "Twinkle", "Cocoa", "Frosty"].includes(options.name)) {
+                    if (
+                        !["Peppermint", "Twinkle", "Cocoa", "Frosty", "Carol"].includes(
+                            options.name
+                        )
+                    ) {
                         elfReset.reset();
                     }
                 }
             };
         }) as GenericUpgrade & {
-            buyProgress: Ref<number>;
+            buyProgress: Ref<DecimalSource>;
             update: (diff: number) => void;
             toggle: Ref<boolean>;
             name: string;
@@ -740,7 +797,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         description:
             "Noel will automatically purchase fertilized soil you can afford, without actually spending any ash.",
         buyable: coal.moreFertilizer,
-        cooldownModifier: fertilizerCooldown
+        cooldownModifier: fertilizerCooldown,
+        buyMax: () => management.elfTraining.heatedPlanterElfTraining.milestones[2].earned.value
     });
     const coalElves = [heatedCuttersElf, heatedPlantersElf, fertilizerElf];
     const smallFireElf = createElf({
@@ -838,7 +896,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buyable: coal.buildDrill,
         cooldownModifier: coalDrillCooldown,
         visibility: () =>
-            showIf(management.elfTraining.expandersElfTraining.milestones[3].earned.value),
+            showIf(
+                management.elfTraining.expandersElfTraining.milestones[3].earned.value ||
+                    letters.masteryEffectActive.value
+            ),
         hasToggle: true,
         toggleDesc: "Activate auto-purchased coal drills",
         onAutoPurchase(_, amount) {
@@ -854,7 +915,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buyable: [oil.buildHeavy, oil.buildHeavy2, oil.buildExtractor],
         cooldownModifier: heavyDrillCooldown,
         visibility: () =>
-            showIf(management.elfTraining.cutterElfTraining.milestones[4].earned.value),
+            showIf(
+                management.elfTraining.cutterElfTraining.milestones[4].earned.value ||
+                    letters.masteryEffectActive.value
+            ),
         hasToggle: true,
         toggleDesc: "Activate auto-purchased oil drills",
         onAutoPurchase(buyable, amount) {
@@ -876,7 +940,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buyable: [oil.buildPump, oil.buildBurner, oil.buildSmelter],
         cooldownModifier: oilCooldown,
         visibility: () =>
-            showIf(management.elfTraining.heatedCutterElfTraining.milestones[4].earned.value),
+            showIf(
+                management.elfTraining.heatedCutterElfTraining.milestones[4].earned.value ||
+                    letters.masteryEffectActive.value
+            ),
         hasToggle: true,
         toggleDesc: "Activate auto-purchased oil-using machines",
         onAutoPurchase(buyable, amount) {
@@ -899,18 +966,48 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buyable: [metal.oreDrill, metal.industrialCrucible, metal.hotterForge],
         cooldownModifier: metalCooldown,
         visibility: () =>
-            showIf(management.elfTraining.fertilizerElfTraining.milestones[4].earned.value)
+            showIf(
+                management.elfTraining.fertilizerElfTraining.milestones[4].earned.value ||
+                    letters.masteryEffectActive.value
+            )
     });
     const managementElves2 = [metalElf];
+
+    const dyeColors = Object.fromEntries(
+        (["blue", "red", "yellow", "orange", "green", "purple"] as enumColor[]).map(color => [
+            dyes.dyes[color].buyable.id,
+            color
+        ])
+    ) as Record<string, enumColor>;
     const dyeElf = createElf({
         name: "Carol",
         description:
-            "Carol will automatically purchase all dyes you can afford, without actually spending any resources.",
+            "Carol will automatically purchase all primary dyes you can afford, without actually spending any resources.",
         buyable: Object.values(dyes.dyes).map(dye => dye.buyable),
         cooldownModifier: dyeCooldown, // Note: Buy max will be unlocked at this point
-        visibility: () => showIf(wrappingPaper.milestones.unlockDyeElf.earned.value)
+        visibility: () =>
+            showIf(wrappingPaper.unlockDyeElfMilestone.earned.value && !main.isMastery.value),
+        buyMax: () => management.elfTraining.dyeElfTraining.milestones[2].earned.value,
+        onAutoPurchase(buyable, amount) {
+            buyable.amount.value = Decimal.sub(buyable.amount.value, amount);
+            if (["orange", "green", "purple"].includes(dyeColors[buyable.id])) {
+                if (!ribbon.milestones.secondaryDyeElf.earned.value) {
+                    return;
+                }
+            }
+            buyable.amount.value = Decimal.add(buyable.amount.value, amount);
+        }
     });
-    const wrappingPaperElves = [dyeElf];
+    const plasticElf = createElf({
+        name: "Tinsel",
+        description:
+            "Tinsel will automatically purchase all plastic buyables you can afford, without actually spending any resources.",
+        buyable: Object.values(plastic.buyables),
+        cooldownModifier: plasticCooldown,
+        visibility: () => showIf(plastic.masteryEffectActive.value),
+        buyMax: () => management.elfTraining.plasticElfTraining.milestones[4].earned.value
+    });
+    const wrappingPaperElves = [dyeElf, plasticElf];
     const elves = {
         cuttersElf,
         plantersElf,
@@ -928,7 +1025,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         heavyDrillElf,
         oilElf,
         metalElf,
-        dyeElf
+        dyeElf,
+        plasticElf
     };
     const totalElves = computed(() => Object.values(elves).filter(elf => elf.bought.value).length);
 
@@ -1010,7 +1108,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effectDisplay: "Elves work twice as fast (again)"
         },
         shouldEarn: () => Decimal.gte(totalElves.value, 10),
-        visibility: () => showIf(main.day.value >= 10)
+        visibility: () => showIf(main.day.value >= 10 && treeUpgradesMilestone.earned.value)
     }));
     const coalUpgradesMilestone = createMilestone(() => ({
         display: {
@@ -1078,8 +1176,124 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     });
 
+    const mastery = {
+        elves: {
+            cuttersElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                bought: persistent<boolean>(false)
+            },
+            plantersElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                bought: persistent<boolean>(false)
+            },
+            expandersElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                bought: persistent<boolean>(false)
+            },
+            heatedCuttersElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                bought: persistent<boolean>(false)
+            },
+            heatedPlantersElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                bought: persistent<boolean>(false)
+            },
+            fertilizerElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                bought: persistent<boolean>(false)
+            },
+            smallFireElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                toggle: persistent<boolean>(false),
+                bought: persistent<boolean>(false)
+            },
+            bonfireElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                toggle: persistent<boolean>(false),
+                bought: persistent<boolean>(false)
+            },
+            kilnElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                toggle: persistent<boolean>(false),
+                bought: persistent<boolean>(false)
+            },
+            paperElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                bought: persistent<boolean>(false)
+            },
+            boxElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                bought: persistent<boolean>(false)
+            },
+            clothElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                bought: persistent<boolean>(false)
+            },
+            coalDrillElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                toggle: persistent<boolean>(false),
+                bought: persistent<boolean>(false)
+            },
+            heavyDrillElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                toggle: persistent<boolean>(false),
+                bought: persistent<boolean>(false)
+            },
+            oilElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                toggle: persistent<boolean>(false),
+                bought: persistent<boolean>(false)
+            },
+            metalElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                bought: persistent<boolean>(false)
+            },
+            dyeElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                bought: persistent<boolean>(false)
+            },
+            plasticElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOfTimesDone: persistent<number>(0),
+                bought: persistent<boolean>(false)
+            }
+        },
+        milestones: [
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) },
+            { earned: persistent<boolean>(false) }
+        ]
+    };
+
     return {
         name,
+        day,
         color: colorBright,
         elves,
         totalElves,
@@ -1119,7 +1333,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 </div>
                 {milestonesDisplay()}
             </>
-        ))
+        )),
+        mastery
     };
 });
 
