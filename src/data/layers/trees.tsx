@@ -908,17 +908,27 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     style="margin-bottom: 0"
                     productionDisplay={
                         Decimal.gt(computedAutoCuttingAmount.value, 0)
-                            ? `+${format(
-                                  averageLogGain.value
-                              )}/s average<br/>equilibrium: +${formatLimit(
-                                  [
-                                      [computedAutoCuttingAmount.value, "cutting speed"],
-                                      [computedAutoPlantingAmount.value, "planting speed"],
-                                      [Decimal.mul(computedTotalTrees.value, 20), "forest cap"]
-                                  ],
-                                  "/s",
-                                  logGain.apply(1)
-                              )}`
+                            ? `+${format(averageLogGain.value)}/s average<br/>equilibrium: +${
+                                  management.elfTraining.planterElfTraining.milestones[4].earned
+                                      .value
+                                      ? format(logGain.apply(computedAutoCuttingAmount.value)) +
+                                        "/s"
+                                      : formatLimit(
+                                            [
+                                                [computedAutoCuttingAmount.value, "cutting speed"],
+                                                [
+                                                    computedAutoPlantingAmount.value,
+                                                    "planting speed"
+                                                ],
+                                                [
+                                                    Decimal.mul(computedTotalTrees.value, 20),
+                                                    "forest cap"
+                                                ]
+                                            ],
+                                            "/s",
+                                            logGain.apply(1)
+                                        )
+                              }`
                             : undefined
                     }
                 />
