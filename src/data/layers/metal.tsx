@@ -746,21 +746,31 @@ const layer = createLayer(id, function (this: BaseLayer) {
                             {autoSmeltEnabled.value &&
                             (Decimal.gte(industrialCrucible.amount.value, 1) ||
                                 masteryEffectActive.value)
-                                ? `+${formatLimit(
-                                      [
-                                          [computedAutoSmeltSpeed.value, "smelting speed"],
-                                          [computedOreGain.value, "ore gain"],
-                                          [
-                                              Decimal.div(coal.computedCoalGain.value, coalCost),
-                                              "coal gain"
-                                          ]
-                                      ],
-                                      "/s",
-                                      Decimal.mul(
-                                          computedOrePurity.value,
-                                          computedAutoSmeltMulti.value
+                                ? masteryEffectActive.value
+                                    ? formatGain(
+                                          Decimal.mul(
+                                              computedOrePurity.value,
+                                              computedOrePurity.value
+                                          ).mul(computedAutoSmeltSpeed.value)
                                       )
-                                  )}`
+                                    : `+${formatLimit(
+                                          [
+                                              [computedAutoSmeltSpeed.value, "smelting speed"],
+                                              [computedOreGain.value, "ore gain"],
+                                              [
+                                                  Decimal.div(
+                                                      coal.computedCoalGain.value,
+                                                      coalCost
+                                                  ),
+                                                  "coal gain"
+                                              ]
+                                          ],
+                                          "/s",
+                                          Decimal.mul(
+                                              computedOrePurity.value,
+                                              computedAutoSmeltMulti.value
+                                          )
+                                      )}`
                                 : undefined}
                         </>
                     ))}
