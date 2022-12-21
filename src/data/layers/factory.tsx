@@ -584,7 +584,8 @@ const factory = createLayer(id, () => {
             y = roundDownTo(y - ty, blockSize) / blockSize;
             if (e.button === 0) {
                 if (compSelected.value !== "cursor") {
-                    if (!components.value[x + "x" + y]) addFactoryComp(x, y, compSelected.value);
+                    if (components.value[x + "x" + y] === undefined)
+                        addFactoryComp(x, y, compSelected.value);
                 }
             } else if (e.button === 2) {
                 const data = compInternalData[x + "x" + y];
