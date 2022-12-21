@@ -34,6 +34,7 @@ import ribbon from "./layers/ribbon";
 import toys from "./layers/toys";
 import trees from "./layers/trees";
 import workshop from "./layers/workshop";
+import factory from "./layers/factory";
 import wrappingPaper from "./layers/wrapping-paper";
 import boxesSymbol from "./symbols/cardboardBox.png";
 import clothSymbol from "./symbols/cloth.png";
@@ -221,7 +222,27 @@ export const main = createLayer("main", function (this: BaseLayer) {
                         },
                         onOpenLayer() {
                             recentlyUpdated.value = false;
-                            openDay(layer ?? "trees");
+
+                            // should not be full screen
+                            if (layer !== "factory") {
+                                // 1468 is because two tabs with minWidth of 700px plus the minimized calendar of 60px plus 2 dividers of 4px each
+                                if (window.matchMedia("(min-width: 1468px)").matches) {
+                                    // Desktop, allow multiple tabs to be open
+                                    if (player.tabs.includes(layer ?? "trees")) {
+                                        const index = player.tabs.lastIndexOf(layer ?? "trees");
+                                        player.tabs.splice(index, 1);
+                                    } else {
+                                        player.tabs.push(layer ?? "trees");
+                                        main.minimized.value = true;
+                                    }
+                                } else {
+                                    // Mobile, use single tab mode
+                                    player.tabs.splice(1, Infinity, layer ?? "trees");
+                                }
+                                layers[layer ?? "trees"]!.minimized.value = false;
+                            } else {
+                                player.tabs.splice(0, Infinity, layer);
+                            }
                         },
                         onUnlockLayer() {
                             if (layer != null) {
@@ -427,7 +448,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 18,
             shouldNotify: false,
-            layer: null, // "toys2"
+            layer: "factory",
             symbol: "",
             story: "",
             completedStory: "",
@@ -445,8 +466,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 20,
             shouldNotify: false,
-            layer: null, // "presents"
-            symbol: "",
+            layer: "factory", // "presents"
+            symbol: wrappingPaperSymbol,
             story: "",
             completedStory: "",
             masteredStory: ""
@@ -595,7 +616,8 @@ export const getInitialLayers = (
     letters,
     wrappingPaper,
     ribbon,
-    toys
+    toys,
+    factory
 ];
 
 /**

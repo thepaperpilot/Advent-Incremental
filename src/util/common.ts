@@ -19,9 +19,9 @@ export function isFunction<T, S extends ReadonlyArray<unknown>, R>(
 }
 
 export enum Direction {
-    Up = "Up",
-    Down = "Down",
-    Left = "Left",
-    Right = "Right",
-    Default = "Up"
+    Up = "UP",
+    Down = "DOWN",
+    Left = "LEFT",
+    Right = "RIGHT",
+    Default = "UP"
 }
