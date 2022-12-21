@@ -661,7 +661,7 @@ const factory = createLayer(id, () => {
                         </>
                     ) : undefined}
                 </div>
-                <div class="container">
+                <div class="factory-container">
                     <div style="line-height: 2.5em; min-height: 2.5em">
                         {whatIsHovered.value === ""
                             ? undefined
