@@ -304,6 +304,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         goal: 500,
         name,
         day,
+        textColor: "var(--feature-foreground)",
         background: {
             gradient: "toys-bar",
             duration: "15s"
