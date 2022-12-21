@@ -1,20 +1,21 @@
-import { jsx } from "features/feature";
-import { createLayer } from "game/layers";
 import { Application } from "@pixi/app";
-import { Sprite } from "@pixi/sprite";
-import { Graphics } from "@pixi/graphics";
 import { Assets } from "@pixi/assets";
-import Factory from "./Factory.vue";
-import conveyor from "./factory-components/conveyor.png";
-import cursor from "./factory-components/cursor.jpg";
-import square from "./factory-components/square.jpg";
-import { computed, ComputedRef, reactive, Ref, ref, watchEffect } from "vue";
-import { Direction } from "util/common";
+import { Container } from "@pixi/display";
+import { Graphics } from "@pixi/graphics";
+import { Sprite } from "@pixi/sprite";
+import { jsx } from "features/feature";
+import { globalBus } from "game/events";
+import { createLayer } from "game/layers";
 import { Persistent, persistent, State } from "game/persistence";
 import player from "game/player";
+import { Direction } from "util/common";
+import { computed, ComputedRef, reactive, ref, watchEffect } from "vue";
+import conveyor from "./factory-components/conveyor.png";
+import cursor from "./factory-components/cursor.jpg";
+import rotate from "./factory-components/rotate_rectangle.png";
+import square from "./factory-components/square.jpg";
+import Factory from "./Factory.vue";
 import "./styles/factory.css";
-import { globalBus } from "game/events";
-import { Container } from "@pixi/display";
 
 const id = "factory";
 
@@ -31,7 +32,7 @@ enum FactoryDirections {
 type FactoryDirection = FactoryDirections | Direction;
 
 function roundDownTo(num: number, multiple: number) {
-    return Math.floor(num / multiple) * multiple;
+    return Math.floor((num + multiple / 2) / multiple) * multiple;
 }
 function getRelativeCoords(e: MouseEvent) {
     const rect = (e.target as HTMLElement).getBoundingClientRect();
@@ -53,6 +54,13 @@ function iterateDirection(dir: FactoryDirection, func: (dir: FactoryDirection) =
         default:
             func(dir);
     }
+}
+function rotateDir(dir: Direction, relative = Direction.Right) {
+    const directions = [Direction.Up, Direction.Right, Direction.Down, Direction.Left];
+    let index = directions.indexOf(dir);
+    index += directions.indexOf(relative);
+    index = index % directions.length;
+    return directions[index];
 }
 function directionToNum(dir: Direction) {
     switch (dir) {
@@ -97,6 +105,16 @@ const factory = createLayer(id, () => {
             production: {},
             productionStock: {}
         },
+        rotate: {
+            imageSrc: rotate,
+            name: "Rotate",
+            description: "Use this to rotate components.",
+            tick: 0,
+            consumption: {},
+            consumptionStock: {},
+            production: {},
+            productionStock: {}
+        },
         conveyor: {
             imageSrc: conveyor,
             name: "Conveyor",
@@ -105,7 +123,15 @@ const factory = createLayer(id, () => {
             consumption: {},
             consumptionStock: {},
             production: {},
-            productionStock: {}
+            productionStock: {},
+            ports: {
+                [Direction.Left]: {
+                    type: "input"
+                },
+                [Direction.Right]: {
+                    type: "output"
+                }
+            }
         },
         square: {
             imageSrc: square,
@@ -121,14 +147,17 @@ const factory = createLayer(id, () => {
             consumption: {},
             consumptionStock: {}
         }
-    } as Record<"cursor" | "conveyor" | "square", FactoryComponentDeclaration>;
+    } as const;
     const RESOURCES = {
         square: square
     } as Record<string, string>;
 
     type FactoryCompNames = keyof typeof FACTORY_COMPONENTS;
     type BuildableCompName = Exclude<FactoryCompNames, "cursor">;
-    interface FactoryComponentProducers extends Record<string, State> {
+    interface FactoryComponentBase extends Record<string, State> {
+        direction: Direction;
+    }
+    interface FactoryComponentProducers extends FactoryComponentBase {
         type: Exclude<BuildableCompName, "conveyor">;
         consumptionStock: Record<string, number>;
 
@@ -136,11 +165,11 @@ const factory = createLayer(id, () => {
         productionStock: Record<string, number>;
         ticksDone: number;
     }
-    interface FactoryComponentConveyor extends Record<string, State> {
+    interface FactoryComponentConveyor extends FactoryComponentBase {
         type: "conveyor";
-        directionOut: Direction;
     }
-    type FactoryComponent = FactoryComponentConveyor | FactoryComponentProducers;
+    type FactoryComponent = FactoryComponentBase &
+        (FactoryComponentConveyor | FactoryComponentProducers);
     interface FactoryComponentDeclaration {
         tick: number;
         imageSrc: string;
@@ -176,7 +205,6 @@ const factory = createLayer(id, () => {
     }
     interface FactoryInternalProducer extends FactoryInternalBase {
         type: Exclude<BuildableCompName, "conveyor">;
-        startingFrom: "up" | "right" | "down" | "left";
     }
     type FactoryInternal = FactoryInternalConveyor | FactoryInternalProducer;
 
@@ -246,8 +274,9 @@ const factory = createLayer(id, () => {
         // load every sprite here so pixi doesn't complain about loading multiple times
         await Assets.load(Object.values(FACTORY_COMPONENTS).map(x => x.imageSrc));
 
-        if (Array.isArray(components.value)) components.value = {};
-        else
+        if (Array.isArray(components.value)) {
+            components.value = {};
+        } else {
             for (const id in components.value) {
                 const data = components.value[id];
                 console.log(id, data);
@@ -256,8 +285,9 @@ const factory = createLayer(id, () => {
                     continue;
                 }
                 const [x, y] = id.split("x").map(p => +p);
-                addFactoryComp(x, y, data.type);
+                addFactoryComp(x, y, data);
             }
+        }
 
         loaded = true;
     });
@@ -289,8 +319,9 @@ const factory = createLayer(id, () => {
                 compData.packages = compData.packages.concat(compData.nextPackages);
                 compData.nextPackages = [];
                 for (const [key, block] of [...compData.packages].entries()) {
-                    const dirType = getDirection(data.directionOut);
-                    const dirAmt = directionToNum(data.directionOut);
+                    const inputDirection = rotateDir(data.direction, Direction.Left);
+                    const dirType = getDirection(inputDirection);
+                    const dirAmt = directionToNum(inputDirection);
                     if (dirType === "h") {
                         if (block.x <= block.lastX + dirAmt) {
                             const compBehind = compInternalData[x + dirAmt + "x" + y];
@@ -378,26 +409,22 @@ const factory = createLayer(id, () => {
                 //debugger;
                 if (
                     components.value[x + "x" + (y + 1)]?.type === "conveyor" &&
-                    (compInternalData[x + "x" + (y + 1)] as FactoryInternalProducer)
-                        .startingFrom === "up"
+                    components.value[x + "x" + (y + 1)].direction === Direction.Up
                 ) {
                     yInc = 1;
                 } else if (
                     components.value[x + "x" + (y - 1)]?.type === "conveyor" &&
-                    (compInternalData[x + "x" + (y - 1)] as FactoryInternalProducer)
-                        .startingFrom === "down"
+                    components.value[x + "x" + (y + 1)].direction === Direction.Down
                 ) {
                     yInc = -1;
                 } else if (
                     components.value[x + 1 + "x" + y]?.type === "conveyor" &&
-                    (compInternalData[x + 1 + "x" + y] as FactoryInternalProducer).startingFrom ===
-                        "right"
+                    components.value[x + "x" + (y + 1)].direction === Direction.Right
                 ) {
                     xInc = 1;
                 } else if (
                     components.value[x - 1 + "x" + y]?.type === "conveyor" &&
-                    (compInternalData[x - 1 + "x" + y] as FactoryInternalProducer).startingFrom ===
-                        "left"
+                    components.value[x + "x" + (y + 1)].direction === Direction.Left
                 ) {
                     xInc = -1;
                 }
@@ -457,11 +484,15 @@ const factory = createLayer(id, () => {
         taskIsRunning = false;
     });
 
-    function addFactoryComp(x: number, y: number, type: BuildableCompName) {
+    function addFactoryComp(
+        x: number,
+        y: number,
+        data: Partial<FactoryComponent> & { type: BuildableCompName }
+    ) {
         if (x < -factorySize.width || x >= factorySize.width) return;
         if (y < -factorySize.height || y >= factorySize.height) return;
 
-        const factoryBaseData = FACTORY_COMPONENTS[type];
+        const factoryBaseData = FACTORY_COMPONENTS[data.type];
         const sheet = Assets.get(factoryBaseData.imageSrc);
         const sprite = new Sprite(sheet);
 
@@ -469,32 +500,39 @@ const factory = createLayer(id, () => {
         sprite.y = y * blockSize;
         sprite.width = blockSize;
         sprite.height = blockSize;
+        sprite.anchor.x = 0.5;
+        sprite.anchor.y = 0.5;
+        sprite.rotation =
+            ([Direction.Right, Direction.Down, Direction.Left, Direction.Up].indexOf(
+                data.direction ?? Direction.Right
+            ) *
+                Math.PI) /
+            2;
+        console.log("!!", data, sprite);
         components.value[x + "x" + y] = {
-            type,
             ticksDone: 0,
-            directionIn: type === "conveyor" ? Direction.Right : undefined,
-            directionOut: type === "conveyor" ? Direction.Left : undefined,
+            direction: Direction.Right,
             consumptionStock:
-                type === "conveyor"
+                data.type === "conveyor"
                     ? undefined
                     : Object.fromEntries(
                           Object.keys(factoryBaseData.consumptionStock).map(i => [i, 0])
                       ),
             productionStock:
-                type === "conveyor"
+                data.type === "conveyor"
                     ? undefined
                     : Object.fromEntries(
                           Object.keys(factoryBaseData.productionStock).map(i => [i, 0])
-                      )
+                      ),
+            ...data
         } as FactoryComponent;
-        const isConveyor = type === "conveyor";
+        const isConveyor = data.type === "conveyor";
         compInternalData[x + "x" + y] = {
-            type,
+            type: data.type,
             packages: isConveyor ? [] : undefined,
             nextPackages: isConveyor ? [] : undefined,
-            startingFrom: "left",
             canProduce: computed(() => {
-                if (type === "conveyor") return true;
+                if (data.type === "conveyor") return true;
                 if (!(factoryBaseData.canProduce?.value ?? true)) return false;
                 // this should NEVER be null
                 const compData = components.value[x + "x" + y] as FactoryComponentProducers;
@@ -528,12 +566,16 @@ const factory = createLayer(id, () => {
         spriteContainer.x = movingBlocks.x = calculatedX;
         spriteContainer.y = movingBlocks.y = calculatedY;
 
-        if (isMouseHoverShown.value && compSelected.value !== "cursor") {
+        if (
+            isMouseHoverShown.value &&
+            compSelected.value !== "cursor" &&
+            compSelected.value !== "rotate"
+        ) {
             const { tx, ty } = spriteContainer.localTransform;
             graphicContainer.beginFill(0x808080);
             graphicContainer.drawRect(
-                roundDownTo(mouseCoords.x - tx, blockSize) + tx,
-                roundDownTo(mouseCoords.y - ty, blockSize) + ty,
+                roundDownTo(mouseCoords.x - tx, blockSize) + tx - blockSize / 2,
+                roundDownTo(mouseCoords.y - ty, blockSize) + ty - blockSize / 2,
                 blockSize,
                 blockSize
             );
@@ -590,15 +632,29 @@ const factory = createLayer(id, () => {
             x = roundDownTo(x - tx, blockSize) / blockSize;
             y = roundDownTo(y - ty, blockSize) / blockSize;
             if (e.button === 0) {
-                if (compSelected.value !== "cursor") {
-                    if (components.value[x + "x" + y] === undefined)
-                        addFactoryComp(x, y, compSelected.value);
+                if (compSelected.value === "rotate") {
+                    if (
+                        components.value[x + "x" + y] != null &&
+                        components.value[x + "x" + y].direction != null
+                    ) {
+                        components.value[x + "x" + y] = {
+                            ...components.value[x + "x" + y],
+                            direction: rotateDir(
+                                (components.value[x + "x" + y] as FactoryComponentConveyor)
+                                    .direction
+                            )
+                        };
+                        compInternalData[x + "x" + y].sprite.rotation += Math.PI / 2;
+                    }
+                } else if (compSelected.value !== "cursor") {
+                    if (components.value[x + "x" + y] == null) {
+                        addFactoryComp(x, y, { type: compSelected.value });
+                    }
                 }
             } else if (e.button === 2) {
                 const data = compInternalData[x + "x" + y];
                 if (data === undefined) return;
                 delete components.value[x + "x" + y];
-                delete compInternalData[x + "x" + y];
                 spriteContainer.removeChild(data.sprite);
             }
         }
