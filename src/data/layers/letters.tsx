@@ -339,6 +339,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <MainDisplay resource={letters} color={color} />
                 {render(process)}
                 <div>
+                    You cannot have more letters than people in the world.
                     The more letters you process, the more you'll improve at processing letters.
                 </div>
                 <div>Currently: {format(synergy.value)}x</div>
