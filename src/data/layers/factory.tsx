@@ -549,8 +549,9 @@ const factory = createLayer(id, () => {
 
         if (
             pointerDown.value &&
-            compSelected.value === "cursor" &&
-            (pointerDrag.value || Math.abs(e.movementX) > 2 || Math.abs(e.movementY) > 2)
+            (pointerDrag.value ||
+                (compSelected.value === "cursor" &&
+                    (Math.abs(e.movementX) > 2 || Math.abs(e.movementY) > 2)))
         ) {
             pointerDrag.value = true;
             mapOffset.x += e.movementX / blockSize;
@@ -560,7 +561,7 @@ const factory = createLayer(id, () => {
             mapOffset.x = Math.min(Math.max(mapOffset.x, -factorySize.width), factorySize.width);
             mapOffset.y = Math.min(Math.max(mapOffset.y, -factorySize.height), factorySize.height);
         }
-        if (!pointerDown.value && !pointerDrag.value && compSelected.value === "cursor") {
+        if (!pointerDown.value && !pointerDrag.value) {
             const { tx, ty } = spriteContainer.localTransform;
             compHovered.value =
                 components.value[
@@ -570,9 +571,12 @@ const factory = createLayer(id, () => {
                 ];
         }
     }
-    function onFactoryPointerDown() {
+    function onFactoryPointerDown(e: PointerEvent) {
         window.addEventListener("pointerup", onFactoryPointerUp);
         pointerDown.value = true;
+        if (e.button === 1) {
+            pointerDrag.value = true;
+        }
     }
     function onFactoryPointerUp(e: PointerEvent) {
         // make sure they're not dragging and that
