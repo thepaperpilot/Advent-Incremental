@@ -956,7 +956,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: 50,
             description: "350 toys",
-            enabled: toys.milestones.milestone4.earned.value
+            enabled: toys.milestones.milestone4.earned
         }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedOilSpeed = computed(() => oilSpeed.apply(0));

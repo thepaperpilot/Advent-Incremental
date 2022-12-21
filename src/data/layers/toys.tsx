@@ -356,7 +356,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {renderGrid(row1Upgrades)}
                 <Spacer />
-                <div>You have made {formatWhole(toySum.value)} total toys</div>
+                <div>You have {formatWhole(toySum.value)} toys</div>
                 {milestonesDisplay()}
             </>
         )),
