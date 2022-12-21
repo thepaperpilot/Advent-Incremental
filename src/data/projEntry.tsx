@@ -615,29 +615,5 @@ export function fixOldSave(
     oldVersion: string | undefined,
     player: Partial<PlayerData>
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-): void {
-    if (!["0.0", "0.1", "0.2", "0.3", "0.4"].includes(oldVersion ?? "")) {
-        return;
-    }
-    if ((player.layers?.workshop as LayerData<typeof workshop> | undefined)?.foundationProgress) {
-        (player.layers?.workshop as LayerData<typeof workshop> | undefined)!.foundationProgress =
-            Decimal.min(
-                (player.layers!.workshop as LayerData<typeof workshop> | undefined)!
-                    .foundationProgress!,
-                1000
-            );
-    }
-    /*player.offlineProd = false;
-    delete player.layers?.management;
-    if ((player.layers?.main as LayerData<typeof main> | undefined)?.days?.[11]) {
-        (player.layers!.main as LayerData<typeof main>).days![11].opened = false;
-    }
-    if ((player.layers?.main as LayerData<typeof main> | undefined)?.day === 12) {
-        (player.layers!.main as LayerData<typeof main>).day === 11;
-        player.devSpeed = 0;
-    }
-    if (player.tabs) {
-        player.tabs = player.tabs.filter(l => l !== "management");
-    }*/
-}
+): void {}
 /* eslint-enable @typescript-eslint/no-unused-vars */
