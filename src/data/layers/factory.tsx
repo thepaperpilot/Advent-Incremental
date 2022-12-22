@@ -7,7 +7,7 @@ import Spacer from "components/layout/Spacer.vue";
 import { jsx } from "features/feature";
 import { globalBus } from "game/events";
 import { createLayer } from "game/layers";
-import { noPersist, noPersist, Persistent, persistent, State } from "game/persistence";
+import { noPersist, Persistent, persistent, State } from "game/persistence";
 import Decimal, { format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { computed, ComputedRef, reactive, ref, watchEffect } from "vue";
@@ -350,18 +350,6 @@ const factory = createLayer(id, () => {
         return acc;
     }, {} as Record<FactoryCompNames, GenericHotkey>);
 
-    const hotkeys = (Object.keys(FACTORY_COMPONENTS) as FactoryCompNames[]).reduce((acc, comp) => {
-        acc[comp] = createHotkey(() => ({
-            key: FACTORY_COMPONENTS[comp].key,
-            description: "Select " + FACTORY_COMPONENTS[comp].name,
-            onPress() {
-                compSelected.value = comp;
-            },
-            enabled: noPersist(main.days[day - 1].opened)
-        }));
-        return acc;
-    }, {} as Record<FactoryCompNames, GenericHotkey>);
-
     type FactoryCompNames =
         | "cursor"
         | "delete"
@@ -400,7 +388,6 @@ const factory = createLayer(id, () => {
 
     interface FactoryComponentDeclaration {
         tick: number;
-        key: string;
         key: string;
         imageSrc: string;
         name: string;
@@ -1241,6 +1228,7 @@ const factory = createLayer(id, () => {
         tabs,
         generalTabCollapsed,
         modifiersModal,
+        hotkeys,
         display: jsx(() => <>{render(tabs)}</>)
     };
 });
