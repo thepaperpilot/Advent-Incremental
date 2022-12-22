@@ -559,7 +559,7 @@ const factory = createLayer(id, () => {
     (window as any).blocks = movingBlocks;
 
     globalBus.on("update", diff => {
-        if (!loaded) return;
+        if (!loaded || paused.value) return;
 
         const factoryTicks = Decimal.times(tickRate.value, diff).toNumber();
 
