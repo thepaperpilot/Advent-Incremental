@@ -35,6 +35,7 @@ import _cloth from "../symbols/cloth.png";
 import _dye from "../symbols/dyes.png";
 import _metal from "../symbols/metal.png";
 import _plastic from "../symbols/plastic.png";
+import boxes from "./boxes";
 import coal from "./coal";
 import {
     default as _bear,
@@ -77,6 +78,7 @@ import _truckMaker from "./factory-components/truckmaker.svg";
 import _wheel from "./factory-components/wheel.svg";
 import _wheelMaker from "./factory-components/wheelmaker.svg";
 import Factory from "./Factory.vue";
+import oil from "./oil";
 import "./styles/factory.css";
 import Toy from "./Toy.vue";
 import toys from "./toys";
@@ -147,6 +149,11 @@ const factory = createLayer(id, () => {
             addend: () => Decimal.add(1, coal.coal.value).log10(),
             description: "Coal Energy Production"
         })),
+        createAdditiveModifier(() => ({
+            addend: () => Decimal.times(oilFuel.amount.value, 10),
+            description: "Oil Fuel",
+            enabled: () => Decimal.gt(oilFuel.amount.value, 0)
+        })),
         createMultiplicativeModifier(() => ({
             multiplier: 1.4,
             description: "2000 toys",
@@ -166,6 +173,11 @@ const factory = createLayer(id, () => {
         createMultiplicativeModifier(() => ({
             multiplier: elvesEffect,
             description: "Trained Elves"
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.div(carryToys.amount.value, 10).add(1),
+            description: "Carry toys in boxes",
+            enabled: () => Decimal.gt(carryToys.amount.value, 0)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: energyEfficiency,
@@ -965,7 +977,7 @@ const factory = createLayer(id, () => {
             .reduce(Decimal.add, 0)
     );
     const trainedElves = createResource<DecimalSource>(sumElves, "trained elves");
-    const elvesEffect = computed(() => Decimal.add(trainedElves.value, 1).log10().add(1));
+    const elvesEffect = computed(() => Decimal.pow(1.05, trainedElves.value));
 
     const expandFactory = createBuyable(() => ({
         resource: trees.logs,
@@ -984,7 +996,37 @@ const factory = createLayer(id, () => {
         style: "width: 200px",
         visible: () => showIf(main.days[advancedDay - 1].opened.value)
     })) as GenericBuyable;
-    const factoryBuyables = { expandFactory };
+    const oilFuel = createBuyable(() => ({
+        resource: oil.oil,
+        cost() {
+            return Decimal.pow(10, this.amount.value).times(1e24);
+        },
+        display: {
+            title: "Oil Fuel",
+            description: "Use some surplus oil to generate more electricity",
+            effectDisplay: jsx(() => <>+{formatWhole(Decimal.times(oilFuel.amount.value, 10))}</>),
+            showAmount: false
+        },
+        style: "width: 200px",
+        visible: () => showIf(main.days[advancedDay - 1].opened.value)
+    })) as GenericBuyable;
+    const carryToys = createBuyable(() => ({
+        resource: boxes.boxes,
+        cost() {
+            return Decimal.pow(100, this.amount.value).times(1e80);
+        },
+        display: {
+            title: "Carry toys in boxes",
+            description: "Use some surplus boxes to speed up the whole factory",
+            effectDisplay: jsx(() => (
+                <>x{format(Decimal.div(carryToys.amount.value, 10).add(1))} tick rate</>
+            )),
+            showAmount: false
+        },
+        style: "width: 200px",
+        visible: () => showIf(main.days[advancedDay - 1].opened.value)
+    })) as GenericBuyable;
+    const factoryBuyables = { expandFactory, oilFuel, carryToys };
 
     // pixi
 
