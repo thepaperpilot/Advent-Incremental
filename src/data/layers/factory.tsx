@@ -26,6 +26,11 @@ import Factory from "./Factory.vue";
 import "./styles/factory.css";
 import coal from "./coal";
 import { createAdditiveModifier, createSequentialModifier } from "game/modifiers";
+import { main } from "data/projEntry";
+import { render } from "util/vue";
+import { createCollapsibleModifierSections } from "data/common";
+import Modal from "components/Modal.vue";
+import { createBar, GenericBar } from "features/bars/bar";
 
 const id = "factory";
 
@@ -857,16 +862,64 @@ const factory = createLayer(id, () => {
         compSelected.value = name;
     }
 
+    const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
+        {
+            title: "Energy",
+            modifier: energy,
+            base: 0
+        }
+    ]);
+    const showModifiersModal = ref(false);
+    const modifiersModal = jsx(() => (
+        <Modal
+            modelValue={showModifiersModal.value}
+            onUpdate:modelValue={(value: boolean) => (showModifiersModal.value = value)}
+            v-slots={{
+                header: () => <h2>{name} Modifiers</h2>,
+                body: generalTab
+            }}
+        />
+    ));
+
+    const dayProgress = createBar(() => ({
+        direction: Direction.Right,
+        width: 600,
+        height: 25,
+        progress: () => (main.day.value === day ? 0 : 1),
+        display: jsx(() => (main.day.value === day ? <>Requirement progress here</> : ""))
+    })) as GenericBar;
+
+    watchEffect(() => {
+        if (main.day.value === day && false) {
+            main.completeDay();
+        }
+    });
+
     return {
         name,
         day,
         color,
         minWidth: 700,
-        minimizable: false,
-        style: { overflow: "hidden" },
+        generalTabCollapsed,
         components,
         display: jsx(() => (
             <>
+                <div>
+                    {main.day.value === day
+                        ? `Do something to complete the day`
+                        : `${name} Complete!`}{" "}
+                    -{" "}
+                    <button
+                        class="button"
+                        style="display: inline-block;"
+                        onClick={() => (showModifiersModal.value = true)}
+                    >
+                        Check Modifiers
+                    </button>
+                </div>
+                {render(dayProgress)}
+                {render(modifiersModal)}
+                <Spacer />
                 <div class="factory-container">
                     <Factory
                         application={app}
