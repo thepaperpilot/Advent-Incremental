@@ -299,6 +299,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             showIf(extraExpansionMilestone5.earned.value && toys.row1Upgrades[2].bought.value),
         showPopups: shouldShowPopups
     }));
+    const extraExpansionMilestone7 = createMilestone(() => ({
+        display: {
+            requirement: "1400% Foundation Completed",
+            effectDisplay: "Coal has a greater effect on energy gain"
+        },
+        shouldEarn: () => Decimal.gte(foundationProgress.value, 1400),
+        visibility: () =>
+            showIf(extraExpansionMilestone6.earned.value && toys.row1Upgrades[2].bought.value),
+        showPopups: shouldShowPopups
+    }));
     const milestones = {
         logGainMilestone1,
         autoCutMilestone1,
@@ -313,7 +323,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         extraExpansionMilestone3,
         extraExpansionMilestone4,
         extraExpansionMilestone5,
-        extraExpansionMilestone6
+        extraExpansionMilestone6,
+        extraExpansionMilestone7
     };
     const { collapseMilestones, display: milestonesDisplay } =
         createCollapsibleMilestones(milestones);

@@ -547,7 +547,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: toys.row1Upgrades[0].bought
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.add(toys.clothes.value, 1),
+            multiplier: () => Decimal.add(toys.clothes.value, 1).pow(0.75),
             description: "3000 Toys",
             enabled: toys.milestones.milestone7.earned
         })),

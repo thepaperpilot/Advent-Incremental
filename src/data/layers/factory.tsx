@@ -83,6 +83,7 @@ import "./styles/factory.css";
 import Toy from "./Toy.vue";
 import toys from "./toys";
 import trees from "./trees";
+import workshop from "./workshop";
 
 const id = "factory";
 
@@ -148,6 +149,11 @@ const factory = createLayer(id, () => {
         createAdditiveModifier(() => ({
             addend: () => Decimal.add(1, coal.coal.value).log10(),
             description: "Coal Energy Production"
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: Decimal.add(1, coal.coal.value).log10().div(100),
+            description: "1400% workshop",
+            enabled: workshop.milestones.extraExpansionMilestone7.earned
         })),
         createAdditiveModifier(() => ({
             addend: () => Decimal.times(oilFuel.amount.value, 10),
