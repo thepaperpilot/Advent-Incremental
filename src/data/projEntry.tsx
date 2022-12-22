@@ -421,7 +421,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
             symbol: toysSymbol,
             story: "You've had enough of this running around and stalling - it is time to create some toys NOW! You have everything you need and then some, so let's finally just sit down and get this process started!",
             completedStory:
-                "In your haste you may have been a bit wasteful with resources, but it feels really good to finally make some meaningful process on making toys for Santa. You already envision plans on how to get elves to help you out and start pumping out these toys, but for now... Good Job!",
+                "In your haste you may have been a bit wasteful with resources, but it feels really good to finally make some meaningful progress on making toys for Santa. You already envision plans on how to get elves to help you out and start pumping out these toys, but for now... Good Job!",
             masteredStory: ""
         })),
         createDay(() => ({
