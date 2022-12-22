@@ -3,12 +3,12 @@ import { Assets } from "@pixi/assets";
 import { Container } from "@pixi/display";
 import { Graphics } from "@pixi/graphics";
 import { Sprite } from "@pixi/sprite";
+import Spacer from "components/layout/Spacer.vue";
 import { jsx } from "features/feature";
 import { globalBus } from "game/events";
 import { createLayer } from "game/layers";
 import { Persistent, persistent, State } from "game/persistence";
-import player from "game/player";
-import Decimal, { formatWhole } from "util/bignum";
+import Decimal, { format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { computed, ComputedRef, reactive, ref, watchEffect } from "vue";
 import conveyor from "./factory-components/conveyor.png";
@@ -82,7 +82,7 @@ const factory = createLayer(id, () => {
             .reduce((a, b) => a + b, 0)
     );
     const tickRate = computed(() =>
-        Decimal.div(energyConsumption.value, energy.value).pow(2).min(1)
+        Decimal.div(energyConsumption.value, energy.value).recip().pow(2).min(1)
     );
 
     // ---------------------------------------------- Components
@@ -633,7 +633,6 @@ const factory = createLayer(id, () => {
             ) *
                 Math.PI) /
             2;
-        console.log("!!", data, sprite);
         components.value[x + "x" + y] = {
             ticksDone: 0,
             direction: Direction.Right,
@@ -830,9 +829,6 @@ const factory = createLayer(id, () => {
         compSelected.value = name;
     }
 
-    function goBack() {
-        player.tabs.splice(0, Infinity, "main");
-    }
     return {
         name,
         day,
@@ -842,141 +838,166 @@ const factory = createLayer(id, () => {
         style: { overflow: "hidden" },
         components,
         display: jsx(() => (
-            <div class="layer-container">
-                <button class="goBack" onClick={goBack}>
-                    ❌
-                </button>
-                <Factory
-                    application={app}
-                    onPointermove={onFactoryPointerMove}
-                    onPointerdown={onFactoryPointerDown}
-                    onPointerenter={onFactoryMouseEnter}
-                    onPointerleave={onFactoryMouseLeave}
-                    onContextmenu={(e: MouseEvent) => e.preventDefault()}
-                />
-
-                {compHovered.value !== undefined ? (
-                    <div
-                        class="info-container"
-                        id="factory-info"
-                        style={{
-                            ...(mouseCoords.x +
-                                (document.getElementById("factory-info")?.clientWidth ?? 0) >
-                            app.view.width - 30
-                                ? { right: app.view.width - mouseCoords.x + "px" }
-                                : { left: mouseCoords.x + "px" }),
-                            ...(mouseCoords.y +
-                                (document.getElementById("factory-info")?.clientHeight ?? 0) >
-                            app.view.height - 30
-                                ? { bottom: app.view.height - mouseCoords.y + "px" }
-                                : { top: mouseCoords.y + "px" })
-                        }}
-                    >
-                        <h3>{FACTORY_COMPONENTS[compHovered.value.type].name}</h3>
-                        <br />
-                        {FACTORY_COMPONENTS[compHovered.value.type].description}
-                        <br />
-                        {compHovered.value.type !== "conveyor" ? (
-                            <>
-                                {compHovered.value.inputStock !== undefined ? (
-                                    <>
-                                        <br />
-                                        <h5>Inputs:</h5>
-                                        {Object.entries(compHovered.value.inputStock).map(x => (
-                                            <div>
-                                                {x[0]}: {formatWhole(x[1])}
-                                                {FACTORY_COMPONENTS[
-                                                    compHovered.value?.type ?? "cursor"
-                                                ].inputs?.[x[0]].amount !== undefined
-                                                    ? " / " +
-                                                      formatWhole(
-                                                          FACTORY_COMPONENTS[
-                                                              compHovered.value?.type ?? "cursor"
-                                                          ].inputs?.[x[0]].amount ?? 0
-                                                      )
-                                                    : ""}
-                                                {FACTORY_COMPONENTS[
-                                                    compHovered.value?.type ?? "cursor"
-                                                ].inputs?.[x[0]].capacity !== undefined
-                                                    ? " / " +
-                                                      formatWhole(
-                                                          FACTORY_COMPONENTS[
-                                                              compHovered.value?.type ?? "cursor"
-                                                          ].inputs?.[x[0]].capacity ?? 0
-                                                      )
-                                                    : ""}
-                                            </div>
-                                        ))}
-                                    </>
-                                ) : undefined}
-                                {compHovered.value.outputStock !== undefined ? (
-                                    <>
-                                        <br />
-                                        <h5>Outputs:</h5>
-                                        {Object.entries(compHovered.value.outputStock).map(x => (
-                                            <div>
-                                                {x[0]}: {formatWhole(x[1])}
-                                                {FACTORY_COMPONENTS[
-                                                    compHovered.value?.type ?? "cursor"
-                                                ].outputs?.[x[0]].capacity !== undefined
-                                                    ? " / " +
-                                                      formatWhole(
-                                                          FACTORY_COMPONENTS[
-                                                              compHovered.value?.type ?? "cursor"
-                                                          ].outputs?.[x[0]].capacity ?? 0
-                                                      )
-                                                    : ""}
-                                            </div>
-                                        ))}
-                                    </>
-                                ) : undefined}
-                            </>
-                        ) : undefined}
-                    </div>
-                ) : undefined}
-
+            <>
                 <div class="factory-container">
-                    <div
-                        class={{
-                            "comp-info": true,
-                            active: isComponentHover.value
-                        }}
-                        style={{
-                            top:
-                                Math.max(
-                                    Object.keys(FACTORY_COMPONENTS).indexOf(whatIsHovered.value),
-                                    0
-                                ) *
-                                    50 +
-                                10 +
-                                "px"
-                        }}
-                    >
-                        {whatIsHovered.value === "" ? undefined : (
-                            <>
-                                <h3>{FACTORY_COMPONENTS[whatIsHovered.value].name}</h3>
-                                <br />
-                                {FACTORY_COMPONENTS[whatIsHovered.value].description}
-                            </>
-                        )}
+                    <Factory
+                        application={app}
+                        onPointermove={onFactoryPointerMove}
+                        onPointerdown={onFactoryPointerDown}
+                        onPointerenter={onFactoryMouseEnter}
+                        onPointerleave={onFactoryMouseLeave}
+                        onContextmenu={(e: MouseEvent) => e.preventDefault()}
+                    />
+                    <div class="comp-container">
+                        <div
+                            class={{
+                                "comp-info": true,
+                                active: isComponentHover.value
+                            }}
+                            style={{
+                                top:
+                                    Math.floor(
+                                        Math.max(
+                                            Object.keys(FACTORY_COMPONENTS).indexOf(
+                                                whatIsHovered.value
+                                            ),
+                                            0
+                                        ) / 2
+                                    ) *
+                                        70 +
+                                    10 +
+                                    "px"
+                            }}
+                        >
+                            {whatIsHovered.value === "" ? undefined : (
+                                <>
+                                    <h3>{FACTORY_COMPONENTS[whatIsHovered.value].name}</h3>
+                                    <br />
+                                    {FACTORY_COMPONENTS[whatIsHovered.value].description}
+                                    {FACTORY_COMPONENTS[whatIsHovered.value].energyCost ?? 0 ? (
+                                        <>
+                                            <br />
+                                            Energy Consumption:{" "}
+                                            {formatWhole(
+                                                FACTORY_COMPONENTS[whatIsHovered.value]
+                                                    .energyCost ?? 0
+                                            )}
+                                        </>
+                                    ) : null}
+                                </>
+                            )}
+                        </div>
+                        <div class="comp-list">
+                            {Object.entries(FACTORY_COMPONENTS).map(value => {
+                                const key = value[0] as FactoryCompNames;
+                                const item = value[1];
+                                return (
+                                    <img
+                                        src={item.imageSrc}
+                                        class={{ selected: compSelected.value === key }}
+                                        onMouseenter={() => onComponentMouseEnter(key)}
+                                        onMouseleave={() => onComponentMouseLeave()}
+                                        onClick={() => onCompClick(key)}
+                                    />
+                                );
+                            })}
+                        </div>
                     </div>
-                    <div class="comp-list">
-                        {Object.entries(FACTORY_COMPONENTS).map(value => {
-                            const key = value[0] as FactoryCompNames;
-                            const item = value[1];
-                            return (
-                                <img
-                                    src={item.imageSrc}
-                                    class={{ selected: compSelected.value === key }}
-                                    onMouseenter={() => onComponentMouseEnter(key)}
-                                    onMouseleave={() => onComponentMouseLeave()}
-                                    onClick={() => onCompClick(key)}
-                                />
-                            );
-                        })}
-                    </div>
+
+                    {compHovered.value !== undefined ? (
+                        <div
+                            class="info-container"
+                            id="factory-info"
+                            style={{
+                                ...(mouseCoords.x >= 180
+                                    ? { right: app.view.width - mouseCoords.x + "px" }
+                                    : { left: mouseCoords.x + 150 + "px" }),
+                                ...(mouseCoords.y +
+                                    (document.getElementById("factory-info")?.clientHeight ?? 0) >
+                                app.view.height - 30
+                                    ? { bottom: app.view.height - mouseCoords.y + "px" }
+                                    : { top: mouseCoords.y + "px" })
+                            }}
+                        >
+                            <h3>{FACTORY_COMPONENTS[compHovered.value.type].name}</h3>
+                            <br />
+                            {FACTORY_COMPONENTS[compHovered.value.type].description}
+                            <br />
+                            {compHovered.value.type !== "conveyor" ? (
+                                <>
+                                    {compHovered.value.inputStock !== undefined ? (
+                                        <>
+                                            <br />
+                                            <h5>Inputs:</h5>
+                                            {Object.entries(compHovered.value.inputStock).map(x => (
+                                                <div>
+                                                    {x[0]}: {formatWhole(x[1])}
+                                                    {FACTORY_COMPONENTS[
+                                                        compHovered.value?.type ?? "cursor"
+                                                    ].inputs?.[x[0]].amount !== undefined
+                                                        ? " / " +
+                                                          formatWhole(
+                                                              FACTORY_COMPONENTS[
+                                                                  compHovered.value?.type ??
+                                                                      "cursor"
+                                                              ].inputs?.[x[0]].amount ?? 0
+                                                          )
+                                                        : ""}
+                                                    {FACTORY_COMPONENTS[
+                                                        compHovered.value?.type ?? "cursor"
+                                                    ].inputs?.[x[0]].capacity !== undefined
+                                                        ? " / " +
+                                                          formatWhole(
+                                                              FACTORY_COMPONENTS[
+                                                                  compHovered.value?.type ??
+                                                                      "cursor"
+                                                              ].inputs?.[x[0]].capacity ?? 0
+                                                          )
+                                                        : ""}
+                                                </div>
+                                            ))}
+                                        </>
+                                    ) : undefined}
+                                    {compHovered.value.outputStock !== undefined ? (
+                                        <>
+                                            <br />
+                                            <h5>Outputs:</h5>
+                                            {Object.entries(compHovered.value.outputStock).map(
+                                                x => (
+                                                    <div>
+                                                        {x[0]}: {formatWhole(x[1])}
+                                                        {FACTORY_COMPONENTS[
+                                                            compHovered.value?.type ?? "cursor"
+                                                        ].outputs?.[x[0]].capacity !== undefined
+                                                            ? " / " +
+                                                              formatWhole(
+                                                                  FACTORY_COMPONENTS[
+                                                                      compHovered.value?.type ??
+                                                                          "cursor"
+                                                                  ].outputs?.[x[0]].capacity ?? 0
+                                                              )
+                                                            : ""}
+                                                    </div>
+                                                )
+                                            )}
+                                        </>
+                                    ) : undefined}
+                                </>
+                            ) : undefined}
+                        </div>
+                    ) : undefined}
                 </div>
-            </div>
+
+                <Spacer />
+                <div
+                    class={Decimal.gt(energyConsumption.value, energy.value) ? "unaffordable" : ""}
+                >
+                    Energy Consumption: {formatWhole(energyConsumption.value)} /{" "}
+                    {formatWhole(energy.value)}
+                    <br />
+                    Tick Rate: {format(tickRate.value)} TPS
+                </div>
+            </>
         ))
     };
 });

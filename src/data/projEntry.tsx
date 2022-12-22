@@ -222,27 +222,21 @@ export const main = createLayer("main", function (this: BaseLayer) {
                         },
                         onOpenLayer() {
                             recentlyUpdated.value = false;
-
-                            // should not be full screen
-                            if (layer !== "factory") {
-                                // 1468 is because two tabs with minWidth of 700px plus the minimized calendar of 60px plus 2 dividers of 4px each
-                                if (window.matchMedia("(min-width: 1468px)").matches) {
-                                    // Desktop, allow multiple tabs to be open
-                                    if (player.tabs.includes(layer ?? "trees")) {
-                                        const index = player.tabs.lastIndexOf(layer ?? "trees");
-                                        player.tabs.splice(index, 1);
-                                    } else {
-                                        player.tabs.push(layer ?? "trees");
-                                        main.minimized.value = true;
-                                    }
+                            // 1468 is because two tabs with minWidth of 700px plus the minimized calendar of 60px plus 2 dividers of 4px each
+                            if (window.matchMedia("(min-width: 1468px)").matches) {
+                                // Desktop, allow multiple tabs to be open
+                                if (player.tabs.includes(layer ?? "trees")) {
+                                    const index = player.tabs.lastIndexOf(layer ?? "trees");
+                                    player.tabs.splice(index, 1);
                                 } else {
-                                    // Mobile, use single tab mode
-                                    player.tabs.splice(1, Infinity, layer ?? "trees");
+                                    player.tabs.push(layer ?? "trees");
+                                    main.minimized.value = true;
                                 }
-                                layers[layer ?? "trees"]!.minimized.value = false;
                             } else {
-                                player.tabs.splice(0, Infinity, layer);
+                                // Mobile, use single tab mode
+                                player.tabs.splice(1, Infinity, layer ?? "trees");
                             }
+                            layers[layer ?? "trees"]!.minimized.value = false;
                         },
                         onUnlockLayer() {
                             if (layer != null) {
