@@ -123,6 +123,11 @@ const factory = createLayer(id, () => {
         createAdditiveModifier(() => ({
             addend: () => Decimal.add(1, coal.coal.value).log10(),
             description: "Coal Energy Production"
+        })),
+        createMultiplicativeModifier(()=>({
+            multiplier: 1.2,
+            description: "2000 toys",
+            enabled: toys.milestones.milestone6.earned
         }))
     ]);
     const computedEnergy = computed(() => energy.apply(0));

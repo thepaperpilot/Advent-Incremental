@@ -268,7 +268,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
         shouldEarn: () => Decimal.gte(toySum.value, 1000),
         visibility: () => showIf(milestone4.earned.value)
     }));
-    const milestones = { milestone1, milestone2, milestone3, milestone4, milestone5 };
+    
+    const milestone6 = createMilestone(() => ({
+        display: {
+            requirement: "2000 toys",
+            effectDisplay: "Running out of energy? Let's increase the limit! Multiply energy capacity by 1.2"
+        },
+        shouldEarn: () => Decimal.gte(toySum.value, 2000),
+        visibility: () => showIf(milestone5.earned.value)
+    }));
+    const milestones = { milestone1, milestone2, milestone3, milestone4, milestone5, milestone6 };
     const { collapseMilestones, display: milestonesDisplay } =
         createCollapsibleMilestones(milestones);
 
