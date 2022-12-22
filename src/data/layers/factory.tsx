@@ -118,7 +118,6 @@ const factory = createLayer(id, () => {
             imageSrc: wood,
             name: "Wood Machine",
             description: "Produces 1 wood every 1 second.",
-            energyCost: 10,
             tick: 1,
             outputs: {
                 wood: {
@@ -126,22 +125,11 @@ const factory = createLayer(id, () => {
                 }
             }
         },
-        receiver: {
-            imageSrc: square,
-            name: "Receiver",
-            description: "Obtains squares. Pretty much does nothing else.",
-            tick: 0,
-            inputs: {
-                square: {
-                    amount: Infinity
-                }
-            }
-        },
-        shrinker: {
-            imageSrc: square,
-            name: "Shrinker",
-            description:
-                "Converts 100 squares to 1 square. I don't know why you would want to do this but here you go anyways.",
+        
+        blocks: {
+            imageSrc: blocks,
+            name: "Wooden Block Maker",
+            description: "Turns 1 wood into 1 wooden block every second.",
             tick: 1,
             inputs: {
                 wood: {
