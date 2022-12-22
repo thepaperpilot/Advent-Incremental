@@ -125,7 +125,7 @@ const factory = createLayer(id, () => {
             description: "Coal Energy Production"
         })),
         createMultiplicativeModifier(()=>({
-            multiplier: 1.2,
+            multiplier: 1.4,
             description: "2000 toys",
             enabled: toys.milestones.milestone6.earned
         }))

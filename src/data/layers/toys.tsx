@@ -272,7 +272,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const milestone6 = createMilestone(() => ({
         display: {
             requirement: "1500 toys",
-            effectDisplay: "Running out of energy? Let's increase the limit! Multiply energy capacity by 1.2"
+            effectDisplay: "Running out of energy? Let's increase the limit! Multiply energy capacity by 1.4"
         },
         shouldEarn: () => Decimal.gte(toySum.value, 1500),
         visibility: () => showIf(milestone5.earned.value)
