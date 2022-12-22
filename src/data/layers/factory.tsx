@@ -81,8 +81,8 @@ function getDirection(dir: Direction) {
 }
 
 const factorySize = {
-    width: 2,
-    height: 2
+    width: 6,
+    height: 6
 };
 const blockSize = 50;
 
