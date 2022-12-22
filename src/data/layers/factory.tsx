@@ -16,8 +16,8 @@ import _cursor from "./factory-components/cursor.svg";
 import _delete from "./factory-components/delete.svg";
 import _rotateLeft from "./factory-components/rotateLeft.svg";
 import _rotateRight from "./factory-components/rotateRight.svg";
-import _wood from "./factory-components/rotate_rectangle.png";
-import _block from "./factory-components/rotate_rectangle.png";
+import _wood from "./factory-components/log.svg";
+import _block from "./factory-components/block.svg";
 import _cloth from "./factory-components/rotate_rectangle.png";
 import _dye from "./factory-components/rotate_rectangle.png";
 import _clothes from "./factory-components/rotate_rectangle.png";
@@ -150,7 +150,7 @@ const factory = createLayer(id, () => {
             key: "Escape",
             name: "Cursor",
             type: "command",
-            description: "Drag to move around.",
+            description: "Drag while equipping this to move around.",
             tick: 0
         },
         delete: {
@@ -171,7 +171,7 @@ const factory = createLayer(id, () => {
         },
         rotateRight: {
             imageSrc: _rotateRight,
-            key: "shift+t",
+            key: "shift+T",
             name: "Rotate Right",
             type: "command",
             description: "Use this to rotate components clockwise.",
@@ -1037,7 +1037,11 @@ const factory = createLayer(id, () => {
                                         {whatIsHovered.value === "" ? undefined : (
                                             <>
                                                 <h3>
-                                                    {FACTORY_COMPONENTS[whatIsHovered.value].name}
+                                                    {FACTORY_COMPONENTS[whatIsHovered.value].name +
+                                                        " "}
+                                                    <HotkeyVue
+                                                        hotkey={hotkeys[whatIsHovered.value]}
+                                                    />
                                                 </h3>
                                                 <br />
                                                 {
@@ -1227,9 +1231,13 @@ const factory = createLayer(id, () => {
         components,
         tabs,
         generalTabCollapsed,
-        modifiersModal,
         hotkeys,
-        display: jsx(() => <>{render(tabs)}</>)
+        display: jsx(() => (
+            <>
+                {render(modifiersModal)}
+                {render(tabs)}
+            </>
+        ))
     };
 });
 export default factory;
