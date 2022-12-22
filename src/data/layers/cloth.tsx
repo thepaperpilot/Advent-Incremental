@@ -213,7 +213,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         onPress: () => {
             if (breeding.canClick.value) breeding.onClick();
         },
-        enabled: main.days[day - 1].opened
+        enabled: noPersist(main.days[day - 1].opened)
     }));
 
     const shearSheepHK = createHotkey(() => ({
@@ -222,7 +222,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         onPress: () => {
             if (shearing.canClick.value) shearing.onClick();
         },
-        enabled: main.days[day - 1].opened
+        enabled: noPersist(main.days[day - 1].opened)
     }));
 
     const spinWoolHK = createHotkey(() => ({
@@ -231,7 +231,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         onPress: () => {
             if (spinning.canClick.value) spinning.onClick();
         },
-        enabled: main.days[day - 1].opened
+        enabled: noPersist(main.days[day - 1].opened)
     }));
 
     const buildPens = createBuyable(() => ({
