@@ -363,7 +363,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
         minimizedDisplay: jsx(() => (
             <div>
-                {name} - {format(toySum.value)} {"total toys"}
+                {name} <span class="desc">{formatWhole(toySum.value)} total toys</span>
             </div>
         ))
     };

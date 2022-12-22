@@ -11,20 +11,26 @@ import { Persistent, persistent, State } from "game/persistence";
 import Decimal, { format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { computed, ComputedRef, reactive, ref, watchEffect } from "vue";
-import conveyor from "./factory-components/conveyor.png";
-import cursor from "./factory-components/cursor.jpg";
-import rotate from "./factory-components/rotate_rectangle.png";
-import wood from "./factory-components/rotate_rectangle.png";
-import block from "./factory-components/rotate_rectangle.png";
-import cloth from "./factory-components/rotate_rectangle.png";
-import dye from "./factory-components/rotate_rectangle.png";
-import clothes from "./factory-components/rotate_rectangle.png";
-import plastic from "./factory-components/rotate_rectangle.png";
-import metal from "./factory-components/rotate_rectangle.png";
-import truck from "./factory-components/rotate_rectangle.png";
+import _conveyor from "./factory-components/conveyor.png";
+import _cursor from "./factory-components/cursor.svg";
+import _delete from "./factory-components/delete.svg";
+import _rotateLeft from "./factory-components/rotateLeft.svg";
+import _rotateRight from "./factory-components/rotateRight.svg";
+import _wood from "./factory-components/rotate_rectangle.png";
+import _block from "./factory-components/rotate_rectangle.png";
+import _cloth from "./factory-components/rotate_rectangle.png";
+import _dye from "./factory-components/rotate_rectangle.png";
+import _clothes from "./factory-components/rotate_rectangle.png";
+import _plastic from "./factory-components/rotate_rectangle.png";
+import _metal from "./factory-components/rotate_rectangle.png";
+import _truck from "./factory-components/rotate_rectangle.png";
 import Factory from "./Factory.vue";
 import "./styles/factory.css";
 import coal from "./coal";
+import { createBar } from "features/bars/bar";
+import { render } from "util/vue";
+import { createTab } from "features/tabs/tab";
+import { createTabFamily } from "features/tabs/tabFamily";
 
 const id = "factory";
 
@@ -83,34 +89,82 @@ const factory = createLayer(id, () => {
     const name = "The Factory";
     const color = "grey";
 
+    // ---------------------------------------------- Energy
+
     const energy = computed(() => Decimal.add(1, coal.coal.value).log10());
     const energyConsumption = computed(() =>
         Object.values(components.value)
-            .map(c => FACTORY_COMPONENTS[c.type].energyCost ?? 0)
+            .map(c => FACTORY_COMPONENTS[c.type]?.energyCost ?? 0)
             .reduce((a, b) => a + b, 0)
     );
     const tickRate = computed(() =>
-        Decimal.div(energyConsumption.value, energy.value).recip().pow(2).min(1)
+        Decimal.div(energyConsumption.value || 1, energy.value)
+            .recip()
+            .pow(2)
+            .min(1)
     );
+
+    const energyBar = createBar(() => ({
+        width: 680,
+        height: 50,
+        direction: Direction.Right,
+        classes: { "energy-bar": true },
+        style: { borderRadius: "var(--border-radius) var(--border-radius) 0 0" },
+        borderStyle: { borderRadius: "var(--border-radius) var(--border-radius) 0 0" },
+        fillStyle: () => ({
+            backgroundColor: Decimal.gt(energyConsumption.value, energy.value) ? "red" : "yellow"
+        }),
+        progress: () =>
+            Decimal.gt(energyConsumption.value, energy.value)
+                ? Decimal.sub(1, Decimal.div(energy.value, energyConsumption.value))
+                : Decimal.sub(1, Decimal.div(energyConsumption.value, energy.value)),
+        display: jsx(() => (
+            <>
+                {formatWhole(energyConsumption.value)} / {formatWhole(energy.value)} energy used
+                {Decimal.lt(tickRate.value, 1) ? (
+                    <>{" (" + format(Decimal.mul(tickRate.value, 100))}% efficiency)</>
+                ) : (
+                    ""
+                )}
+            </>
+        ))
+    }));
 
     // ---------------------------------------------- Components
 
     const FACTORY_COMPONENTS = {
         cursor: {
-            imageSrc: cursor,
+            imageSrc: _cursor,
             name: "Cursor",
-            description: "Use this to move.",
+            type: "command",
+            description: "Drag to move around.",
             tick: 0
         },
-        rotate: {
-            imageSrc: rotate,
-            name: "Rotate",
-            description: "Use this to rotate components.",
+        delete: {
+            imageSrc: _delete,
+            name: "Delete",
+            type: "command",
+            description: "Remove components from the board.",
+            tick: 0
+        },
+        rotateLeft: {
+            imageSrc: _rotateLeft,
+            name: "Rotate Left",
+            type: "command",
+            description: "Use this to rotate components counter-clockwise.",
+            tick: 0
+        },
+        rotateRight: {
+            imageSrc: _rotateRight,
+            name: "Rotate Right",
+            type: "command",
+            description: "Use this to rotate components clockwise.",
             tick: 0
         },
         conveyor: {
-            imageSrc: conveyor,
+            imageSrc: _conveyor,
             name: "Conveyor",
+            type: "conveyor",
             description: "Moves items at 1 block per second.",
             energyCost: 1,
             tick: 1,
@@ -124,8 +178,9 @@ const factory = createLayer(id, () => {
             }
         },
         wood: {
-            imageSrc: wood,
+            imageSrc: _wood,
             name: "Wood Machine",
+            type: "processor",
             description: "Produces 1 wood every 1 second.",
             energyCost: 10,
             tick: 1,
@@ -136,8 +191,9 @@ const factory = createLayer(id, () => {
             }
         },
         cloth: {
-            imageSrc: cloth,
+            imageSrc: _cloth,
             name: "Cloth Machine",
+            type: "processor",
             description: "Produces 1 cloth every 1 second.",
             energyCost: 10,
             tick: 1,
@@ -148,8 +204,9 @@ const factory = createLayer(id, () => {
             }
         },
         dye: {
-            imageSrc: dye,
+            imageSrc: _dye,
             name: "Dye Machine",
+            type: "processor",
             description: "Produces 1 dye every 1 second.",
             energyCost: 10,
             tick: 1,
@@ -160,8 +217,9 @@ const factory = createLayer(id, () => {
             }
         },
         metal: {
-            imageSrc: metal,
+            imageSrc: _metal,
             name: "Metal Machine",
+            type: "processor",
             description: "Produces 1 metal every 1 second.",
             energyCost: 10,
             tick: 1,
@@ -172,8 +230,9 @@ const factory = createLayer(id, () => {
             }
         },
         plastic: {
-            imageSrc: plastic,
+            imageSrc: _plastic,
             name: "Plastic Machine",
+            type: "processor",
             description: "Produces 1 plastic every 1 second.",
             energyCost: 10,
             tick: 1,
@@ -184,8 +243,9 @@ const factory = createLayer(id, () => {
             }
         },
         blocks: {
-            imageSrc: block,
+            imageSrc: _block,
             name: "Wooden Block Maker",
+            type: "processor",
             description: "Turns 2 wood into 1 wooden block every second.",
             energyCost: 20,
             tick: 1,
@@ -201,8 +261,9 @@ const factory = createLayer(id, () => {
             }
         },
         clothes: {
-            imageSrc: clothes,
+            imageSrc: _clothes,
             name: "Clothes Maker",
+            type: "processor",
             description: "Turns 2 cloth and 1 dye into 1 clothe every second.",
             energyCost: 20,
             tick: 1,
@@ -221,8 +282,9 @@ const factory = createLayer(id, () => {
             }
         },
         trucks: {
-            imageSrc: truck,
+            imageSrc: _truck,
             name: "Trucks Maker",
+            type: "processor",
             description: "Turns 2 metal and 1 plastic into 1 truck every second.",
             energyCost: 20,
             tick: 1,
@@ -242,18 +304,20 @@ const factory = createLayer(id, () => {
         }
     } as Record<FactoryCompNames, FactoryComponentDeclaration>;
     const RESOURCES = {
-        wood: wood,
-        block: block,
-        cloth: cloth,
-        dye: dye,
-        clothes: clothes,
-        plastic: plastic,
-        metal: metal
+        wood: _wood,
+        block: _block,
+        cloth: _cloth,
+        dye: _dye,
+        clothes: _clothes,
+        plastic: _plastic,
+        metal: _metal
     } as Record<string, string>;
 
     type FactoryCompNames =
         | "cursor"
-        | "rotate"
+        | "delete"
+        | "rotateLeft"
+        | "rotateRight"
         | "conveyor"
         | "wood"
         | "blocks"
@@ -269,7 +333,7 @@ const factory = createLayer(id, () => {
         direction: Direction;
     }
 
-    interface FactoryComponentProducer extends FactoryComponentBase {
+    interface FactoryComponentProcessor extends FactoryComponentBase {
         type: Exclude<BuildableCompName, "conveyor">;
         inputStock?: Record<string, number>;
 
@@ -283,12 +347,13 @@ const factory = createLayer(id, () => {
     }
 
     type FactoryComponent = FactoryComponentBase &
-        (FactoryComponentConveyor | FactoryComponentProducer);
+        (FactoryComponentConveyor | FactoryComponentProcessor);
 
     interface FactoryComponentDeclaration {
         tick: number;
         imageSrc: string;
         name: string;
+        type: "command" | "conveyor" | "processor";
         description: string;
         energyCost?: number;
 
@@ -327,10 +392,10 @@ const factory = createLayer(id, () => {
         packages: Block[];
         nextPackages: Block[];
     }
-    interface FactoryInternalProducer extends FactoryInternalBase {
+    interface FactoryInternalProcessor extends FactoryInternalBase {
         type: Exclude<BuildableCompName, "conveyor">;
     }
-    type FactoryInternal = FactoryInternalConveyor | FactoryInternalProducer;
+    type FactoryInternal = FactoryInternalConveyor | FactoryInternalProcessor;
 
     interface Block {
         sprite: Sprite;
@@ -413,6 +478,8 @@ const factory = createLayer(id, () => {
             }
         }
 
+        updateGraphics();
+
         loaded = true;
     });
     (window as any).internal = compInternalData;
@@ -463,7 +530,7 @@ const factory = createLayer(id, () => {
                             } else {
                                 // send it to the factory
                                 // destory its sprite and data
-                                const factoryData = storedComp as FactoryComponentProducer;
+                                const factoryData = storedComp as FactoryComponentProcessor;
                                 if (factoryData.inputStock !== undefined)
                                     factoryData.inputStock[block.type] = Math.min(
                                         (factoryData.inputStock[block.type] ?? 0) + 1,
@@ -499,7 +566,7 @@ const factory = createLayer(id, () => {
                             } else {
                                 // send it to the factory
                                 // destory its sprite and data
-                                const data = storedComp as FactoryComponentProducer;
+                                const data = storedComp as FactoryComponentProcessor;
                                 if (factoryData.inputs?.[block.type] !== undefined) {
                                     if (data.inputStock === undefined) data.inputStock = {};
                                     data.inputStock[block.type] =
@@ -520,8 +587,8 @@ const factory = createLayer(id, () => {
                     }
                 }
             } else {
-                const data = _data as FactoryComponentProducer;
-                const compData = _compData as FactoryInternalProducer;
+                const data = _data as FactoryComponentProcessor;
+                const compData = _compData as FactoryInternalProcessor;
                 // factory part
                 // PRODUCTION
                 if (data.ticksDone >= factoryData.tick) {
@@ -606,16 +673,18 @@ const factory = createLayer(id, () => {
                 // if X is being moved, then we don't need to adjust x
                 // however it needs to be aligned if Y is being moved
                 // vice-versa
-                sprite.x = (x + xInc * 0.3) * blockSize;
-                sprite.y = (y + yInc * 0.3) * blockSize;
+                sprite.x =
+                    (x + xInc * 0.3 + (xInc == 0 ? Math.random() * 0.4 - 0.2 : 0)) * blockSize;
+                sprite.y =
+                    (y + yInc * 0.3 + (yInc == 0 ? Math.random() * 0.4 - 0.2 : 0)) * blockSize;
                 sprite.anchor.set(0.5);
                 sprite.width = blockSize / 2.5;
                 sprite.height = blockSize / 5;
                 //console.log(sprite);
                 const block: Block = {
                     sprite,
-                    x: x + xInc * 0.3,
-                    y: y + yInc * 0.3,
+                    x: sprite.x / blockSize,
+                    y: sprite.y / blockSize,
                     turbulance: Math.random() * 0.4 - 0.2,
                     type: itemToMove[0]
                 };
@@ -637,6 +706,7 @@ const factory = createLayer(id, () => {
         if (y < -factorySize.height || y >= factorySize.height) return;
 
         const factoryBaseData = FACTORY_COMPONENTS[data.type];
+        if (factoryBaseData == undefined) return;
         const sheet = Assets.get(factoryBaseData.imageSrc);
         const sprite = new Sprite(sheet);
 
@@ -678,7 +748,7 @@ const factory = createLayer(id, () => {
                 if (data.type === "conveyor") return true;
                 if (!(factoryBaseData.canProduce?.value ?? true)) return false;
                 // this should NEVER be null
-                const compData = components.value[x + "x" + y] as FactoryComponentProducer;
+                const compData = components.value[x + "x" + y] as FactoryComponentProcessor;
                 if (factoryBaseData.inputs !== undefined) {
                     for (const [res, val] of Object.entries(factoryBaseData.inputs))
                         if ((compData.inputStock?.[res] ?? 0) < val.amount) return false;
@@ -694,7 +764,7 @@ const factory = createLayer(id, () => {
                 return true;
             }),
             sprite
-        } as FactoryInternalProducer;
+        } as FactoryInternalProcessor;
         spriteContainer.addChild(sprite);
     }
 
@@ -710,11 +780,7 @@ const factory = createLayer(id, () => {
         spriteContainer.y = movingBlocks.y = calculatedY;
 
         graphicContainer.removeChild(hoverSprite);
-        if (
-            isMouseHoverShown.value &&
-            compSelected.value !== "cursor" &&
-            compSelected.value !== "rotate"
-        ) {
+        if (isMouseHoverShown.value && compSelected.value !== "cursor") {
             const { tx, ty } = spriteContainer.localTransform;
             graphicContainer.lineStyle(4, 0x808080, 1);
             graphicContainer.drawRect(
@@ -790,7 +856,7 @@ const factory = createLayer(id, () => {
             x = roundDownTo(x - tx, blockSize) / blockSize;
             y = roundDownTo(y - ty, blockSize) / blockSize;
             if (e.button === 0) {
-                if (compSelected.value === "rotate") {
+                if (compSelected.value === "rotateLeft") {
                     if (
                         components.value[x + "x" + y] != null &&
                         components.value[x + "x" + y].direction != null
@@ -799,35 +865,52 @@ const factory = createLayer(id, () => {
                             ...components.value[x + "x" + y],
                             direction: rotateDir(
                                 (components.value[x + "x" + y] as FactoryComponentConveyor)
-                                    .direction
+                                    .direction,
+                                Direction.Left
+                            )
+                        };
+                        compInternalData[x + "x" + y].sprite.rotation -= Math.PI / 2;
+                    }
+                } else if (compSelected.value === "rotateRight") {
+                    if (
+                        components.value[x + "x" + y] != null &&
+                        components.value[x + "x" + y].direction != null
+                    ) {
+                        components.value[x + "x" + y] = {
+                            ...components.value[x + "x" + y],
+                            direction: rotateDir(
+                                (components.value[x + "x" + y] as FactoryComponentConveyor)
+                                    .direction,
+                                Direction.Right
                             )
                         };
                         compInternalData[x + "x" + y].sprite.rotation += Math.PI / 2;
                     }
+                } else if (compSelected.value === "delete") {
+                    const data = compInternalData[x + "x" + y];
+                    if (data === undefined) return;
+
+                    if (data.type === "conveyor") {
+                        const cData = data as FactoryInternalConveyor;
+                        for (const p of cData.packages) {
+                            p.sprite.destroy();
+                        }
+                    }
+
+                    delete components.value[x + "x" + y];
+                    delete compInternalData[x + "x" + y];
+                    spriteContainer.removeChild(data.sprite);
                 } else if (compSelected.value !== "cursor") {
                     if (components.value[x + "x" + y] == null) {
                         addFactoryComp(x, y, { type: compSelected.value });
                     }
                 }
-            } else if (e.button === 2) {
-                const data = compInternalData[x + "x" + y];
-                if (data === undefined) return;
-
-                if (data.type === "conveyor") {
-                    const cData = data as FactoryInternalConveyor;
-                    for (const p of cData.packages) {
-                        p.sprite.destroy();
-                    }
-                }
-
-                delete components.value[x + "x" + y];
-                delete compInternalData[x + "x" + y];
-                spriteContainer.removeChild(data.sprite);
             }
         }
 
         window.removeEventListener("pointerup", onFactoryPointerUp);
         pointerDown.value = pointerDrag.value = false;
+        onFactoryPointerMove(e);
     }
     function onFactoryMouseEnter() {
         isMouseHoverShown.value = true;
@@ -848,176 +931,211 @@ const factory = createLayer(id, () => {
         compSelected.value = name;
     }
 
+    // ------------------------------------------------------------------------------- Tabs
+
+    const tabs = createTabFamily(
+        {
+            dashboard: () => ({
+                tab: createTab(() => ({
+                    display: jsx(() => <>You have 20 energy</>)
+                })),
+                display: "Dashboard"
+            }),
+            factory: () => ({
+                tab: createTab(() => ({
+                    display: jsx(() => (
+                        <>
+                            {render(energyBar)}
+                            <div class="factory-container">
+                                <Factory
+                                    application={app}
+                                    onPointermove={onFactoryPointerMove}
+                                    onPointerdown={onFactoryPointerDown}
+                                    onPointerenter={onFactoryMouseEnter}
+                                    onPointerleave={onFactoryMouseLeave}
+                                    onContextmenu={(e: MouseEvent) => e.preventDefault()}
+                                />
+                                <div class="comp-container">
+                                    <div
+                                        class={{
+                                            "comp-info": true,
+                                            active: isComponentHover.value
+                                        }}
+                                        style={{
+                                            top:
+                                                Math.floor(
+                                                    Math.max(
+                                                        Object.keys(FACTORY_COMPONENTS).indexOf(
+                                                            whatIsHovered.value
+                                                        ),
+                                                        0
+                                                    ) / 2
+                                                ) *
+                                                    70 +
+                                                10 +
+                                                "px"
+                                        }}
+                                    >
+                                        {whatIsHovered.value === "" ? undefined : (
+                                            <>
+                                                <h3>
+                                                    {FACTORY_COMPONENTS[whatIsHovered.value].name}
+                                                </h3>
+                                                <br />
+                                                {
+                                                    FACTORY_COMPONENTS[whatIsHovered.value]
+                                                        .description
+                                                }
+                                                {FACTORY_COMPONENTS[whatIsHovered.value]
+                                                    .energyCost ?? 0 ? (
+                                                    <>
+                                                        <br />
+                                                        Energy Consumption:{" "}
+                                                        {formatWhole(
+                                                            FACTORY_COMPONENTS[whatIsHovered.value]
+                                                                .energyCost ?? 0
+                                                        )}
+                                                    </>
+                                                ) : null}
+                                            </>
+                                        )}
+                                    </div>
+                                    <div class="comp-list">
+                                        {Object.entries(FACTORY_COMPONENTS).map(value => {
+                                            const key = value[0] as FactoryCompNames;
+                                            const item = value[1];
+                                            return (
+                                                <img
+                                                    src={item.imageSrc}
+                                                    class={{ selected: compSelected.value === key }}
+                                                    onMouseenter={() => onComponentMouseEnter(key)}
+                                                    onMouseleave={() => onComponentMouseLeave()}
+                                                    onClick={() => onCompClick(key)}
+                                                />
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                {compHovered.value !== undefined ? (
+                                    <div
+                                        class="info-container"
+                                        id="factory-info"
+                                        style={{
+                                            ...(mouseCoords.x +
+                                                (document.getElementById("factory-info")
+                                                    ?.clientWidth ?? 0) >
+                                            app.view.width - 30
+                                                ? { right: app.view.width - mouseCoords.x + "px" }
+                                                : { left: mouseCoords.x + "px" }),
+                                            ...(mouseCoords.y +
+                                                (document.getElementById("factory-info")
+                                                    ?.clientHeight ?? 0) >
+                                            app.view.height - 30
+                                                ? { bottom: app.view.height - mouseCoords.y + "px" }
+                                                : { top: mouseCoords.y + "px" })
+                                        }}
+                                    >
+                                        <h3>{FACTORY_COMPONENTS[compHovered.value.type].name}</h3>
+                                        <br />
+                                        {FACTORY_COMPONENTS[compHovered.value.type].description}
+                                        <br />
+                                        {compHovered.value.type !== "conveyor" ? (
+                                            <>
+                                                {compHovered.value.inputStock !== undefined ? (
+                                                    <>
+                                                        <br />
+                                                        <h5>Inputs:</h5>
+                                                        {Object.entries(
+                                                            compHovered.value.inputStock
+                                                        ).map(x => (
+                                                            <div>
+                                                                {x[0]}: {formatWhole(x[1])}
+                                                                {FACTORY_COMPONENTS[
+                                                                    compHovered.value?.type ??
+                                                                        "cursor"
+                                                                ].inputs?.[x[0]].amount !==
+                                                                undefined
+                                                                    ? " / " +
+                                                                      formatWhole(
+                                                                          FACTORY_COMPONENTS[
+                                                                              compHovered.value
+                                                                                  ?.type ?? "cursor"
+                                                                          ].inputs?.[x[0]].amount ??
+                                                                              0
+                                                                      )
+                                                                    : ""}
+                                                                {FACTORY_COMPONENTS[
+                                                                    compHovered.value?.type ??
+                                                                        "cursor"
+                                                                ].inputs?.[x[0]].capacity !==
+                                                                undefined
+                                                                    ? " / " +
+                                                                      formatWhole(
+                                                                          FACTORY_COMPONENTS[
+                                                                              compHovered.value
+                                                                                  ?.type ?? "cursor"
+                                                                          ].inputs?.[x[0]]
+                                                                              .capacity ?? 0
+                                                                      )
+                                                                    : ""}
+                                                            </div>
+                                                        ))}
+                                                    </>
+                                                ) : undefined}
+                                                {compHovered.value.outputStock !== undefined ? (
+                                                    <>
+                                                        <br />
+                                                        <h5>Outputs:</h5>
+                                                        {Object.entries(
+                                                            compHovered.value.outputStock
+                                                        ).map(x => (
+                                                            <div>
+                                                                {x[0]}: {formatWhole(x[1])}
+                                                                {FACTORY_COMPONENTS[
+                                                                    compHovered.value?.type ??
+                                                                        "cursor"
+                                                                ].outputs?.[x[0]].capacity !==
+                                                                undefined
+                                                                    ? " / " +
+                                                                      formatWhole(
+                                                                          FACTORY_COMPONENTS[
+                                                                              compHovered.value
+                                                                                  ?.type ?? "cursor"
+                                                                          ].outputs?.[x[0]]
+                                                                              .capacity ?? 0
+                                                                      )
+                                                                    : ""}
+                                                            </div>
+                                                        ))}
+                                                    </>
+                                                ) : undefined}
+                                            </>
+                                        ) : undefined}
+                                    </div>
+                                ) : undefined}
+                            </div>
+                        </>
+                    ))
+                })),
+                display: "Factory"
+            })
+        },
+        () => ({
+            classes: { "factory-tabs": true }
+        })
+    );
+
     return {
         name,
         day,
         color,
         minWidth: 700,
-        minimizable: false,
+        minimizable: true,
         style: { overflow: "hidden" },
         components,
-        display: jsx(() => (
-            <>
-                <div class="factory-container">
-                    <Factory
-                        application={app}
-                        onPointermove={onFactoryPointerMove}
-                        onPointerdown={onFactoryPointerDown}
-                        onPointerenter={onFactoryMouseEnter}
-                        onPointerleave={onFactoryMouseLeave}
-                        onContextmenu={(e: MouseEvent) => e.preventDefault()}
-                    />
-                    <div class="comp-container">
-                        <div
-                            class={{
-                                "comp-info": true,
-                                active: isComponentHover.value
-                            }}
-                            style={{
-                                top:
-                                    Math.floor(
-                                        Math.max(
-                                            Object.keys(FACTORY_COMPONENTS).indexOf(
-                                                whatIsHovered.value
-                                            ),
-                                            0
-                                        ) / 2
-                                    ) *
-                                        70 +
-                                    10 +
-                                    "px"
-                            }}
-                        >
-                            {whatIsHovered.value === "" ? undefined : (
-                                <>
-                                    <h3>{FACTORY_COMPONENTS[whatIsHovered.value].name}</h3>
-                                    <br />
-                                    {FACTORY_COMPONENTS[whatIsHovered.value].description}
-                                    {FACTORY_COMPONENTS[whatIsHovered.value].energyCost ?? 0 ? (
-                                        <>
-                                            <br />
-                                            Energy Consumption:{" "}
-                                            {formatWhole(
-                                                FACTORY_COMPONENTS[whatIsHovered.value]
-                                                    .energyCost ?? 0
-                                            )}
-                                        </>
-                                    ) : null}
-                                </>
-                            )}
-                        </div>
-                        <div class="comp-list">
-                            {Object.entries(FACTORY_COMPONENTS).map(value => {
-                                const key = value[0] as FactoryCompNames;
-                                const item = value[1];
-                                return (
-                                    <img
-                                        src={item.imageSrc}
-                                        class={{ selected: compSelected.value === key }}
-                                        onMouseenter={() => onComponentMouseEnter(key)}
-                                        onMouseleave={() => onComponentMouseLeave()}
-                                        onClick={() => onCompClick(key)}
-                                    />
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    {compHovered.value !== undefined ? (
-                        <div
-                            class="info-container"
-                            id="factory-info"
-                            style={{
-                                ...(mouseCoords.x >= 180
-                                    ? { right: app.view.width - mouseCoords.x + "px" }
-                                    : { left: mouseCoords.x + 150 + "px" }),
-                                ...(mouseCoords.y +
-                                    (document.getElementById("factory-info")?.clientHeight ?? 0) >
-                                app.view.height - 30
-                                    ? { bottom: app.view.height - mouseCoords.y + "px" }
-                                    : { top: mouseCoords.y + "px" })
-                            }}
-                        >
-                            <h3>{FACTORY_COMPONENTS[compHovered.value.type].name}</h3>
-                            <br />
-                            {FACTORY_COMPONENTS[compHovered.value.type].description}
-                            <br />
-                            {compHovered.value.type !== "conveyor" ? (
-                                <>
-                                    {compHovered.value.inputStock !== undefined ? (
-                                        <>
-                                            <br />
-                                            <h5>Inputs:</h5>
-                                            {Object.entries(compHovered.value.inputStock).map(x => (
-                                                <div>
-                                                    {x[0]}: {formatWhole(x[1])}
-                                                    {FACTORY_COMPONENTS[
-                                                        compHovered.value?.type ?? "cursor"
-                                                    ].inputs?.[x[0]].amount !== undefined
-                                                        ? " / " +
-                                                          formatWhole(
-                                                              FACTORY_COMPONENTS[
-                                                                  compHovered.value?.type ??
-                                                                      "cursor"
-                                                              ].inputs?.[x[0]].amount ?? 0
-                                                          )
-                                                        : ""}
-                                                    {FACTORY_COMPONENTS[
-                                                        compHovered.value?.type ?? "cursor"
-                                                    ].inputs?.[x[0]].capacity !== undefined
-                                                        ? " / " +
-                                                          formatWhole(
-                                                              FACTORY_COMPONENTS[
-                                                                  compHovered.value?.type ??
-                                                                      "cursor"
-                                                              ].inputs?.[x[0]].capacity ?? 0
-                                                          )
-                                                        : ""}
-                                                </div>
-                                            ))}
-                                        </>
-                                    ) : undefined}
-                                    {compHovered.value.outputStock !== undefined ? (
-                                        <>
-                                            <br />
-                                            <h5>Outputs:</h5>
-                                            {Object.entries(compHovered.value.outputStock).map(
-                                                x => (
-                                                    <div>
-                                                        {x[0]}: {formatWhole(x[1])}
-                                                        {FACTORY_COMPONENTS[
-                                                            compHovered.value?.type ?? "cursor"
-                                                        ].outputs?.[x[0]].capacity !== undefined
-                                                            ? " / " +
-                                                              formatWhole(
-                                                                  FACTORY_COMPONENTS[
-                                                                      compHovered.value?.type ??
-                                                                          "cursor"
-                                                                  ].outputs?.[x[0]].capacity ?? 0
-                                                              )
-                                                            : ""}
-                                                    </div>
-                                                )
-                                            )}
-                                        </>
-                                    ) : undefined}
-                                </>
-                            ) : undefined}
-                        </div>
-                    ) : undefined}
-                </div>
-
-                <Spacer />
-                <div
-                    class={Decimal.gt(energyConsumption.value, energy.value) ? "unaffordable" : ""}
-                >
-                    Energy Consumption: {formatWhole(energyConsumption.value)} /{" "}
-                    {formatWhole(energy.value)}
-                    <br />
-                    Tick Rate: {format(tickRate.value)} TPS
-                </div>
-            </>
-        ))
+        tabs,
+        display: jsx(() => <>{render(tabs)}</>)
     };
 });
 export default factory;

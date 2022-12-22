@@ -36,6 +36,7 @@ import trees from "./trees";
 import "./styles/management.css";
 import { Resource } from "features/resources/resource";
 import { isArray } from "@vue/shared";
+import { createTab } from "features/tabs/tab";
 
 const id = "management";
 const day = 12;
