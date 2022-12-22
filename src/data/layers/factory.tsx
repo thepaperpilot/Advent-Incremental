@@ -11,19 +11,6 @@ import { noPersist, Persistent, persistent, State } from "game/persistence";
 import Decimal, { format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { computed, ComputedRef, reactive, ref, watchEffect } from "vue";
-import _conveyor from "./factory-components/conveyor.png";
-import _cursor from "./factory-components/cursor.svg";
-import _delete from "./factory-components/delete.svg";
-import _rotateLeft from "./factory-components/rotateLeft.svg";
-import _rotateRight from "./factory-components/rotateRight.svg";
-import _wood from "./factory-components/log.svg";
-import _block from "./factory-components/block.svg";
-import _cloth from "./factory-components/rotate_rectangle.png";
-import _dye from "./factory-components/rotate_rectangle.png";
-import _clothes from "./factory-components/rotate_rectangle.png";
-import _plastic from "./factory-components/rotate_rectangle.png";
-import _metal from "./factory-components/rotate_rectangle.png";
-import _truck from "./factory-components/rotate_rectangle.png";
 import Factory from "./Factory.vue";
 import "./styles/factory.css";
 import coal from "./coal";
@@ -38,6 +25,20 @@ import { createBar, GenericBar } from "features/bars/bar";
 import HotkeyVue from "components/Hotkey.vue";
 import { createHotkey, GenericHotkey } from "features/hotkey";
 import Tooltip from "features/tooltips/Tooltip.vue";
+
+import _conveyor from "./factory-components/conveyor.png";
+import _cursor from "./factory-components/cursor.svg";
+import _delete from "./factory-components/delete.svg";
+import _rotateLeft from "./factory-components/rotateLeft.svg";
+import _rotateRight from "./factory-components/rotateRight.svg";
+import _wood from "./factory-components/log.svg";
+import _block from "./factory-components/block.svg";
+import _cloth from "./factory-components/rotate_rectangle.png";
+import _dye from "./factory-components/rotate_rectangle.png";
+import _clothes from "./factory-components/rotate_rectangle.png";
+import _plastic from "./factory-components/rotate_rectangle.png";
+import _metal from "./factory-components/rotate_rectangle.png";
+import _truck from "./factory-components/rotate_rectangle.png";
 
 const id = "factory";
 
@@ -351,21 +352,47 @@ const factory = createLayer(id, () => {
                 }
             },
             outputs: {
-                trucks: {
+                truck: {
                     amount: 1
                 }
             }
         }
-    } as Record<FactoryCompNames, FactoryComponentDeclaration>;
-    const RESOURCES = {
-        wood: _wood,
-        block: _block,
-        cloth: _cloth,
-        dye: _dye,
-        clothes: _clothes,
-        plastic: _plastic,
-        metal: _metal
-    } as Record<string, string>;
+    } as Record<string, FactoryComponentDeclaration>;
+
+    const FACTORY_RESOURCES = {
+        wood: {
+            name: "Wood",
+            imageSrc: _wood
+        },
+        block: {
+            name: "Blocks",
+            imageSrc: _block
+        },
+        cloth: {
+            name: "Cloth",
+            imageSrc: _cloth
+        },
+        dye: {
+            name: "Dye",
+            imageSrc: _dye
+        },
+        clothes: {
+            name: "Clothes",
+            imageSrc: _clothes
+        },
+        plastic: {
+            name: "Plastic",
+            imageSrc: _plastic
+        },
+        metal: {
+            name: "Metal",
+            imageSrc: _metal
+        },
+        truck: {
+            name: "Trucks",
+            imageSrc: _truck
+        }
+    } as Record<string, FactoryResourceDeclaration>;
 
     const hotkeys = (Object.keys(FACTORY_COMPONENTS) as FactoryCompNames[]).reduce((acc, comp) => {
         acc[comp] = createHotkey(() => ({
@@ -379,20 +406,7 @@ const factory = createLayer(id, () => {
         return acc;
     }, {} as Record<FactoryCompNames, GenericHotkey>);
 
-    type FactoryCompNames =
-        | "cursor"
-        | "delete"
-        | "rotateLeft"
-        | "rotateRight"
-        | "conveyor"
-        | "wood"
-        | "blocks"
-        | "cloth"
-        | "dye"
-        | "clothes"
-        | "plastic"
-        | "metal"
-        | "trucks";
+    type FactoryCompNames = keyof typeof FACTORY_COMPONENTS;
     type BuildableCompName = Exclude<FactoryCompNames, "cursor">;
 
     interface FactoryComponentBase extends Record<string, State> {
@@ -426,7 +440,7 @@ const factory = createLayer(id, () => {
 
         /** amount it consumes */
         inputs?: Record<
-            string,
+            FactoryResNames,
             {
                 amount: number;
                 capacity?: number;
@@ -434,7 +448,7 @@ const factory = createLayer(id, () => {
         >;
         /** amount it produces */
         outputs?: Record<
-            string,
+            FactoryResNames,
             {
                 amount: number;
                 capacity?: number;
@@ -463,6 +477,13 @@ const factory = createLayer(id, () => {
         type: Exclude<BuildableCompName, "conveyor">;
     }
     type FactoryInternal = FactoryInternalConveyor | FactoryInternalProcessor;
+
+    type FactoryResNames = keyof typeof FACTORY_RESOURCES;
+
+    interface FactoryResourceDeclaration {
+        imageSrc: string;
+        name: string;
+    }
 
     interface Block {
         sprite: Sprite;
@@ -726,7 +747,7 @@ const factory = createLayer(id, () => {
                 }
                 // there is nothing to move
                 if (itemToMove === undefined) continue;
-                const texture = Assets.get(RESOURCES[itemToMove[0]]);
+                const texture = Assets.get(FACTORY_RESOURCES[itemToMove[0]].imageSrc);
                 const sprite = new Sprite(texture);
 
                 /*
@@ -1010,12 +1031,13 @@ const factory = createLayer(id, () => {
         for (const [key, comp] of Object.entries(compInternalData)) {
             if (comp == null) continue;
             if (comp.type === "conveyor") {
-                for (const pkg of [...comp.nextPackages, ...comp.packages]) {
+                const cComp = comp as FactoryInternalConveyor;
+                for (const pkg of [...cComp.nextPackages, ...cComp.packages]) {
                     pkg.sprite.destroy();
                     movingBlocks.removeChild(pkg.sprite);
                 }
-                comp.nextPackages = [];
-                comp.packages = [];
+                cComp.nextPackages = [];
+                cComp.packages = [];
             } else {
                 const producerComp = components.value[key] as FactoryComponentProcessor;
                 if (producerComp.outputStock !== undefined) {
@@ -1123,11 +1145,62 @@ const factory = createLayer(id, () => {
                                                     FACTORY_COMPONENTS[whatIsHovered.value]
                                                         .description
                                                 }
+                                                <br />
+                                                {FACTORY_COMPONENTS[whatIsHovered.value].inputs !==
+                                                undefined ? (
+                                                    <>
+                                                        <br />
+                                                        <h5>Inputs:</h5>
+                                                        {Object.entries(
+                                                            FACTORY_COMPONENTS[whatIsHovered.value]
+                                                                .inputs as {
+                                                                [s: FactoryResNames]: {
+                                                                    amount: number;
+                                                                    capacity?: number | undefined;
+                                                                };
+                                                            }
+                                                        ).map(x => (
+                                                            <div>
+                                                                {FACTORY_RESOURCES[x[0]].name}:{" "}
+                                                                {formatWhole(x[1].amount)}
+                                                                {x[1].capacity !== undefined
+                                                                    ? " / " +
+                                                                      formatWhole(x[1].capacity)
+                                                                    : ""}
+                                                            </div>
+                                                        ))}
+                                                    </>
+                                                ) : undefined}
+                                                {FACTORY_COMPONENTS[whatIsHovered.value].outputs !==
+                                                undefined ? (
+                                                    <>
+                                                        <br />
+                                                        <h5>Outputs:</h5>
+                                                        {Object.entries(
+                                                            FACTORY_COMPONENTS[whatIsHovered.value]
+                                                                .outputs as {
+                                                                [s: FactoryResNames]: {
+                                                                    amount: number;
+                                                                    capacity?: number | undefined;
+                                                                };
+                                                            }
+                                                        ).map(x => (
+                                                            <div>
+                                                                {FACTORY_RESOURCES[x[0]].name}:{" "}
+                                                                {formatWhole(x[1].amount)}
+                                                                {x[1].capacity !== undefined
+                                                                    ? " / " +
+                                                                      formatWhole(x[1].capacity)
+                                                                    : ""}
+                                                            </div>
+                                                        ))}
+                                                    </>
+                                                ) : undefined}
                                                 {FACTORY_COMPONENTS[whatIsHovered.value]
                                                     .energyCost ?? 0 ? (
                                                     <>
                                                         <br />
-                                                        Energy Consumption:{" "}
+                                                        <h5>Energy Consumption:</h5>
                                                         {formatWhole(
                                                             FACTORY_COMPONENTS[whatIsHovered.value]
                                                                 .energyCost ?? 0
@@ -1187,7 +1260,8 @@ const factory = createLayer(id, () => {
                                                             compHovered.value.inputStock
                                                         ).map(x => (
                                                             <div>
-                                                                {x[0]}: {formatWhole(x[1])}
+                                                                {FACTORY_RESOURCES[x[0]].name}:{" "}
+                                                                {formatWhole(x[1])}
                                                                 {FACTORY_COMPONENTS[
                                                                     compHovered.value?.type ??
                                                                         "cursor"
@@ -1228,7 +1302,8 @@ const factory = createLayer(id, () => {
                                                             compHovered.value.outputStock
                                                         ).map(x => (
                                                             <div>
-                                                                {x[0]}: {formatWhole(x[1])}
+                                                                {FACTORY_RESOURCES[x[0]].name}:{" "}
+                                                                {formatWhole(x[1])}
                                                                 {FACTORY_COMPONENTS[
                                                                     compHovered.value?.type ??
                                                                         "cursor"
