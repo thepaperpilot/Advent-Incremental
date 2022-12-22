@@ -129,16 +129,16 @@ const factory = createLayer(id, () => {
             .map(c => FACTORY_COMPONENTS[c.type]?.energyCost ?? 0)
             .reduce((a, b) => a + b, 0)
     );
+    const energyEfficiency = computed(() =>
+        Decimal.div(energyConsumption.value, computedEnergy.value).recip().pow(2).min(1)
+    );
     const tickRate = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
             multiplier: elvesEffect,
             description: "Trained Elves"
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: Decimal.div(energyConsumption.value, computedEnergy.value)
-                .recip()
-                .pow(2)
-                .min(1),
+            multiplier: energyEfficiency,
             description: "Energy Consumption",
             enabled: () => Decimal.gt(energyConsumption.value, computedEnergy.value)
         }))
@@ -166,8 +166,8 @@ const factory = createLayer(id, () => {
                 <div>
                     {formatWhole(energyConsumption.value)} / {formatWhole(computedEnergy.value)}{" "}
                     energy used
-                    {Decimal.lt(tickRate.value, 1) ? (
-                        <>{" (" + format(Decimal.mul(tickRate.value, 100))}% efficiency)</>
+                    {Decimal.gt(energyConsumption.value, computedEnergy.value) ? (
+                        <>{" (" + format(Decimal.mul(energyEfficiency.value, 100))}% efficiency)</>
                     ) : (
                         ""
                     )}
