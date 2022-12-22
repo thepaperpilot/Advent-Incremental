@@ -101,8 +101,8 @@ function getDirection(dir: Direction) {
 }
 
 const factorySize = {
-    width: 6,
-    height: 6
+    width: 7,
+    height: 7
 };
 const blockSize = 50;
 
@@ -609,10 +609,10 @@ const factory = createLayer(id, () => {
         const floorGraphics = new Graphics();
         floorGraphics.beginFill(0x70645d);
         floorGraphics.drawRect(
-            (-factorySize.width - 0.5) * blockSize,
-            (-factorySize.height - 0.5) * blockSize,
-            factorySize.width * 2 * blockSize,
-            factorySize.height * 2 * blockSize
+            (-factorySize.width * blockSize) / 2,
+            (-factorySize.height * blockSize) / 2,
+            factorySize.width * blockSize,
+            factorySize.height * blockSize
         );
         floorGraphics.endFill();
         spriteContainer.addChild(floorGraphics);
@@ -852,8 +852,8 @@ const factory = createLayer(id, () => {
         y: number,
         data: Partial<FactoryComponent> & { type: BuildableCompName }
     ) {
-        if (x < -factorySize.width || x >= factorySize.width) return;
-        if (y < -factorySize.height || y >= factorySize.height) return;
+        if (x < -factorySize.width / 2 || x >= factorySize.width / 2) return;
+        if (y < -factorySize.height / 2 || y >= factorySize.height / 2) return;
 
         const factoryBaseData = FACTORY_COMPONENTS[data.type];
         if (factoryBaseData == undefined) return;
@@ -991,12 +991,12 @@ const factory = createLayer(id, () => {
             // the maximum you can see currently
             // total size of blocks - current size = amount you should move
             mapOffset.x = Math.min(
-                Math.max(mapOffset.x, -factorySize.width + 0.5),
-                factorySize.width + 0.5
+                Math.max(mapOffset.x, (-factorySize.width + 1) / 2),
+                (factorySize.width + 1) / 2
             );
             mapOffset.y = Math.min(
-                Math.max(mapOffset.y, -factorySize.height + 0.5),
-                factorySize.height + 0.5
+                Math.max(mapOffset.y, (-factorySize.height + 1) / 2),
+                (factorySize.height + 1) / 2
             );
         }
         if (!pointerDown.value && !pointerDrag.value) {
