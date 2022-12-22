@@ -31,6 +31,8 @@ import { render } from "util/vue";
 import { createCollapsibleModifierSections } from "data/common";
 import Modal from "components/Modal.vue";
 import { createBar, GenericBar } from "features/bars/bar";
+import HotkeyVue from "components/Hotkey.vue";
+import { createHotkey, GenericHotkey } from "features/hotkey";
 
 const id = "factory";
 
@@ -112,18 +114,21 @@ const factory = createLayer(id, () => {
     const FACTORY_COMPONENTS = {
         cursor: {
             imageSrc: cursor,
+            key: "Escape",
             name: "Cursor",
             description: "Use this to move.",
             tick: 0
         },
         rotate: {
             imageSrc: rotate,
+            key: "t",
             name: "Rotate",
             description: "Use this to rotate components.",
             tick: 0
         },
         conveyor: {
             imageSrc: conveyor,
+            key: "0",
             name: "Conveyor",
             description: "Moves items at 1 block per second.",
             energyCost: 1,
@@ -139,6 +144,7 @@ const factory = createLayer(id, () => {
         },
         wood: {
             imageSrc: wood,
+            key: "1",
             name: "Wood Machine",
             description: "Produces 1 wood every 1 second.",
             energyCost: 10,
@@ -151,6 +157,7 @@ const factory = createLayer(id, () => {
         },
         cloth: {
             imageSrc: cloth,
+            key: "2",
             name: "Cloth Machine",
             description: "Produces 1 cloth every 1 second.",
             energyCost: 10,
@@ -163,6 +170,7 @@ const factory = createLayer(id, () => {
         },
         dye: {
             imageSrc: dye,
+            key: "3",
             name: "Dye Machine",
             description: "Produces 1 dye every 1 second.",
             energyCost: 10,
@@ -175,6 +183,7 @@ const factory = createLayer(id, () => {
         },
         metal: {
             imageSrc: metal,
+            key: "4",
             name: "Metal Machine",
             description: "Produces 1 metal every 1 second.",
             energyCost: 10,
@@ -187,6 +196,7 @@ const factory = createLayer(id, () => {
         },
         plastic: {
             imageSrc: plastic,
+            key: "5",
             name: "Plastic Machine",
             description: "Produces 1 plastic every 1 second.",
             energyCost: 10,
@@ -199,6 +209,7 @@ const factory = createLayer(id, () => {
         },
         blocks: {
             imageSrc: block,
+            key: "shift+1",
             name: "Wooden Block Maker",
             description: "Turns 2 wood into 1 wooden block every second.",
             energyCost: 20,
@@ -216,6 +227,7 @@ const factory = createLayer(id, () => {
         },
         clothes: {
             imageSrc: clothes,
+            key: "shift+2",
             name: "Clothes Maker",
             description: "Turns 2 cloth and 1 dye into 1 clothe every second.",
             energyCost: 20,
@@ -236,6 +248,7 @@ const factory = createLayer(id, () => {
         },
         trucks: {
             imageSrc: truck,
+            key: "shift+3",
             name: "Trucks Maker",
             description: "Turns 2 metal and 1 plastic into 1 truck every second.",
             energyCost: 20,
@@ -264,6 +277,18 @@ const factory = createLayer(id, () => {
         plastic: plastic,
         metal: metal
     } as Record<string, string>;
+
+    const hotkeys = (Object.keys(FACTORY_COMPONENTS) as FactoryCompNames[]).reduce((acc, comp) => {
+        acc[comp] = createHotkey(() => ({
+            key: FACTORY_COMPONENTS[comp].key,
+            description: "Select " + FACTORY_COMPONENTS[comp].name,
+            onPress() {
+                compSelected.value = comp;
+            },
+            enabled: main.days[day - 1].opened
+        }));
+        return acc;
+    }, {} as Record<FactoryCompNames, GenericHotkey>);
 
     type FactoryCompNames =
         | "cursor"
@@ -301,6 +326,7 @@ const factory = createLayer(id, () => {
 
     interface FactoryComponentDeclaration {
         tick: number;
+        key: string;
         imageSrc: string;
         name: string;
         description: string;
@@ -902,6 +928,7 @@ const factory = createLayer(id, () => {
         minWidth: 700,
         generalTabCollapsed,
         components,
+        hotkeys,
         display: jsx(() => (
             <>
                 <div>
@@ -952,7 +979,10 @@ const factory = createLayer(id, () => {
                         >
                             {whatIsHovered.value === "" ? undefined : (
                                 <>
-                                    <h3>{FACTORY_COMPONENTS[whatIsHovered.value].name}</h3>
+                                    <h3>
+                                        {FACTORY_COMPONENTS[whatIsHovered.value].name}{" "}
+                                        <HotkeyVue hotkey={hotkeys[whatIsHovered.value]} />
+                                    </h3>
                                     <br />
                                     {FACTORY_COMPONENTS[whatIsHovered.value].description}
                                     {FACTORY_COMPONENTS[whatIsHovered.value].energyCost ?? 0 ? (
