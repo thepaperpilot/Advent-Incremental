@@ -68,6 +68,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: {
             minHeight: "80px"
         },
+        visibility: () => showIf(Decimal.lt(totalLetters.value, 8e9)),
         canClick: () =>
             Decimal.gte(processingProgress.value, computedProcessingCooldown.value) &&
             (!main.isMastery.value || masteryEffectActive.value),
@@ -338,11 +339,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 ) : null}
                 <MainDisplay resource={letters} color={color} />
                 {render(process)}
-                <div>
-                    You cannot have more letters than people in the world.
-                    The more letters you process, the more you'll improve at processing letters.
-                </div>
-                <div>Currently: {format(synergy.value)}x</div>
+                {Decimal.lt(totalLetters.value, 8e9) ? (
+                    <div>
+                        The more letters you process, the more you'll improve at processing letters.
+                        <div>Currently: {format(synergy.value)}x</div>
+                    </div>
+                ) : (
+                    <div>You've processed all of humanity's letters to Santa!</div>
+                )}
                 <Spacer />
                 {renderRow(...Object.values(buyables))}
                 <Spacer />
