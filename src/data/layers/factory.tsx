@@ -3,51 +3,56 @@ import { Assets } from "@pixi/assets";
 import { Container } from "@pixi/display";
 import { Graphics } from "@pixi/graphics";
 import { Sprite } from "@pixi/sprite";
+import HotkeyVue from "components/Hotkey.vue";
+import Row from "components/layout/Row.vue";
+import Spacer from "components/layout/Spacer.vue";
+import Modal from "components/Modal.vue";
+import { createCollapsibleModifierSections } from "data/common";
+import { main } from "data/projEntry";
+import { createBar, GenericBar } from "features/bars/bar";
 import { jsx } from "features/feature";
+import { createHotkey, GenericHotkey } from "features/hotkey";
+import { Resource } from "features/resources/resource";
+import { createTab } from "features/tabs/tab";
+import { createTabFamily } from "features/tabs/tabFamily";
+import Tooltip from "features/tooltips/Tooltip.vue";
 import { globalBus } from "game/events";
 import { createLayer } from "game/layers";
+import { createAdditiveModifier, createSequentialModifier } from "game/modifiers";
 import { noPersist, Persistent, persistent, State } from "game/persistence";
 import Decimal, { format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
+import { render } from "util/vue";
 import { computed, ComputedRef, reactive, ref, watchEffect } from "vue";
+import coal from "./coal";
+import _block from "./factory-components/block.svg";
+import _blockMaker from "./factory-components/blockMaker.svg";
+import _clothes from "./factory-components/clothes.svg";
+import _clothesMaker from "./factory-components/clothesmaker.svg";
 import _conveyor from "./factory-components/conveyor.png";
 import _cursor from "./factory-components/cursor.svg";
 import _delete from "./factory-components/delete.svg";
+import _wood from "./factory-components/log.svg";
+import _plank from "./factory-components/plank.svg";
 import _rotateLeft from "./factory-components/rotateLeft.svg";
 import _rotateRight from "./factory-components/rotateRight.svg";
-import _wood from "./factory-components/log.svg";
-import _block from "./factory-components/block.svg";
-import _blockMaker from "./factory-components/blockMaker.svg";
-import _cloth from "./factory-components/shed.svg";
-import _dye from "./factory-components/shed.svg";
-import _clothes from "./factory-components/clothes.svg";
-import _clothesMaker from "./factory-components/clothesmaker.svg";
-import _plastic from "./factory-components/shed.svg";
-import _metal from "./factory-components/shed.svg";
+import _plankMaker from "./factory-components/sawmill.svg";
+import {
+    default as _cloth,
+    default as _dye,
+    default as _metal,
+    default as _plastic
+} from "./factory-components/shed.svg";
+import _thread from "./factory-components/thread.svg";
+import _threadMaker from "./factory-components/threadmaker.svg";
 import _truck from "./factory-components/truck.svg";
 import _truckMaker from "./factory-components/truckmaker.svg";
-import _plankMaker from "./factory-components/sawmill.svg";
-import _plank from "./factory-components/plank.svg";
-import _threadMaker from "./factory-components/threadmaker.svg";
-import _thread from "./factory-components/thread.svg";
-import _wheelMaker from "./factory-components/wheelmaker.svg";
 import _wheel from "./factory-components/wheel.svg";
+import _wheelMaker from "./factory-components/wheelmaker.svg";
 import Factory from "./Factory.vue";
 import "./styles/factory.css";
-import coal from "./coal";
-import { render } from "util/vue";
-import { createTab } from "features/tabs/tab";
-import { createTabFamily } from "features/tabs/tabFamily";
-import { createAdditiveModifier, createSequentialModifier } from "game/modifiers";
-import { main } from "data/projEntry";
-import { createCollapsibleModifierSections } from "data/common";
-import Modal from "components/Modal.vue";
-import { createBar, GenericBar } from "features/bars/bar";
-import HotkeyVue from "components/Hotkey.vue";
-import { createHotkey, GenericHotkey } from "features/hotkey";
-import Tooltip from "features/tooltips/Tooltip.vue";
+import Toy from "./Toy.vue";
 import toys from "./toys";
-import { Resource } from "features/resources/resource";
 
 const id = "factory";
 
@@ -1274,6 +1279,16 @@ const factory = createLayer(id, () => {
                                 </button>
                             </div>
                             {render(dayProgress)}
+                            <Spacer />
+                            <Row>
+                                <Toy resource={toys.clothes} image={_clothes} color="lightblue" />
+                                <Toy
+                                    resource={toys.woodenBlocks}
+                                    image={_block}
+                                    color="cornflowerblue"
+                                />
+                                <Toy resource={toys.trucks} image={_truck} color="cadetblue" />
+                            </Row>
                         </>
                     ))
                 })),
