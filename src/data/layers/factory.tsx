@@ -37,6 +37,7 @@ import Modal from "components/Modal.vue";
 import { createBar, GenericBar } from "features/bars/bar";
 import HotkeyVue from "components/Hotkey.vue";
 import { createHotkey, GenericHotkey } from "features/hotkey";
+import Tooltip from "features/tooltips/Tooltip.vue";
 
 const id = "factory";
 
@@ -131,13 +132,41 @@ const factory = createLayer(id, () => {
                 : Decimal.sub(1, Decimal.div(energyConsumption.value, computedEnergy.value)),
         display: jsx(() => (
             <>
-                {formatWhole(energyConsumption.value)} / {formatWhole(computedEnergy.value)} energy
-                used
-                {Decimal.lt(tickRate.value, 1) ? (
-                    <>{" (" + format(Decimal.mul(tickRate.value, 100))}% efficiency)</>
-                ) : (
-                    ""
-                )}
+                <div>
+                    {formatWhole(energyConsumption.value)} / {formatWhole(computedEnergy.value)}{" "}
+                    energy used
+                    {Decimal.lt(tickRate.value, 1) ? (
+                        <>{" (" + format(Decimal.mul(tickRate.value, 100))}% efficiency)</>
+                    ) : (
+                        ""
+                    )}
+                </div>
+                <div>
+                    <Tooltip display="Clear Tracks" direction={Direction.Down}>
+                        <button class="control-btn material-icons" onClick={setTracks}>
+                            clear
+                        </button>
+                    </Tooltip>
+                    <Tooltip display="Clear Factory" direction={Direction.Down}>
+                        <button class="control-btn material-icons" onClick={clearFactory}>
+                            delete
+                        </button>
+                    </Tooltip>
+                    <Tooltip display="Go to Center" direction={Direction.Down} xoffset="-26px">
+                        <button class="control-btn material-icons" onClick={moveToCenter}>
+                            center_focus_weak
+                        </button>
+                    </Tooltip>
+                    <Tooltip
+                        display={(paused.value ? "Unpause" : "Pause") + " the Factory"}
+                        direction={Direction.Down}
+                        xoffset="-63px"
+                    >
+                        <button class="control-btn material-icons" onClick={togglePaused}>
+                            {paused.value ? "play_arrow" : "pause"}
+                        </button>
+                    </Tooltip>
+                </div>
             </>
         ))
     }));
@@ -807,7 +836,7 @@ const factory = createLayer(id, () => {
         } as FactoryInternalProcessor;
         spriteContainer.addChild(sprite);
     }
-        
+
     function removeFactoryComp(x: number, y: number) {
         const data = compInternalData[x + "x" + y];
         if (data === undefined) return;
@@ -976,7 +1005,7 @@ const factory = createLayer(id, () => {
     function onCompClick(name: FactoryCompNames) {
         compSelected.value = name;
     }
-        
+
     function setTracks() {
         for (const [key, comp] of Object.entries(compInternalData)) {
             if (comp == null) continue;
@@ -988,7 +1017,7 @@ const factory = createLayer(id, () => {
                 comp.nextPackages = [];
                 comp.packages = [];
             } else {
-                const producerComp = components.value[key] as FactoryComponentProducer;
+                const producerComp = components.value[key] as FactoryComponentProcessor;
                 if (producerComp.outputStock !== undefined) {
                     for (const key in producerComp.outputStock) {
                         delete producerComp.outputStock[key];
@@ -1003,7 +1032,7 @@ const factory = createLayer(id, () => {
             }
         }
     }
-        
+
     function clearFactory() {
         for (const key of Object.keys(compInternalData)) {
             const [x, y] = key.split("x").map(i => +i);
@@ -1058,45 +1087,7 @@ const factory = createLayer(id, () => {
                                     onPointerleave={onFactoryMouseLeave}
                                     onContextmenu={(e: MouseEvent) => e.preventDefault()}
                                 />
-                                <div class="controls-container">
-                    <button
-                        class="control-btn"
-                        style={{
-                            "border-color": "purple"
-                        }}
-                        onClick={setTracks}
-                    >
-                        Clear Tracks
-                    </button>
-                    <button
-                        class="control-btn"
-                        style={{
-                            "border-color": "red"
-                        }}
-                        onClick={clearFactory}
-                    >
-                        Clear Factory
-                    </button>
-                    <button
-                        class="control-btn"
-                        style={{
-                            "border-color": "green"
-                        }}
-                        onClick={moveToCenter}
-                    >
-                        Go to Center
-                    </button>
-                    <button
-                        class="control-btn"
-                        style={{
-                            "border-color": paused.value ? "green" : "red"
-                        }}
-                        onClick={togglePaused}
-                    >
-                        {paused.value ? "Unpause" : "Pause"} the Factory
-                    </button>
-                </div>
-                                
+
                                 <div class="comp-container">
                                     <div
                                         class={{
@@ -1173,7 +1164,7 @@ const factory = createLayer(id, () => {
                                                     ?.clientWidth ?? 0) >
                                             app.view.width - 30
                                                 ? { right: app.view.width - mouseCoords.x + "px" }
-                                                : { left: mouseCoords.x + "px" }),
+                                                : { left: mouseCoords.x + 148 + "px" }),
                                             ...(mouseCoords.y +
                                                 (document.getElementById("factory-info")
                                                     ?.clientHeight ?? 0) >
