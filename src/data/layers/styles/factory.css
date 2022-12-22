@@ -127,6 +127,9 @@
 .comp-list > .comp:nth-child(2n - 1) .comp-info {
     right: -85px;
 }
+.comp-list > .comp:nth-child(2n - 1):last-child .comp-info {
+    right: -47px;
+}
 .comp-list > .comp:hover .comp-info {
     transform: translateX(calc(20px + 100%));
 }
