@@ -8,7 +8,7 @@ import { globalBus } from "game/events";
 import { createLayer } from "game/layers";
 import { Persistent, persistent, State } from "game/persistence";
 import player from "game/player";
-import { formatWhole } from "util/bignum";
+import Decimal, { formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { computed, ComputedRef, reactive, ref, watchEffect } from "vue";
 import conveyor from "./factory-components/conveyor.png";
@@ -74,6 +74,16 @@ const factory = createLayer(id, () => {
     const name = "The Factory";
     const color = "grey";
 
+    const energy = computed(() => 100);
+    const energyConsumption = computed(() =>
+        Object.values(components.value)
+            .map(c => FACTORY_COMPONENTS[c.type].energyCost ?? 0)
+            .reduce((a, b) => a + b, 0)
+    );
+    const tickRate = computed(() =>
+        Decimal.div(energyConsumption.value, energy.value).pow(2).min(1)
+    );
+
     // ---------------------------------------------- Components
 
     const FACTORY_COMPONENTS = {
@@ -93,6 +103,7 @@ const factory = createLayer(id, () => {
             imageSrc: conveyor,
             name: "Conveyor",
             description: "Moves items at 1 block per second.",
+            energyCost: 1,
             tick: 1,
             ports: {
                 [Direction.Left]: {
@@ -107,6 +118,7 @@ const factory = createLayer(id, () => {
             imageSrc: wood,
             name: "Wood Machine",
             description: "Produces 1 wood every 1 second.",
+            energyCost: 10,
             tick: 1,
             outputs: {
                 wood: {
@@ -114,11 +126,22 @@ const factory = createLayer(id, () => {
                 }
             }
         },
-        
-        blocks: {
-            imageSrc: blocks,
-            name: "Wooden Block Maker",
-            description: "Turns 1 wood into 1 wooden block every second.",
+        receiver: {
+            imageSrc: square,
+            name: "Receiver",
+            description: "Obtains squares. Pretty much does nothing else.",
+            tick: 0,
+            inputs: {
+                square: {
+                    amount: Infinity
+                }
+            }
+        },
+        shrinker: {
+            imageSrc: square,
+            name: "Shrinker",
+            description:
+                "Converts 100 squares to 1 square. I don't know why you would want to do this but here you go anyways.",
             tick: 1,
             inputs: {
                 wood: {
@@ -165,6 +188,7 @@ const factory = createLayer(id, () => {
         imageSrc: string;
         name: string;
         description: string;
+        energyCost?: number;
 
         /** amount it consumes */
         inputs?: Record<
@@ -295,6 +319,9 @@ const factory = createLayer(id, () => {
 
     globalBus.on("update", diff => {
         if (!loaded) return;
+
+        const factoryTicks = tickRate.value.times(diff).toNumber();
+
         //debugger
         // make them produce
         for (const id in components.value) {
@@ -348,7 +375,8 @@ const factory = createLayer(id, () => {
                             key--;
                         } else {
                             const change =
-                                dirAmt * Math.min(Math.abs(x + 1.3 * dirAmt - block.x), diff);
+                                dirAmt *
+                                Math.min(Math.abs(x + 1.3 * dirAmt - block.x), factoryTicks);
                             block.x += change;
                             block.sprite.x += change * blockSize;
                         }
@@ -382,7 +410,8 @@ const factory = createLayer(id, () => {
                             key--;
                         } else {
                             const change =
-                                dirAmt * Math.min(Math.abs(y + 1.3 * dirAmt - block.y), diff);
+                                dirAmt *
+                                Math.min(Math.abs(y + 1.3 * dirAmt - block.y), factoryTicks);
                             block.y += change;
                             block.sprite.y += change * blockSize;
                         }
@@ -412,7 +441,7 @@ const factory = createLayer(id, () => {
                         data.ticksDone -= cyclesDone * factoryData.tick;
                     }
                 } else {
-                    data.ticksDone += diff;
+                    data.ticksDone += factoryTicks;
                 }
                 // now look at each component direction and see if it accepts items coming in
                 // components are 1x1 so simple math for now

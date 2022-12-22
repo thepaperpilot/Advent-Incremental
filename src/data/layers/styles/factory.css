@@ -32,6 +32,9 @@
 
     pointer-events: none;
     transition: height .3s;
+
+    pointer-events: none;
+    user-select: none;
 }
 .factory-container {
     position: absolute;

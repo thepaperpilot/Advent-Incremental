@@ -231,14 +231,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         display: {
             requirement: "10 toys",
             effectDisplay:
-                "The cost of making toys is divided by the number of complete workshops you have."
+                "The cost of making toys is divided by the number of complete workshops you have"
         },
         shouldEarn: () => Decimal.gte(toySum.value, 10)
     }));
     const milestone2 = createMilestone(() => ({
         display: {
             requirement: "100 toys",
-            effectDisplay: "Unlock black dyes."
+            effectDisplay: "Unlock black dyes"
         },
         shouldEarn: () => Decimal.gte(toySum.value, 100),
         visibility: () => showIf(milestone1.earned.value)
@@ -247,7 +247,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const milestone3 = createMilestone(() => ({
         display: {
             requirement: "200 toys",
-            effectDisplay: "Beach wrapping paper is much more powerful."
+            effectDisplay: "Beach wrapping paper is much more powerful"
         },
         shouldEarn: () => Decimal.gte(toySum.value, 200),
         visibility: () => showIf(milestone2.earned.value)
@@ -255,7 +255,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const milestone4 = createMilestone(() => ({
         display: {
             requirement: "350 toys",
-            effectDisplay: "Gain 50x oil and plastic."
+            effectDisplay: "Gain 50x oil and plastic"
         },
         shouldEarn: () => Decimal.gte(toySum.value, 350),
         visibility: () => showIf(milestone3.earned.value)
