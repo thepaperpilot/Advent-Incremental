@@ -807,6 +807,22 @@ const factory = createLayer(id, () => {
         } as FactoryInternalProcessor;
         spriteContainer.addChild(sprite);
     }
+        
+    function removeFactoryComp(x: number, y: number) {
+        const data = compInternalData[x + "x" + y];
+        if (data === undefined) return;
+
+        if (data.type === "conveyor") {
+            const cData = data as FactoryInternalConveyor;
+            for (const p of cData.packages) {
+                p.sprite.destroy();
+            }
+        }
+
+        delete components.value[x + "x" + y];
+        delete compInternalData[x + "x" + y];
+        spriteContainer.removeChild(data.sprite);
+    }
 
     // draw graphics
     function updateGraphics() {
@@ -844,7 +860,8 @@ const factory = createLayer(id, () => {
 
     const pointerDown = ref(false),
         pointerDrag = ref(false),
-        compHovered = ref<FactoryComponent | undefined>(undefined);
+        compHovered = ref<FactoryComponent | undefined>(undefined),
+        paused = ref(false);
 
     function onFactoryPointerMove(e: PointerEvent) {
         const { x, y } = getRelativeCoords(e);
@@ -928,19 +945,7 @@ const factory = createLayer(id, () => {
                         compInternalData[x + "x" + y].sprite.rotation += Math.PI / 2;
                     }
                 } else if (compSelected.value === "delete") {
-                    const data = compInternalData[x + "x" + y];
-                    if (data === undefined) return;
-
-                    if (data.type === "conveyor") {
-                        const cData = data as FactoryInternalConveyor;
-                        for (const p of cData.packages) {
-                            p.sprite.destroy();
-                        }
-                    }
-
-                    delete components.value[x + "x" + y];
-                    delete compInternalData[x + "x" + y];
-                    spriteContainer.removeChild(data.sprite);
+                    removeFactoryComp(x, y);
                 } else if (compSelected.value !== "cursor") {
                     if (components.value[x + "x" + y] == null) {
                         addFactoryComp(x, y, { type: compSelected.value });
@@ -971,7 +976,47 @@ const factory = createLayer(id, () => {
     function onCompClick(name: FactoryCompNames) {
         compSelected.value = name;
     }
-
+        
+    function setTracks() {
+        for (const [key, comp] of Object.entries(compInternalData)) {
+            if (comp == null) continue;
+            if (comp.type === "conveyor") {
+                for (const pkg of [...comp.nextPackages, ...comp.packages]) {
+                    pkg.sprite.destroy();
+                    movingBlocks.removeChild(pkg.sprite);
+                }
+                comp.nextPackages = [];
+                comp.packages = [];
+            } else {
+                const producerComp = components.value[key] as FactoryComponentProducer;
+                if (producerComp.outputStock !== undefined) {
+                    for (const key in producerComp.outputStock) {
+                        delete producerComp.outputStock[key];
+                    }
+                }
+                if (producerComp.inputStock !== undefined) {
+                    for (const key in producerComp.inputStock) {
+                        delete producerComp.inputStock[key];
+                    }
+                }
+                producerComp.ticksDone = 0;
+            }
+        }
+    }
+        
+    function clearFactory() {
+        for (const key of Object.keys(compInternalData)) {
+            const [x, y] = key.split("x").map(i => +i);
+            removeFactoryComp(x, y);
+        }
+    }
+    function moveToCenter() {
+        mapOffset.x = 0;
+        mapOffset.y = 0;
+    }
+    function togglePaused() {
+        paused.value = !paused.value;
+    }
     // ------------------------------------------------------------------------------- Tabs
 
     const tabs = createTabFamily(
@@ -1013,6 +1058,45 @@ const factory = createLayer(id, () => {
                                     onPointerleave={onFactoryMouseLeave}
                                     onContextmenu={(e: MouseEvent) => e.preventDefault()}
                                 />
+                                <div class="controls-container">
+                    <button
+                        class="control-btn"
+                        style={{
+                            "border-color": "purple"
+                        }}
+                        onClick={setTracks}
+                    >
+                        Clear Tracks
+                    </button>
+                    <button
+                        class="control-btn"
+                        style={{
+                            "border-color": "red"
+                        }}
+                        onClick={clearFactory}
+                    >
+                        Clear Factory
+                    </button>
+                    <button
+                        class="control-btn"
+                        style={{
+                            "border-color": "green"
+                        }}
+                        onClick={moveToCenter}
+                    >
+                        Go to Center
+                    </button>
+                    <button
+                        class="control-btn"
+                        style={{
+                            "border-color": paused.value ? "green" : "red"
+                        }}
+                        onClick={togglePaused}
+                    >
+                        {paused.value ? "Unpause" : "Pause"} the Factory
+                    </button>
+                </div>
+                                
                                 <div class="comp-container">
                                     <div
                                         class={{

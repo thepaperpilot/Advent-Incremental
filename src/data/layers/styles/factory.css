@@ -56,6 +56,25 @@
 
     z-index: 2;
 }
+
+.controls-container {
+    position: absolute;
+    top: 0%;
+    right: 0%;
+    margin: 0;
+    padding: 10px;
+    height: max-content;
+    background: var(--background);
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    box-shadow: 0 1px 5px #0007;
+    display: flex;
+}
+.control-btn {
+    border-radius: 5px;
+    border-width: 2px;
+    border-style: solid;
+}
+
 .comp-container {
     position: absolute;
     top: 0;
