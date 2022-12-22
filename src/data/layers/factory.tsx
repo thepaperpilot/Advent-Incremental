@@ -1015,7 +1015,7 @@ const factory = createLayer(id, () => {
     }
     function togglePaused() {
         paused.value = !paused.value;
-
+    }
     // ------------------------------------------------------------------------------- Tabs
 
     const tabs = createTabFamily(
