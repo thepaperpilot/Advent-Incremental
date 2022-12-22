@@ -68,6 +68,7 @@
         />
         <div v-if="day >= 4" class="scene-bubble left" style="left: 64%; bottom: 37%">
             <img v-if="day >= 17" :src="toys" class="scene-item" />
+            <img v-if="day >= 18" :src="advFactory" class="scene-item" />
         </div>
     </div>
 </template>
@@ -91,6 +92,7 @@ import wrappingPaper from "./symbols/wrappingPaper.png";
 import ribbons from "./symbols/ribbons.png";
 import toys from "./symbols/truck.png";
 import factory from "./symbols/gears.png";
+import advFactory from "./symbols/teddyBear.png";
 
 defineProps<{
     day: number;
