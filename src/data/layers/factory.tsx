@@ -65,7 +65,7 @@ const id = "factory";
 // what is the actual day?
 const day = 18;
 
-const toyGoal = 1e3;
+const toyGoal = 750;
 
 // 20x20 block size
 // TODO: unhardcode stuff
@@ -413,12 +413,15 @@ const factory = createLayer(id, () => {
             key: "ctrl+shift+2",
             name: "Clothes Maker",
             type: "processor",
-            description: "Turns 5 thread and 1 dye into 1 clothes every second.",
+            description: "Turns 2 threads, 3 cloth, and 1 dye into 1 clothes every second.",
             energyCost: 20,
             tick: 1,
             inputs: {
                 thread: {
-                    amount: 5
+                    amount: 2
+                },
+                cloth: {
+                    amount: 3,
                 },
                 dye: {
                     amount: 1
