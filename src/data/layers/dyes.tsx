@@ -20,7 +20,7 @@ import {
     createSequentialModifier,
     Modifier
 } from "game/modifiers";
-import { persistent } from "game/persistence";
+import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { WithRequired } from "util/common";
 import { Computable, convertComputable } from "util/computed";
@@ -371,7 +371,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             onPress: () => {
                 if (unref(buyable.canClick)) buyable.onClick();
             },
-            enabled: main.days[day - 1].opened
+            enabled: noPersist(main.days[day - 1].opened)
         }));
 
         const visibility = convertComputable(options.visibility ?? Visibility.Visible);

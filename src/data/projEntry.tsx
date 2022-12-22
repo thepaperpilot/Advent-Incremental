@@ -61,7 +61,7 @@ export interface Day extends VueFeature {
     story: string;
     completedStory: string;
     masteredStory: string;
-    opened: Ref<boolean>;
+    opened: Persistent<boolean>;
     recentlyUpdated: Ref<boolean>; // Has the tab recieved an update since the player last opened it?
     shouldNotify: ProcessedComputable<boolean>;
 }

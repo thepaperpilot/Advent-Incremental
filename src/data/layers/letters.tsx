@@ -15,7 +15,7 @@ import { createMilestone } from "features/milestones/milestone";
 import { createResource } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
-import { persistent } from "game/persistence";
+import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render, renderRow } from "util/vue";
@@ -93,7 +93,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         onPress: () => {
             if (process.canClick.value) process.onClick();
         },
-        enabled: main.days[day - 1].opened
+        enabled: noPersist(main.days[day - 1].opened)
     }));
 
     const metalBuyable = createBuyable(() => ({
