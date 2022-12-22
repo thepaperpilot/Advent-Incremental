@@ -10,7 +10,7 @@ const element = shallowRef<HTMLElement | null>(null);
 const props = defineProps<{
     application: Application;
 }>();
-console.log(props.application);
+
 onMounted(() => {
     if (element.value !== null) {
         element.value?.append(props.application.view);

@@ -65,6 +65,8 @@ const id = "factory";
 // what is the actual day?
 const day = 18;
 
+const toyGoal = 1e3;
+
 // 20x20 block size
 // TODO: unhardcode stuff
 
@@ -129,16 +131,16 @@ const factory = createLayer(id, () => {
             .map(c => FACTORY_COMPONENTS[c.type]?.energyCost ?? 0)
             .reduce((a, b) => a + b, 0)
     );
+    const energyEfficiency = computed(() =>
+        Decimal.div(energyConsumption.value, computedEnergy.value).recip().pow(2).min(1)
+    );
     const tickRate = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
             multiplier: elvesEffect,
             description: "Trained Elves"
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: Decimal.div(energyConsumption.value, computedEnergy.value)
-                .recip()
-                .pow(2)
-                .min(1),
+            multiplier: energyEfficiency,
             description: "Energy Consumption",
             enabled: () => Decimal.gt(energyConsumption.value, computedEnergy.value)
         }))
@@ -166,8 +168,8 @@ const factory = createLayer(id, () => {
                 <div>
                     {formatWhole(energyConsumption.value)} / {formatWhole(computedEnergy.value)}{" "}
                     energy used
-                    {Decimal.lt(tickRate.value, 1) ? (
-                        <>{" (" + format(Decimal.mul(tickRate.value, 100))}% efficiency)</>
+                    {Decimal.gt(energyConsumption.value, computedEnergy.value) ? (
+                        <>{" (" + format(Decimal.mul(energyEfficiency.value, 100))}% efficiency)</>
                     ) : (
                         ""
                     )}
@@ -1325,7 +1327,7 @@ const factory = createLayer(id, () => {
                         <>
                             <div>
                                 {main.day.value === day
-                                    ? `Do something to complete the day`
+                                    ? `Reach ${format(toyGoal)} for each toy to complete the day`
                                     : `${name} Complete!`}{" "}
                                 -{" "}
                                 <button
@@ -1418,12 +1420,38 @@ const factory = createLayer(id, () => {
         direction: Direction.Right,
         width: 600,
         height: 25,
-        progress: () => (main.day.value === day ? 0 : 1),
-        display: jsx(() => (main.day.value === day ? <>Requirement progress here</> : ""))
+        fillStyle: `backgroundColor: ${color}`,
+        progress: () =>
+            main.day.value === day
+                ? Decimal.div(toys.clothes.value, toyGoal)
+                      .clampMax(1)
+                      .add(Decimal.div(toys.woodenBlocks.value, toyGoal).clampMax(1))
+                      .add(Decimal.div(toys.trucks.value, toyGoal).clampMax(1))
+                      .div(3)
+                : 1,
+        display: jsx(() =>
+            main.day.value === day ? (
+                <>
+                    {
+                        [toys.clothes.value, toys.woodenBlocks.value, toys.trucks.value].filter(t =>
+                            Decimal.gte(t, toyGoal)
+                        ).length
+                    }{" "}
+                    / 3
+                </>
+            ) : (
+                ""
+            )
+        )
     })) as GenericBar;
 
     watchEffect(() => {
-        if (main.day.value === day && false) {
+        if (
+            main.day.value === day &&
+            Decimal.gte(toys.clothes.value, toyGoal) &&
+            Decimal.gte(toys.woodenBlocks.value, toyGoal) &&
+            Decimal.gte(toys.trucks.value, toyGoal)
+        ) {
             main.completeDay();
         }
     });

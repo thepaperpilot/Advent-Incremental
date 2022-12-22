@@ -104,7 +104,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         onPurchase() {
             cloth.cloth.value = Decimal.sub(cloth.cloth.value, clothesCost.value.cloth);
             this.amount.value = Decimal.add(this.amount.value, 1);
-            clothes.value = this.amount.value;
+            clothes.value = Decimal.add(clothes.value, 1);
         }
     })) as GenericBuyable;
     const woodenBlocksCost = computed(() => {
@@ -136,7 +136,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         onPurchase() {
             trees.logs.value = Decimal.sub(trees.logs.value, woodenBlocksCost.value.wood);
             this.amount.value = Decimal.add(this.amount.value, 1);
-            woodenBlocks.value = this.amount.value;
+            woodenBlocks.value = Decimal.add(woodenBlocks.value, 1);
         }
     })) as GenericBuyable;
     const trucksCost = computed(() => {
@@ -196,7 +196,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             metal.metal.value = Decimal.sub(metal.metal.value, trucksCost.value.metal);
             plastic.plastic.value = Decimal.sub(plastic.plastic.value, trucksCost.value.plastic);
             this.amount.value = Decimal.add(this.amount.value, 1);
-            trucks.value = this.amount.value;
+            trucks.value = Decimal.add(trucks.value, 1);
         }
     })) as GenericBuyable;
     const buyables = [clothesBuyable, woodenBlocksBuyable, trucksBuyable];
@@ -291,21 +291,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }}
         />
     ));
-
-    globalBus.on("update", diff => {
-        if (Decimal.lt(main.day.value, day)) {
-            return;
-        }
-        if (Decimal.lt(clothes.value, clothesBuyable.amount.value)) {
-            clothesBuyable.amount.value = clothes.value;
-        }
-        if (Decimal.lt(woodenBlocks.value, woodenBlocksBuyable.amount.value)) {
-            woodenBlocksBuyable.amount.value = woodenBlocks.value;
-        }
-        if (Decimal.lt(trucks.value, trucksBuyable.amount.value)) {
-            trucksBuyable.amount.value = trucks.value;
-        }
-    });
 
     const { total: totalToys, trackerDisplay } = setUpDailyProgressTracker({
         resource: toySum,
