@@ -262,19 +262,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const milestone5 = createMilestone(() => ({
         display: {
-            requirement: "1000 toys",
+            requirement: "750 toys",
             effectDisplay: "The wheel crafter now makes 2 wheels instead of 1! Now you should be able to fit everything in the factory."
         },
-        shouldEarn: () => Decimal.gte(toySum.value, 1000),
+        shouldEarn: () => Decimal.gte(toySum.value, 750),
         visibility: () => showIf(milestone4.earned.value)
     }));
     
     const milestone6 = createMilestone(() => ({
         display: {
-            requirement: "2000 toys",
+            requirement: "1500 toys",
             effectDisplay: "Running out of energy? Let's increase the limit! Multiply energy capacity by 1.2"
         },
-        shouldEarn: () => Decimal.gte(toySum.value, 2000),
+        shouldEarn: () => Decimal.gte(toySum.value, 1500),
         visibility: () => showIf(milestone5.earned.value)
     }));
     const milestones = { milestone1, milestone2, milestone3, milestone4, milestone5, milestone6 };
