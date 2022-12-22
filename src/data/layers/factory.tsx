@@ -249,7 +249,7 @@ const factory = createLayer(id, () => {
             key: "0",
             name: "Conveyor",
             type: "conveyor",
-            description: "Moves items at 1 block per second.",
+            description: "Moves items at 1 block per tick.",
             energyCost: 1,
             tick: 1,
             ports: {
@@ -267,7 +267,7 @@ const factory = createLayer(id, () => {
             key: "1",
             name: "Wood Machine",
             type: "processor",
-            description: "Produces 1 wood every 1 second.",
+            description: "Produces 1 wood per tick.",
             energyCost: 10,
             tick: 1,
             outputs: {
@@ -282,7 +282,7 @@ const factory = createLayer(id, () => {
             key: "2",
             name: "Cloth Machine",
             type: "processor",
-            description: "Produces 1 cloth every 1 second.",
+            description: "Produces 1 cloth per tick.",
             energyCost: 10,
             tick: 1,
             outputs: {
@@ -297,7 +297,7 @@ const factory = createLayer(id, () => {
             key: "3",
             name: "Dye Machine",
             type: "processor",
-            description: "Produces 1 dye every 1 second.",
+            description: "Produces 1 dye per tick.",
             energyCost: 10,
             tick: 1,
             outputs: {
@@ -312,7 +312,7 @@ const factory = createLayer(id, () => {
             key: "4",
             name: "Metal Machine",
             type: "processor",
-            description: "Produces 1 metal every 1 second.",
+            description: "Produces 1 metal per tick.",
             energyCost: 10,
             tick: 1,
             outputs: {
@@ -327,7 +327,7 @@ const factory = createLayer(id, () => {
             key: "5",
             name: "Plastic Machine",
             type: "processor",
-            description: "Produces 1 plastic every 1 second.",
+            description: "Produces 1 plastic per tick.",
             energyCost: 10,
             tick: 1,
             outputs: {
@@ -341,7 +341,7 @@ const factory = createLayer(id, () => {
             key: "shift+1",
             name: "Sawmill",
             type: "processor",
-            description: "Turns 1 wood into 1 plank every second.",
+            description: "Turns 1 wood into 1 plank per tick.",
             energyCost: 2,
             tick: 1,
             inputs: {
@@ -360,7 +360,7 @@ const factory = createLayer(id, () => {
             key: "shift+2",
             name: "Thread Spinner",
             type: "processor",
-            description: "Turns 1 cloth into 1 thread every second.",
+            description: "Turns 1 cloth into 1 thread per tick.",
             energyCost: 2,
             tick: 1,
             inputs: {
@@ -384,7 +384,7 @@ const factory = createLayer(id, () => {
                 () =>
                     `Turns 1 plastic into ${
                         toys.milestones.milestone5.earned.value ? "2 wheels" : "1 wheel"
-                    } every second.`
+                    } per tick.`
             ),
             energyCost: 2,
             tick: 1,
@@ -404,7 +404,7 @@ const factory = createLayer(id, () => {
             key: "ctrl+shift+1",
             name: "Wooden Block Maker",
             type: "processor",
-            description: "Turns 1 plank into 1 wooden block every second.",
+            description: "Turns 1 plank into 1 wooden block per tick.",
             energyCost: 20,
             tick: 1,
             inputs: {
@@ -424,7 +424,7 @@ const factory = createLayer(id, () => {
             key: "ctrl+shift+2",
             name: "Clothes Maker",
             type: "processor",
-            description: "Turns 2 threads, 3 cloth, and 1 dye into 1 clothes every second.",
+            description: "Turns 2 threads, 3 cloth, and 1 dye into 1 clothes per tick.",
             energyCost: 20,
             tick: 1,
             inputs: {
@@ -450,7 +450,7 @@ const factory = createLayer(id, () => {
             key: "ctrl+shift+3",
             name: "Trucks Maker",
             type: "processor",
-            description: "Turns 2 metal and 4 wheels into 1 truck every second.",
+            description: "Turns 2 metal and 4 wheels into 1 truck per tick.",
             energyCost: 20,
             tick: 1,
             inputs: {
