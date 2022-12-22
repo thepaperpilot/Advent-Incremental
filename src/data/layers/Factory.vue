@@ -26,7 +26,7 @@ onMounted(() => {
     position: absolute;
     top: 0;
     bottom: 0;
-    left: 148px;
+    left: 158px;
     right: 0;
     touch-action: none;
 }
