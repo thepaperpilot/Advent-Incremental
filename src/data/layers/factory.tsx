@@ -28,8 +28,9 @@ import {
 import { noPersist, Persistent, persistent, State } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
+import { ProcessedComputable } from "util/computed";
 import { render, renderRow } from "util/vue";
-import { computed, ComputedRef, reactive, ref, watchEffect } from "vue";
+import { computed, ComputedRef, reactive, ref, unref, watchEffect } from "vue";
 import coal from "./coal";
 import _block from "./factory-components/block.svg";
 import _blockMaker from "./factory-components/blockmaker.svg";
@@ -124,7 +125,7 @@ const factory = createLayer(id, () => {
             addend: () => Decimal.add(1, coal.coal.value).log10(),
             description: "Coal Energy Production"
         })),
-        createMultiplicativeModifier(()=>({
+        createMultiplicativeModifier(() => ({
             multiplier: 1.4,
             description: "2000 toys",
             enabled: toys.milestones.milestone6.earned
@@ -384,7 +385,7 @@ const factory = createLayer(id, () => {
             },
             outputs: {
                 wheel: {
-                    amount: toys.milestones.milestone5.earned.value ? 2 : 1
+                    amount: computed(() => (toys.milestones.milestone5.earned.value ? 2 : 1))
                 }
             }
         } as FactoryComponentDeclaration,
@@ -545,7 +546,7 @@ const factory = createLayer(id, () => {
         Record<
             ResourceNames,
             {
-                amount: number;
+                amount: ProcessedComputable<number>;
                 capacity?: number;
                 resource?: Resource;
             }
@@ -825,7 +826,8 @@ const factory = createLayer(id, () => {
                             if (data.inputStock === undefined) data.inputStock = {};
                             for (const [key, val] of Object.entries(factoryData.inputs)) {
                                 data.inputStock[key as ResourceNames] =
-                                    (data.inputStock[key as ResourceNames] ?? 0) - val.amount;
+                                    (data.inputStock[key as ResourceNames] ?? 0) -
+                                    unref(val.amount);
                             }
                         }
                         if (factoryData.outputs !== undefined) {
@@ -834,11 +836,12 @@ const factory = createLayer(id, () => {
                                 if (val.resource != null) {
                                     val.resource.value = Decimal.add(
                                         val.resource.value,
-                                        val.amount
+                                        unref(val.amount)
                                     );
                                 } else {
                                     data.outputStock[key as ResourceNames] =
-                                        (data.outputStock[key as ResourceNames] ?? 0) + val.amount;
+                                        (data.outputStock[key as ResourceNames] ?? 0) +
+                                        unref(val.amount);
                                 }
                             }
                         }
@@ -992,7 +995,8 @@ const factory = createLayer(id, () => {
                 if (factoryBaseData.outputs !== undefined) {
                     for (const [res, val] of Object.entries(factoryBaseData.outputs))
                         if (
-                            (compData.outputStock?.[res as ResourceNames] ?? 0) + val.amount >
+                            (compData.outputStock?.[res as ResourceNames] ?? 0) +
+                                unref(val.amount) >
                             (val.capacity ?? Infinity)
                         )
                             return false;
@@ -1291,7 +1295,7 @@ const factory = createLayer(id, () => {
                             ? formatWhole(stockData[res]!.resource!.value)
                             : formatWhole(stocks[res] ?? 0)}
                         {showAmount && stockData[res]?.amount != undefined
-                            ? " / " + formatWhole(stockData[res]!.amount)
+                            ? " / " + formatWhole(unref(stockData[res]!.amount))
                             : ""}
                         {stockData[res]?.capacity != undefined
                             ? " / " + formatWhole(stockData[res]!.capacity!)
