@@ -25,6 +25,7 @@ import truck from "./factory-components/rotate_rectangle.png";
 import Factory from "./Factory.vue";
 import "./styles/factory.css";
 import coal from "./coal";
+import { createAdditiveModifier, createSequentialModifier } from "game/modifiers";
 
 const id = "factory";
 
@@ -83,14 +84,22 @@ const factory = createLayer(id, () => {
     const name = "The Factory";
     const color = "grey";
 
-    const energy = computed(() => Decimal.add(1, coal.coal.value).log10());
+    const energy = createSequentialModifier(() => [
+        createAdditiveModifier(() => ({
+            addend: () => Decimal.add(1, coal.coal.value).log10(),
+            description: "Coal Energy Production"
+        }))
+    ]);
+    const computedEnergy = computed(() => energy.apply(0));
     const energyConsumption = computed(() =>
         Object.values(components.value)
             .map(c => FACTORY_COMPONENTS[c.type].energyCost ?? 0)
             .reduce((a, b) => a + b, 0)
     );
     const tickRate = computed(() =>
-        Decimal.div(energyConsumption.value, energy.value).recip().pow(2).min(1)
+        Decimal.eq(energyConsumption.value, 0)
+            ? 1
+            : Decimal.div(energyConsumption.value, computedEnergy.value).recip().pow(2).min(1)
     );
 
     // ---------------------------------------------- Components
@@ -422,7 +431,7 @@ const factory = createLayer(id, () => {
     globalBus.on("update", diff => {
         if (!loaded) return;
 
-        const factoryTicks = tickRate.value.times(diff).toNumber();
+        const factoryTicks = Decimal.times(tickRate.value, diff).toNumber();
 
         //debugger
         // make them produce
@@ -1009,10 +1018,14 @@ const factory = createLayer(id, () => {
 
                 <Spacer />
                 <div
-                    class={Decimal.gt(energyConsumption.value, energy.value) ? "unaffordable" : ""}
+                    class={
+                        Decimal.gt(energyConsumption.value, computedEnergy.value)
+                            ? "unaffordable"
+                            : ""
+                    }
                 >
                     Energy Consumption: {formatWhole(energyConsumption.value)} /{" "}
-                    {formatWhole(energy.value)}
+                    {formatWhole(computedEnergy.value)}
                     <br />
                     Tick Rate: {format(tickRate.value)} TPS
                 </div>
