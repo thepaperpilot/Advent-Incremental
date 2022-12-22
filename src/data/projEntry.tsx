@@ -7,10 +7,10 @@ import {
     jsx
 } from "features/feature";
 import { BaseLayer, createLayer, GenericLayer, layers } from "game/layers";
-import { isPersistent, persistent } from "game/persistence";
-import type { LayerData, PlayerData } from "game/player";
+import { isPersistent, Persistent, persistent } from "game/persistence";
+import type { PlayerData } from "game/player";
 import player from "game/player";
-import Decimal, { format, formatTime } from "util/bignum";
+import { format, formatTime } from "util/bignum";
 import { Computable, convertComputable, ProcessedComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { save } from "util/save";
@@ -24,6 +24,7 @@ import cloth from "./layers/cloth";
 import coal from "./layers/coal";
 import dyes from "./layers/dyes";
 import elves from "./layers/elves";
+import factory from "./layers/factory";
 import letters from "./layers/letters";
 import management from "./layers/management";
 import metal from "./layers/metal";
@@ -49,8 +50,8 @@ import paperSymbol from "./symbols/paperStacks.png";
 import plasticSymbol from "./symbols/plastic.png";
 import ribbonsSymbol from "./symbols/ribbons.png";
 import workshopSymbol from "./symbols/sws.png";
-import toysSymbol from "./symbols/truck.png";
 import treeSymbol from "./symbols/tree.png";
+import toysSymbol from "./symbols/truck.png";
 import advManagementSymbol from "./symbols/workshopMansion.png";
 import wrappingPaperSymbol from "./symbols/wrappingPaper.png";
 
