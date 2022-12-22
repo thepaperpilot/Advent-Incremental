@@ -14,7 +14,6 @@ import { computed, ComputedRef, reactive, ref, watchEffect } from "vue";
 import conveyor from "./factory-components/conveyor.png";
 import cursor from "./factory-components/cursor.jpg";
 import rotate from "./factory-components/rotate_rectangle.png";
-import square from "./factory-components/square.jpg";
 import Factory from "./Factory.vue";
 import "./styles/factory.css";
 
@@ -65,8 +64,8 @@ function getDirection(dir: Direction) {
 }
 
 const factorySize = {
-    width: 3,
-    height: 3
+    width: 6,
+    height: 6
 };
 const blockSize = 50;
 
@@ -104,53 +103,41 @@ const factory = createLayer(id, () => {
                 }
             }
         },
-        square: {
-            imageSrc: square,
-            name: "Producer",
-            description: "Produces 1 square every 1 second.",
+        wood: {
+            imageSrc: wood,
+            name: "Wood Machine",
+            description: "Produces 1 wood every 1 second.",
             tick: 1,
             outputs: {
-                square: {
+                wood: {
                     amount: 1
                 }
             }
         },
-        receiver: {
-            imageSrc: square,
-            name: "Receiver",
-            description: "Obtains squares. Pretty much does nothing else.",
-            tick: 0,
-            inputs: {
-                square: {
-                    amount: Infinity
-                }
-            }
-        },
-        shrinker: {
-            imageSrc: square,
-            name: "Shrinker",
-            description:
-                "Converts 100 squares to 1 square. I don't know why you would want to do this but here you go anyways.",
+        
+        blocks: {
+            imageSrc: blocks,
+            name: "Wooden Block Maker",
+            description: "Turns 1 wood into 1 wooden block every second.",
             tick: 1,
             inputs: {
-                square: {
-                    amount: 100,
-                    capacity: 10000
+                wood: {
+                    amount: 1
                 }
             },
             outputs: {
-                square: {
-                    amount: 1,
-                    capacity: 10
+                block: {
+                    amount: 1
                 }
             }
         }
     } as Record<FactoryCompNames, FactoryComponentDeclaration>;
     const RESOURCES = {
-        square: square
+        wood: wood,
+        block: block
     } as Record<string, string>;
 
-    type FactoryCompNames = "cursor" | "rotate" | "conveyor" | "square" | "receiver" | "shrinker";
+    type FactoryCompNames = "cursor" | "rotate" | "conveyor" | "wood" | "blocks";
     type BuildableCompName = Exclude<FactoryCompNames, "cursor">;
 
     interface FactoryComponentBase extends Record<string, State> {
