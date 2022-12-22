@@ -127,16 +127,63 @@ const factory = createLayer(id, () => {
                 }
             }
         },
-        
+        cloth: {
+            imageSrc: cloth,
+            name: "Cloth Machine",
+            description: "Produces 1 cloth every 1 second.",
+            energyCost: 10,
+            tick: 1,
+            outputs: {
+                cloth: {
+                    amount: 1
+                }
+            }
+        },
+        dye: {
+            imageSrc: dye,
+            name: "Dye Machine",
+            description: "Produces 1 dye every 1 second.",
+            energyCost: 10,
+            tick: 1,
+            outputs: {
+                dye: {
+                    amount: 1
+                }
+            }
+        },
+        metal: {
+            imageSrc: metal,
+            name: "Metal Machine",
+            description: "Produces 1 metal every 1 second.",
+            energyCost: 10,
+            tick: 1,
+            outputs: {
+                metal: {
+                    amount: 1
+                }
+            }
+        },
+        plastic: {
+            imageSrc: plastic,
+            name: "Plastic Machine",
+            description: "Produces 1 plastic every 1 second.",
+            energyCost: 10,
+            tick: 1,
+            outputs: {
+                plastic: {
+                    amount: 1
+                }
+            }
+        },
         blocks: {
             imageSrc: blocks,
             name: "Wooden Block Maker",
-            description: "Turns 1 wood into 1 wooden block every second.",
+            description: "Turns 2 wood into 1 wooden block every second.",
             energyCost: 20,
             tick: 1,
             inputs: {
                 wood: {
-                    amount: 1
+                    amount: 2
                 }
             },
             outputs: {
@@ -144,14 +191,59 @@ const factory = createLayer(id, () => {
                     amount: 1
                 }
             }
+        },
+        clothes: {
+            imageSrc: clothes,
+            name: "Clothes Maker",
+            description: "Turns 2 cloth and 1 dye into 1 clothe every second.",
+            energyCost: 20,
+            tick: 1,
+            inputs: {
+                cloth: {
+                    amount: 2
+                },
+                dye: {
+                    amount: 1
+                }
+            },
+            outputs: {
+                clothes: {
+                    amount: 1
+                }
+            }
+        },
+        trucks: {
+            imageSrc: trucks,
+            name: "Trucks Maker",
+            description: "Turns 2 metal and 1 plastic into 1 truck every second.",
+            energyCost: 20,
+            tick: 1,
+            inputs: {
+                metal: {
+                    amount: 2
+                },
+                plastic: {
+                    amount: 1
+                }
+            },
+            outputs: {
+                trucks: {
+                    amount: 1
+                }
+            }
         }
     } as Record<FactoryCompNames, FactoryComponentDeclaration>;
     const RESOURCES = {
         wood: wood,
-        block: block
+        block: block,
+        cloth: cloth,
+        dye: dye,
+        clothes: clothes,
+        plastic: plastic,
+        metal: metal,
     } as Record<string, string>;
 
-    type FactoryCompNames = "cursor" | "rotate" | "conveyor" | "wood" | "blocks";
+    type FactoryCompNames = "cursor" | "rotate" | "conveyor" | "wood" | "blocks" | "cloth" | "dye" | "clothes" | "plastic" | "metal" | "trucks";
     type BuildableCompName = Exclude<FactoryCompNames, "cursor">;
 
     interface FactoryComponentBase extends Record<string, State> {
