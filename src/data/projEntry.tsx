@@ -24,6 +24,7 @@ import cloth from "./layers/cloth";
 import coal from "./layers/coal";
 import dyes from "./layers/dyes";
 import elves from "./layers/elves";
+import factory from "./layers/factory";
 import letters from "./layers/letters";
 import management from "./layers/management";
 import metal from "./layers/metal";
