@@ -771,6 +771,7 @@ const factory = createLayer(id, () => {
             hoverSprite.y = roundDownTo(mouseCoords.y - ty, blockSize) + ty - blockSize / 2;
             hoverSprite.width = blockSize;
             hoverSprite.height = blockSize;
+            hoverSprite.alpha = 0.5;
             graphicContainer.addChild(hoverSprite);
         }
     }
