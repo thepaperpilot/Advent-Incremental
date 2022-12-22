@@ -509,7 +509,7 @@ const factory = createLayer(id, () => {
             name: "Clothes",
             imageSrc: _clothes
         },
-        truck: {
+        trucks: {
             name: "Trucks",
             imageSrc: _truck
         }
@@ -1299,7 +1299,7 @@ const factory = createLayer(id, () => {
                 <h5>{title}</h5>
                 {(Object.keys(stockData) as ResourceNames[]).map(res => (
                     <div>
-                        {RESOURCES[res].name}:{" "}
+                        {RESOURCES[res]?.name}:{" "}
                         {stockData[res]?.resource != null
                             ? formatWhole(stockData[res]!.resource!.value)
                             : formatWhole(stocks[res] ?? 0)}
