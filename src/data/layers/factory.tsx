@@ -81,8 +81,8 @@ function getDirection(dir: Direction) {
 }
 
 const factorySize = {
-    width: 6,
-    height: 6
+    width: 2,
+    height: 2
 };
 const blockSize = 50;
 
@@ -454,6 +454,7 @@ const factory = createLayer(id, () => {
         }
 
         loaded = true;
+        watchEffect(updateGraphics);
     });
     (window as any).internal = compInternalData;
     (window as any).comp = components;
@@ -773,7 +774,6 @@ const factory = createLayer(id, () => {
             graphicContainer.addChild(hoverSprite);
         }
     }
-    watchEffect(updateGraphics);
 
     const pointerDown = ref(false),
         pointerDrag = ref(false),
