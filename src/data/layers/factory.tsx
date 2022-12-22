@@ -394,6 +394,10 @@ const factory = createLayer(id, () => {
         type: "command" | "conveyor" | "processor";
         description: string;
         energyCost?: number;
+        size?: {
+            width: number;
+            height: number;
+        };
 
         /** amount it consumes */
         inputs?: Record<
@@ -433,7 +437,20 @@ const factory = createLayer(id, () => {
     interface FactoryInternalProcessor extends FactoryInternalBase {
         type: Exclude<BuildableCompName, "conveyor">;
     }
-    type FactoryInternal = FactoryInternalConveyor | FactoryInternalProcessor;
+
+    /**
+     * Fragment is just a hint that this spot is occupied by another component
+     * Does not actually do anything, but stores the string that the actual
+     * component is stored under
+     */
+    interface FactoryInternalFragment {
+        type: "fragment";
+        initalLocation: string;
+    }
+    type FactoryInternal =
+        | FactoryInternalConveyor
+        | FactoryInternalProcessor
+        | FactoryInternalFragment;
 
     interface Block {
         sprite: Sprite;
@@ -538,6 +555,7 @@ const factory = createLayer(id, () => {
             const _data = components.value[id];
             const _compData = compInternalData[id];
             if (_data === undefined || _compData === undefined) continue;
+            if (_compData.type === "fragment") continue;
             const factoryData = FACTORY_COMPONENTS[_data.type];
             // debugger;
             if (_data.type === "conveyor") {
@@ -555,7 +573,7 @@ const factory = createLayer(id, () => {
                     const dirAmt = directionToNum(inputDirection);
                     if (dirType === "h") {
                         if ((block.x - x) * dirAmt >= 1 + block.turbulance) {
-                            const compBehind = compInternalData[x + dirAmt + "x" + y];
+                            let compBehind = compInternalData[x + dirAmt + "x" + y];
                             const storedComp = components.value[x + dirAmt + "x" + y];
 
                             // empty spot
@@ -568,6 +586,12 @@ const factory = createLayer(id, () => {
                                 block.turbulance = Math.random() * 0.4 - 0.2;
                                 (compBehind as FactoryInternalConveyor).nextPackages.push(block);
                             } else {
+                                if (compBehind.type === "fragment") {
+                                    // this should be a factory processor, if it isn't something went wrong
+                                    compBehind = compInternalData[
+                                        compBehind.initalLocation
+                                    ] as FactoryInternalProcessor;
+                                }
                                 // send it to the factory
                                 // destory its sprite and data
                                 const factoryData = storedComp as FactoryComponentProcessor;
@@ -591,7 +615,7 @@ const factory = createLayer(id, () => {
                         }
                     } else {
                         if ((block.y - y) * dirAmt >= 1 + block.turbulance) {
-                            const compBehind = compInternalData[x + "x" + (y + dirAmt)];
+                            let compBehind = compInternalData[x + "x" + (y + dirAmt)];
                             const storedComp = components.value[x + "x" + (y + dirAmt)];
 
                             // empty spot
@@ -606,6 +630,12 @@ const factory = createLayer(id, () => {
                             } else {
                                 // send it to the factory
                                 // destory its sprite and data
+                                if (compBehind.type === "fragment") {
+                                    // this should be a factory processor, if it isn't something went wrong
+                                    compBehind = compInternalData[
+                                        compBehind.initalLocation
+                                    ] as FactoryInternalProcessor;
+                                }
                                 const data = storedComp as FactoryComponentProcessor;
                                 if (factoryData.inputs?.[block.type] !== undefined) {
                                     if (data.inputStock === undefined) data.inputStock = {};
@@ -747,6 +777,10 @@ const factory = createLayer(id, () => {
 
         const factoryBaseData = FACTORY_COMPONENTS[data.type];
         if (factoryBaseData == undefined) return;
+        const size = factoryBaseData.size ?? { width: 1, height: 1 };
+
+        // this is too big
+        if (x + size.width >= factorySize.width || y + size.height >= factorySize.height) return;
         const sheet = Assets.get(factoryBaseData.imageSrc);
         const sprite = new Sprite(sheet);
 
@@ -805,17 +839,42 @@ const factory = createLayer(id, () => {
             }),
             sprite
         } as FactoryInternalProcessor;
+        for (let _x = 0; _x < size.width; _x++) {
+            for (let _y = 0; _y < size.height; _y++) {
+                compInternalData[_x + "x" + _y] = {
+                    type: "fragment",
+                    initalLocation: x + "x" + y
+                };
+            }
+        }
         spriteContainer.addChild(sprite);
     }
-        
+
     function removeFactoryComp(x: number, y: number) {
         const data = compInternalData[x + "x" + y];
         if (data === undefined) return;
+
+        if (data.type === "fragment") {
+            const [x, y] = data.initalLocation.split("x").map(i => +i);
+            removeFactoryComp(x, y);
+            return;
+        }
 
         if (data.type === "conveyor") {
             const cData = data as FactoryInternalConveyor;
             for (const p of cData.packages) {
                 p.sprite.destroy();
+            }
+        } else {
+            const size = FACTORY_COMPONENTS[data.type].size ?? { width: 1, height: 1 };
+
+            // delete all components
+            for (let x = 0; x < size.width; x++) {
+                for (let y = 0; y < size.height; y++) {
+                    // this will be handled below
+                    if (x === 0 && y === 0) continue;
+                    delete compInternalData[x + "x" + y];
+                }
             }
         }
 
@@ -917,7 +976,8 @@ const factory = createLayer(id, () => {
                 if (compSelected.value === "rotateLeft") {
                     if (
                         components.value[x + "x" + y] != null &&
-                        components.value[x + "x" + y].direction != null
+                        components.value[x + "x" + y].direction != null &&
+                        compInternalData[x + "x" + y].type !== "fragment"
                     ) {
                         components.value[x + "x" + y] = {
                             ...components.value[x + "x" + y],
@@ -927,12 +987,15 @@ const factory = createLayer(id, () => {
                                 Direction.Left
                             )
                         };
-                        compInternalData[x + "x" + y].sprite.rotation -= Math.PI / 2;
+                        (
+                            compInternalData[x + "x" + y] as FactoryInternalProcessor
+                        ).sprite.rotation -= Math.PI / 2;
                     }
                 } else if (compSelected.value === "rotateRight") {
                     if (
                         components.value[x + "x" + y] != null &&
-                        components.value[x + "x" + y].direction != null
+                        components.value[x + "x" + y].direction != null &&
+                        compInternalData[x + "x" + y]?.type !== "fragment"
                     ) {
                         components.value[x + "x" + y] = {
                             ...components.value[x + "x" + y],
@@ -942,9 +1005,18 @@ const factory = createLayer(id, () => {
                                 Direction.Right
                             )
                         };
-                        compInternalData[x + "x" + y].sprite.rotation += Math.PI / 2;
+                        (
+                            compInternalData[x + "x" + y] as FactoryInternalProcessor
+                        ).sprite.rotation += Math.PI / 2;
                     }
                 } else if (compSelected.value === "delete") {
+                    if (compInternalData[x + "x" + y]?.type === "fragment") {
+                        [x, y] = (
+                            compInternalData[x + "x" + y] as FactoryInternalFragment
+                        ).initalLocation
+                            .split("x")
+                            .map(i => +i);
+                    }
                     removeFactoryComp(x, y);
                 } else if (compSelected.value !== "cursor") {
                     if (components.value[x + "x" + y] == null) {
@@ -976,10 +1048,11 @@ const factory = createLayer(id, () => {
     function onCompClick(name: FactoryCompNames) {
         compSelected.value = name;
     }
-        
+
     function setTracks() {
         for (const [key, comp] of Object.entries(compInternalData)) {
             if (comp == null) continue;
+            if (comp.type === "fragment") continue;
             if (comp.type === "conveyor") {
                 for (const pkg of [...comp.nextPackages, ...comp.packages]) {
                     pkg.sprite.destroy();
@@ -988,7 +1061,7 @@ const factory = createLayer(id, () => {
                 comp.nextPackages = [];
                 comp.packages = [];
             } else {
-                const producerComp = components.value[key] as FactoryComponentProducer;
+                const producerComp = components.value[key] as FactoryComponentProcessor;
                 if (producerComp.outputStock !== undefined) {
                     for (const key in producerComp.outputStock) {
                         delete producerComp.outputStock[key];
@@ -1003,9 +1076,10 @@ const factory = createLayer(id, () => {
             }
         }
     }
-        
+
     function clearFactory() {
         for (const key of Object.keys(compInternalData)) {
+            if (compInternalData[key].type === "fragment") continue;
             const [x, y] = key.split("x").map(i => +i);
             removeFactoryComp(x, y);
         }
@@ -1059,44 +1133,44 @@ const factory = createLayer(id, () => {
                                     onContextmenu={(e: MouseEvent) => e.preventDefault()}
                                 />
                                 <div class="controls-container">
-                    <button
-                        class="control-btn"
-                        style={{
-                            "border-color": "purple"
-                        }}
-                        onClick={setTracks}
-                    >
-                        Clear Tracks
-                    </button>
-                    <button
-                        class="control-btn"
-                        style={{
-                            "border-color": "red"
-                        }}
-                        onClick={clearFactory}
-                    >
-                        Clear Factory
-                    </button>
-                    <button
-                        class="control-btn"
-                        style={{
-                            "border-color": "green"
-                        }}
-                        onClick={moveToCenter}
-                    >
-                        Go to Center
-                    </button>
-                    <button
-                        class="control-btn"
-                        style={{
-                            "border-color": paused.value ? "green" : "red"
-                        }}
-                        onClick={togglePaused}
-                    >
-                        {paused.value ? "Unpause" : "Pause"} the Factory
-                    </button>
-                </div>
-                                
+                                    <button
+                                        class="control-btn"
+                                        style={{
+                                            "border-color": "purple"
+                                        }}
+                                        onClick={setTracks}
+                                    >
+                                        Clear Tracks
+                                    </button>
+                                    <button
+                                        class="control-btn"
+                                        style={{
+                                            "border-color": "red"
+                                        }}
+                                        onClick={clearFactory}
+                                    >
+                                        Clear Factory
+                                    </button>
+                                    <button
+                                        class="control-btn"
+                                        style={{
+                                            "border-color": "green"
+                                        }}
+                                        onClick={moveToCenter}
+                                    >
+                                        Go to Center
+                                    </button>
+                                    <button
+                                        class="control-btn"
+                                        style={{
+                                            "border-color": paused.value ? "green" : "red"
+                                        }}
+                                        onClick={togglePaused}
+                                    >
+                                        {paused.value ? "Unpause" : "Pause"} the Factory
+                                    </button>
+                                </div>
+
                                 <div class="comp-container">
                                     <div
                                         class={{
