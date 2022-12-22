@@ -829,7 +829,7 @@ const factory = createLayer(id, () => {
                     (y + yInc * 0.3 + (yInc == 0 ? Math.random() * 0.4 - 0.2 : 0)) * blockSize;
                 sprite.anchor.set(0.5);
                 sprite.width = blockSize / 2.5;
-                sprite.height = blockSize / 5;
+                sprite.height = blockSize / 2.5;
                 //console.log(sprite);
                 const block: Block = {
                     sprite,
