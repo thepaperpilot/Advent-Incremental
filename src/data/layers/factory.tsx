@@ -16,6 +16,7 @@ import cursor from "./factory-components/cursor.jpg";
 import rotate from "./factory-components/rotate_rectangle.png";
 import Factory from "./Factory.vue";
 import "./styles/factory.css";
+import coal from "./coal";
 
 const id = "factory";
 
@@ -74,7 +75,7 @@ const factory = createLayer(id, () => {
     const name = "The Factory";
     const color = "grey";
 
-    const energy = computed(() => 100);
+    const energy = computed(() => Decimal.add(1, coal.coal.value).log10());
     const energyConsumption = computed(() =>
         Object.values(components.value)
             .map(c => FACTORY_COMPONENTS[c.type].energyCost ?? 0)
@@ -118,6 +119,7 @@ const factory = createLayer(id, () => {
             imageSrc: wood,
             name: "Wood Machine",
             description: "Produces 1 wood every 1 second.",
+            energyCost: 10,
             tick: 1,
             outputs: {
                 wood: {
@@ -130,6 +132,7 @@ const factory = createLayer(id, () => {
             imageSrc: blocks,
             name: "Wooden Block Maker",
             description: "Turns 1 wood into 1 wooden block every second.",
+            energyCost: 20,
             tick: 1,
             inputs: {
                 wood: {
