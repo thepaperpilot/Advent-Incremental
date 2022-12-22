@@ -377,7 +377,7 @@ const factory = createLayer(id, () => {
             },
             outputs: {
                 wheel: {
-                    amount: 1
+                    amount: toys.milestones.milestone5.earned ? 2 : 1
                 }
             }
         },
