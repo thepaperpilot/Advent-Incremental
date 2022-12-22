@@ -123,6 +123,11 @@ const factory = createLayer(id, () => {
         createAdditiveModifier(() => ({
             addend: () => Decimal.add(1, coal.coal.value).log10(),
             description: "Coal Energy Production"
+        })),
+        createMultiplicativeModifier(()=>({
+            multiplier: 1.4,
+            description: "2000 toys",
+            enabled: toys.milestones.milestone6.earned
         }))
     ]);
     const computedEnergy = computed(() => energy.apply(0));
@@ -379,7 +384,7 @@ const factory = createLayer(id, () => {
             },
             outputs: {
                 wheel: {
-                    amount: 1
+                    amount: toys.milestones.milestone5.earned.value ? 2 : 1
                 }
             }
         } as FactoryComponentDeclaration,
