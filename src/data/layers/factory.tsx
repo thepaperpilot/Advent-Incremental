@@ -32,7 +32,7 @@ import { render, renderRow } from "util/vue";
 import { computed, ComputedRef, reactive, ref, watchEffect } from "vue";
 import coal from "./coal";
 import _block from "./factory-components/block.svg";
-import _blockMaker from "./factory-components/blockMaker.svg";
+import _blockMaker from "./factory-components/blockmaker.svg";
 import _clothes from "./factory-components/clothes.svg";
 import _clothesMaker from "./factory-components/clothesmaker.svg";
 import _conveyor from "./factory-components/conveyor.png";
