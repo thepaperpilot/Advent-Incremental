@@ -214,7 +214,7 @@ const factory = createLayer(id, () => {
             type: "command",
             description: "Drag while equipping this to move around.",
             tick: 0
-        },
+        } as FactoryComponentDeclaration,
         delete: {
             imageSrc: _delete,
             key: "Backspace",
@@ -222,7 +222,7 @@ const factory = createLayer(id, () => {
             type: "command",
             description: "Remove components from the board.",
             tick: 0
-        },
+        } as FactoryComponentDeclaration,
         rotateLeft: {
             imageSrc: _rotateLeft,
             key: "t",
@@ -230,7 +230,7 @@ const factory = createLayer(id, () => {
             type: "command",
             description: "Use this to rotate components counter-clockwise.",
             tick: 0
-        },
+        } as FactoryComponentDeclaration,
         rotateRight: {
             imageSrc: _rotateRight,
             key: "shift+T",
@@ -238,7 +238,7 @@ const factory = createLayer(id, () => {
             type: "command",
             description: "Use this to rotate components clockwise.",
             tick: 0
-        },
+        } as FactoryComponentDeclaration,
         conveyor: {
             imageSrc: _conveyor,
             key: "0",
@@ -255,7 +255,7 @@ const factory = createLayer(id, () => {
                     type: "output"
                 }
             }
-        },
+        } as FactoryComponentDeclaration,
         wood: {
             imageSrc: _wood,
             key: "1",
@@ -269,7 +269,7 @@ const factory = createLayer(id, () => {
                     amount: 1
                 }
             }
-        },
+        } as FactoryComponentDeclaration,
         cloth: {
             imageSrc: _cloth,
             key: "2",
@@ -283,7 +283,7 @@ const factory = createLayer(id, () => {
                     amount: 1
                 }
             }
-        },
+        } as FactoryComponentDeclaration,
         dye: {
             imageSrc: _dye,
             key: "3",
@@ -297,7 +297,7 @@ const factory = createLayer(id, () => {
                     amount: 1
                 }
             }
-        },
+        } as FactoryComponentDeclaration,
         metal: {
             imageSrc: _metal,
             key: "4",
@@ -311,7 +311,7 @@ const factory = createLayer(id, () => {
                     amount: 1
                 }
             }
-        },
+        } as FactoryComponentDeclaration,
         plastic: {
             imageSrc: _plastic,
             key: "5",
@@ -325,7 +325,7 @@ const factory = createLayer(id, () => {
                     amount: 1
                 }
             }
-        },
+        } as FactoryComponentDeclaration,
         plank: {
             imageSrc: _plankMaker,
             key: "shift+1",
@@ -344,7 +344,7 @@ const factory = createLayer(id, () => {
                     amount: 1
                 }
             }
-        },
+        } as FactoryComponentDeclaration,
         thread: {
             imageSrc: _threadMaker,
             key: "shift+2",
@@ -363,7 +363,7 @@ const factory = createLayer(id, () => {
                     amount: 1
                 }
             }
-        },
+        } as FactoryComponentDeclaration,
         wheel: {
             imageSrc: _wheelMaker,
             key: "shift+3",
@@ -382,7 +382,7 @@ const factory = createLayer(id, () => {
                     amount: 1
                 }
             }
-        },
+        } as FactoryComponentDeclaration,
         blocks: {
             imageSrc: _blockMaker,
             key: "ctrl+shift+1",
@@ -402,7 +402,7 @@ const factory = createLayer(id, () => {
                     resource: toys.woodenBlocks
                 }
             }
-        },
+        } as FactoryComponentDeclaration,
         clothes: {
             imageSrc: _clothesMaker,
             key: "ctrl+shift+2",
@@ -425,7 +425,7 @@ const factory = createLayer(id, () => {
                     resource: toys.clothes
                 }
             }
-        },
+        } as FactoryComponentDeclaration,
         trucks: {
             imageSrc: _truckMaker,
             key: "ctrl+shift+3",
@@ -448,23 +448,56 @@ const factory = createLayer(id, () => {
                     resource: toys.trucks
                 }
             }
-        }
-    } as Record<FactoryCompNames, FactoryComponentDeclaration>;
+        } as FactoryComponentDeclaration
+    } as const;
     const RESOURCES = {
         // Raw resources
-        wood: _wood,
-        cloth: _cloth,
-        dye: _dye,
-        plastic: _plastic,
-        metal: _metal,
+        wood: {
+            name: "Wood",
+            imageSrc: _wood
+        },
+        cloth: {
+            name: "Cloth",
+            imageSrc: _cloth
+        },
+        dye: {
+            name: "Dye",
+            imageSrc: _dye
+        },
+        plastic: {
+            name: "Plastic",
+            imageSrc: _plastic
+        },
+        metal: {
+            name: "Metal",
+            imageSrc: _metal
+        },
         // Processed resources
-        plank: _plank,
-        thread: _thread,
-        wheel: _wheel,
+        plank: {
+            name: "Planks",
+            imageSrc: _plank
+        },
+        thread: {
+            name: "Thread",
+            imageSrc: _thread
+        },
+        wheel: {
+            name: "Wheels",
+            imageSrc: _wheel
+        },
         // Toys
-        block: _block,
-        clothes: _clothes,
-        truck: _truck
+        block: {
+            name: "Wooden Blocks",
+            imageSrc: _block
+        },
+        clothes: {
+            name: "Clothes",
+            imageSrc: _clothes
+        },
+        truck: {
+            name: "Trucks",
+            imageSrc: _truck
+        }
     } as const;
 
     const hotkeys = (Object.keys(FACTORY_COMPONENTS) as FactoryCompNames[]).reduce((acc, comp) => {
@@ -479,20 +512,7 @@ const factory = createLayer(id, () => {
         return acc;
     }, {} as Record<FactoryCompNames, GenericHotkey>);
 
-    type FactoryCompNames =
-        | "cursor"
-        | "delete"
-        | "rotateLeft"
-        | "rotateRight"
-        | "conveyor"
-        | "wood"
-        | "blocks"
-        | "cloth"
-        | "dye"
-        | "clothes"
-        | "plastic"
-        | "metal"
-        | "trucks";
+    type FactoryCompNames = keyof typeof FACTORY_COMPONENTS;
     type BuildableCompName = Exclude<FactoryCompNames, "cursor">;
     type ResourceNames = keyof typeof RESOURCES;
 
@@ -639,7 +659,7 @@ const factory = createLayer(id, () => {
     // load every sprite here so pixi doesn't complain about loading multiple times
     const assetsLoading = Promise.all([
         Assets.load(Object.values(FACTORY_COMPONENTS).map(x => x.imageSrc)),
-        Assets.load(Object.values(RESOURCES))
+        Assets.load(Object.values(RESOURCES).map(x => x.imageSrc))
     ]);
 
     const app = new Application({
@@ -867,7 +887,7 @@ const factory = createLayer(id, () => {
                 }
                 // there is nothing to move
                 if (itemToMove === undefined) continue;
-                const texture = Assets.get(RESOURCES[itemToMove[0]]);
+                const texture = Assets.get(RESOURCES[itemToMove[0]].imageSrc);
                 const sprite = new Sprite(texture);
 
                 /*
@@ -1152,12 +1172,13 @@ const factory = createLayer(id, () => {
         for (const [key, comp] of Object.entries(compInternalData)) {
             if (comp == null) continue;
             if (comp.type === "conveyor") {
-                for (const pkg of [...comp.nextPackages, ...comp.packages]) {
+                const cComp = comp as FactoryInternalConveyor;
+                for (const pkg of [...cComp.nextPackages, ...cComp.packages]) {
                     pkg.sprite.destroy();
                     movingBlocks.removeChild(pkg.sprite);
                 }
-                comp.nextPackages = [];
-                comp.packages = [];
+                cComp.nextPackages = [];
+                cComp.packages = [];
             } else {
                 const producerComp = components.value[key] as FactoryComponentProcessor;
                 if (producerComp.outputStock !== undefined) {
@@ -1260,7 +1281,7 @@ const factory = createLayer(id, () => {
                 <h5>{title}</h5>
                 {(Object.keys(stockData) as ResourceNames[]).map(res => (
                     <div>
-                        {res}:{" "}
+                        {RESOURCES[res].name}:{" "}
                         {stockData[res]?.resource != null
                             ? formatWhole(stockData[res]!.resource!.value)
                             : formatWhole(stocks[res] ?? 0)}
