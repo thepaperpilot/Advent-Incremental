@@ -446,7 +446,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
             shouldNotify: false,
             layer: "factory",
             symbol: factorySymbol,
-            story: "Alright, so those toys were using incredibly amounts of resources to make. Fortunately, you happen to have access to a group of people with an uncanny knack for making stuff without actually consuming materials - Elves! Let's turn this workshop into a proper factory, and get them producing these toys by themselves.",
+            story: "Alright, so those toys were using incredibly large amounts of resources to make. Fortunately, you happen to have access to a group of people with an uncanny knack for making stuff without actually consuming materials - Elves! Let's turn this workshop into a proper factory, and get them producing these toys with miraculous efficiency!",
             completedStory:
                 "That was a bit different than the usual elf training you are used to. But this factory seems very versatile, so you think it's a fair trade-off for needing to set things up a bit more. Good Job!",
             masteredStory: ""
