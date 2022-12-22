@@ -311,7 +311,7 @@ const layer = createLayer(id, () => {
                 effectDisplay: jsx(() => (
                     <>
                         Multiply log gain by <sup>9</sup>
-                        <Sqrt>Cutter amount</Sqrt>.
+                        <Sqrt>Cutter amount</Sqrt>
                     </>
                 ))
             },
@@ -320,7 +320,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Holly Level 2",
-                effectDisplay: "Holly now buys max."
+                effectDisplay: "Holly now buys max"
             },
             visibility: () => showIf(cutterElfMilestones[0].earned.value),
             shouldEarn: () => cutterElfTraining.level.value >= 2
@@ -330,8 +330,7 @@ const layer = createLayer(id, () => {
                 requirement: "Holly Level 3",
                 effectDisplay: jsx(() => (
                     <>
-                        Multiply all cloth actions' effectiveness by log<sub>10</sub>(Cutter
-                        amount).
+                        Multiply all cloth actions' effectiveness by log<sub>10</sub>(Cutter amount)
                     </>
                 ))
             },
@@ -349,7 +348,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Holly Level 5",
-                effectDisplay: "Unlock an elf that autobuys oil drills and extractors."
+                effectDisplay: "Unlock an elf that autobuys oil drills and extractors"
             },
             visibility: () => showIf(cutterElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => cutterElfTraining.level.value >= 5,
@@ -362,14 +361,14 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Ivy Level 1",
-                effectDisplay: "Planters are now twice as efficent."
+                effectDisplay: "Planters are now twice as efficent"
             },
             shouldEarn: () => planterElfTraining.level.value >= 1
         })),
         createMilestone(() => ({
             display: {
                 requirement: "Ivy Level 2",
-                effectDisplay: "Ivy now buys max."
+                effectDisplay: "Ivy now buys max"
             },
             visibility: () => showIf(planterElfMilestones[0].earned.value),
             shouldEarn: () => planterElfTraining.level.value >= 2
@@ -418,7 +417,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Hope Level 2",
-                effectDisplay: "Hope now buys max."
+                effectDisplay: "Hope now buys max"
             },
             visibility: () => showIf(expanderElfMilestones[0].earned.value),
             shouldEarn: () => expandersElfTraining.level.value >= 2
@@ -426,7 +425,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Hope Level 3",
-                effectDisplay: "The workshop can be expanded past 100%, but costs scale faster."
+                effectDisplay: "The workshop can be expanded past 100%, but costs scale faster"
             },
             visibility: () => showIf(expanderElfMilestones[1].earned.value),
             shouldEarn: () => expandersElfTraining.level.value >= 3
@@ -434,7 +433,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Hope Level 4",
-                effectDisplay: "Unlock an elf that autobuys coal drills."
+                effectDisplay: "Unlock an elf that autobuys coal drills"
             },
             visibility: () => showIf(expanderElfMilestones[2].earned.value && main.day.value >= 13),
             shouldEarn: () => expandersElfTraining.level.value >= 4,
@@ -455,7 +454,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Jack Level 1",
-                effectDisplay: '"Fahrenheit 451" affects "Heated Cutters" twice.'
+                effectDisplay: '"Fahrenheit 451" affects "Heated Cutters" twice'
             },
             shouldEarn: () => heatedCutterElfTraining.level.value >= 1
         })),
@@ -470,7 +469,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Jack Level 3",
-                effectDisplay: "Jack and Joy now buy max."
+                effectDisplay: "Jack and Joy now buy max"
             },
             visibility: () => showIf(heatedCutterElfMilestones[1].earned.value),
             shouldEarn: () => heatedCutterElfTraining.level.value >= 3
@@ -480,7 +479,7 @@ const layer = createLayer(id, () => {
                 requirement: "Jack Level 4",
                 effectDisplay: jsx(() => (
                     <>
-                        Oil gain is multiplied by <Sqrt>total elf levels</Sqrt>.
+                        Oil gain is multiplied by <Sqrt>total elf levels</Sqrt>
                     </>
                 ))
             },
@@ -491,7 +490,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Jack Level 5",
-                effectDisplay: "Unlock an elf that autobuys oil-using machines."
+                effectDisplay: "Unlock an elf that autobuys oil-using machines"
             },
             visibility: () =>
                 showIf(heatedCutterElfMilestones[3].earned.value && main.day.value >= 13),
@@ -505,14 +504,14 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Mary Level 1",
-                effectDisplay: `"Tillamook Burn Country" affects "Heated Planters" twice.`
+                effectDisplay: `"Tillamook Burn Country" affects "Heated Planters" twice`
             },
             shouldEarn: () => heatedPlanterElfTraining.level.value >= 1
         })),
         createMilestone(() => ({
             display: {
                 requirement: "Mary Level 2",
-                effectDisplay: "Metal gain is raised to the 1.1."
+                effectDisplay: "Metal gain is raised to the 1.1"
             },
             visibility: () => showIf(heatedPlanterElfMilestones[0].earned.value),
             shouldEarn: () => heatedPlanterElfTraining.level.value >= 2
@@ -520,7 +519,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Mary Level 3",
-                effectDisplay: "Mary, Noel, and Faith now buy max."
+                effectDisplay: "Mary, Noel, and Faith now buy max"
             },
             visibility: () => showIf(heatedPlanterElfMilestones[1].earned.value),
             shouldEarn: () => heatedPlanterElfTraining.level.value >= 3
@@ -539,7 +538,7 @@ const layer = createLayer(id, () => {
                 requirement: "Mary Level 5",
                 effectDisplay: jsx(() => (
                     <>
-                        Auto smelting speed is multiplied by <Sqrt>total XP/1e6</Sqrt>.
+                        Auto smelting speed is multiplied by <Sqrt>total XP/1e6</Sqrt>
                     </>
                 ))
             },
@@ -554,7 +553,7 @@ const layer = createLayer(id, () => {
                 requirement: "Noel Level 1",
                 effectDisplay: jsx(() => (
                     <>
-                        Log gain is multiplied by <Sqrt>total elf levels</Sqrt>.
+                        Log gain is multiplied by <Sqrt>total elf levels</Sqrt>
                     </>
                 ))
             },
@@ -606,7 +605,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Joy Level 1",
-                effectDisplay: "Small Fire synergy counts bonfires at reduced rate."
+                effectDisplay: "Small Fire synergy counts bonfires at reduced rate"
             },
             shouldEarn: () => smallfireElfTraining.level.value >= 1
         })),
@@ -649,7 +648,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Faith Level 1",
-                effectDisplay: "Multiply bonfire efficiency by 5."
+                effectDisplay: "Multiply bonfire efficiency by 5"
             },
             shouldEarn: () => bonfireElfTraining.level.value >= 1
         })),
@@ -690,7 +689,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Snowball Level 1",
-                effectDisplay: "Multiply kiln efficiency by 5."
+                effectDisplay: "Multiply kiln efficiency by 5"
             },
             shouldEarn: () => kilnElfTraining.level.value >= 1
         })),
@@ -731,7 +730,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Star Level 1",
-                effectDisplay: "Book cost is divided by total books bought."
+                effectDisplay: "Book cost is divided by total books bought"
             },
             shouldEarn: () => paperElfTraining.level.value >= 1
         })),
@@ -762,7 +761,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Star Level 5",
-                effectDisplay: "Gain 5 free books for all prior elves that are at level 5 or above."
+                effectDisplay: "Gain 5 free books for all prior elves that are at level 5 or above"
             },
             visibility: () => showIf(paperElfMilestones[3].earned.value && main.day.value >= 13),
             shouldEarn: () => paperElfTraining.level.value >= 5
@@ -774,7 +773,7 @@ const layer = createLayer(id, () => {
                 requirement: "Bell Level 1",
                 effectDisplay: jsx(() => (
                     <>
-                        Every box buyable adds <Sqrt>level</Sqrt> levels to same-row box buyables.
+                        Every box buyable adds <Sqrt>level</Sqrt> levels to same-row box buyables
                     </>
                 ))
             },
@@ -823,7 +822,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Gingersnap Level 1",
-                effectDisplay: "Multiply all primary dye colors by ln(cloth + e)."
+                effectDisplay: "Multiply all primary dye colors by ln(cloth + e)"
             },
             shouldEarn: () => clothElfTraining.level.value >= 1
         })),
@@ -932,7 +931,7 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Twinkle Level 3",
-                effectDisplay: "Auto smelting multi is tripled."
+                effectDisplay: "Auto smelting multi is tripled"
             },
             visibility: () => showIf(metalElfMilestones[1].earned.value),
             shouldEarn: () => metalElfTraining.level.value >= 3
@@ -1107,7 +1106,7 @@ const layer = createLayer(id, () => {
                 effectDisplay: jsx(() => (
                     <>
                         Every plastic buyable adds <Sqrt>level</Sqrt> levels to the other plastic
-                        buyables.
+                        buyables
                     </>
                 ))
             },
