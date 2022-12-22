@@ -814,7 +814,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         onPress: () => {
             if (cutTree.canClick.value) cutTree.onClick();
         },
-        enabled: main.days[day - 1].opened
+        enabled: noPersist(main.days[day - 1].opened)
     }));
     const plantTreeHK = createHotkey(() => ({
         key: "p",
@@ -822,7 +822,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         onPress: () => {
             if (plantTree.canClick.value) plantTree.onClick();
         },
-        enabled: main.days[day - 1].opened
+        enabled: noPersist(main.days[day - 1].opened)
     }));
 
     const { total: totalLogs, trackerDisplay } = setUpDailyProgressTracker({

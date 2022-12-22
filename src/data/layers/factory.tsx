@@ -7,7 +7,7 @@ import Spacer from "components/layout/Spacer.vue";
 import { jsx } from "features/feature";
 import { globalBus } from "game/events";
 import { createLayer } from "game/layers";
-import { Persistent, persistent, State } from "game/persistence";
+import { noPersist, Persistent, persistent, State } from "game/persistence";
 import Decimal, { format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { computed, ComputedRef, reactive, ref, watchEffect } from "vue";
@@ -27,10 +27,16 @@ import _truck from "./factory-components/rotate_rectangle.png";
 import Factory from "./Factory.vue";
 import "./styles/factory.css";
 import coal from "./coal";
-import { createBar } from "features/bars/bar";
 import { render } from "util/vue";
 import { createTab } from "features/tabs/tab";
 import { createTabFamily } from "features/tabs/tabFamily";
+import { createAdditiveModifier, createSequentialModifier } from "game/modifiers";
+import { main } from "data/projEntry";
+import { createCollapsibleModifierSections } from "data/common";
+import Modal from "components/Modal.vue";
+import { createBar, GenericBar } from "features/bars/bar";
+import HotkeyVue from "components/Hotkey.vue";
+import { createHotkey, GenericHotkey } from "features/hotkey";
 
 const id = "factory";
 
@@ -89,19 +95,22 @@ const factory = createLayer(id, () => {
     const name = "The Factory";
     const color = "grey";
 
-    // ---------------------------------------------- Energy
-
-    const energy = computed(() => Decimal.add(1, coal.coal.value).log10());
+    const energy = createSequentialModifier(() => [
+        createAdditiveModifier(() => ({
+            addend: () => Decimal.add(1, coal.coal.value).log10(),
+            description: "Coal Energy Production"
+        }))
+    ]);
+    const computedEnergy = computed(() => energy.apply(0));
     const energyConsumption = computed(() =>
         Object.values(components.value)
             .map(c => FACTORY_COMPONENTS[c.type]?.energyCost ?? 0)
             .reduce((a, b) => a + b, 0)
     );
     const tickRate = computed(() =>
-        Decimal.div(energyConsumption.value || 1, energy.value)
-            .recip()
-            .pow(2)
-            .min(1)
+        Decimal.eq(energyConsumption.value, 0)
+            ? 1
+            : Decimal.div(energyConsumption.value, computedEnergy.value).recip().pow(2).min(1)
     );
 
     const energyBar = createBar(() => ({
@@ -112,15 +121,18 @@ const factory = createLayer(id, () => {
         style: { borderRadius: "var(--border-radius) var(--border-radius) 0 0" },
         borderStyle: { borderRadius: "var(--border-radius) var(--border-radius) 0 0" },
         fillStyle: () => ({
-            backgroundColor: Decimal.gt(energyConsumption.value, energy.value) ? "red" : "yellow"
+            backgroundColor: Decimal.gt(energyConsumption.value, computedEnergy.value)
+                ? "red"
+                : "yellow"
         }),
         progress: () =>
-            Decimal.gt(energyConsumption.value, energy.value)
-                ? Decimal.sub(1, Decimal.div(energy.value, energyConsumption.value))
-                : Decimal.sub(1, Decimal.div(energyConsumption.value, energy.value)),
+            Decimal.gt(energyConsumption.value, computedEnergy.value)
+                ? Decimal.sub(1, Decimal.div(computedEnergy.value, energyConsumption.value))
+                : Decimal.sub(1, Decimal.div(energyConsumption.value, computedEnergy.value)),
         display: jsx(() => (
             <>
-                {formatWhole(energyConsumption.value)} / {formatWhole(energy.value)} energy used
+                {formatWhole(energyConsumption.value)} / {formatWhole(computedEnergy.value)} energy
+                used
                 {Decimal.lt(tickRate.value, 1) ? (
                     <>{" (" + format(Decimal.mul(tickRate.value, 100))}% efficiency)</>
                 ) : (
@@ -135,6 +147,7 @@ const factory = createLayer(id, () => {
     const FACTORY_COMPONENTS = {
         cursor: {
             imageSrc: _cursor,
+            key: "Escape",
             name: "Cursor",
             type: "command",
             description: "Drag to move around.",
@@ -142,6 +155,7 @@ const factory = createLayer(id, () => {
         },
         delete: {
             imageSrc: _delete,
+            key: "Backspace",
             name: "Delete",
             type: "command",
             description: "Remove components from the board.",
@@ -149,6 +163,7 @@ const factory = createLayer(id, () => {
         },
         rotateLeft: {
             imageSrc: _rotateLeft,
+            key: "t",
             name: "Rotate Left",
             type: "command",
             description: "Use this to rotate components counter-clockwise.",
@@ -156,6 +171,7 @@ const factory = createLayer(id, () => {
         },
         rotateRight: {
             imageSrc: _rotateRight,
+            key: "shift+t",
             name: "Rotate Right",
             type: "command",
             description: "Use this to rotate components clockwise.",
@@ -163,6 +179,7 @@ const factory = createLayer(id, () => {
         },
         conveyor: {
             imageSrc: _conveyor,
+            key: "0",
             name: "Conveyor",
             type: "conveyor",
             description: "Moves items at 1 block per second.",
@@ -179,6 +196,7 @@ const factory = createLayer(id, () => {
         },
         wood: {
             imageSrc: _wood,
+            key: "1",
             name: "Wood Machine",
             type: "processor",
             description: "Produces 1 wood every 1 second.",
@@ -192,6 +210,7 @@ const factory = createLayer(id, () => {
         },
         cloth: {
             imageSrc: _cloth,
+            key: "2",
             name: "Cloth Machine",
             type: "processor",
             description: "Produces 1 cloth every 1 second.",
@@ -205,6 +224,7 @@ const factory = createLayer(id, () => {
         },
         dye: {
             imageSrc: _dye,
+            key: "3",
             name: "Dye Machine",
             type: "processor",
             description: "Produces 1 dye every 1 second.",
@@ -218,6 +238,7 @@ const factory = createLayer(id, () => {
         },
         metal: {
             imageSrc: _metal,
+            key: "4",
             name: "Metal Machine",
             type: "processor",
             description: "Produces 1 metal every 1 second.",
@@ -231,6 +252,7 @@ const factory = createLayer(id, () => {
         },
         plastic: {
             imageSrc: _plastic,
+            key: "5",
             name: "Plastic Machine",
             type: "processor",
             description: "Produces 1 plastic every 1 second.",
@@ -244,6 +266,7 @@ const factory = createLayer(id, () => {
         },
         blocks: {
             imageSrc: _block,
+            key: "shift+1",
             name: "Wooden Block Maker",
             type: "processor",
             description: "Turns 2 wood into 1 wooden block every second.",
@@ -262,6 +285,7 @@ const factory = createLayer(id, () => {
         },
         clothes: {
             imageSrc: _clothes,
+            key: "shift+2",
             name: "Clothes Maker",
             type: "processor",
             description: "Turns 2 cloth and 1 dye into 1 clothe every second.",
@@ -283,6 +307,7 @@ const factory = createLayer(id, () => {
         },
         trucks: {
             imageSrc: _truck,
+            key: "shift+3",
             name: "Trucks Maker",
             type: "processor",
             description: "Turns 2 metal and 1 plastic into 1 truck every second.",
@@ -312,6 +337,18 @@ const factory = createLayer(id, () => {
         plastic: _plastic,
         metal: _metal
     } as Record<string, string>;
+
+    const hotkeys = (Object.keys(FACTORY_COMPONENTS) as FactoryCompNames[]).reduce((acc, comp) => {
+        acc[comp] = createHotkey(() => ({
+            key: FACTORY_COMPONENTS[comp].key,
+            description: "Select " + FACTORY_COMPONENTS[comp].name,
+            onPress() {
+                compSelected.value = comp;
+            },
+            enabled: noPersist(main.days[day - 1].opened)
+        }));
+        return acc;
+    }, {} as Record<FactoryCompNames, GenericHotkey>);
 
     type FactoryCompNames =
         | "cursor"
@@ -351,6 +388,7 @@ const factory = createLayer(id, () => {
 
     interface FactoryComponentDeclaration {
         tick: number;
+        key: string;
         imageSrc: string;
         name: string;
         type: "command" | "conveyor" | "processor";
@@ -481,6 +519,7 @@ const factory = createLayer(id, () => {
         updateGraphics();
 
         loaded = true;
+        watchEffect(updateGraphics);
     });
     (window as any).internal = compInternalData;
     (window as any).comp = components;
@@ -489,7 +528,7 @@ const factory = createLayer(id, () => {
     globalBus.on("update", diff => {
         if (!loaded) return;
 
-        const factoryTicks = tickRate.value.times(diff).toNumber();
+        const factoryTicks = Decimal.times(tickRate.value, diff).toNumber();
 
         //debugger
         // make them produce
@@ -796,10 +835,10 @@ const factory = createLayer(id, () => {
             hoverSprite.y = roundDownTo(mouseCoords.y - ty, blockSize) + ty - blockSize / 2;
             hoverSprite.width = blockSize;
             hoverSprite.height = blockSize;
+            hoverSprite.alpha = 0.5;
             graphicContainer.addChild(hoverSprite);
         }
     }
-    watchEffect(updateGraphics);
 
     const pointerDown = ref(false),
         pointerDrag = ref(false),
@@ -937,7 +976,24 @@ const factory = createLayer(id, () => {
         {
             dashboard: () => ({
                 tab: createTab(() => ({
-                    display: jsx(() => <>You have 20 energy</>)
+                    display: jsx(() => (
+                        <>
+                            <div>
+                                {main.day.value === day
+                                    ? `Do something to complete the day`
+                                    : `${name} Complete!`}{" "}
+                                -{" "}
+                                <button
+                                    class="button"
+                                    style="display: inline-block;"
+                                    onClick={() => (showModifiersModal.value = true)}
+                                >
+                                    Check Modifiers
+                                </button>
+                            </div>
+                            {render(dayProgress)}
+                        </>
+                    ))
                 })),
                 display: "Dashboard"
             }),
@@ -1126,6 +1182,39 @@ const factory = createLayer(id, () => {
         })
     );
 
+    const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
+        {
+            title: "Energy",
+            modifier: energy,
+            base: 0
+        }
+    ]);
+    const showModifiersModal = ref(false);
+    const modifiersModal = jsx(() => (
+        <Modal
+            modelValue={showModifiersModal.value}
+            onUpdate:modelValue={(value: boolean) => (showModifiersModal.value = value)}
+            v-slots={{
+                header: () => <h2>{name} Modifiers</h2>,
+                body: generalTab
+            }}
+        />
+    ));
+
+    const dayProgress = createBar(() => ({
+        direction: Direction.Right,
+        width: 600,
+        height: 25,
+        progress: () => (main.day.value === day ? 0 : 1),
+        display: jsx(() => (main.day.value === day ? <>Requirement progress here</> : ""))
+    })) as GenericBar;
+
+    watchEffect(() => {
+        if (main.day.value === day && false) {
+            main.completeDay();
+        }
+    });
+
     return {
         name,
         day,
@@ -1135,6 +1224,8 @@ const factory = createLayer(id, () => {
         style: { overflow: "hidden" },
         components,
         tabs,
+        generalTabCollapsed,
+        modifiersModal,
         display: jsx(() => <>{render(tabs)}</>)
     };
 });

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="50"
+   height="50"
+   viewBox="0 0 13.229166 13.229167"
+   version="1.1"
+   id="svg5"
+   sodipodi:docname="advent.svg"
+   inkscape:version="1.2.1 (9c6d41e4, 2022-07-14)"
+   inkscape:export-filename="advent/wheelmaker.svg"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="1.9158497"
+     inkscape:cx="92.648188"
+     inkscape:cy="-32.361621"
+     inkscape:window-width="1309"
+     inkscape:window-height="804"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#e6e6e6;fill-opacity:1;stroke:#838390;stroke-width:0.764057;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:6;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
+       id="rect28545"
+       width="12.46511"
+       height="12.46511"
+       x="0.38202825"
+       y="0.38202825"
+       rx="1.246511" />
+    <path
+       id="rect26869-0-1"
+       style="fill:#ff0000;fill-opacity:1;stroke:#000000;stroke-width:1.42336;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:6;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
+       d="M 8.3324321,3.8052463 H 7.6969286 C 7.5122429,4.3381476 7.0102962,4.6955987 6.4462993,4.6958572 5.882441,4.6954377 5.3806884,4.3380165 5.1960477,3.8052463 H 4.5288445 C 4.2728512,3.9018015 2.5505135,6.4681174 1.7264386,7.8967734 L 3.2246273,8.6930392 4.5288445,6.3461293 V 9.3357134 H 8.3324321 V 6.0302643 L 9.8842098,8.7303998 11.339377,7.8575261 C 10.435276,6.238008 8.7798697,4.0620967 8.3324321,3.8052463 Z"
+       sodipodi:nodetypes="cccccccccccccc" />
+  </g>
+</svg>
