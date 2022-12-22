@@ -416,7 +416,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             showIf(
                 Decimal.gte(oreDrill.amount.value, 1) &&
                     (coalDrill.bought.value ||
-                        main.days[7].opened.value ||
+                        (main.days[7].opened.value as boolean) ||
                         Decimal.lt(
                             coal.computedCoalGain.value,
                             Decimal.times(computedOreAmount.value, computedOreSpeed.value).times(

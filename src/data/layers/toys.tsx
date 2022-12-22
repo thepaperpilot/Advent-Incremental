@@ -104,7 +104,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         onPurchase() {
             cloth.cloth.value = Decimal.sub(cloth.cloth.value, clothesCost.value.cloth);
             this.amount.value = Decimal.add(this.amount.value, 1);
-            clothes.value = this.amount.value;
+            clothes.value = Decimal.add(clothes.value, 1);
         }
     })) as GenericBuyable;
     const woodenBlocksCost = computed(() => {
@@ -136,7 +136,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         onPurchase() {
             trees.logs.value = Decimal.sub(trees.logs.value, woodenBlocksCost.value.wood);
             this.amount.value = Decimal.add(this.amount.value, 1);
-            woodenBlocks.value = this.amount.value;
+            woodenBlocks.value = Decimal.add(woodenBlocks.value, 1);
         }
     })) as GenericBuyable;
     const trucksCost = computed(() => {
@@ -196,7 +196,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             metal.metal.value = Decimal.sub(metal.metal.value, trucksCost.value.metal);
             plastic.plastic.value = Decimal.sub(plastic.plastic.value, trucksCost.value.plastic);
             this.amount.value = Decimal.add(this.amount.value, 1);
-            trucks.value = this.amount.value;
+            trucks.value = Decimal.add(trucks.value, 1);
         }
     })) as GenericBuyable;
     const buyables = [clothesBuyable, woodenBlocksBuyable, trucksBuyable];
@@ -260,7 +260,24 @@ const layer = createLayer(id, function (this: BaseLayer) {
         shouldEarn: () => Decimal.gte(toySum.value, 350),
         visibility: () => showIf(milestone3.earned.value)
     }));
-    const milestones = { milestone1, milestone2, milestone3, milestone4 };
+    const milestone5 = createMilestone(() => ({
+        display: {
+            requirement: "750 toys",
+            effectDisplay: "The wheel crafter now makes 2 wheels instead of 1! Now you should be able to fit everything in the factory."
+        },
+        shouldEarn: () => Decimal.gte(toySum.value, 750),
+        visibility: () => showIf(milestone4.earned.value)
+    }));
+    
+    const milestone6 = createMilestone(() => ({
+        display: {
+            requirement: "1500 toys",
+            effectDisplay: "Running out of energy? Let's increase the limit! Multiply energy capacity by 1.4"
+        },
+        shouldEarn: () => Decimal.gte(toySum.value, 1500),
+        visibility: () => showIf(milestone5.earned.value)
+    }));
+    const milestones = { milestone1, milestone2, milestone3, milestone4, milestone5, milestone6 };
     const { collapseMilestones, display: milestonesDisplay } =
         createCollapsibleMilestones(milestones);
 
@@ -283,21 +300,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }}
         />
     ));
-
-    globalBus.on("update", diff => {
-        if (Decimal.lt(main.day.value, day)) {
-            return;
-        }
-        if (Decimal.lt(clothes.value, clothesBuyable.amount.value)) {
-            clothesBuyable.amount.value = clothes.value;
-        }
-        if (Decimal.lt(woodenBlocks.value, woodenBlocksBuyable.amount.value)) {
-            woodenBlocksBuyable.amount.value = woodenBlocks.value;
-        }
-        if (Decimal.lt(trucks.value, trucksBuyable.amount.value)) {
-            trucksBuyable.amount.value = trucks.value;
-        }
-    });
 
     const { total: totalToys, trackerDisplay } = setUpDailyProgressTracker({
         resource: toySum,
@@ -363,7 +365,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
         minimizedDisplay: jsx(() => (
             <div>
-                {name} - {format(toySum.value)} {"total toys"}
+                {name} <span class="desc">{formatWhole(toySum.value)} total toys</span>
             </div>
         ))
     };

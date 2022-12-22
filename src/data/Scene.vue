@@ -58,7 +58,16 @@
             <img v-if="day >= 10" :src="dyes" class="scene-item" />
             <img v-if="day >= 14" :src="wrappingPaper" class="scene-item" />
             <img v-if="day >= 15" :src="ribbons" class="scene-item" />
-            <img v-if="day >= 16" :src="toys" class="scene-item" />
+            <img v-if="day == 16" :src="toys" class="scene-item" />
+        </div>
+        <img
+            v-if="day >= 17"
+            :src="factory"
+            class="scene-item"
+            style="left: 50%; bottom: 33%; width: 70px; height: 70px"
+        />
+        <div v-if="day >= 4" class="scene-bubble left" style="left: 64%; bottom: 37%">
+            <img v-if="day >= 17" :src="toys" class="scene-item" />
         </div>
     </div>
 </template>
@@ -81,6 +90,7 @@ import letters from "./symbols/letterbox.png";
 import wrappingPaper from "./symbols/wrappingPaper.png";
 import ribbons from "./symbols/ribbons.png";
 import toys from "./symbols/truck.png";
+import factory from "./symbols/gears.png";
 
 defineProps<{
     day: number;
@@ -132,6 +142,17 @@ defineProps<{
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
     border-top: 15px solid white;
+}
+
+.scene-bubble.left::after {
+    left: unset;
+    right: 100%;
+    top: 30px;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-right: 15px solid white;
+    border-left: unset;
+    z-index: 1;
 }
 
 .scene-bubble .scene-item {

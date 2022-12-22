@@ -42,6 +42,7 @@ import coalSymbol from "./symbols/coal.png";
 import dyesSymbol from "./symbols/dyes.png";
 import elfSymbol from "./symbols/elf.png";
 import managementSymbol from "./symbols/elfManagement.png";
+import factorySymbol from "./symbols/gears.png";
 import lettersSymbol from "./symbols/letterbox.png";
 import metalSymbol from "./symbols/metal.png";
 import oilSymbol from "./symbols/oil.png";
@@ -222,7 +223,21 @@ export const main = createLayer("main", function (this: BaseLayer) {
                         },
                         onOpenLayer() {
                             recentlyUpdated.value = false;
-                            openDay(layer ?? "trees");
+                            // 1468 is because two tabs with minWidth of 700px plus the minimized calendar of 60px plus 2 dividers of 4px each
+                            if (window.matchMedia("(min-width: 1468px)").matches) {
+                                // Desktop, allow multiple tabs to be open
+                                if (player.tabs.includes(layer ?? "trees")) {
+                                    const index = player.tabs.lastIndexOf(layer ?? "trees");
+                                    player.tabs.splice(index, 1);
+                                } else {
+                                    player.tabs.push(layer ?? "trees");
+                                    main.minimized.value = true;
+                                }
+                            } else {
+                                // Mobile, use single tab mode
+                                player.tabs.splice(1, Infinity, layer ?? "trees");
+                            }
+                            layers[layer ?? "trees"]!.minimized.value = false;
                         },
                         onUnlockLayer() {
                             if (layer != null) {
@@ -428,10 +443,11 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 18,
             shouldNotify: false,
-            layer: null, // "toys2"
-            symbol: "",
-            story: "",
-            completedStory: "",
+            layer: "factory",
+            symbol: factorySymbol,
+            story: "Alright, so those toys were using incredibly amounts of resources to make. Fortunately, you happen to have access to a group of people with an uncanny knack for making stuff without actually consuming materials - Elves! Let's turn this workshop into a proper factory, and get them producing these toys by themselves.",
+            completedStory:
+                "That was a bit different than the usual elf training you are used to. But this factory seems very versatile, so you think it's a fair trade-off for needing to set things up a bit more. Good Job!",
             masteredStory: ""
         })),
         createDay(() => ({
@@ -446,8 +462,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 20,
             shouldNotify: false,
-            layer: null, // "presents"
-            symbol: "",
+            layer: "factory", // "presents"
+            symbol: wrappingPaperSymbol,
             story: "",
             completedStory: "",
             masteredStory: ""
@@ -596,7 +612,8 @@ export const getInitialLayers = (
     letters,
     wrappingPaper,
     ribbon,
-    toys
+    toys,
+    factory
 ];
 
 /**

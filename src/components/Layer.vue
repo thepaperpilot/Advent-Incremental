@@ -128,14 +128,6 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.layer-container {
-    min-width: 100%;
-    min-height: 100%;
-    margin: 0;
-    flex-grow: 1;
-    display: flex;
-    isolation: isolate;
-}
 
 .layer-tab:not(.minimized) {
     padding-top: 20px;
@@ -210,28 +202,6 @@ export default defineComponent({
     top: 10px;
     right: 18px;
     pointer-events: none;
-}
-
-.goBack {
-    position: sticky;
-    top: 10px;
-    left: 10px;
-    line-height: 30px;
-    margin-top: -50px;
-    margin-left: -35px;
-    border: none;
-    background: var(--background);
-    box-shadow: var(--background) 0 2px 3px 5px;
-    border-radius: 50%;
-    color: var(--foreground);
-    font-size: 30px;
-    cursor: pointer;
-    z-index: 7;
-}
-
-.goBack:hover {
-    transform: scale(1.1, 1.1);
-    text-shadow: 0 0 7px var(--foreground);
 }
 </style>
 <style>

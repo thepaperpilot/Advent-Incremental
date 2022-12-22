@@ -48,6 +48,7 @@ export type State =
     | string
     | number
     | boolean
+    | undefined
     | DecimalSource
     | { [key: string]: State }
     | { [key: number]: State };
