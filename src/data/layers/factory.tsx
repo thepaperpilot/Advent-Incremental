@@ -14,6 +14,14 @@ import { computed, ComputedRef, reactive, ref, watchEffect } from "vue";
 import conveyor from "./factory-components/conveyor.png";
 import cursor from "./factory-components/cursor.jpg";
 import rotate from "./factory-components/rotate_rectangle.png";
+import wood from "./factory-components/rotate_rectangle.png";
+import block from "./factory-components/rotate_rectangle.png";
+import cloth from "./factory-components/rotate_rectangle.png";
+import dye from "./factory-components/rotate_rectangle.png";
+import clothes from "./factory-components/rotate_rectangle.png";
+import plastic from "./factory-components/rotate_rectangle.png";
+import metal from "./factory-components/rotate_rectangle.png";
+import truck from "./factory-components/rotate_rectangle.png";
 import Factory from "./Factory.vue";
 import "./styles/factory.css";
 import coal from "./coal";
@@ -176,7 +184,7 @@ const factory = createLayer(id, () => {
             }
         },
         blocks: {
-            imageSrc: blocks,
+            imageSrc: block,
             name: "Wooden Block Maker",
             description: "Turns 2 wood into 1 wooden block every second.",
             energyCost: 20,
@@ -213,7 +221,7 @@ const factory = createLayer(id, () => {
             }
         },
         trucks: {
-            imageSrc: trucks,
+            imageSrc: truck,
             name: "Trucks Maker",
             description: "Turns 2 metal and 1 plastic into 1 truck every second.",
             energyCost: 20,
@@ -240,10 +248,21 @@ const factory = createLayer(id, () => {
         dye: dye,
         clothes: clothes,
         plastic: plastic,
-        metal: metal,
+        metal: metal
     } as Record<string, string>;
 
-    type FactoryCompNames = "cursor" | "rotate" | "conveyor" | "wood" | "blocks" | "cloth" | "dye" | "clothes" | "plastic" | "metal" | "trucks";
+    type FactoryCompNames =
+        | "cursor"
+        | "rotate"
+        | "conveyor"
+        | "wood"
+        | "blocks"
+        | "cloth"
+        | "dye"
+        | "clothes"
+        | "plastic"
+        | "metal"
+        | "trucks";
     type BuildableCompName = Exclude<FactoryCompNames, "cursor">;
 
     interface FactoryComponentBase extends Record<string, State> {
