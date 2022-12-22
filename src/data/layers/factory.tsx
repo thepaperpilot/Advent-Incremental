@@ -10,19 +10,25 @@ import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections } from "data/common";
 import { main } from "data/projEntry";
 import { createBar, GenericBar } from "features/bars/bar";
+import { createBuyable } from "features/buyable";
 import { jsx } from "features/feature";
 import { createHotkey, GenericHotkey } from "features/hotkey";
-import { Resource } from "features/resources/resource";
+import MainDisplay from "features/resources/MainDisplay.vue";
+import { createResource, Resource } from "features/resources/resource";
 import { createTab } from "features/tabs/tab";
 import { createTabFamily } from "features/tabs/tabFamily";
 import Tooltip from "features/tooltips/Tooltip.vue";
 import { globalBus } from "game/events";
 import { createLayer } from "game/layers";
-import { createAdditiveModifier, createSequentialModifier } from "game/modifiers";
+import {
+    createAdditiveModifier,
+    createMultiplicativeModifier,
+    createSequentialModifier
+} from "game/modifiers";
 import { noPersist, Persistent, persistent, State } from "game/persistence";
-import Decimal, { format, formatWhole } from "util/bignum";
+import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
-import { render } from "util/vue";
+import { render, renderRow } from "util/vue";
 import { computed, ComputedRef, reactive, ref, watchEffect } from "vue";
 import coal from "./coal";
 import _block from "./factory-components/block.svg";
@@ -123,11 +129,21 @@ const factory = createLayer(id, () => {
             .map(c => FACTORY_COMPONENTS[c.type]?.energyCost ?? 0)
             .reduce((a, b) => a + b, 0)
     );
-    const tickRate = computed(() =>
-        Decimal.eq(energyConsumption.value, 0)
-            ? 1
-            : Decimal.div(energyConsumption.value, computedEnergy.value).recip().pow(2).min(1)
-    );
+    const tickRate = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: elvesEffect,
+            description: "Trained Elves"
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: Decimal.div(energyConsumption.value, computedEnergy.value)
+                .recip()
+                .pow(2)
+                .min(1),
+            description: "Energy Consumption",
+            enabled: () => Decimal.gt(energyConsumption.value, computedEnergy.value)
+        }))
+    ]);
+    const computedTickRate = computed(() => tickRate.apply(1));
 
     const energyBar = createBar(() => ({
         width: 680,
@@ -574,6 +590,48 @@ const factory = createLayer(id, () => {
     const components: Persistent<{ [key: string]: FactoryComponent }> = persistent({});
     const compInternalData: Record<string, FactoryInternal> = {};
 
+    // trained elves
+
+    const clothesBuyable = createBuyable(() => ({
+        resource: toys.clothes,
+        cost() {
+            return Decimal.pow(2, Decimal.add(this.amount.value, 5));
+        },
+        display: {
+            title: "Train elves to make clothes",
+            description: "Use your finished toys to train an elf on factory work"
+        }
+    }));
+    const blocksBuyable = createBuyable(() => ({
+        resource: toys.woodenBlocks,
+        cost() {
+            return Decimal.pow(2, Decimal.add(this.amount.value, 5));
+        },
+        display: {
+            title: "Train elves to make wooden blocks",
+            description: "Use your finished toys to train an elf on factory work"
+        }
+    }));
+    const trucksBuyable = createBuyable(() => ({
+        resource: toys.trucks,
+        cost() {
+            return Decimal.pow(2, Decimal.add(this.amount.value, 5));
+        },
+        display: {
+            title: "Train elves to make toy trucks",
+            description: "Use your finished toys to train an elf on factory work"
+        }
+    }));
+    const elfBuyables = { clothesBuyable, blocksBuyable, trucksBuyable };
+
+    const sumElves = computed(() =>
+        Object.values(elfBuyables)
+            .map(b => b.amount.value)
+            .reduce(Decimal.add, 0)
+    );
+    const trainedElves = createResource<DecimalSource>(sumElves, "trained elves");
+    const elvesEffect = computed(() => Decimal.add(trainedElves.value, 1).log10().add(1));
+
     // pixi
 
     // load every sprite here so pixi doesn't complain about loading multiple times
@@ -669,7 +727,7 @@ const factory = createLayer(id, () => {
     globalBus.on("update", diff => {
         if (!loaded || paused.value) return;
 
-        const factoryTicks = Decimal.times(tickRate.value, diff).toNumber();
+        const factoryTicks = Decimal.times(computedTickRate.value, diff).toNumber();
 
         //debugger
         // make them produce
@@ -1289,6 +1347,15 @@ const factory = createLayer(id, () => {
                                 />
                                 <Toy resource={toys.trucks} image={_truck} color="cadetblue" />
                             </Row>
+                            <Spacer />
+                            <MainDisplay
+                                resource={trainedElves}
+                                color="green"
+                                effectDisplay={`which improve the factory tick rate by ${format(
+                                    elvesEffect.value
+                                )}x`}
+                            />
+                            {renderRow(...Object.values(elfBuyables))}
                         </>
                     ))
                 })),
@@ -1327,6 +1394,12 @@ const factory = createLayer(id, () => {
             title: "Energy",
             modifier: energy,
             base: 0
+        },
+        {
+            title: "Tick Rate",
+            modifier: tickRate,
+            base: 1,
+            unit: "/s"
         }
     ]);
     const showModifiersModal = ref(false);
@@ -1363,6 +1436,7 @@ const factory = createLayer(id, () => {
         minimizable: true,
         style: { overflow: "hidden" },
         components,
+        elfBuyables,
         tabs,
         generalTabCollapsed,
         hotkeys,
