@@ -10,8 +10,8 @@ import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections } from "data/common";
 import { main } from "data/projEntry";
 import { createBar, GenericBar } from "features/bars/bar";
-import { createBuyable } from "features/buyable";
-import { jsx } from "features/feature";
+import { createBuyable, GenericBuyable } from "features/buyable";
+import { jsx, showIf } from "features/feature";
 import { createHotkey, GenericHotkey } from "features/hotkey";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource, Resource } from "features/resources/resource";
@@ -80,6 +80,7 @@ import Factory from "./Factory.vue";
 import "./styles/factory.css";
 import Toy from "./Toy.vue";
 import toys from "./toys";
+import trees from "./trees";
 
 const id = "factory";
 
@@ -888,7 +889,8 @@ const factory = createLayer(id, () => {
         display: {
             title: "Train elves to make clothes",
             description: "Use your finished toys to train an elf on factory work"
-        }
+        },
+        style: "width: 110px"
     }));
     const blocksBuyable = createBuyable(() => ({
         resource: toys.woodenBlocks,
@@ -898,7 +900,8 @@ const factory = createLayer(id, () => {
         display: {
             title: "Train elves to make wooden blocks",
             description: "Use your finished toys to train an elf on factory work"
-        }
+        },
+        style: "width: 110px"
     }));
     const trucksBuyable = createBuyable(() => ({
         resource: toys.trucks,
@@ -908,9 +911,53 @@ const factory = createLayer(id, () => {
         display: {
             title: "Train elves to make toy trucks",
             description: "Use your finished toys to train an elf on factory work"
-        }
+        },
+        style: "width: 110px"
     }));
-    const elfBuyables = { clothesBuyable, blocksBuyable, trucksBuyable };
+    const bearsBuyable = createBuyable(() => ({
+        resource: bears,
+        cost() {
+            return Decimal.pow(2, Decimal.add(this.amount.value, 5));
+        },
+        display: {
+            title: "Train elves to make bears",
+            description: "Use your finished toys to train an elf on factory work"
+        },
+        style: "width: 110px",
+        visible: () => showIf(main.days[advancedDay - 1].opened.value)
+    }));
+    const bucketBuyable = createBuyable(() => ({
+        resource: bucketAndShovels,
+        cost() {
+            return Decimal.pow(2, Decimal.add(this.amount.value, 5));
+        },
+        display: {
+            title: "Train elves to make shovel and pails",
+            description: "Use your finished toys to train an elf on factory work"
+        },
+        style: "width: 110px",
+        visible: () => showIf(main.days[advancedDay - 1].opened.value)
+    }));
+    const consolesBuyable = createBuyable(() => ({
+        resource: consoles,
+        cost() {
+            return Decimal.pow(2, Decimal.add(this.amount.value, 5));
+        },
+        display: {
+            title: "Train elves to make consoles",
+            description: "Use your finished toys to train an elf on factory work"
+        },
+        style: "width: 110px",
+        visible: () => showIf(main.days[advancedDay - 1].opened.value)
+    }));
+    const elfBuyables = {
+        clothesBuyable,
+        blocksBuyable,
+        trucksBuyable,
+        bearsBuyable,
+        bucketBuyable,
+        consolesBuyable
+    };
 
     const sumElves = computed(() =>
         Object.values(elfBuyables)
@@ -921,8 +968,22 @@ const factory = createLayer(id, () => {
     const elvesEffect = computed(() => Decimal.add(trainedElves.value, 1).log10().add(1));
 
     const expandFactory = createBuyable(() => ({
-        canPurchase: true
-    }));
+        resource: trees.logs,
+        cost() {
+            return Decimal.pow(1e4, this.amount.value).times(1e72);
+        },
+        display: {
+            title: "Expand Factory",
+            description:
+                "Use some surplus wood to slightly expand the walls of your factory. Also add +100% to the max workshop size",
+            effectDisplay: jsx(() => (
+                <>+{formatWhole(expandFactory.amount.value)} each dimension</>
+            )),
+            showAmount: false
+        },
+        style: "width: 200px",
+        visible: () => showIf(main.days[advancedDay - 1].opened.value)
+    })) as GenericBuyable;
     const factoryBuyables = { expandFactory };
 
     // pixi
@@ -1757,7 +1818,7 @@ const factory = createLayer(id, () => {
                 : main.day.value === advancedDay
                 ? [toys.clothes, toys.woodenBlocks, toys.trucks, bears, bucketAndShovels, consoles]
                       .map(r => Decimal.div(r.value, advancedToyGoal).clampMax(1))
-                      .reduce(Decimal.add, 0)
+                      .reduce(Decimal.add, Decimal.dZero)
                       .div(6)
                 : 1,
         display: jsx(() =>
@@ -1816,6 +1877,7 @@ const factory = createLayer(id, () => {
     return {
         name,
         day,
+        advancedDay,
         color,
         minWidth: 700,
         minimizable: true,
