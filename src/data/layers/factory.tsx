@@ -107,11 +107,6 @@ function getDirection(dir: Direction) {
             return "v";
     }
 }
-
-const factorySize = {
-    width: 7,
-    height: 7
-};
 const blockSize = 50;
 
 const factory = createLayer(id, () => {
@@ -151,6 +146,14 @@ const factory = createLayer(id, () => {
         }))
     ]);
     const computedTickRate = computed(() => tickRate.apply(1));
+    const factorySize = createSequentialModifier(() => [
+        createAdditiveModifier(() => ({
+            addend: expandFactory.amount,
+            description: "Expand Factory",
+            enabled: () => Decimal.gt(expandFactory.amount.value, 0)
+        }))
+    ]);
+    const computedFactorySize = computed(() => new Decimal(factorySize.apply(7)).toNumber());
 
     const energyBar = createBar(() => ({
         width: 680,
@@ -671,6 +674,11 @@ const factory = createLayer(id, () => {
     const trainedElves = createResource<DecimalSource>(sumElves, "trained elves");
     const elvesEffect = computed(() => Decimal.add(trainedElves.value, 1).log10().add(1));
 
+    const expandFactory = createBuyable(() => ({
+        canPurchase: true
+    }));
+    const factoryBuyables = { expandFactory };
+
     // pixi
 
     // load every sprite here so pixi doesn't complain about loading multiple times
@@ -709,15 +717,19 @@ const factory = createLayer(id, () => {
         app.stage.addChild(spriteContainer);
 
         const floorGraphics = new Graphics();
-        floorGraphics.beginFill(0x70645d);
-        floorGraphics.drawRect(
-            (-factorySize.width * blockSize) / 2,
-            (-factorySize.height * blockSize) / 2,
-            factorySize.width * blockSize,
-            factorySize.height * blockSize
-        );
-        floorGraphics.endFill();
         spriteContainer.addChild(floorGraphics);
+
+        watchEffect(() => {
+            floorGraphics.clear();
+            floorGraphics.beginFill(0x70645d);
+            floorGraphics.drawRect(
+                (-computedFactorySize.value * blockSize) / 2,
+                (-computedFactorySize.value * blockSize) / 2,
+                computedFactorySize.value * blockSize,
+                computedFactorySize.value * blockSize
+            );
+            floorGraphics.endFill();
+        });
 
         await assetsLoading;
 
@@ -956,16 +968,23 @@ const factory = createLayer(id, () => {
         y: number,
         data: Partial<FactoryComponent> & { type: BuildableCompName }
     ) {
-        if (x < -factorySize.width / 2 || x >= factorySize.width / 2) return;
-        if (y < -factorySize.height / 2 || y >= factorySize.height / 2) return;
+        if (x < -computedFactorySize.value / 2 || x >= computedFactorySize.value / 2) return;
+        if (y < -computedFactorySize.value / 2 || y >= computedFactorySize.value / 2) return;
 
         const factoryBaseData = FACTORY_COMPONENTS[data.type];
         if (factoryBaseData == undefined) return;
         const sheet = Assets.get(factoryBaseData.imageSrc);
         const sprite = new Sprite(sheet);
 
-        sprite.x = x * blockSize;
-        sprite.y = y * blockSize;
+        watchEffect(() => {
+            if (computedFactorySize.value % 2 === 0) {
+                sprite.x = (x + 0.5) * blockSize;
+                sprite.y = (y + 0.5) * blockSize;
+            } else {
+                sprite.x = x * blockSize;
+                sprite.y = y * blockSize;
+            }
+        });
         sprite.width = blockSize;
         sprite.height = blockSize;
         sprite.anchor.x = 0.5;
@@ -1104,12 +1123,12 @@ const factory = createLayer(id, () => {
             // the maximum you can see currently
             // total size of blocks - current size = amount you should move
             mapOffset.x = Math.min(
-                Math.max(mapOffset.x, (-factorySize.width + 1) / 2),
-                (factorySize.width + 1) / 2
+                Math.max(mapOffset.x, (-computedFactorySize.value + 1) / 2),
+                (computedFactorySize.value + 1) / 2
             );
             mapOffset.y = Math.min(
-                Math.max(mapOffset.y, (-factorySize.height + 1) / 2),
-                (factorySize.height + 1) / 2
+                Math.max(mapOffset.y, (-computedFactorySize.value + 1) / 2),
+                (computedFactorySize.value + 1) / 2
             );
         }
         if (!pointerDown.value && !pointerDrag.value) {
@@ -1395,6 +1414,8 @@ const factory = createLayer(id, () => {
                                 )}x`}
                             />
                             {renderRow(...Object.values(elfBuyables))}
+                            <Spacer />
+                            {renderRow(...Object.values(factoryBuyables))}
                         </>
                     ))
                 })),
@@ -1503,6 +1524,7 @@ const factory = createLayer(id, () => {
         components,
         elfBuyables,
         tabs,
+        factoryBuyables,
         generalTabCollapsed,
         hotkeys,
         display: jsx(() => (
