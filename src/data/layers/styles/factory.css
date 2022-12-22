@@ -148,13 +148,22 @@
     right: 10px;
     background-color: var(--foreground);
 }
-.comp-list > img {
-    display: block;
+.comp-list > div {
+    position: relative;
     width: 50px;
     height: 50px;
     margin: 10px;
 }
-.comp-list > img.selected {
+.comp-list > img.selected:not(.producedItem) {
     transform: translate(-5px, -5px);
     filter: drop-shadow(2px 2px 0 var(--foreground)) drop-shadow(5px 5px 5px #0007);
+}
+
+.producedItem {
+    position: absolute;
+    pointer-events: none;
+    width: calc(50px / 3);
+    height: calc(50px / 3);
+    left: 10px;
+    top: 25px;
 }

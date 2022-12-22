@@ -44,12 +44,11 @@ import _plank from "./factory-components/plank.svg";
 import _rotateLeft from "./factory-components/rotateLeft.svg";
 import _rotateRight from "./factory-components/rotateRight.svg";
 import _plankMaker from "./factory-components/sawmill.svg";
-import {
-    default as _cloth,
-    default as _dye,
-    default as _metal,
-    default as _plastic
-} from "./factory-components/shed.svg";
+import _shed from "./factory-components/shed.svg";
+import _metal from "../symbols/metal.png";
+import _plastic from "../symbols/plastic.png";
+import _cloth from "../symbols/cloth.png";
+import _dye from "../symbols/dyes.png";
 import _thread from "./factory-components/thread.svg";
 import _threadMaker from "./factory-components/threadmaker.svg";
 import _truck from "./factory-components/truck.svg";
@@ -263,7 +262,8 @@ const factory = createLayer(id, () => {
             }
         } as FactoryComponentDeclaration,
         wood: {
-            imageSrc: _wood,
+            imageSrc: _shed,
+            extraImage: _wood,
             key: "1",
             name: "Wood Machine",
             type: "processor",
@@ -277,7 +277,8 @@ const factory = createLayer(id, () => {
             }
         } as FactoryComponentDeclaration,
         cloth: {
-            imageSrc: _cloth,
+            imageSrc: _shed,
+            extraImage: _cloth,
             key: "2",
             name: "Cloth Machine",
             type: "processor",
@@ -291,7 +292,8 @@ const factory = createLayer(id, () => {
             }
         } as FactoryComponentDeclaration,
         dye: {
-            imageSrc: _dye,
+            imageSrc: _shed,
+            extraImage: _dye,
             key: "3",
             name: "Dye Machine",
             type: "processor",
@@ -305,7 +307,8 @@ const factory = createLayer(id, () => {
             }
         } as FactoryComponentDeclaration,
         metal: {
-            imageSrc: _metal,
+            imageSrc: _shed,
+            extraImage: _metal,
             key: "4",
             name: "Metal Machine",
             type: "processor",
@@ -319,7 +322,8 @@ const factory = createLayer(id, () => {
             }
         } as FactoryComponentDeclaration,
         plastic: {
-            imageSrc: _plastic,
+            imageSrc: _shed,
+            extraImage: _plastic,
             key: "5",
             name: "Plastic Machine",
             type: "processor",
@@ -566,6 +570,7 @@ const factory = createLayer(id, () => {
         tick: number;
         key: string;
         imageSrc: string;
+        extraImage?: string;
         name: string;
         type: "command" | "conveyor" | "processor";
         description: ProcessedComputable<string>;
@@ -674,6 +679,11 @@ const factory = createLayer(id, () => {
     // load every sprite here so pixi doesn't complain about loading multiple times
     const assetsLoading = Promise.all([
         Assets.load(Object.values(FACTORY_COMPONENTS).map(x => x.imageSrc)),
+        Assets.load(
+            Object.values(FACTORY_COMPONENTS)
+                .map(x => x.extraImage)
+                .filter(x => x != null) as string[]
+        ),
         Assets.load(Object.values(RESOURCES).map(x => x.imageSrc))
     ]);
 
@@ -969,6 +979,14 @@ const factory = createLayer(id, () => {
             ) *
                 Math.PI) /
             2;
+        if (factoryBaseData.extraImage != null) {
+            const sheet = Assets.get(factoryBaseData.extraImage);
+            const extraSprite = new Sprite(sheet);
+            extraSprite.width = blockSize / 3;
+            extraSprite.height = blockSize / 3;
+            extraSprite.position.set(-blockSize / 3, 0);
+            sprite.addChild(extraSprite);
+        }
         components.value[x + "x" + y] = {
             ticksDone: 0,
             direction: Direction.Right,
@@ -1270,13 +1288,18 @@ const factory = createLayer(id, () => {
                         const key = value[0] as FactoryCompNames;
                         const item = value[1];
                         return (
-                            <img
-                                src={item.imageSrc}
-                                class={{ selected: compSelected.value === key }}
-                                onMouseenter={() => onComponentMouseEnter(key)}
-                                onMouseleave={() => onComponentMouseLeave()}
-                                onClick={() => onCompClick(key)}
-                            />
+                            <div>
+                                <img
+                                    src={item.imageSrc}
+                                    class={{ selected: compSelected.value === key }}
+                                    onMouseenter={() => onComponentMouseEnter(key)}
+                                    onMouseleave={() => onComponentMouseLeave()}
+                                    onClick={() => onCompClick(key)}
+                                />
+                                {item.extraImage == null ? null : (
+                                    <img src={item.extraImage} class="producedItem" />
+                                )}
+                            </div>
                         );
                     })}
                 </div>
