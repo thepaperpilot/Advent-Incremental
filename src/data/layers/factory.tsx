@@ -18,12 +18,15 @@ import _rotateLeft from "./factory-components/rotateLeft.svg";
 import _rotateRight from "./factory-components/rotateRight.svg";
 import _wood from "./factory-components/log.svg";
 import _block from "./factory-components/block.svg";
+import _blockMaker from "./factory-components/blockMaker.svg";
 import _cloth from "./factory-components/rotate_rectangle.png";
 import _dye from "./factory-components/rotate_rectangle.png";
-import _clothes from "./factory-components/rotate_rectangle.png";
+import _clothes from "./factory-components/clothes.svg";
+import _clothesMaker from "./factory-components/clothesmaker.svg";
 import _plastic from "./factory-components/rotate_rectangle.png";
 import _metal from "./factory-components/rotate_rectangle.png";
-import _truck from "./factory-components/rotate_rectangle.png";
+import _truck from "./factory-components/truck.svg";
+import _truckMaker from "./factory-components/truckmaker.svg";
 import Factory from "./Factory.vue";
 import "./styles/factory.css";
 import coal from "./coal";
@@ -294,7 +297,7 @@ const factory = createLayer(id, () => {
             }
         },
         blocks: {
-            imageSrc: _block,
+            imageSrc: _blockMaker,
             key: "shift+1",
             name: "Wooden Block Maker",
             type: "processor",
@@ -313,7 +316,7 @@ const factory = createLayer(id, () => {
             }
         },
         clothes: {
-            imageSrc: _clothes,
+            imageSrc: _clothesMaker,
             key: "shift+2",
             name: "Clothes Maker",
             type: "processor",
@@ -335,7 +338,7 @@ const factory = createLayer(id, () => {
             }
         },
         trucks: {
-            imageSrc: _truck,
+            imageSrc: _truckMaker,
             key: "shift+3",
             name: "Trucks Maker",
             type: "processor",

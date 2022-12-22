@@ -2,7 +2,7 @@
     position: absolute !important;
     top: 0;
     bottom: -6px;
-    left: 0;
+    left: -12px;
     right: 0;
     border: 0px solid var(--outline);
 
