@@ -375,7 +375,13 @@ const factory = createLayer(id, () => {
             key: "shift+3",
             name: "Wheel Crafter",
             type: "processor",
-            description: "Turns 1 plastic into 1 wheel every second.",
+            // TODO construct descriptions dynamically better
+            description: computed(
+                () =>
+                    `Turns 1 plastic into ${
+                        toys.milestones.milestone5.earned.value ? "2 wheels" : "1 wheel"
+                    } every second.`
+            ),
             energyCost: 2,
             tick: 1,
             inputs: {
@@ -422,7 +428,7 @@ const factory = createLayer(id, () => {
                     amount: 2
                 },
                 cloth: {
-                    amount: 3,
+                    amount: 3
                 },
                 dye: {
                     amount: 1
@@ -562,7 +568,7 @@ const factory = createLayer(id, () => {
         imageSrc: string;
         name: string;
         type: "command" | "conveyor" | "processor";
-        description: string;
+        description: ProcessedComputable<string>;
         energyCost?: number;
 
         /** amount it consumes */
@@ -1246,7 +1252,7 @@ const factory = createLayer(id, () => {
                                 <HotkeyVue hotkey={hotkeys[whatIsHovered.value]} />
                             </h3>
                             <br />
-                            {FACTORY_COMPONENTS[whatIsHovered.value].description}
+                            {unref(FACTORY_COMPONENTS[whatIsHovered.value].description)}
                             {FACTORY_COMPONENTS[whatIsHovered.value].energyCost ?? 0 ? (
                                 <>
                                     <br />
@@ -1329,7 +1335,7 @@ const factory = createLayer(id, () => {
             >
                 <h3>{FACTORY_COMPONENTS[compHovered.value.type].name}</h3>
                 <br />
-                {FACTORY_COMPONENTS[compHovered.value.type].description}
+                {unref(FACTORY_COMPONENTS[compHovered.value.type].description)}
                 <br />
                 {compHovered.value.type !== "conveyor" ? (
                     <>
