@@ -860,7 +860,8 @@ const factory = createLayer(id, () => {
 
     const pointerDown = ref(false),
         pointerDrag = ref(false),
-        compHovered = ref<FactoryComponent | undefined>(undefined);
+        compHovered = ref<FactoryComponent | undefined>(undefined),
+        paused = ref(false);
 
     function onFactoryPointerMove(e: PointerEvent) {
         const { x, y } = getRelativeCoords(e);
