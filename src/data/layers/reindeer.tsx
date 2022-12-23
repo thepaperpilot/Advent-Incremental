@@ -13,12 +13,13 @@ import { jsx } from "features/feature";
 import { createHotkey, GenericHotkey } from "features/hotkey";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
-import { createMultiplicativeModifier } from "game/modifiers";
+import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import { persistent } from "game/persistence";
-import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
+import Decimal, { DecimalSource, format, formatTime, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render, renderGrid } from "util/vue";
 import { computed, ref, unref, watchEffect } from "vue";
+import "./styles/reindeer.css";
 
 const id = "reindeer";
 const day = 21;
@@ -28,7 +29,82 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const feedGoal = 1e3;
 
-    // TODO focus
+    const currMultiplier = persistent<DecimalSource>(1);
+    const currTargets = persistent<Record<string, boolean>>({});
+    const currCooldown = persistent<number>(0);
+
+    const maxMultiplier = createSequentialModifier(() => []);
+    const computedMaxMultiplier = computed(() => maxMultiplier.apply(2));
+    const targetsCount = createSequentialModifier(() => []);
+    const computedTargetsCount = computed(() => targetsCount.apply(1));
+    const computedMaxCooldown = computed(() => 10);
+
+    const focusMeter = createBar(() => ({
+        direction: Direction.Right,
+        width: 476,
+        height: 50,
+        style: `border-radius: 0`,
+        borderStyle: `border-radius: 0`,
+        fillStyle: () => ({
+            background: currCooldown.value > 0 ? color : "#7f7f00",
+            animation: currCooldown.value > 0 ? "1s focused-eating-bar linear infinite" : "",
+            opacity: currCooldown.value > 0 ? currCooldown.value / 10 : 1,
+            transition: "none"
+        }),
+        progress: () =>
+            Decimal.sub(currMultiplier.value, 1)
+                .div(Decimal.sub(computedMaxMultiplier.value, 1))
+                .toNumber(),
+        display: jsx(() => (
+            <>
+                {format(currMultiplier.value)}x
+                {currCooldown.value > 0 ? (
+                    <>
+                        {" "}
+                        to {Object.keys(currTargets.value).join(", ")} for{" "}
+                        {formatTime(currCooldown.value)}
+                    </>
+                ) : (
+                    ""
+                )}
+            </>
+        ))
+    })) as GenericBar;
+
+    const focusButton = createClickable(() => ({
+        display: {
+            title: "Focus",
+            description: jsx(() => (
+                <>
+                    Motivate reindeer to eat, multiplying {formatWhole(computedTargetsCount.value)}{" "}
+                    random reindeer's eating rate by up to {format(computedMaxMultiplier.value)}x
+                    for {formatTime(computedMaxCooldown.value)}, equal to the focus bar's effect.
+                </>
+            ))
+        },
+        style: {
+            width: "480px",
+            minHeight: "80px",
+            zIndex: 4
+        },
+        canClick: () => Decimal.eq(currCooldown.value, 0),
+        onClick() {
+            currCooldown.value = Decimal.fromValue(computedMaxCooldown.value).toNumber();
+            let targetsSelected = 0;
+            currTargets.value = {};
+            while (Decimal.gt(computedTargetsCount.value, targetsSelected)) {
+                const selectedReindeer =
+                    Object.values(reindeer)[
+                        Math.floor(Math.random() * Object.values(reindeer).length)
+                    ];
+                const roll = selectedReindeer?.name ?? "";
+                if (!currTargets.value[roll]) {
+                    currTargets.value[roll] = true;
+                    targetsSelected++;
+                }
+            }
+        }
+    }));
 
     function createReindeer(options: {
         name: string;
@@ -56,7 +132,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 style: "margin-top: 8px",
                 borderStyle: "border-color: black",
                 baseStyle: "margin-top: -1px",
-                fillStyle: "margin-top: -1px; transition-duration: 0s; background: black",
+                fillStyle: () => ({
+                    marginTop: "-1px",
+                    transitionDuration: "0s",
+                    background: "black",
+                    animation:
+                        currTargets.value[options.name] && currCooldown.value > 0
+                            ? ".5s focused-eating-bar linear infinite"
+                            : ""
+                }),
                 progress: () => Decimal.div(progress.value, computedCooldown.value)
             }));
 
@@ -114,7 +198,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     if (Decimal.gte(progress.value, computedCooldown.value)) {
                         progress.value = computedCooldown.value;
                     } else {
-                        progress.value = Decimal.add(progress.value, diff);
+                        let amount: DecimalSource = diff;
+                        if (currTargets.value[options.name] && currCooldown.value > 0) {
+                            amount = Decimal.times(amount, currMultiplier.value);
+                        }
+                        progress.value = Decimal.add(progress.value, amount);
                         if (clickable.isHolding.value) {
                             clickable.onClick();
                         }
@@ -188,7 +276,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     // TODO upgrades
 
-    const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => []);
+    const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
+        {
+            title: "Max Focus Multiplier",
+            modifier: maxMultiplier,
+            base: 2
+        },
+        {
+            title: "Focus Targets",
+            modifier: targetsCount,
+            base: 1
+        }
+    ]);
     const showModifiersModal = ref(false);
     const modifiersModal = jsx(() => (
         <Modal
@@ -207,6 +306,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
 
         Object.values(reindeer).forEach(reindeer => reindeer.update(diff));
+
+        currCooldown.value = Math.max(currCooldown.value - diff, 0);
+
+        if (Decimal.eq(currCooldown.value, 0)) {
+            const speed = 1000;
+            const stoppedAt = 1 - Math.abs(Math.sin((Date.now() / speed) * 2));
+            currMultiplier.value = Decimal.pow(computedMaxMultiplier.value, stoppedAt);
+        }
     });
 
     const dayProgress = createBar(() => ({
@@ -238,6 +345,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         color,
         reindeer,
         generalTabCollapsed,
+        currMultiplier,
+        currTargets,
+        currCooldown,
         minWidth: 700,
         display: jsx(() => (
             <>
@@ -260,6 +370,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <div>You have fed reindeer {formatWhole(sumTimesFed.value)} times</div>
                 <Spacer />
                 {renderGrid(
+                    [focusButton],
+                    [focusMeter],
                     [dasher, dancer, prancer],
                     [vixen, comet, cupid],
                     [donner, blitzen, rudolph]
