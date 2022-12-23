@@ -20,6 +20,7 @@ import { createTabFamily } from "features/tabs/tabFamily";
 import Tooltip from "features/tooltips/Tooltip.vue";
 import { globalBus } from "game/events";
 import { createLayer } from "game/layers";
+import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
 import {
     createAdditiveModifier,
     createMultiplicativeModifier,
@@ -1033,9 +1034,25 @@ const factory = createLayer(id, () => {
         visible: () => showIf(main.days[advancedDay - 1].opened.value)
     })) as GenericBuyable;
     const factoryBuyables = { expandFactory, oilFuel, carryToys };
-
+    const upgrades = [createUpgrade(() => ({
+            resource: trees.logs,
+            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e80),
+            display: {
+                title: "Sawmill Efficiency",
+                description: "Metal increases sawmill consumption and production by *log(metal)/10"
+            }
+        })),
+        createUpgrade(() => ({
+            resource: trees.logs,
+            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e80),
+            display: {
+                title: "Sawmill Efficiency",
+                description: "Metal increases sawmill consumption and production by *log(metal)/10"
+            }
+        })),]
+        
     // pixi
-
+    const upgradeAmount = computed(() => Object.values(upgrades).filter(u => u.bought.value).length) as ComputedRef<number>
     // load every sprite here so pixi doesn't complain about loading multiple times
     const assetsLoading = Promise.all([
         Assets.load(Object.values(FACTORY_COMPONENTS).map(x => x.imageSrc)),
@@ -1939,6 +1956,7 @@ const factory = createLayer(id, () => {
         factoryBuyables,
         generalTabCollapsed,
         hotkeys,
+        upgrades,
         display: jsx(() => (
             <>
                 {render(modifiersModal)}
