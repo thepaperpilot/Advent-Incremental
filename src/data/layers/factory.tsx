@@ -30,7 +30,7 @@ import { noPersist, Persistent, persistent, State } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { ProcessedComputable } from "util/computed";
-import { render, renderRow } from "util/vue";
+import { render, renderGrid, renderRow } from "util/vue";
 import { computed, ComputedRef, reactive, ref, unref, watchEffect } from "vue";
 import _cloth from "../symbols/cloth.png";
 import _dye from "../symbols/dyes.png";
@@ -1038,7 +1038,7 @@ const factory = createLayer(id, () => {
         visible: () => showIf(main.days[advancedDay - 1].opened.value)
     })) as GenericBuyable;
     const factoryBuyables = { expandFactory, oilFuel, carryToys };
-    const upgrades = [createUpgrade(() => ({
+    const upgrades = [[createUpgrade(() => ({
             resource: trees.logs,
             cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e80),
             display: {
@@ -1069,8 +1069,8 @@ const factory = createLayer(id, () => {
                 title: "Diamond-tipped drills",
                 description: "Drill power ^1.2"
             }
-        })),
-        createUpgrade(() => ({
+        }))],
+        [createUpgrade(() => ({
             resource: toys.woodenBlocks,
             cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1000),
             display: {
@@ -1093,7 +1093,7 @@ const factory = createLayer(id, () => {
                 title: "Improved plastic producers",
                 description: "Plastic producers produce 4x as much"
             }
-        })),
+        }))],
     ]
         
     // pixi
@@ -1856,7 +1856,7 @@ const factory = createLayer(id, () => {
                             <Spacer />
                             {renderRow(...Object.values(factoryBuyables))}
                             <Spacer />
-                            {renderRow(...Object.values(upgrades))}
+                            {renderGrid(upgrades as VueFeature[])}
                         </>
                     ))
                 })),
