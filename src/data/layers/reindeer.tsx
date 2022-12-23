@@ -11,15 +11,29 @@ import { createBar, GenericBar } from "features/bars/bar";
 import { createClickable } from "features/clickables/clickable";
 import { jsx } from "features/feature";
 import { createHotkey, GenericHotkey } from "features/hotkey";
+import { createUpgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
-import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
+import {
+    createAdditiveModifier,
+    createMultiplicativeModifier,
+    createSequentialModifier
+} from "game/modifiers";
 import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatTime, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render, renderGrid } from "util/vue";
 import { computed, ref, unref, watchEffect } from "vue";
+import boxes from "./boxes";
+import cloth from "./cloth";
+import coal from "./coal";
+import dyes from "./dyes";
+import metal from "./metal";
+import oil from "./oil";
+import paper from "./paper";
+import plastic from "./plastic";
 import "./styles/reindeer.css";
+import trees from "./trees";
 
 const id = "reindeer";
 const day = 21;
@@ -27,17 +41,52 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Reindeer";
     const color = "saddlebrown";
 
-    const feedGoal = 1e3;
+    const feedGoal = 2.5e3;
+
+    const timeSinceFocus = persistent<number>(0);
 
     const currMultiplier = persistent<DecimalSource>(1);
     const currTargets = persistent<Record<string, boolean>>({});
     const currCooldown = persistent<number>(0);
+    const crit = persistent<number>(0);
 
-    const maxMultiplier = createSequentialModifier(() => []);
+    const maxMultiplier = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Carry food in boxes",
+            enabled: upgrade4.bought
+        }))
+    ]);
     const computedMaxMultiplier = computed(() => maxMultiplier.apply(2));
-    const targetsCount = createSequentialModifier(() => []);
+    const targetsCount = createSequentialModifier(() => [
+        createAdditiveModifier(() => ({
+            addend: 1,
+            description: "Guide to Reindeer Handling",
+            enabled: upgrade3.bought
+        })),
+        createAdditiveModifier(() => ({
+            addend: crit,
+            description: "Metal clapper",
+            enabled: upgrade5.bought
+        }))
+    ]);
     const computedTargetsCount = computed(() => targetsCount.apply(1));
     const computedMaxCooldown = computed(() => 10);
+
+    function focus() {
+        let targetsSelected = 0;
+        currTargets.value = {};
+        timeSinceFocus.value = 0;
+        while (Decimal.gt(computedTargetsCount.value, targetsSelected)) {
+            const selectedReindeer =
+                Object.values(reindeer)[Math.floor(Math.random() * Object.values(reindeer).length)];
+            const roll = selectedReindeer?.name ?? "";
+            if (!currTargets.value[roll]) {
+                currTargets.value[roll] = true;
+                targetsSelected++;
+            }
+        }
+    }
 
     const focusMeter = createBar(() => ({
         direction: Direction.Right,
@@ -90,21 +139,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
         canClick: () => Decimal.eq(currCooldown.value, 0),
         onClick() {
             currCooldown.value = Decimal.fromValue(computedMaxCooldown.value).toNumber();
-            let targetsSelected = 0;
-            currTargets.value = {};
-            while (Decimal.gt(computedTargetsCount.value, targetsSelected)) {
-                const selectedReindeer =
-                    Object.values(reindeer)[
-                        Math.floor(Math.random() * Object.values(reindeer).length)
-                    ];
-                const roll = selectedReindeer?.name ?? "";
-                if (!currTargets.value[roll]) {
-                    currTargets.value[roll] = true;
-                    targetsSelected++;
-                }
-            }
+            focus();
         }
     }));
+
+    const cooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 0.5,
+            description: "Pile of coal",
+            enabled: upgrade2.bought
+        }))
+    ]);
+    const computedCooldown = computed(() => cooldown.apply(10));
 
     function createReindeer(options: {
         name: string;
@@ -123,8 +169,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })) as GenericHotkey;
 
         const clickable = createClickable(() => {
-            const computedCooldown = computed(() => 10);
-
             const progressBar = createBar(() => ({
                 direction: Direction.Right,
                 width: 140,
@@ -151,7 +195,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }));
 
             const effect = computed(() =>
-                Decimal.times(options.boostAmount, timesFed.value).add(1)
+                Decimal.times(options.boostAmount, timesFed.value)
+                    .add(1)
+                    .pow(upgrade9.bought.value ? 1.1 : 1)
             );
 
             return {
@@ -190,7 +236,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     if (!unref(clickable.canClick)) {
                         return;
                     }
-                    const amount = Decimal.div(progress.value, computedCooldown.value);
+                    let amount = Decimal.div(progress.value, computedCooldown.value);
+                    if (upgrade1.bought.value) {
+                        amount = Decimal.times(amount, 2);
+                    }
                     timesFed.value = Decimal.add(timesFed.value, amount);
                     progress.value = 0;
                 },
@@ -199,11 +248,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         progress.value = computedCooldown.value;
                     } else {
                         let amount: DecimalSource = diff;
-                        if (currTargets.value[options.name] && currCooldown.value > 0) {
+                        const isFocused = currTargets.value[options.name] && currCooldown.value > 0;
+                        if (isFocused) {
                             amount = Decimal.times(amount, currMultiplier.value);
                         }
                         progress.value = Decimal.add(progress.value, amount);
-                        if (clickable.isHolding.value) {
+                        if (clickable.isHolding.value || (upgrade8.bought.value && isFocused)) {
                             clickable.onClick();
                         }
                     }
@@ -275,7 +325,124 @@ const layer = createLayer(id, function (this: BaseLayer) {
             .reduce(Decimal.add, Decimal.dZero)
     );
 
-    // TODO upgrades
+    const upgrade1 = createUpgrade(() => ({
+        resource: trees.logs,
+        cost: 0,
+        style: {
+            width: "160px"
+        },
+        display: {
+            title: "Sawdust?",
+            description:
+                "Adding some sawdust to the feed allows you to make more of it. Each feed action counts twice"
+        }
+    }));
+    const upgrade2 = createUpgrade(() => ({
+        resource: coal.coal,
+        cost: 0,
+        style: {
+            width: "160px"
+        },
+        display: {
+            title: "Pile of coal",
+            description:
+                "Building a threatening pile of coal encourages the reindeer to behave. Each reindeer eats twice as fast"
+        }
+    }));
+    const upgrade3 = createUpgrade(() => ({
+        resource: paper.paper,
+        cost: 0,
+        style: {
+            width: "160px"
+        },
+        display: {
+            title: "Guide to Reindeer Handling",
+            description:
+                "Written reindeer handling instructions allow you to help more focus at once. Increase focus targets by one"
+        }
+    }));
+    const upgrade4 = createUpgrade(() => ({
+        resource: boxes.boxes,
+        cost: 0,
+        style: {
+            width: "160px"
+        },
+        display: {
+            title: "Carry food in boxes",
+            description:
+                "Carrying reindeer food in boxes allows you to distribute it faster. Double the maximum focus multiplier"
+        }
+    }));
+    const upgrade5 = createUpgrade(() => ({
+        resource: metal.metal,
+        cost: 0,
+        style: {
+            width: "160px"
+        },
+        display: {
+            title: "Metal clapper",
+            description:
+                'Striking two rods of metal can help get more reindeer\'s attention when done right. "Critical" focuses now affect up to two additional reindeer'
+        }
+    }));
+    const upgrade6 = createUpgrade(() => ({
+        resource: cloth.cloth,
+        cost: 0,
+        style: {
+            width: "160px"
+        },
+        display: {
+            title: "Focus bar padding",
+            description:
+                "Adding padding to the focus bar lets you slow it down when it's closer to the max value"
+        }
+    }));
+    const upgrade7 = createUpgrade(() => ({
+        resource: oil.oil,
+        cost: 0,
+        style: {
+            width: "160px"
+        },
+        display: {
+            title: "Oil can do that?",
+            description:
+                "Using a lot of oil somehow let's reindeers focus themselves with a random value when left un-focused for 10s"
+        }
+    }));
+    const upgrade8 = createUpgrade(() => ({
+        resource: plastic.plastic,
+        cost: 0,
+        style: {
+            width: "160px"
+        },
+        display: {
+            title: "Autoamted feeder",
+            description: "An automated feeder let's focused reindeer eat automatically"
+        }
+    }));
+    const upgrade9 = createUpgrade(() => ({
+        resource: dyes.dyes.white.amount,
+        cost: 0,
+        style: {
+            width: "160px"
+        },
+        display: {
+            title: "Colorful food",
+            description:
+                "Adding some non-toxic dyes to the food makes them more powerful. Raise each reindeer's effect to the ^1.1"
+        }
+    }));
+    const upgrades = {
+        upgrade1,
+        upgrade2,
+        upgrade3,
+        upgrade4,
+        upgrade5,
+        upgrade6,
+        upgrade7,
+        upgrade8,
+        upgrade9
+    };
 
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
         {
@@ -287,6 +454,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Focus Targets",
             modifier: targetsCount,
             base: 1
+        },
+        {
+            title: "Eating duration",
+            modifier: cooldown,
+            base: 10
         }
     ]);
     const showModifiersModal = ref(false);
@@ -310,10 +482,28 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
         currCooldown.value = Math.max(currCooldown.value - diff, 0);
 
+        let auto = false;
+        if (upgrade7.bought.value) {
+            timeSinceFocus.value += diff;
+            if (timeSinceFocus.value > 10) {
+                auto = true;
+            }
+        }
+
         if (Decimal.eq(currCooldown.value, 0)) {
-            const speed = 1000;
-            const stoppedAt = 1 - Math.abs(Math.sin((Date.now() / speed) * 2));
+            let speed = 1000;
+            if (auto) {
+                speed = Math.random() * 1000;
+            }
+            let stoppedAt = 1 - Math.abs(Math.sin((Date.now() / speed) * 2));
+            if (upgrade6.bought.value) {
+                stoppedAt = 1 - (1 - stoppedAt) ** 2;
+            }
+            crit.value = stoppedAt > 0.975 ? 2 : stoppedAt > 0.9 ? 1 : 0;
             currMultiplier.value = Decimal.pow(computedMaxMultiplier.value, stoppedAt);
+            if (auto) {
+                focus();
+            }
         }
     });
 
@@ -346,9 +536,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         color,
         reindeer,
         generalTabCollapsed,
+        timeSinceFocus,
         currMultiplier,
         currTargets,
         currCooldown,
+        upgrades,
+        crit,
         minWidth: 700,
         display: jsx(() => (
             <>
@@ -376,6 +569,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     [dasher, dancer, prancer],
                     [vixen, comet, cupid],
                     [donner, blitzen, rudolph]
+                )}
+                <Spacer />
+                {renderGrid(
+                    [upgrade1, upgrade2, upgrade3],
+                    [upgrade4, upgrade5, upgrade6],
+                    [upgrade7, upgrade8, upgrade9]
                 )}
             </>
         )),

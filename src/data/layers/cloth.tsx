@@ -21,12 +21,13 @@ import { BaseLayer, createLayer } from "game/layers";
 import {
     createAdditiveModifier,
     createMultiplicativeModifier,
-    createSequentialModifier
+    createSequentialModifier,
+    Modifier
 } from "game/modifiers";
 import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource, format } from "util/bignum";
 import { formatWhole } from "util/break_eternity";
-import { Direction } from "util/common";
+import { Direction, WithRequired } from "util/common";
 import { render, renderCol, renderRow } from "util/vue";
 import { computed, ref, unref } from "vue";
 import boxes from "./boxes";
@@ -452,7 +453,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: dyes.masteryEffectActive
         })),
         reindeer.reindeer.cupid.modifier
-    ]);
+    ]) as WithRequired<Modifier, "description" | "revert">;
     const computedSheepGain = computed(() => sheepGain.apply(1));
     const breedingCooldown = createSequentialModifier(() => []);
     const computedBreedingCooldown = computed(() => breedingCooldown.apply(1));
@@ -498,7 +499,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: dyes.masteryEffectActive
         })),
         reindeer.reindeer.cupid.modifier
-    ]);
+    ]) as WithRequired<Modifier, "description" | "revert">;
     const computedShearingAmount = computed(() => shearingAmount.apply(1));
     const shearingCooldown = createSequentialModifier(() => []);
     const computedShearingCooldown = computed(() => shearingCooldown.apply(1));
@@ -544,7 +545,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: dyes.masteryEffectActive
         })),
         reindeer.reindeer.cupid.modifier
-    ]);
+    ]) as WithRequired<Modifier, "description" | "revert">;
     const computedSpinningAmount = computed(() => spinningAmount.apply(1));
     const spinningCooldown = createSequentialModifier(() => []);
     const computedSpinningCooldown = computed(() => spinningCooldown.apply(1));
