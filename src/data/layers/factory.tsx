@@ -206,7 +206,7 @@ const factory = createLayer(id, () => {
         createMultiplicativeModifier(() => ({
             multiplier: Decimal.lt(energyEfficiency.value, 1)
                 ? 1
-                : Decimal.sub(2, Decimal.div(energyConsumption.value, computedEnergy.value)),
+                : Decimal.sub(2, Decimal.div(energyConsumption.value, Decimal.max(computedEnergy.value, 1))),
             description: "Brighter work rooms",
             enabled: () => upgrades[2][0].bought.value
         })),
@@ -1387,7 +1387,6 @@ const factory = createLayer(id, () => {
                         const now = Date.now();
                         const diff = (now - compData.lastFactoryProd) / 1000;
                         compData.lastProdTimes.push(diff);
-                        console.log(compData.lastProdTimes);
                         if (compData.lastProdTimes.length > 10) compData.lastProdTimes.shift();
                         compData.lastFactoryProd = now;
                     }
