@@ -546,6 +546,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Load logs onto trucks",
             enabled: toys.row1Upgrades[0].bought
         })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(toys.clothes.value, 1).pow(0.75),
+            description: "3000 Toys",
+            enabled: toys.milestones.milestone7.earned
+        })),
         createExponentialModifier(() => ({
             exponent: 1.2,
             description: "100% Foundation Completed",

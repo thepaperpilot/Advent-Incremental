@@ -16,7 +16,7 @@ defineProps<{
 </script>
 <style scoped>
 .toy {
-    width: 80px;
+    width: 90px;
     display: flex;
     flex-direction: column;
     margin: 10px !important;

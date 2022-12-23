@@ -135,10 +135,12 @@ export default defineComponent({
     position: relative;
     border: solid 4px;
     border-color: var(--outline);
+    overflow-y: auto;
 }
 
 .layer-tab > .tab-family-container:first-child {
     margin: -4px -11px var(--feature-margin) -11px;
+    padding-bottom: 50px;
 }
 
 .layer-tab > .tab-family-container:first-child:nth-last-child(3) {

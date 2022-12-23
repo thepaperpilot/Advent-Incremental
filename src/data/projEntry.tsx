@@ -52,6 +52,7 @@ import ribbonsSymbol from "./symbols/ribbons.png";
 import workshopSymbol from "./symbols/sws.png";
 import treeSymbol from "./symbols/tree.png";
 import toysSymbol from "./symbols/truck.png";
+import advFactorySymbol from "./symbols/teddyBear.png";
 import advManagementSymbol from "./symbols/workshopMansion.png";
 import wrappingPaperSymbol from "./symbols/wrappingPaper.png";
 
@@ -445,7 +446,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
             shouldNotify: false,
             layer: "factory",
             symbol: factorySymbol,
-            story: "Alright, so those toys were using incredibly amounts of resources to make. Fortunately, you happen to have access to a group of people with an uncanny knack for making stuff without actually consuming materials - Elves! Let's turn this workshop into a proper factory, and get them producing these toys by themselves.",
+            story: "Alright, so those toys were using incredibly large amounts of resources to make. Fortunately, you happen to have access to a group of people with an uncanny knack for making stuff without actually consuming materials - Elves! Let's turn this workshop into a proper factory, and get them producing these toys with miraculous efficiency!",
             completedStory:
                 "That was a bit different than the usual elf training you are used to. But this factory seems very versatile, so you think it's a fair trade-off for needing to set things up a bit more. Good Job!",
             masteredStory: ""
@@ -453,10 +454,11 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 19,
             shouldNotify: false,
-            layer: null, // "toys3"
-            symbol: "",
-            story: "",
-            completedStory: "",
+            layer: "factory",
+            symbol: advFactorySymbol,
+            story: "Santa pulls you aside and says he thinks 3 unique toys might not be enough. You try to argue that they come in many color variations due to all the dyes you're using, but Santas insists you're going to need more. Well, suppose it's time to expand the factory!",
+            completedStory:
+                "Alright, admittedly 6 unique toys still feels like a bit of a compromise, but Santa seems pleased enough and with Christmas less than a week away, you're more than satisfied. Good Job!",
             masteredStory: ""
         })),
         createDay(() => ({
