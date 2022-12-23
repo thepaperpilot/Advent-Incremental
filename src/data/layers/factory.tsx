@@ -29,8 +29,8 @@ import { noPersist, Persistent, persistent, State } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { ProcessedComputable } from "util/computed";
-import { render, renderRow } from "util/vue";
-import { computed, ComputedRef, reactive, ref, unref, watchEffect } from "vue";
+import { render, renderRow, VueFeature } from "util/vue";
+import { computed, ComputedRef, reactive, ref, shallowRef, unref, watchEffect } from "vue";
 import coal from "./coal";
 import _block from "./factory-components/block.svg";
 import _blockMaker from "./factory-components/blockmaker.svg";
@@ -601,6 +601,10 @@ const factory = createLayer(id, () => {
     }
     interface FactoryInternalProcessor extends FactoryInternalBase {
         type: Exclude<BuildableCompName, "conveyor">;
+        lastProdTimes: number[];
+
+        lastFactoryProd: number;
+        average: ComputedRef<number | undefined>;
     }
     type FactoryInternal = FactoryInternalConveyor | FactoryInternalProcessor;
 
@@ -743,9 +747,6 @@ const factory = createLayer(id, () => {
         loaded = true;
         watchEffect(updateGraphics);
     });
-    (window as any).internal = compInternalData;
-    (window as any).comp = components;
-    (window as any).blocks = movingBlocks;
 
     function moveBlock(block: Block, newBlock: FactoryInternal, blockData: FactoryComponent) {
         // empty spot
@@ -865,6 +866,12 @@ const factory = createLayer(id, () => {
                             }
                         }
                         data.ticksDone -= cyclesDone * factoryData.tick;
+                        const now = Date.now();
+                        const diff = (now - compData.lastFactoryProd) / 1000;
+                        compData.lastProdTimes.push(diff);
+                        console.log(compData.lastProdTimes);
+                        if (compData.lastProdTimes.length > 10) compData.lastProdTimes.shift();
+                        compData.lastFactoryProd = now;
                     }
                 } else {
                     data.ticksDone += factoryTicks;
@@ -1009,6 +1016,26 @@ const factory = createLayer(id, () => {
             type: data.type,
             packages: isConveyor ? [] : undefined,
             nextPackages: isConveyor ? [] : undefined,
+            lastProdTimes: !isConveyor ? (reactive([]) as number[]) : undefined,
+            lastFactoryProd: !isConveyor
+                ? Date.now() -
+                  1000 * Decimal.div(data.ticksDone ?? 0, computedTickRate.value).toNumber()
+                : undefined,
+            average: !isConveyor
+                ? computed(() => {
+                      const times = (compInternalData[x + "x" + y] as FactoryInternalProcessor)
+                          .lastProdTimes;
+                      if (times.length === 0) return undefined;
+
+                      // times is in SECONDS, not ticks
+                      // seconds * Ticks per second -> ticks taken
+
+                      return Decimal.mul(times.length, factoryBaseData.tick)
+                          .div(times.reduce((x, n) => x + n, 0))
+                          .div(computedTickRate.value)
+                          .toNumber();
+                  })
+                : undefined,
             canProduce: computed(() => {
                 if (data.type === "conveyor") return true;
                 if (!(factoryBaseData.canProduce?.value ?? true)) return false;
@@ -1088,6 +1115,7 @@ const factory = createLayer(id, () => {
     const pointerDown = ref(false),
         pointerDrag = ref(false),
         compHovered = ref<FactoryComponent | undefined>(undefined),
+        compInternalHovered = shallowRef<FactoryInternal | undefined>(undefined),
         paused = ref(false);
 
     function onFactoryPointerMove(e: PointerEvent) {
@@ -1117,12 +1145,12 @@ const factory = createLayer(id, () => {
         }
         if (!pointerDown.value && !pointerDrag.value) {
             const { tx, ty } = spriteContainer.localTransform;
-            compHovered.value =
-                components.value[
-                    Math.round(roundDownTo(x - tx, blockSize) / blockSize) +
-                        "x" +
-                        Math.round(roundDownTo(y - ty, blockSize) / blockSize)
-                ];
+            const xyPos =
+                Math.round(roundDownTo(x - tx, blockSize) / blockSize) +
+                "x" +
+                Math.round(roundDownTo(y - ty, blockSize) / blockSize);
+            compHovered.value = components.value[xyPos];
+            compInternalHovered.value = compInternalData[xyPos];
         }
     }
     function onFactoryPointerDown(e: PointerEvent) {
@@ -1217,6 +1245,7 @@ const factory = createLayer(id, () => {
                 cComp.packages = [];
             } else {
                 const producerComp = components.value[key] as FactoryComponentProcessor;
+                const cComp = comp as FactoryInternalProcessor;
                 if (producerComp.outputStock !== undefined) {
                     for (const key in producerComp.outputStock) {
                         delete producerComp.outputStock[key as ResourceNames];
@@ -1228,6 +1257,8 @@ const factory = createLayer(id, () => {
                     }
                 }
                 producerComp.ticksDone = 0;
+                cComp.lastFactoryProd = Date.now();
+                cComp.lastProdTimes.splice(0, Infinity);
             }
         }
     }
@@ -1339,7 +1370,7 @@ const factory = createLayer(id, () => {
     }
 
     const hoveredComponent = jsx(() =>
-        compHovered.value !== undefined ? (
+        compHovered.value !== undefined && compInternalHovered.value !== undefined ? (
             <div
                 class="info-container"
                 id="factory-info"
@@ -1360,7 +1391,8 @@ const factory = createLayer(id, () => {
                 <br />
                 {unref(FACTORY_COMPONENTS[compHovered.value.type].description)}
                 <br />
-                {compHovered.value.type !== "conveyor" ? (
+                {compHovered.value.type !== "conveyor" &&
+                compInternalHovered.value.type !== "conveyor" ? (
                     <>
                         {showStockAmount(
                             compHovered.value.inputStock,
@@ -1373,6 +1405,27 @@ const factory = createLayer(id, () => {
                             "Outputs:",
                             false
                         )}
+                        <br />
+                        Efficency:{" "}
+                        {compInternalHovered.value.average.value !== undefined ? (
+                            <span
+                                style={{
+                                    color:
+                                        compInternalHovered.value.average.value > 1
+                                            ? "purple"
+                                            : compInternalHovered.value.average.value >= 0.9
+                                            ? "green"
+                                            : compInternalHovered.value.average.value >= 0.5
+                                            ? "yellow"
+                                            : "red"
+                                }}
+                            >
+                                {formatWhole(compInternalHovered.value.average.value * 100)}
+                            </span>
+                        ) : (
+                            "--"
+                        )}
+                        %
                     </>
                 ) : undefined}
             </div>
@@ -1533,7 +1586,7 @@ const factory = createLayer(id, () => {
         display: jsx(() => (
             <>
                 {render(modifiersModal)}
-                {render(tabs)}
+                {render(tabs as VueFeature)}
             </>
         ))
     };
