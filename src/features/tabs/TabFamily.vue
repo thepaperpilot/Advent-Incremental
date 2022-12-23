@@ -156,7 +156,7 @@ export default defineComponent({
 }
 
 .tab-family-container > :nth-child(2) {
-    margin-top: 20px;
+    margin-top: 50px;
 }
 
 .modal-body > .tab-family-container > :nth-child(2) {

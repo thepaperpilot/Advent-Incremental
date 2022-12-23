@@ -10,17 +10,22 @@ import { createBar, GenericBar } from "features/bars/bar";
 import { BoardNode, BoardNodeLink, createBoard, Shape } from "features/boards/board";
 import { createClickable } from "features/clickables/clickable";
 import { jsx } from "features/feature";
+import { createMilestone } from "features/milestones/milestone";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource } from "features/resources/resource";
 import { createTab } from "features/tabs/tab";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
-import { createAdditiveModifier, createSequentialModifier } from "game/modifiers";
+import {
+    createAdditiveModifier,
+    createMultiplicativeModifier,
+    createSequentialModifier
+} from "game/modifiers";
 import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
-import { render, renderRow } from "util/vue";
+import { render, renderCol, renderRow } from "util/vue";
 import { computed, ref, unref, watchEffect } from "vue";
 import "./styles/routing.css";
 
@@ -403,6 +408,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
         ))
     }));
 
+    const milestone1 = createMilestone(() => ({
+        display: {
+            requirement: "1 City Solved",
+            effectDisplay: "Each city solved doubles manual and auto processing speed"
+        },
+        shouldEarn() {
+            return Decimal.gte(citiesCompleted.value, 2);
+        }
+    }));
+    const milestones = { milestone1 };
+
     const houses = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: citiesCompleted,
@@ -426,11 +442,23 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const computedMinWeight = computed(() => minWeight.apply(2));
     const manualBoost = createSequentialModifier(() => []);
     const computedManualBoost = computed(() => manualBoost.apply(1));
-    const manualCooldown = createSequentialModifier(() => []);
+    const manualCooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.pow(0.5, citiesCompleted.value),
+            description: "1 City Solved",
+            enabled: milestone1.earned
+        }))
+    ]);
     const computedManualCooldown = computed(() => manualCooldown.apply(1));
     const redundantCooldown = createSequentialModifier(() => []);
     const computedRedundantCooldown = computed(() => redundantCooldown.apply(10));
-    const autoProcessing = createSequentialModifier(() => []);
+    const autoProcessing = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.pow(2, citiesCompleted.value),
+            description: "1 City Solved",
+            enabled: milestone1.earned
+        }))
+    ]);
     const computedAutoProcessing = computed(() => autoProcessing.apply(1));
 
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
@@ -567,6 +595,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         ))}
                     </div>
                 ))
+            }))
+        }),
+        improvements: () => ({
+            display: "Improvements",
+            tab: createTab(() => ({
+                display: jsx(() => renderCol(...Object.values(milestones)))
             }))
         })
     });
