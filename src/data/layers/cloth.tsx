@@ -36,6 +36,7 @@ import management from "./management";
 import metal from "./metal";
 import paper from "./paper";
 import plastic from "./plastic";
+import reindeer from "./reindeer";
 import trees from "./trees";
 import workshop from "./workshop";
 
@@ -449,7 +450,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: dyes.boosts.yellow2,
             description: "Yellow Dye",
             enabled: dyes.masteryEffectActive
-        }))
+        })),
+        reindeer.reindeer.cupid.modifier
     ]);
     const computedSheepGain = computed(() => sheepGain.apply(1));
     const breedingCooldown = createSequentialModifier(() => []);
@@ -494,7 +496,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: dyes.boosts.yellow2,
             description: "Yellow Dye",
             enabled: dyes.masteryEffectActive
-        }))
+        })),
+        reindeer.reindeer.cupid.modifier
     ]);
     const computedShearingAmount = computed(() => shearingAmount.apply(1));
     const shearingCooldown = createSequentialModifier(() => []);
@@ -539,7 +542,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: dyes.boosts.yellow2,
             description: "Yellow Dye",
             enabled: dyes.masteryEffectActive
-        }))
+        })),
+        reindeer.reindeer.cupid.modifier
     ]);
     const computedSpinningAmount = computed(() => spinningAmount.apply(1));
     const spinningCooldown = createSequentialModifier(() => []);

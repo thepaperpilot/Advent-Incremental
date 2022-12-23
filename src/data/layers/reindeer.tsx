@@ -5,16 +5,15 @@
 import HotkeyVue from "components/Hotkey.vue";
 import Spacer from "components/layout/Spacer.vue";
 import Modal from "components/Modal.vue";
-import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
+import { createCollapsibleModifierSections } from "data/common";
 import { main } from "data/projEntry";
 import { createBar, GenericBar } from "features/bars/bar";
 import { createClickable } from "features/clickables/clickable";
 import { jsx } from "features/feature";
 import { createHotkey, GenericHotkey } from "features/hotkey";
-import MainDisplay from "features/resources/MainDisplay.vue";
-import { createResource, Resource } from "features/resources/resource";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
+import { createMultiplicativeModifier } from "game/modifiers";
 import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
@@ -61,11 +60,23 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 progress: () => Decimal.div(progress.value, computedCooldown.value)
             }));
 
+            const modifier = createMultiplicativeModifier(() => ({
+                multiplier: effect,
+                description: options.name,
+                enabled: () => Decimal.gt(timesFed.value, 0)
+            }));
+
+            const effect = computed(() =>
+                Decimal.times(options.boostAmount, timesFed.value).add(1)
+            );
+
             return {
                 ...options,
                 hotkey,
                 timesFed,
                 progress,
+                effect,
+                modifier,
                 display: {
                     title: jsx(() => (
                         <h3>
@@ -78,7 +89,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                             Each time you feed {options.name} will increase your{" "}
                             {options.boostDescription} by +{format(options.boostAmount)}x
                             <Spacer />
-                            Currently {format(Decimal.pow(options.boostAmount, timesFed.value))}x
+                            Currently {format(effect.value)}x
                             <br />
                             {render(progressBar)}
                         </>
@@ -100,7 +111,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     progress.value = 0;
                 },
                 update(diff: number) {
-                    console.log(progress.value, computedCooldown.value, diff);
                     if (Decimal.gte(progress.value, computedCooldown.value)) {
                         progress.value = computedCooldown.value;
                     } else {

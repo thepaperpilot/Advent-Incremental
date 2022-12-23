@@ -37,6 +37,7 @@ import oil from "./oil";
 import paper from "./paper";
 import workshop from "./workshop";
 import toys from "./toys";
+import reindeer from "./reindeer";
 
 const id = "plastic";
 const day = 10;
@@ -379,7 +380,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 50,
             description: "350 toys",
             enabled: toys.milestones.milestone4.earned
-        }))
+        })),
+        reindeer.reindeer.blitzen.modifier
     ]);
     const computedPlasticGain = computed(() => plasticGain.apply(0));
 

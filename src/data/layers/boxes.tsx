@@ -31,6 +31,7 @@ import elves, { ElfBuyable } from "./elves";
 import management from "./management";
 import paper from "./paper";
 import plastic from "./plastic";
+import reindeer from "./reindeer";
 import trees from "./trees";
 import workshop from "./workshop";
 import wrappingPaper from "./wrapping-paper";
@@ -55,6 +56,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "1000% Foundation Completed",
             enabled: workshop.milestones.extraExpansionMilestone5.earned
         })),
+        reindeer.reindeer.vixen.modifier,
         createExponentialModifier(() => ({
             exponent: 1.1,
             description: "Bell Level 2",

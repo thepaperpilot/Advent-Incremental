@@ -27,6 +27,7 @@ import dyes from "./dyes";
 import elves, { ElfBuyable } from "./elves";
 import management from "./management";
 import plastic from "./plastic";
+import reindeer from "./reindeer";
 import ribbon from "./ribbon";
 import trees from "./trees";
 import workshop from "./workshop";
@@ -423,7 +424,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: wrappingPaper.boosts.sunshine1,
             description: "Sunshine Wrapping Paper",
             enabled: () => Decimal.gte(wrappingPaper.boosts.sunshine1.value, 2)
-        }))
+        })),
+        reindeer.reindeer.prancer.modifier
     ]) as WithRequired<Modifier, "description" | "revert">;
     const ashCost = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({

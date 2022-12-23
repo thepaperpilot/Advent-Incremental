@@ -41,6 +41,7 @@ import workshop from "./workshop";
 import { WithRequired } from "util/common";
 import { ElfBuyable } from "./elves";
 import toys from "./toys";
+import reindeer from "./reindeer";
 
 const id = "oil";
 const day = 9;
@@ -957,7 +958,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 50,
             description: "350 toys",
             enabled: toys.milestones.milestone4.earned
-        }))
+        })),
+        reindeer.reindeer.donner.modifier
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedOilSpeed = computed(() => oilSpeed.apply(0));
 

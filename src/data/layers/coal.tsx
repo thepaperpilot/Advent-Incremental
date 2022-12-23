@@ -40,6 +40,7 @@ import metal from "./metal";
 import oil from "./oil";
 import paper from "./paper";
 import plastic from "./plastic";
+import reindeer from "./reindeer";
 import trees from "./trees";
 import wrappingPaper from "./wrapping-paper";
 
@@ -785,6 +786,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Refined Coal",
             enabled: refinedCoal.bought
         })),
+        reindeer.reindeer.dancer.modifier,
         createExponentialModifier(() => ({
             exponent: 1.05,
             description: "Jack Level 2",
