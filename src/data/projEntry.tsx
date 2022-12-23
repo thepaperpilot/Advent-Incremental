@@ -31,6 +31,7 @@ import metal from "./layers/metal";
 import oil from "./layers/oil";
 import paper from "./layers/paper";
 import plastic from "./layers/plastic";
+import reindeer from "./layers/reindeer";
 import ribbon from "./layers/ribbon";
 import toys from "./layers/toys";
 import trees from "./layers/trees";
@@ -616,7 +617,8 @@ export const getInitialLayers = (
     wrappingPaper,
     ribbon,
     toys,
-    factory
+    factory,
+    reindeer
 ];
 
 /**
