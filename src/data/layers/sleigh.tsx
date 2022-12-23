@@ -2,48 +2,24 @@
  * @module
  * @hidden
  */
-import HotkeyVue from "components/Hotkey.vue";
 import Spacer from "components/layout/Spacer.vue";
-import Modal from "components/Modal.vue";
-import { createCollapsibleMilestones, createCollapsibleModifierSections } from "data/common";
+import { createCollapsibleMilestones} from "data/common";
 import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
-import { createClickable } from "features/clickables/clickable";
-import {
-    addHardcap,
-    addSoftcap,
-    createIndependentConversion,
-    createPolynomialScaling
-} from "features/conversion";
 import { jsx, showIf } from "features/feature";
-import { createHotkey } from "features/hotkey";
 import { createMilestone } from "features/milestones/milestone";
-import { createResource, displayResource } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
-import {
-    createAdditiveModifier,
-    createExponentialModifier,
-    createMultiplicativeModifier,
-    createSequentialModifier,
-    Modifier
-} from "game/modifiers";
-import { noPersist, persistent } from "game/persistence";
-import Decimal, { DecimalSource, format, formatTime, formatWhole } from "util/bignum";
-import { Direction, WithRequired } from "util/common";
+import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
+import { Direction} from "util/common";
 import { render } from "util/vue";
-import { computed, ref, unref, watchEffect } from "vue";
-import elves from "./elves";
-import factory from "./factory";
+import { computed, watchEffect } from "vue";
 import management from "./management";
-import toys from "./toys";
 import trees from "./trees";
-import wrappingPaper from "./wrapping-paper";
 import metal from "./metal";
 import plastic from "./plastic"
 import { createBuyable, GenericBuyable } from "features/buyable";
 import { Resource } from "features/resources/resource";
 import { isArray } from "@vue/shared";
-
 
 const id = "sleigh";
 const day = 22;
@@ -133,25 +109,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
             )
         )
     }));
-
-    /*const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
-        {
-            title: "Max Foundation",
-            modifier: maxFoundation,
-            base: 100
-        }
-    ]);
-    const showModifiersModal = ref(false);
-    const modifiersModal = jsx(() => (
-        <Modal
-            modelValue={showModifiersModal.value}
-            onUpdate:modelValue={(value: boolean) => (showModifiersModal.value = value)}
-            v-slots={{
-                header: () => <h2>{name} Modifiers</h2>,
-                body: generalTab
-            }}
-        />
-    ));*/
 
     watchEffect(() => {
         if (main.day.value === day && Decimal.gte(sleighProgress.value.value, 100)) {
