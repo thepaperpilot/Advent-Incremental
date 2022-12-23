@@ -653,7 +653,7 @@ const factory = createLayer(id, () => {
         bow: {
             imageSrc: _bowMaker,
             key: "shift+0",
-            name: "Wrapped Box Manufacturer",
+            name: "Bow Manufacturer",
             type: "processor",
             description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.bow)),
             energyCost: 2,
