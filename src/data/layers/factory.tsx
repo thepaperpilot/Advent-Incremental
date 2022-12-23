@@ -1077,7 +1077,7 @@ const factory = createLayer(id, () => {
         })),
         createUpgrade(() => ({
             resource: metal.metal,
-            cost: () =>Decimal.pow(3, upgradeAmount.value).mul(1e55),
+            cost: () =>Decimal.pow(3, upgradeAmount.value).mul(1e53),
             display: {
                 title: "Diamond-tipped drills",
                 description: "Drill power ^1.2"
@@ -1113,7 +1113,7 @@ const factory = createLayer(id, () => {
         })),
         createUpgrade(() => ({
             resource: oil.oil,
-            cost: () =>Decimal.pow(2, upgradeAmount.value).mul(1e23),
+            cost: () =>Decimal.pow(2, upgradeAmount.value).mul(1e22),
             display: {
                 title: "Capitalism",
                 description: "Console production is tripled"
@@ -1122,7 +1122,7 @@ const factory = createLayer(id, () => {
         }))],
         [createUpgrade(() => ({
             resource: coal.coal,
-            cost: () =>Decimal.pow(5, upgradeAmount.value).mul(1e136),
+            cost: () =>Decimal.pow(5, upgradeAmount.value).mul(1e130),
             display: {
                 title: "Brighter work rooms",
                 description: "Unused electricity makes ticks faster"

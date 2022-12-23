@@ -895,7 +895,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createExponentialModifier(() => ({
             exponent: 1.2,
             description: "Diamond-tipped drills",
-            enabled: factory.upgrades[0][3].bought.value
+            enabled: factory.upgrades[0][3].bought
         }))
     ]);
     const computedDrillPower = computed(() => drillPower.apply(0));
