@@ -42,7 +42,7 @@ const layer = createLayer(id, () => {
     );
     const currentDyeType = computed(
         () =>
-            Object.values(dyes.dyes).filter(d => d !== dyes.dyes.black)[
+            Object.values(dyes.dyes).filter(d => d !== dyes.dyes.black && d !== dyes.dyes.white)[
                 new Decimal(ribbon.value).toNumber() % 6
             ]
     );
