@@ -14,7 +14,8 @@ export const {
     formatSmall,
     formatLimit,
     invertOOM,
-    formatGain
+    formatGain,
+    formatList
 } = numberUtils;
 
 export type DecimalSource = RawDecimalSource;
@@ -34,6 +35,7 @@ declare global {
         formatLimit: (list: [DecimalSource, string][], unit: string) => string;
         invertOOM: (x: DecimalSource) => Decimal;
         formatGain: (x: DecimalSource) => string;
+        formatList: (x: string[]) => string;
     }
 }
 window.Decimal = Decimal;
@@ -48,5 +50,6 @@ window.formatSmall = formatSmall;
 window.formatLimit = formatLimit;
 window.invertOOM = invertOOM;
 window.formatGain = formatGain;
+window.formatList = formatList;
 
 export default Decimal;

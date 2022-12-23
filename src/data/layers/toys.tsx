@@ -12,7 +12,7 @@ import {
 import { main } from "data/projEntry";
 import { createBuyable, GenericBuyable } from "features/buyable";
 import { jsx, showIf } from "features/feature";
-import { createMilestone } from "features/milestones/milestone";
+import { createMilestone, GenericMilestone } from "features/milestones/milestone";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource } from "features/resources/resource";
 import { createUpgrade } from "features/upgrades/upgrade";
@@ -25,6 +25,7 @@ import { render, renderGrid, renderRow } from "util/vue";
 import { computed, ref } from "vue";
 import cloth from "./cloth";
 import dyes from "./dyes";
+import factory from "./factory";
 import metal from "./metal";
 import plastic from "./plastic";
 import trees from "./trees";
@@ -263,21 +264,49 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const milestone5 = createMilestone(() => ({
         display: {
             requirement: "750 toys",
-            effectDisplay: "The wheel crafter now makes 2 wheels instead of 1! Now you should be able to fit everything in the factory."
+            effectDisplay:
+                "The wheel crafter now makes 2 wheels instead of 1! Now you should be able to fit everything in the factory."
         },
         shouldEarn: () => Decimal.gte(toySum.value, 750),
-        visibility: () => showIf(milestone4.earned.value)
-    }));
-    
+        visibility: () => showIf(milestone4.earned.value && main.days[factory.day - 1].opened.value)
+    })) as GenericMilestone;
     const milestone6 = createMilestone(() => ({
         display: {
             requirement: "1500 toys",
-            effectDisplay: "Running out of energy? Let's increase the limit! Multiply energy capacity by 1.4"
+            effectDisplay:
+                "Running out of energy? Let's increase the limit! Multiply energy capacity by 1.4"
         },
         shouldEarn: () => Decimal.gte(toySum.value, 1500),
         visibility: () => showIf(milestone5.earned.value)
     }));
-    const milestones = { milestone1, milestone2, milestone3, milestone4, milestone5, milestone6 };
+    const milestone7 = createMilestone(() => ({
+        display: {
+            requirement: "3000 toys",
+            effectDisplay: "Multiply log gain by the amount of clothes you have"
+        },
+        shouldEarn: () => Decimal.gte(toySum.value, 3000),
+        visibility: () =>
+            showIf(milestone6.earned.value && main.days[factory.advancedDay - 1].opened.value)
+    })) as GenericMilestone;
+    const milestone8 = createMilestone(() => ({
+        display: {
+            requirement: "6000 toys",
+            effectDisplay: "Running out of energy? Let's increase the limit! Multiply energy capacity by 1.4"
+        },
+        shouldEarn: () => Decimal.gte(toySum.value, 6000),
+        visibility: () =>
+            showIf(milestone6.earned.value && main.days[factory.advancedDay - 1].opened.value)
+    })) as GenericMilestone;
+    const milestones = {
+        milestone1,
+        milestone2,
+        milestone3,
+        milestone4,
+        milestone5,
+        milestone6,
+        milestone7,
+        milestone8
+    };
     const { collapseMilestones, display: milestonesDisplay } =
         createCollapsibleMilestones(milestones);
 
