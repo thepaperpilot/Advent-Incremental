@@ -1050,7 +1050,7 @@ const factory = createLayer(id, () => {
     const factoryBuyables = { expandFactory, oilFuel, carryToys };
     const upgrades = [[createUpgrade(() => ({
             resource: trees.logs,
-            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e80),
+            cost: () =>Decimal.pow(5, upgradeAmount.value).mul(1e80),
             display: {
                 title: "Sawmill Efficiency",
                 description: "Double sawmill consumption and production and metal supplier efficiency"
@@ -1077,7 +1077,7 @@ const factory = createLayer(id, () => {
         })),
         createUpgrade(() => ({
             resource: metal.metal,
-            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e55),
+            cost: () =>Decimal.pow(5, upgradeAmount.value).mul(1e55),
             display: {
                 title: "Diamond-tipped drills",
                 description: "Drill power ^1.2"
@@ -1095,7 +1095,7 @@ const factory = createLayer(id, () => {
         })),
         createUpgrade(() => ({
             resource: dyes.dyes.red.amount,
-            cost: () =>Decimal.pow(2, upgradeAmount.value).mul(1e17),
+            cost: () =>Decimal.pow(1.5, upgradeAmount.value).mul(4e16),
             display: {
                 title: "Colorful clothes",
                 description: "Dye producers produce 4x as much"
@@ -1113,7 +1113,7 @@ const factory = createLayer(id, () => {
         })),
         createUpgrade(() => ({
             resource: oil.oil,
-            cost: () =>Decimal.pow(4, upgradeAmount.value).mul(1e23),
+            cost: () =>Decimal.pow(3, upgradeAmount.value).mul(1e23),
             display: {
                 title: "Capitalism",
                 description: "Console production is tripled"
@@ -1122,7 +1122,7 @@ const factory = createLayer(id, () => {
         }))],
         [createUpgrade(() => ({
             resource: coal.coal,
-            cost: () =>Decimal.pow(100, upgradeAmount.value).mul(1e136),
+            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e136),
             display: {
                 title: "Brighter work rooms",
                 description: "Unused electricity makes ticks faster"
@@ -1131,7 +1131,7 @@ const factory = createLayer(id, () => {
         })),
         createUpgrade(() => ({
             resource: dyes.dyes.blue.amount,
-            cost: () =>Decimal.pow(2, upgradeAmount.value).mul(1e17),
+            cost: () =>Decimal.pow(1.5, upgradeAmount.value).mul(4e16),
             display: {
                 title: "Colorful teddy bears",
                 description: "Teddy bears produce 2x as much"
@@ -1140,7 +1140,7 @@ const factory = createLayer(id, () => {
         })),
         createUpgrade(() => ({
             resource: dyes.dyes.black.amount,
-            cost: () =>Decimal.pow(2, upgradeAmount.value).mul(1e6),
+            cost: () =>Decimal.pow(1.5, upgradeAmount.value).mul(1e6),
             display: {
                 title: "New Colors",
                 description: "Unlock white dye"
@@ -1149,7 +1149,7 @@ const factory = createLayer(id, () => {
         })),
         createUpgrade(() => ({
             resource: boxes.boxes,
-            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e80),
+            cost: () =>Decimal.pow(5, upgradeAmount.value).mul(1e80),
             display: {
                 title: "Carry ticks in boxes",
                 description: "Tick speed x1.5"

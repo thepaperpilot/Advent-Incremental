@@ -215,6 +215,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             case "yellow":
             case "blue":
             case "black":
+            case "white":
                 dyeBook = paper.books.primaryDyeBook;
                 break;
             case "orange":
@@ -544,7 +545,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 }
             ],
             dyesToReset: [],
-            visibility: () => showIf(factory.upgrades[2][3].bought.value)
+            visibility: () => showIf(factory.upgrades[2][2].bought.value)
         }),
         orange: createDye({
             name: "Orange Dye",
@@ -755,6 +756,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         {
             title: "Black Dye Creation",
             modifier: dyes.black.toGenerate,
+            base: 0
+        },
+        {
+            title: "White Dye Creation",
+            modifier: dyes.white.toGenerate,
             base: 0
         },
         {
@@ -987,8 +993,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     </>
                 ) : null}
                 <div style="width: 620px">
-                    {renderRow(dyes.black.display)}
-                    {renderRow(dyes.black.buyable)}
+                    {renderRow(dyes.black.display, dyes.white.display)}
+                    {renderRow(dyes.black.buyable, dyes.white.buyable)}
                     <Spacer />
                     {renderRow(dyes.red.display, dyes.yellow.display, dyes.blue.display)}
                     {renderRow(dyes.red.buyable, dyes.yellow.buyable, dyes.blue.buyable)}
