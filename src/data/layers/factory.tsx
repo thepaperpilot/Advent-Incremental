@@ -303,7 +303,7 @@ const factory = createLayer(id, () => {
             key: "0",
             name: "Conveyor",
             type: "conveyor",
-            description: "Moves items at 1 block per second.",
+            description: "Moves items at 1 block per tick.",
             energyCost: 1,
             tick: 1,
             ports: {
@@ -1674,48 +1674,55 @@ const factory = createLayer(id, () => {
 
     // ------------------------------------------------------------------------------- Tabs
 
+    const hovered = ref(false);
     const componentsList = jsx(() => {
         return (
-            <div class="comp-container">
+
+            <div class={{ "comp-container": true, hovered: hovered.value }}>
                 <div class="comp-list">
-                    {Object.entries(FACTORY_COMPONENTS).map(value => {
-                        const key = value[0] as FactoryCompNames;
-                        const item = value[1];
-                        if (unref(item.visible) === false) {
-                            return null;
-                        }
-                        return (
-                            <div class="comp">
-                                <img
-                                    src={item.imageSrc}
-                                    class={{ selected: compSelected.value === key }}
-                                    onClick={() => onCompClick(key)}
-                                />
-                                {item.extraImage == null ? null : (
-                                    <img src={item.extraImage} class="producedItem" />
-                                )}
-                                <div
-                                    class={{
-                                        "comp-info": true
-                                    }}
-                                >
-                                    <h3>
-                                        {FACTORY_COMPONENTS[key].name + " "}
-                                        <HotkeyVue hotkey={hotkeys[key]} />
-                                    </h3>
-                                    <br />
-                                    {unref(FACTORY_COMPONENTS[key].description)}
-                                    {FACTORY_COMPONENTS[key].energyCost ?? 0 ? (
-                                        <>
-                                            <br />
-                                            Energy Consumption:{" "}
-                                            {formatWhole(FACTORY_COMPONENTS[key].energyCost ?? 0)}
-                                        </>
-                                    ) : null}
+                    <div
+                        class="comp-list-child"
+                        onPointerenter={() => (hovered.value = true)}
+                        onPointerleave={() => (hovered.value = false)}
+                    >
+                        {Object.entries(FACTORY_COMPONENTS).map(value => {
+                            const key = value[0] as FactoryCompNames;
+                            const item = value[1];
+                            return (
+                                <div class="comp">
+                                    <img
+                                        src={item.imageSrc}
+                                        class={{ selected: compSelected.value === key }}
+                                        onClick={() => onCompClick(key)}
+                                    />
+                                    {item.extraImage == null ? null : (
+                                        <img src={item.extraImage} class="producedItem" />
+                                    )}
+                                    <div
+                                        class={{
+                                            "comp-info": true
+                                        }}
+                                    >
+                                        <h3>
+                                            {FACTORY_COMPONENTS[key].name + " "}
+                                            <HotkeyVue hotkey={hotkeys[key]} />
+                                        </h3>
+                                        <br />
+                                        {unref(FACTORY_COMPONENTS[key].description)}
+                                        {FACTORY_COMPONENTS[key].energyCost ?? 0 ? (
+                                            <>
+                                                <br />
+                                                Energy Consumption:{" "}
+                                                {formatWhole(
+                                                    FACTORY_COMPONENTS[key].energyCost ?? 0
+                                                )}
+                                            </>
+                                        ) : null}
+                                    </div>
                                 </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
         );

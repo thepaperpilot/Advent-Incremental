@@ -57,8 +57,6 @@
     border-left: 1px solid var(--foreground);
 }
 
-
-
 .factory-container {
     width: auto;
     top: 113px;
@@ -68,6 +66,7 @@
     position: absolute;
     background-color: var(--raised-background);
     overflow: hidden;
+    z-index: 1;
 }
 
 .info-container {
@@ -100,6 +99,10 @@
     left: 0;
     bottom: 0;
     width: 158px;
+    z-index: -1;
+}
+
+.comp-container.hovered {
     z-index: 1;
 }
 
@@ -124,28 +127,30 @@
 
     z-index: -1;
 }
-.comp-list > .comp:nth-child(2n - 1) .comp-info {
+.comp-list .comp:nth-child(2n - 1) .comp-info {
     right: -85px;
 }
-.comp-list > .comp:nth-child(2n - 1):last-child .comp-info {
-    right: -47px;
-}
-.comp-list > .comp:hover .comp-info {
+.comp-list .comp:hover .comp-info {
     transform: translateX(calc(20px + 100%));
 }
 
 .comp-list {
     width: 100%;
     height: 100%;
+    overflow-y: overlay;
+    overflow-x: hidden;
+    padding-right: 370px;
+    direction: rtl;
+}
+
+.comp-list-child {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-evenly;
     align-items: flex-start;
     align-content: flex-start;
-    overflow-y: overlay;
-    overflow-x: hidden;
-    padding-right: 500px;
-    pointer-events: none;
+    width: 148px;
+    direction: ltr;
 }
 
 .comp-list::after {
@@ -160,7 +165,7 @@
     z-index: -1;
 }
 
-.comp-list > .comp {
+.comp-list .comp {
     position: relative;
     width: 50px;
     height: 50px;
@@ -168,8 +173,8 @@
     pointer-events: all;
 }
 
-.comp-list > div:nth-child(3)::after,
-.comp-list > div:nth-child(4)::after {
+.comp-list .comp:nth-child(3)::after,
+.comp-list .comp:nth-child(4)::after {
     content: "";
     position: absolute;
     top: calc(100% + 10px);
@@ -178,13 +183,13 @@
     left: 0;
     right: 0;
 }
-.comp-list > div:nth-child(3)::after {
+.comp-list .comp:nth-child(3)::after {
     right: -50px;
 }
-.comp-list > div:nth-child(4)::after {
+.comp-list .comp:nth-child(4)::after {
     left: -50px;
 }
-.comp-list > img.selected:not(.producedItem) {
+.comp-list .comp img.selected:not(.producedItem) {
     transform: translate(-5px, -5px);
     filter: drop-shadow(2px 2px 0 var(--foreground)) drop-shadow(5px 5px 5px #0007);
 }
