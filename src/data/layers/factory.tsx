@@ -194,8 +194,17 @@ const factory = createLayer(id, () => {
             multiplier: Decimal.add(paper.paper.value, 1).log10().div(100).add(1),
             description: "News Ticker",
             enabled: () => upgrades[0][1].bought.value 
-        }))
-        
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: Decimal.lt(energyEfficiency.value, 1)?1:Decimal.sub(2, Decimal.div(energyConsumption.value, computedEnergy.value)),
+            description: "Brighter work rooms",
+            enabled: () => upgrades[2][1].bought.value 
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 1.5,
+            description: "Carry ticks in boxes",
+            enabled: () => upgrades[2][3].bought.value 
+        })),
     ]);
     const computedTickRate = computed(() => tickRate.apply(1));
     const factorySize = createSequentialModifier(() => [
@@ -651,7 +660,7 @@ const factory = createLayer(id, () => {
             },
             outputs: {
                 bear: {
-                    amount: 1,
+                    amount: computed(() => (upgrades[1][3].bought.value ? 2 : 1)),
                     resource: bears
                 }
             },
@@ -703,7 +712,7 @@ const factory = createLayer(id, () => {
             },
             outputs: {
                 console: {
-                    amount: computed(() => (upgrades[1][1].bought.value ? 3 : 1)),
+                    amount: computed(() => (upgrades[1][3].bought.value ? 3 : 1)),
                     resource: consoles
                 }
             },
@@ -1116,7 +1125,7 @@ const factory = createLayer(id, () => {
             cost: () =>Decimal.pow(100, upgradeAmount.value).mul(1e136),
             display: {
                 title: "Brighter work rooms",
-                description: "Unused electricity % makes ticks faster up to 2x"
+                description: "Unused electricity makes ticks faster"
             },
             visible: () => showIf(main.days[advancedDay - 1].opened.value)
         })),

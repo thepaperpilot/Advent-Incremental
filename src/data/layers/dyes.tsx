@@ -36,6 +36,7 @@ import oil from "./oil";
 import paper from "./paper";
 import trees from "./trees";
 import toys from "./toys";
+import factory from "./factory";
 
 interface Dye {
     name: string;
@@ -56,7 +57,7 @@ type DyeUpg =
     | "blueDyeUpg2"
     | "coalUpg";
 
-export type enumColor = "red" | "green" | "blue" | "yellow" | "purple" | "orange" | "black";
+export type enumColor = "red" | "green" | "blue" | "yellow" | "purple" | "orange" | "black" | "white";
 
 const id = "dyes";
 const day = 11;
@@ -520,6 +521,31 @@ const layer = createLayer(id, function (this: BaseLayer) {
             dyesToReset: [],
             visibility: () => showIf(toys.milestones.milestone2.earned.value)
         }),
+        white: createDye({
+            name: "White Dye",
+            color: "white",
+            key: "q",
+            costs: () => [
+                {
+                    base: "1e60",
+                    root: 5,
+                    res: trees.logs
+                },
+                {
+                    base: computed(() => (upgrades.yellowDyeUpg2.bought.value ? "1e17" : "2e17")),
+                    root: 2,
+                    res: oil.oil
+                }
+            ],
+            listedBoosts: [
+                {
+                    visible: true,
+                    desc: computed(() => `*${format(boosts.white1.value)} plastic gain.`)
+                }
+            ],
+            dyesToReset: [],
+            visibility: () => showIf(factory.upgrades[2][3].bought.value)
+        }),
         orange: createDye({
             name: "Orange Dye",
             color: "orange",
@@ -700,6 +726,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         purple2: computed(() => Decimal.add(dyes.purple.amount.value, 1).log2().plus(1)),
         black1: computed(() =>
             Decimal.pow(2, Decimal.add(dyes.black.amount.value, 1).log2().sqrt())
+                .pow(upgrades.coalUpg.bought.value ? 1.2 : 1)
+                .pow(management.elfTraining.clothElfTraining.milestones[3].earned.value ? 1.1 : 1)
+        ),
+        white1: computed(() =>
+            Decimal.pow(2, Decimal.add(dyes.white.amount.value, 1).log2().sqrt())
                 .pow(upgrades.coalUpg.bought.value ? 1.2 : 1)
                 .pow(management.elfTraining.clothElfTraining.milestones[3].earned.value ? 1.1 : 1)
         )
