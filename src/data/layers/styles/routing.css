@@ -1,0 +1,23 @@
+.routes-list {
+    margin-top: 60px !important;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.routes-list .checked {
+    color: var(--bought);
+}
+
+.routes-list .processing {
+    color: var(--layer-color);
+}
+
+.routes-list .redundant:not(.checked):not(.processing) {
+    opacity: 0.5;
+}
+
+.routes-list .skipped {
+    text-decoration: line-through;
+    text-decoration-thickness: 5px;
+}

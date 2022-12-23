@@ -8,10 +8,12 @@ import { createCollapsibleModifierSections } from "data/common";
 import { main } from "data/projEntry";
 import { createBar, GenericBar } from "features/bars/bar";
 import { BoardNode, BoardNodeLink, createBoard, Shape } from "features/boards/board";
-import { createClickable, GenericClickable } from "features/clickables/clickable";
+import { createClickable } from "features/clickables/clickable";
 import { jsx } from "features/feature";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource } from "features/resources/resource";
+import { createTab } from "features/tabs/tab";
+import { createTabFamily } from "features/tabs/tabFamily";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
 import { createAdditiveModifier, createSequentialModifier } from "game/modifiers";
@@ -20,8 +22,7 @@ import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render, renderRow } from "util/vue";
 import { computed, ref, unref, watchEffect } from "vue";
-import { resourceLimits } from "worker_threads";
-import "./styles/reindeer.css";
+import "./styles/routing.css";
 
 const alpha = [
     "A",
@@ -58,12 +59,43 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Routing";
     const color = "navajowhite";
 
-    const citiesGoal = 100;
+    const citiesGoal = 25;
 
     const citiesCompleted = createResource<DecimalSource>(0, "cities solved");
     const currentCity = persistent<number[][]>([]);
-    const currentRoute = persistent<number[]>([]);
+    const routeIndex = persistent<number>(0);
     const checkRouteProgress = persistent<number>(0);
+
+    const currentRoutes = computed(() => {
+        // Permutation code from https://stackoverflow.com/a/37580979
+        const length = currentCity.value.length;
+        const permutation = new Array(length).fill(0).map((_, i) => i);
+        const result = [permutation.slice()];
+        const c = new Array(length).fill(0);
+        let i = 1;
+
+        while (i < length) {
+            if (c[i] < i) {
+                const k = i % 2 && c[i];
+                const p = permutation[i];
+                permutation[i] = permutation[k];
+                permutation[k] = p;
+                ++c[i];
+                i = 1;
+                result.push(permutation.slice());
+            } else {
+                c[i] = 0;
+                ++i;
+            }
+        }
+        return result;
+    });
+    const redundantRoutes = computed(() => {
+        return currentRoutes.value.filter(route => route[0] > route[1]);
+    });
+    const routesToSkip = ref<number[]>([]);
+
+    const currentRoute = computed(() => currentRoutes.value[routeIndex.value]);
 
     const currentRouteDuration = computed(() => {
         const route = currentRoute.value;
@@ -81,7 +113,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
 
     function stringifyRoute(route: number[]) {
-        route
+        return route
             .map(h => (city.types.house.title as (node: BoardNode) => string)(city.nodes.value[h]))
             .join("->");
     }
@@ -106,75 +138,25 @@ const layer = createLayer(id, function (this: BaseLayer) {
             city.push(house);
         }
         currentCity.value = city;
-        routesChecked.value = 0;
+        routeIndex.value = 0;
         getNextRoute();
     }
 
-    const routesChecked = ref(0);
     function getNextRoute() {
-        if (routesChecked.value === 0) {
-            const numHouses = new Decimal(computedHouses.value).clampMin(3).toNumber();
-            currentRoute.value = new Array(numHouses).fill(0).map((_, i) => i);
-        } else {
-            const route = currentRoute.value.slice();
-            // Loop through each location as if they were digits, from right to left
-            // Try to increment a digit.
-            // If that makes it equal to the location to its left, then it has performed a full cycle:
-            // In this case, we mark that location as needing to be re-calculated and move to the next digit to the left
-            // If that digit was the starting location, then we've completed this city entirely
-            // If incrementing a digit doesn't make it equal to its left neighbor, but it _does_ appear elsewhere to its left, then try incrementing the digit again
-            // Once we find a digit that can be incremented successfully without completing a full cycle, save that new value and exit this loop
-            // If we marked a location as needing to be re-calculated, then set it to one above its left neighbor, skipping over any values present in other digits to its left, and repeat this process for every digit to the right of the marked one
-            let recalculateFrom = route.length;
-            outer: for (let i = route.length - 1; i >= 0; i--) {
-                let newHouse = route[i] + 1;
-                while (true) {
-                    if (newHouse >= route.length) {
-                        if (i === 0) {
-                            // Overflowing on starting location means we're done!
-                            citiesCompleted.value = Decimal.add(citiesCompleted.value, 1);
-                            generateCity();
-                            return;
-                        }
-                        newHouse = 0;
-                    }
-                    if (i > 0 && newHouse === route[i - 1]) {
-                        // This location is completed, so we'll increment the next location
-                        // (going right to left)
-                        recalculateFrom = i;
-                        route[i] = -1;
-                        break;
-                    }
-                    if (route.includes(newHouse)) {
-                        // Skip over locations that appear to the left in the route
-                        newHouse++;
-                    } else {
-                        // The route is fully valid
-                        route[i] = newHouse;
-                        break outer;
-                    }
-                }
-            }
-            if (recalculateFrom <= 0) {
-                console.error("thepaperpilot's logic failed :skull:");
-            } else {
-                for (let i = recalculateFrom; i < route.length; i++) {
-                    let j = route[i - 1] + 1;
-                    while (true) {
-                        if (j >= route.length) {
-                            j = 0;
-                        } else if (route.includes(j)) {
-                            j++;
-                        } else {
-                            break;
-                        }
-                    }
-                    route[i] = j;
-                }
-                currentRoute.value = route;
-            }
+        while (
+            routeIndex.value <= currentRoutes.value.length &&
+            routesToSkip.value.includes(routeIndex.value)
+        ) {
+            routeIndex.value++;
         }
-        checkRouteProgress.value = 0;
+        if (routeIndex.value > currentRoutes.value.length) {
+            generateCity();
+        } else {
+            if (redundantRoutes.value.includes(currentRoute.value)) {
+                routesToSkip.value = [...routesToSkip.value, routeIndex.value];
+            }
+            checkRouteProgress.value = 0;
+        }
     }
 
     const newCityProgress = persistent<DecimalSource>(0);
@@ -273,12 +255,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: {
             minHeight: "40px"
         },
-        canClick: () => Decimal.gte(redundantProgress.value, computedRedundantCooldown.value),
+        canClick: () =>
+            Decimal.gte(redundantProgress.value, computedRedundantCooldown.value) &&
+            routesToSkip.value.length < redundantRoutes.value.length,
         onClick() {
             if (!unref(removeRedundantRoute.canClick)) {
                 return;
             }
-            // TODO remove redundant route
+            routesToSkip.value = [
+                ...routesToSkip.value,
+                currentRoutes.value.indexOf(redundantRoutes.value[routesToSkip.value.length])
+            ];
             redundantProgress.value = 0;
         }
     }));
@@ -336,11 +323,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             for (let i = 0; i < city.length; i++) {
                 const row = Math.floor(i / rows);
                 const col = Math.floor(i % rows);
+                const randomOffsetIndex = i + new Decimal(citiesCompleted.value).toNumber();
                 nodes.push({
                     id: i,
                     position: {
-                        x: 80 * (-(cols - 1) / 2 + col),
-                        y: 80 * (-(rows - 1) / 2 + row)
+                        x: 160 * (-(cols - 1) / 2 + col) + Math.cos(randomOffsetIndex) * 40,
+                        y: 160 * (-(rows - 1) / 2 + row) + Math.sin(randomOffsetIndex) * 40
                     },
                     type: "house",
                     state: i
@@ -528,7 +516,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             .add(checkRouteProgress.value)
             .toNumber();
         if (checkRouteProgress.value > currentRouteDuration.value) {
-            routesChecked.value++;
+            routeIndex.value++;
             getNextRoute();
         }
     });
@@ -557,16 +545,47 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     });
 
+    const tabs = createTabFamily({
+        routes: () => ({
+            display: "Routes to check",
+            tab: createTab(() => ({
+                display: jsx(() => (
+                    <div class="routes-list">
+                        {currentRoutes.value.map((route, index) => (
+                            <div
+                                class={{
+                                    redundant: route[0] > route[1],
+                                    checked: routeIndex.value > index,
+                                    processing: routeIndex.value === index,
+                                    skipped:
+                                        routeIndex.value < index &&
+                                        routesToSkip.value.includes(index)
+                                }}
+                            >
+                                {stringifyRoute(route)}
+                            </div>
+                        ))}
+                    </div>
+                ))
+            }))
+        })
+    });
+
     return {
         name,
         day,
         color,
         citiesCompleted,
         currentCity,
-        currentRoute,
+        routeIndex,
         checkRouteProgress,
         newCityProgress,
+        boostProgress,
+        redundantProgress,
         generalTabCollapsed,
+        currentRoutes,
+        redundantRoutes,
+        routesToSkip,
         city,
         minWidth: 700,
         display: jsx(() => (
@@ -591,6 +610,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {renderRow(getNewCity, boost, removeRedundantRoute)}
                 {render(city)}
                 {render(checkRouteProgressBar)}
+                {render(tabs)}
             </>
         )),
         minimizedDisplay: jsx(() => (
