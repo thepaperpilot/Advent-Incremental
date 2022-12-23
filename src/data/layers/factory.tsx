@@ -357,7 +357,7 @@ const factory = createLayer(id, () => {
             tick: 1,
             outputs: {
                 dye: {
-                    amount: 1
+                    amount: computed(() => (upgrades[1][1].bought.value ? 4 : 1))
                 }
             }
         } as FactoryComponentDeclaration,
@@ -387,7 +387,7 @@ const factory = createLayer(id, () => {
             tick: 1,
             outputs: {
                 plastic: {
-                    amount: 1
+                    amount: computed(() => (upgrades[1][2].bought.value ? 4 : 1))
                 }
             }
         } as FactoryComponentDeclaration,
@@ -572,7 +572,7 @@ const factory = createLayer(id, () => {
             },
             outputs: {
                 block: {
-                    amount: 1,
+                    amount: computed(() => (upgrades[1][0].bought.value ? 3 : 1)),
                     resource: toys.woodenBlocks
                 }
             }
@@ -703,7 +703,7 @@ const factory = createLayer(id, () => {
             },
             outputs: {
                 console: {
-                    amount: 1,
+                    amount: computed(() => (upgrades[1][1].bought.value ? 3 : 1)),
                     resource: consoles
                 }
             },
