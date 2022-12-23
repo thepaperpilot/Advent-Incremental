@@ -1057,7 +1057,7 @@ const factory = createLayer(id, () => {
             showAmount: false
         },
         style: "width: 200px",
-        visible: () => showIf(main.days[advancedDay - 1].opened.value)
+        visibility: () => showIf(main.days[advancedDay - 1].opened.value)
     })) as GenericBuyable;
     const oilFuel = createBuyable(() => ({
         resource: oil.oil,
@@ -1071,7 +1071,7 @@ const factory = createLayer(id, () => {
             showAmount: false
         },
         style: "width: 200px",
-        visible: () => showIf(main.days[advancedDay - 1].opened.value)
+        visibility: () => showIf(main.days[advancedDay - 1].opened.value)
     })) as GenericBuyable;
     const carryToys = createBuyable(() => ({
         resource: boxes.boxes,
@@ -1087,7 +1087,7 @@ const factory = createLayer(id, () => {
             showAmount: false
         },
         style: "width: 200px",
-        visible: () => showIf(main.days[advancedDay - 1].opened.value)
+        visibility: () => showIf(main.days[advancedDay - 1].opened.value)
     })) as GenericBuyable;
     const factoryBuyables = { expandFactory, oilFuel, carryToys };
     const upgrades = [
@@ -1100,7 +1100,7 @@ const factory = createLayer(id, () => {
                     description:
                         "Double sawmill consumption and production and metal supplier efficiency"
                 },
-                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+                visibility: () => showIf(main.days[advancedDay - 1].opened.value)
             })),
             createUpgrade(() => ({
                 resource: paper.paper,
@@ -1109,7 +1109,7 @@ const factory = createLayer(id, () => {
                     title: "News Ticker",
                     description: "Paper boosts tick speed"
                 },
-                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+                visibility: () => showIf(main.days[advancedDay - 1].opened.value)
             })),
             createUpgrade(() => ({
                 resource: toys.trucks,
@@ -1118,7 +1118,7 @@ const factory = createLayer(id, () => {
                     title: "Haul wood in trucks",
                     description: "Trucks multiply wood gain"
                 },
-                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+                visibility: () => showIf(main.days[advancedDay - 1].opened.value)
             })),
             createUpgrade(() => ({
                 resource: metal.metal,
@@ -1127,7 +1127,7 @@ const factory = createLayer(id, () => {
                     title: "Diamond-tipped drills",
                     description: "Drill power ^1.2"
                 },
-                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+                visibility: () => showIf(main.days[advancedDay - 1].opened.value)
             }))
         ],
         [
@@ -1138,7 +1138,7 @@ const factory = createLayer(id, () => {
                     title: "Larger wood pieces",
                     description: "Wooden block producers produce 3x as much"
                 },
-                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+                visibility: () => showIf(main.days[advancedDay - 1].opened.value)
             })),
             createUpgrade(() => ({
                 resource: dyes.dyes.red.amount,
@@ -1147,7 +1147,7 @@ const factory = createLayer(id, () => {
                     title: "Colorful clothes",
                     description: "Dye producers produce 4x as much"
                 },
-                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+                visibility: () => showIf(main.days[advancedDay - 1].opened.value)
             })),
             createUpgrade(() => ({
                 resource: plastic.plastic,
@@ -1156,7 +1156,7 @@ const factory = createLayer(id, () => {
                     title: "Improved plastic producers",
                     description: "Plastic producers produce 4x as much"
                 },
-                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+                visibility: () => showIf(main.days[advancedDay - 1].opened.value)
             })),
             createUpgrade(() => ({
                 resource: oil.oil,
@@ -1165,7 +1165,7 @@ const factory = createLayer(id, () => {
                     title: "Capitalism",
                     description: "Console production is tripled"
                 },
-                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+                visibility: () => showIf(main.days[advancedDay - 1].opened.value)
             }))
         ],
         [
@@ -1176,7 +1176,7 @@ const factory = createLayer(id, () => {
                     title: "Brighter work rooms",
                     description: "Unused electricity makes ticks faster"
                 },
-                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+                visibility: () => showIf(main.days[advancedDay - 1].opened.value)
             })),
             createUpgrade(() => ({
                 resource: dyes.dyes.blue.amount,
@@ -1185,7 +1185,7 @@ const factory = createLayer(id, () => {
                     title: "Colorful teddy bears",
                     description: "Teddy bears produce 2x as much"
                 },
-                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+                visibility: () => showIf(main.days[advancedDay - 1].opened.value)
             })),
             createUpgrade(() => ({
                 resource: dyes.dyes.black.amount,
@@ -1194,7 +1194,7 @@ const factory = createLayer(id, () => {
                     title: "New Colors",
                     description: "Unlock white dye"
                 },
-                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+                visibility: () => showIf(main.days[advancedDay - 1].opened.value)
             })),
             createUpgrade(() => ({
                 resource: boxes.boxes,
@@ -1203,7 +1203,7 @@ const factory = createLayer(id, () => {
                     title: "Carry ticks in boxes",
                     description: "Tick speed x1.5"
                 },
-                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+                visibility: () => showIf(main.days[advancedDay - 1].opened.value)
             }))
         ]
     ];
