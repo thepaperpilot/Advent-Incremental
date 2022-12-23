@@ -100,13 +100,6 @@ const advancedToyGoal = 2000;
 function roundDownTo(num: number, multiple: number) {
     return Math.floor((num + multiple / 2) / multiple) * multiple;
 }
-function getRelativeCoords(e: MouseEvent) {
-    const rect = (e.target as HTMLElement).getBoundingClientRect();
-    return {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-    };
-}
 function rotateDir(dir: Direction, relative = Direction.Right) {
     const directions = [Direction.Up, Direction.Right, Direction.Down, Direction.Left];
     let index = directions.indexOf(dir);
@@ -144,6 +137,15 @@ const factory = createLayer(id, () => {
     const bears = createResource<DecimalSource>(0, "teddy bears");
     const bucketAndShovels = createResource<DecimalSource>(0, "shovel and pails");
     const consoles = createResource<DecimalSource>(0, "consoles");
+
+    function getRelativeCoords(e: MouseEvent) {
+        const rect = (e.target as HTMLElement).getBoundingClientRect();
+        const offset = computedFactorySize.value % 2 === 0 ? -blockSize / 2 : 0;
+        return {
+            x: e.clientX - rect.left + offset,
+            y: e.clientY - rect.top + offset
+        };
+    }
 
     const energy = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
@@ -198,18 +200,20 @@ const factory = createLayer(id, () => {
         createMultiplicativeModifier(() => ({
             multiplier: Decimal.add(paper.paper.value, 1).log10().div(100).add(1),
             description: "News Ticker",
-            enabled: () => upgrades[0][1].bought.value 
+            enabled: () => upgrades[0][1].bought.value
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: Decimal.lt(energyEfficiency.value, 1)?1:Decimal.sub(2, Decimal.div(energyConsumption.value, computedEnergy.value)),
+            multiplier: Decimal.lt(energyEfficiency.value, 1)
+                ? 1
+                : Decimal.sub(2, Decimal.div(energyConsumption.value, computedEnergy.value)),
             description: "Brighter work rooms",
-            enabled: () => upgrades[2][1].bought.value 
+            enabled: () => upgrades[2][1].bought.value
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 1.5,
             description: "Carry ticks in boxes",
-            enabled: () => upgrades[2][3].bought.value 
-        })),
+            enabled: () => upgrades[2][3].bought.value
+        }))
     ]);
     const computedTickRate = computed(() => tickRate.apply(1));
     const factorySize = createSequentialModifier(() => [
@@ -1164,7 +1168,9 @@ const factory = createLayer(id, () => {
     ]
         
     // pixi
-    const upgradeAmount = computed(() => upgrades.flat().filter(u => u.bought.value).length) as ComputedRef<number>
+    const upgradeAmount = computed(
+        () => upgrades.flat().filter(u => u.bought.value).length
+    ) as ComputedRef<number>;
     // load every sprite here so pixi doesn't complain about loading multiple times
     const assetsLoading = Promise.all([
         Assets.load(Object.values(FACTORY_COMPONENTS).map(x => x.imageSrc)),
@@ -1230,8 +1236,6 @@ const factory = createLayer(id, () => {
                 addFactoryComp(x, y, data);
             }
         }
-
-        updateGraphics();
 
         loaded = true;
         watchEffect(updateGraphics);
@@ -1564,19 +1568,20 @@ const factory = createLayer(id, () => {
 
         graphicContainer.removeChild(hoverSprite);
         if (isMouseHoverShown.value && compSelected.value !== "cursor") {
+            // Offset half a block if factory size is even
+            const factorySizeOffset = computedFactorySize.value % 2 === 0 ? blockSize / 2 : 0;
             const { tx, ty } = spriteContainer.localTransform;
+            const x =
+                roundDownTo(mouseCoords.x - tx, blockSize) + factorySizeOffset + tx - blockSize / 2;
+            const y =
+                roundDownTo(mouseCoords.y - ty, blockSize) + factorySizeOffset + ty - blockSize / 2;
             graphicContainer.lineStyle(4, 0x808080, 1);
-            graphicContainer.drawRect(
-                roundDownTo(mouseCoords.x - tx, blockSize) + tx - blockSize / 2,
-                roundDownTo(mouseCoords.y - ty, blockSize) + ty - blockSize / 2,
-                blockSize,
-                blockSize
-            );
+            graphicContainer.drawRect(x, y, blockSize, blockSize);
             const factoryBaseData = FACTORY_COMPONENTS[compSelected.value];
             const sheet = Assets.get(factoryBaseData.imageSrc);
             hoverSprite = new Sprite(sheet);
-            hoverSprite.x = roundDownTo(mouseCoords.x - tx, blockSize) + tx - blockSize / 2;
-            hoverSprite.y = roundDownTo(mouseCoords.y - ty, blockSize) + ty - blockSize / 2;
+            hoverSprite.x = x;
+            hoverSprite.y = y;
             hoverSprite.width = blockSize;
             hoverSprite.height = blockSize;
             hoverSprite.alpha = 0.5;
@@ -1744,7 +1749,6 @@ const factory = createLayer(id, () => {
     const hovered = ref(false);
     const componentsList = jsx(() => {
         return (
-
             <div class={{ "comp-container": true, hovered: hovered.value }}>
                 <div class="comp-list">
                     <div
@@ -1826,22 +1830,24 @@ const factory = createLayer(id, () => {
         );
     }
 
-    const hoveredComponent = jsx(() =>
-        compHovered.value !== undefined ? (
+    const hoveredComponent = jsx(() => {
+        if (compHovered.value == null) {
+            return "";
+        }
+        const factorySizeOffset = computedFactorySize.value % 2 === 0 ? blockSize / 2 : 0;
+        const x = mouseCoords.x + factorySizeOffset;
+        const y = mouseCoords.y + factorySizeOffset;
+        const onRight =
+            x + (document.getElementById("factory-info")?.clientWidth ?? 0) > app.view.width - 30;
+        const onTop =
+            y + (document.getElementById("factory-info")?.clientHeight ?? 0) > app.view.height - 30;
+        return (
             <div
                 class="info-container"
                 id="factory-info"
                 style={{
-                    ...(mouseCoords.x +
-                        (document.getElementById("factory-info")?.clientWidth ?? 0) >
-                    app.view.width - 30
-                        ? { right: app.view.width - mouseCoords.x + "px" }
-                        : { left: mouseCoords.x + 148 + "px" }),
-                    ...(mouseCoords.y +
-                        (document.getElementById("factory-info")?.clientHeight ?? 0) >
-                    app.view.height - 30
-                        ? { bottom: app.view.height - mouseCoords.y + "px" }
-                        : { top: mouseCoords.y + "px" })
+                    ...(onRight ? { right: app.view.width - x + "px" } : { left: x + 148 + "px" }),
+                    ...(onTop ? { bottom: app.view.height - y + "px" } : { top: y + "px" })
                 }}
             >
                 <h3>{FACTORY_COMPONENTS[compHovered.value.type].name}</h3>
@@ -1864,10 +1870,8 @@ const factory = createLayer(id, () => {
                     </>
                 ) : undefined}
             </div>
-        ) : (
-            ""
-        )
-    );
+        );
+    });
 
     const tabs = createTabFamily(
         {
@@ -1930,7 +1934,7 @@ const factory = createLayer(id, () => {
                             <Spacer />
                             {renderRow(...Object.values(factoryBuyables))}
                             <Spacer />
-                            {renderGrid(...upgrades as VueFeature[][])}
+                            {renderGrid(...(upgrades as VueFeature[][]))}
                         </>
                     ))
                 })),
