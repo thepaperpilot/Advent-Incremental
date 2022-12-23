@@ -162,7 +162,12 @@ const factory = createLayer(id, () => {
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 1.4,
-            description: "2000 toys",
+            description: "1500 toys",
+            enabled: toys.milestones.milestone6.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 1.4,
+            description: "6000 toys",
             enabled: toys.milestones.milestone6.earned
         }))
     ]);
@@ -537,7 +542,7 @@ const factory = createLayer(id, () => {
                 }
             },
             outputs: {
-                shovel: {
+                bucket: {
                     amount: 1
                 }
             },
@@ -1059,7 +1064,7 @@ const factory = createLayer(id, () => {
         })),
         createUpgrade(() => ({
             resource: paper.paper,
-            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e90),
+            cost: () =>Decimal.pow(5, upgradeAmount.value).mul(1e90),
             display: {
                 title: "News Ticker",
                 description: "Paper boosts tick speed"
@@ -1068,7 +1073,7 @@ const factory = createLayer(id, () => {
         })),
         createUpgrade(() => ({
             resource: toys.trucks,
-            cost: () =>Decimal.pow(1.25, upgradeAmount.value).mul(1000),
+            cost: () =>Decimal.pow(1.2, upgradeAmount.value).mul(1000),
             display: {
                 title: "Haul wood in trucks",
                 description: "Trucks multiply wood gain"
@@ -1086,7 +1091,7 @@ const factory = createLayer(id, () => {
         }))],
         [createUpgrade(() => ({
             resource: toys.woodenBlocks,
-            cost: () =>Decimal.pow(1.25, upgradeAmount.value).mul(1000),
+            cost: () =>Decimal.pow(1.2, upgradeAmount.value).mul(2000),
             display: {
                 title: "Larger wood pieces",
                 description: "Wooden block producers produce 3x as much"
