@@ -1239,6 +1239,9 @@ const factory = createLayer(id, () => {
     let loaded = false;
 
     globalBus.on("onLoad", async () => {
+        if (loaded) {
+            return;
+        }
         loaded = false;
 
         spriteContainer.destroy({
