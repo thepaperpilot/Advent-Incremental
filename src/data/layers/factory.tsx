@@ -1010,7 +1010,7 @@ const factory = createLayer(id, () => {
     const oilFuel = createBuyable(() => ({
         resource: oil.oil,
         cost() {
-            return Decimal.pow(10, this.amount.value).times(1e24);
+            return Decimal.pow(10, this.amount.value).times(1e23);
         },
         display: {
             title: "Oil Fuel",
@@ -1058,7 +1058,7 @@ const factory = createLayer(id, () => {
         })),
         createUpgrade(() => ({
             resource: toys.trucks,
-            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1000),
+            cost: () =>Decimal.pow(1.25, upgradeAmount.value).mul(1000),
             display: {
                 title: "Haul wood in trucks",
                 description: "Trucks multiply wood gain"
@@ -1076,7 +1076,43 @@ const factory = createLayer(id, () => {
         }))],
         [createUpgrade(() => ({
             resource: toys.woodenBlocks,
-            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1000),
+            cost: () =>Decimal.pow(1.25, upgradeAmount.value).mul(1000),
+            display: {
+                title: "Larger wood pieces",
+                description: "Wooden block producers produce 3x as much"
+            },
+            visible: () => showIf(main.days[advancedDay - 1].opened.value)
+        })),
+        createUpgrade(() => ({
+            resource: dyes.dyes.red.amount,
+            cost: () =>Decimal.pow(2, upgradeAmount.value).mul(1e17),
+            display: {
+                title: "Colorful clothes",
+                description: "Dye producers produce 4x as much"
+            },
+            visible: () => showIf(main.days[advancedDay - 1].opened.value)
+        })),
+        createUpgrade(() => ({
+            resource: plastic.plastic,
+            cost: () =>Decimal.pow(2, upgradeAmount.value).mul(1e17),
+            display: {
+                title: "Improved plastic producers",
+                description: "Plastic producers produce 4x as much"
+            },
+            visible: () => showIf(main.days[advancedDay - 1].opened.value)
+        })),
+        createUpgrade(() => ({
+            resource: oil.oil,
+            cost: () =>Decimal.pow(4, upgradeAmount.value).mul(1e23),
+            display: {
+                title: "Capitalism",
+                description: "Console production is tripled"
+            },
+            visible: () => showIf(main.days[advancedDay - 1].opened.value)
+        }))],
+        /*[createUpgrade(() => ({
+            resource: coal.coal,
+            cost: () =>Decimal.pow(15, upgradeAmount.value).mul(1000),
             display: {
                 title: "Larger wood pieces",
                 description: "Wooden block producers produce 3x as much"
@@ -1100,7 +1136,16 @@ const factory = createLayer(id, () => {
                 description: "Plastic producers produce 4x as much"
             },
             visible: () => showIf(main.days[advancedDay - 1].opened.value)
-        }))],
+        })),
+        createUpgrade(() => ({
+            resource: oil.oil,
+            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e23),
+            display: {
+                title: "Capitalism",
+                description: "Console production is tripled"
+            },
+            visible: () => showIf(main.days[advancedDay - 1].opened.value)
+        }))],*/
     ]
         
     // pixi
