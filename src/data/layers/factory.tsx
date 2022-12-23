@@ -1436,10 +1436,13 @@ const factory = createLayer(id, () => {
                 // if X is being moved, then we don't need to adjust x
                 // however it needs to be aligned if Y is being moved
                 // vice-versa
+                const factorySizeOffset = computedFactorySize.value % 2 === 0 ? blockSize / 2 : 0;
                 sprite.x =
-                    (x + xInc * 0.3 + (xInc == 0 ? Math.random() * 0.4 - 0.2 : 0)) * blockSize;
+                    (x + xInc * 0.3 + (xInc == 0 ? Math.random() * 0.4 - 0.2 : 0)) * blockSize +
+                    factorySizeOffset;
                 sprite.y =
-                    (y + yInc * 0.3 + (yInc == 0 ? Math.random() * 0.4 - 0.2 : 0)) * blockSize;
+                    (y + yInc * 0.3 + (yInc == 0 ? Math.random() * 0.4 - 0.2 : 0)) * blockSize +
+                    factorySizeOffset;
                 sprite.anchor.set(0.5);
                 sprite.width = blockSize / 2.5;
                 sprite.height = blockSize / 2.5;
