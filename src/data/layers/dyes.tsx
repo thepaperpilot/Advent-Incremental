@@ -36,6 +36,7 @@ import oil from "./oil";
 import paper from "./paper";
 import trees from "./trees";
 import toys from "./toys";
+import factory from "./factory";
 import reindeer from "./reindeer";
 
 interface Dye {
@@ -57,7 +58,7 @@ type DyeUpg =
     | "blueDyeUpg2"
     | "coalUpg";
 
-export type enumColor = "red" | "green" | "blue" | "yellow" | "purple" | "orange" | "black";
+export type enumColor = "red" | "green" | "blue" | "yellow" | "purple" | "orange" | "black" | "white";
 
 const id = "dyes";
 const day = 11;
@@ -216,6 +217,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             case "yellow":
             case "blue":
             case "black":
+            case "white":
                 dyeBook = paper.books.primaryDyeBook;
                 break;
             case "orange":
@@ -522,6 +524,31 @@ const layer = createLayer(id, function (this: BaseLayer) {
             dyesToReset: [],
             visibility: () => showIf(toys.milestones.milestone2.earned.value)
         }),
+        white: createDye({
+            name: "White Dye",
+            color: "white",
+            key: "q",
+            costs: () => [
+                {
+                    base: "1e60",
+                    root: 5,
+                    res: trees.logs
+                },
+                {
+                    base: computed(() => (upgrades.yellowDyeUpg2.bought.value ? "1e17" : "2e17")),
+                    root: 2,
+                    res: oil.oil
+                }
+            ],
+            listedBoosts: [
+                {
+                    visible: true,
+                    desc: computed(() => `*${format(boosts.white1.value)} plastic gain.`)
+                }
+            ],
+            dyesToReset: [],
+            visibility: () => showIf(factory.upgrades[2][2].bought.value)
+        }),
         orange: createDye({
             name: "Orange Dye",
             color: "orange",
@@ -704,6 +731,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.pow(2, Decimal.add(dyes.black.amount.value, 1).log2().sqrt())
                 .pow(upgrades.coalUpg.bought.value ? 1.2 : 1)
                 .pow(management.elfTraining.clothElfTraining.milestones[3].earned.value ? 1.1 : 1)
+        ),
+        white1: computed(() =>
+            Decimal.pow(2, Decimal.add(dyes.white.amount.value, 1).log2().sqrt())
+                .pow(upgrades.coalUpg.bought.value ? 1.2 : 1)
+                .pow(management.elfTraining.clothElfTraining.milestones[3].earned.value ? 1.1 : 1)
         )
     };
 
@@ -726,6 +758,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         {
             title: "Black Dye Creation",
             modifier: dyes.black.toGenerate,
+            base: 0
+        },
+        {
+            title: "White Dye Creation",
+            modifier: dyes.white.toGenerate,
             base: 0
         },
         {
@@ -958,8 +995,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     </>
                 ) : null}
                 <div style="width: 620px">
-                    {renderRow(dyes.black.display)}
-                    {renderRow(dyes.black.buyable)}
+                    {renderRow(dyes.black.display, dyes.white.display)}
+                    {renderRow(dyes.black.buyable, dyes.white.buyable)}
                     <Spacer />
                     {renderRow(dyes.red.display, dyes.yellow.display, dyes.blue.display)}
                     {renderRow(dyes.red.buyable, dyes.yellow.buyable, dyes.blue.buyable)}

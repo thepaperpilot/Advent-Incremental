@@ -288,6 +288,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () =>
             showIf(milestone6.earned.value && main.days[factory.advancedDay - 1].opened.value)
     })) as GenericMilestone;
+    const milestone8 = createMilestone(() => ({
+        display: {
+            requirement: "6000 toys",
+            effectDisplay: "Running out of energy? Let's increase the limit! Multiply energy capacity by 1.4"
+        },
+        shouldEarn: () => Decimal.gte(toySum.value, 6000),
+        visibility: () =>
+            showIf(milestone6.earned.value && main.days[factory.advancedDay - 1].opened.value)
+    })) as GenericMilestone;
     const milestones = {
         milestone1,
         milestone2,
@@ -295,7 +304,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         milestone4,
         milestone5,
         milestone6,
-        milestone7
+        milestone7,
+        milestone8
     };
     const { collapseMilestones, display: milestonesDisplay } =
         createCollapsibleMilestones(milestones);

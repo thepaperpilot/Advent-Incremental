@@ -24,11 +24,12 @@ import {
     createAdditiveModifier,
     createExponentialModifier,
     createMultiplicativeModifier,
-    createSequentialModifier
+    createSequentialModifier,
+    Modifier
 } from "game/modifiers";
 import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource, formatWhole } from "util/bignum";
-import { Direction } from "util/common";
+import { Direction, WithRequired } from "util/common";
 import { render } from "util/vue";
 import { computed, ref, unref, watchEffect } from "vue";
 import elves from "./elves";
@@ -63,7 +64,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Expand Factory",
             enabled: () => Decimal.gt(factory.factoryBuyables.expandFactory.amount.value, 0)
         }))
-    ]);
+    ]) as WithRequired<Modifier, "revert" | "description">;
     const computedMaxFoundation = computed(() => maxFoundation.apply(100));
 
     const foundationConversion = createIndependentConversion(() => ({
