@@ -33,6 +33,7 @@ import paper from "./layers/paper";
 import plastic from "./layers/plastic";
 import reindeer from "./layers/reindeer";
 import ribbon from "./layers/ribbon";
+import routing from "./layers/routing";
 import toys from "./layers/toys";
 import trees from "./layers/trees";
 import workshop from "./layers/workshop";
@@ -499,10 +500,11 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 23,
             shouldNotify: false,
-            layer: null, // "distribution route planning"
+            layer: "routing",
             symbol: "",
-            story: "",
-            completedStory: "",
+            story: "You're almost ready for the big day! The next step is to find an optimal route to ensure you can get all the presents delivered before kids start waking up! This is like the travelling salesman problem on steroids. Good Luck!",
+            completedStory:
+                "Take that, math majors! Optimal route planned with time to spare. Good Job!",
             masteredStory: ""
         })),
         createDay(() => ({
@@ -625,7 +627,8 @@ export const getInitialLayers = (
     toys,
     factory,
     reindeer,
-    sleigh
+    sleigh,
+    routing
 ];
 
 /**
