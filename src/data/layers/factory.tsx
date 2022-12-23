@@ -652,8 +652,8 @@ const factory = createLayer(id, () => {
         } as FactoryComponentDeclaration,
         bow: {
             imageSrc: _bowMaker,
-            key: "shift+0",
-            name: "Bow Manufacturer",
+            key: "shift+9",
+            name: "Bow Maker",
             type: "processor",
             description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.bow)),
             energyCost: 2,
@@ -673,7 +673,7 @@ const factory = createLayer(id, () => {
         wrappedBox: {
             imageSrc: _wrappedBoxMaker,
             key: "shift+0",
-            name: "Wrapped Box Manufacturer",
+            name: "Box Wrapper",
             type: "processor",
             description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.wrappedBox)),
             energyCost: 2,
