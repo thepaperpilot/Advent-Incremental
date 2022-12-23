@@ -25,9 +25,8 @@ const id = "sleigh";
 const day = 22;
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Sleigh";
-    const color = "#D66B02";
-    const colorDark = "#D66B02";
-    const maxProgress = 100
+    const color = "#D71830";
+    const colorDark = "#A01020";
     function displayCost(
         res: Resource<DecimalSource> | Resource<DecimalSource>[],
         cost: DecimalSource,
