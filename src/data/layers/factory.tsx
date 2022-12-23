@@ -38,18 +38,14 @@ import _metal from "../symbols/metal.png";
 import _plastic from "../symbols/plastic.png";
 import boxes from "./boxes";
 import coal from "./coal";
-import {
-    default as _bear,
-    default as _circuitBoard,
-    default as _console,
-    default as _stuffing
-} from "./factory-components/bear.svg";
-import {
-    default as _bearMaker,
-    default as _circuitBoardMaker,
-    default as _consoleMaker,
-    default as _stuffingMaker
-} from "./factory-components/bearmaker.svg";
+import _bear from "./factory-components/bear.svg";
+import _bearMaker from "./factory-components/bearmaker.svg";
+import _stuffing from "./factory-components/stuffing.svg";
+import _console from "./factory-components/console.svg";
+import _circuitBoard from "./factory-components/circuit.svg";
+import _stuffingMaker from "./factory-components/stuffingmaker.svg";
+import _consoleMaker from "./factory-components/consolemaker.svg";
+import _circuitBoardMaker from "./factory-components/circuitmaker.svg";
 import _block from "./factory-components/block.svg";
 import _blockMaker from "./factory-components/blockmaker.svg";
 import _bucket from "./factory-components/bucket.svg";
@@ -67,11 +63,10 @@ import _rotateLeft from "./factory-components/rotateLeft.svg";
 import _rotateRight from "./factory-components/rotateRight.svg";
 import _plankMaker from "./factory-components/sawmill.svg";
 import _shed from "./factory-components/shed.svg";
-import { default as _button, default as _shovel } from "./factory-components/shovel.svg";
-import {
-    default as _buttonMaker,
-    default as _shovelMaker
-} from "./factory-components/shovelmaker.svg";
+import _button from "./factory-components/button.svg";
+import _shovel from "./factory-components/shovel.svg";
+import _shovelMaker from "./factory-components/shovelmaker.svg";
+import _buttonMaker from "./factory-components/buttonmaker.svg";
 import _thread from "./factory-components/thread.svg";
 import _threadMaker from "./factory-components/threadmaker.svg";
 import _truck from "./factory-components/truck.svg";
@@ -87,8 +82,8 @@ import trees from "./trees";
 import workshop from "./workshop";
 import paper from "./paper";
 import metal from "./metal";
-import dyes from "./dyes"
-import plastic from "./plastic"
+import dyes from "./dyes";
+import plastic from "./plastic";
 
 const id = "factory";
 
