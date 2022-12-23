@@ -222,8 +222,8 @@ export default defineComponent({
 }
 
 .showGoBack
-    > .tab-family-container
-    > .tab-buttons-container:not(.floating):first-child
+    > .tab-family-container:first-child
+    > .tab-buttons-container:not(.floating)
     .tab-buttons {
     padding-left: 70px;
 }
