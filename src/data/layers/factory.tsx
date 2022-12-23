@@ -1110,42 +1110,42 @@ const factory = createLayer(id, () => {
             },
             visible: () => showIf(main.days[advancedDay - 1].opened.value)
         }))],
-        /*[createUpgrade(() => ({
+        [createUpgrade(() => ({
             resource: coal.coal,
-            cost: () =>Decimal.pow(15, upgradeAmount.value).mul(1000),
+            cost: () =>Decimal.pow(100, upgradeAmount.value).mul(1e136),
             display: {
-                title: "Larger wood pieces",
-                description: "Wooden block producers produce 3x as much"
+                title: "Brighter work rooms",
+                description: "Unused electricity % makes ticks faster up to 2x"
             },
             visible: () => showIf(main.days[advancedDay - 1].opened.value)
         })),
         createUpgrade(() => ({
-            resource: dyes.dyes.red.amount,
-            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e17),
+            resource: dyes.dyes.blue.amount,
+            cost: () =>Decimal.pow(2, upgradeAmount.value).mul(1e17),
             display: {
-                title: "Colorful clothes",
-                description: "Dye producers produce 4x as much"
+                title: "Colorful teddy bears",
+                description: "Teddy bears produce 2x as much"
             },
             visible: () => showIf(main.days[advancedDay - 1].opened.value)
         })),
         createUpgrade(() => ({
-            resource: plastic.plastic,
-            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e17),
+            resource: dyes.dyes.black.amount,
+            cost: () =>Decimal.pow(2, upgradeAmount.value).mul(1e6),
             display: {
-                title: "Improved plastic producers",
-                description: "Plastic producers produce 4x as much"
+                title: "New Colors",
+                description: "Unlock white dye"
             },
             visible: () => showIf(main.days[advancedDay - 1].opened.value)
         })),
         createUpgrade(() => ({
-            resource: oil.oil,
-            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e23),
+            resource: boxes.boxes,
+            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e80),
             display: {
-                title: "Capitalism",
-                description: "Console production is tripled"
+                title: "Carry ticks in boxes",
+                description: "Tick speed x1.5"
             },
             visible: () => showIf(main.days[advancedDay - 1].opened.value)
-        }))],*/
+        }))],
     ]
         
     // pixi
