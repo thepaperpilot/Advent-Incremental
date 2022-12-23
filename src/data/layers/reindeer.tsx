@@ -266,7 +266,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         boostDescription: "dye gain",
         boostAmount: 0.01
     });
-    const reindeer = { dasher, dancer, prancer, vixen, comet, cupid, donner, blitzen, rudolph };
+    // order is designed so hotkeys appear 1-9, even though they're displayed in numpad order in the layer itself
+    const reindeer = { donner, blitzen, rudolph, vixen, comet, cupid, dasher, dancer, prancer };
 
     const sumTimesFed = computed(() =>
         Object.values(reindeer)
