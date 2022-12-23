@@ -2,7 +2,7 @@
     position: absolute !important;
     top: 0;
     bottom: -6px;
-    left: 0;
+    left: -12px;
     right: 0;
     border: 0px solid var(--outline);
 
@@ -12,14 +12,51 @@
     margin-top: 60px !important;
 }
 
-
 .energy-bar .overlayText {
-    display: inline-block;
-    padding: 5px 10px;
+    display: block;
+    width: 100%;
+    padding: 10px;
+
+    line-height: 30px;
+    height: 30px;
+}
+
+.energy-bar, .energy-bar .overlayTextContainer {
+    overflow: visible !important;
+}
+
+.energy-bar .overlayText > div {
     background: var(--raised-background);
     border-radius: var(--border-radius);
     box-shadow: 0 1px 5px black;
+    line-height: 20px;
+    height: 20px;
 }
+.energy-bar .overlayText > div:first-child {
+    padding: 5px 10px;
+    float: left;
+}
+.energy-bar .overlayText > div:last-child {
+    height: 30px;
+    float: right;
+}
+.energy-bar .overlayText .tooltip-container {
+    display: inline-block;
+}
+
+
+.control-btn {
+    background: transparent;
+    color: var(--foreground);
+    border: none;
+
+    line-height: 30px;
+    height: 30px;
+}
+:not(:first-child) > .control-btn {
+    border-left: 1px solid var(--foreground);
+}
+
 
 
 .factory-container {
@@ -55,24 +92,6 @@
     user-select: none;
 
     z-index: 2;
-}
-
-.controls-container {
-    position: absolute;
-    top: 0%;
-    right: 0%;
-    margin: 0;
-    padding: 10px;
-    height: max-content;
-    background: var(--background);
-    border-radius: 0 0 var(--border-radius) var(--border-radius);
-    box-shadow: 0 1px 5px #0007;
-    display: flex;
-}
-.control-btn {
-    border-radius: 5px;
-    border-width: 2px;
-    border-style: solid;
 }
 
 .comp-container {
@@ -129,13 +148,22 @@
     right: 10px;
     background-color: var(--foreground);
 }
-.comp-list > img {
-    display: block;
+.comp-list > div {
+    position: relative;
     width: 50px;
     height: 50px;
     margin: 10px;
 }
-.comp-list > img.selected {
+.comp-list > img.selected:not(.producedItem) {
     transform: translate(-5px, -5px);
     filter: drop-shadow(2px 2px 0 var(--foreground)) drop-shadow(5px 5px 5px #0007);
+}
+
+.producedItem {
+    position: absolute;
+    pointer-events: none;
+    width: calc(50px / 3);
+    height: calc(50px / 3);
+    left: 10px;
+    top: 25px;
 }

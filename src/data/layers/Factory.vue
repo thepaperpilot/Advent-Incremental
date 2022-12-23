@@ -10,7 +10,7 @@ const element = shallowRef<HTMLElement | null>(null);
 const props = defineProps<{
     application: Application;
 }>();
-console.log(props.application);
+
 onMounted(() => {
     if (element.value !== null) {
         element.value?.append(props.application.view);
@@ -26,8 +26,8 @@ onMounted(() => {
     position: absolute;
     top: 0;
     bottom: 0;
+    left: 148px;
     right: 0;
-    width: 100%;
     touch-action: none;
 }
 </style>

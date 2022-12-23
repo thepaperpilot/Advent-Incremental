@@ -24,6 +24,7 @@ import cloth from "./layers/cloth";
 import coal from "./layers/coal";
 import dyes from "./layers/dyes";
 import elves from "./layers/elves";
+import factory from "./layers/factory";
 import letters from "./layers/letters";
 import management from "./layers/management";
 import metal from "./layers/metal";
@@ -34,7 +35,6 @@ import ribbon from "./layers/ribbon";
 import toys from "./layers/toys";
 import trees from "./layers/trees";
 import workshop from "./layers/workshop";
-import factory from "./layers/factory";
 import wrappingPaper from "./layers/wrapping-paper";
 import boxesSymbol from "./symbols/cardboardBox.png";
 import clothSymbol from "./symbols/cloth.png";
@@ -42,6 +42,7 @@ import coalSymbol from "./symbols/coal.png";
 import dyesSymbol from "./symbols/dyes.png";
 import elfSymbol from "./symbols/elf.png";
 import managementSymbol from "./symbols/elfManagement.png";
+import factorySymbol from "./symbols/gears.png";
 import lettersSymbol from "./symbols/letterbox.png";
 import metalSymbol from "./symbols/metal.png";
 import oilSymbol from "./symbols/oil.png";
@@ -443,9 +444,10 @@ export const main = createLayer("main", function (this: BaseLayer) {
             day: 18,
             shouldNotify: false,
             layer: "factory",
-            symbol: "",
-            story: "",
-            completedStory: "",
+            symbol: factorySymbol,
+            story: "Alright, so those toys were using incredibly amounts of resources to make. Fortunately, you happen to have access to a group of people with an uncanny knack for making stuff without actually consuming materials - Elves! Let's turn this workshop into a proper factory, and get them producing these toys by themselves.",
+            completedStory:
+                "That was a bit different than the usual elf training you are used to. But this factory seems very versatile, so you think it's a fair trade-off for needing to set things up a bit more. Good Job!",
             masteredStory: ""
         })),
         createDay(() => ({
