@@ -128,7 +128,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 <div>
                     {main.day.value === day
-                        ? `Complete the sleigh to complete the day`
+                        ? `Fix the sleigh to complete the day`
                         : `${name} Complete!`}
                 </div>
                 {render(dayProgress)}
