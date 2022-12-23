@@ -85,6 +85,10 @@ import Toy from "./Toy.vue";
 import toys from "./toys";
 import trees from "./trees";
 import workshop from "./workshop";
+import paper from "./paper";
+import metal from "./metal";
+import dyes from "./dyes"
+import plastic from "./plastic"
 
 const id = "factory";
 
@@ -1043,13 +1047,54 @@ const factory = createLayer(id, () => {
             }
         })),
         createUpgrade(() => ({
-            resource: trees.logs,
-            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e80),
+            resource: paper.paper,
+            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e94),
             display: {
-                title: "Sawmill Efficiency",
-                description: "Metal increases sawmill consumption and production by *log(metal)/10"
+                title: "News Ticker",
+                description: "Paper boosts tick speed" // formula: *1+log(x)/100
             }
-        })),]
+        })),
+        createUpgrade(() => ({
+            resource: toys.trucks,
+            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1000),
+            display: {
+                title: "Haul wood in trucks",
+                description: "Trucks multiply wood gain"
+            }
+        })),
+        createUpgrade(() => ({
+            resource: metal.metal,
+            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e55),
+            display: {
+                title: "Diamond-tipped drills",
+                description: "Drill power ^1.2"
+            }
+        })),
+        createUpgrade(() => ({
+            resource: toys.woodenBlocks,
+            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1000),
+            display: {
+                title: "Larger wood pieces",
+                description: "Wooden block producers produce 3x as much"
+            }
+        })),
+        createUpgrade(() => ({
+            resource: dyes.dyes.red.amount,
+            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e17),
+            display: {
+                title: "Colorful clothes",
+                description: "Dye producers produce 4x as much"
+            }
+        })),
+        createUpgrade(() => ({
+            resource: plastic.plastic,
+            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e17),
+            display: {
+                title: "Improved plastic producers",
+                description: "Plastic producers produce 4x as much"
+            }
+        })),
+    ]
         
     // pixi
     const upgradeAmount = computed(() => Object.values(upgrades).filter(u => u.bought.value).length) as ComputedRef<number>
@@ -1810,6 +1855,8 @@ const factory = createLayer(id, () => {
                             {renderRow(...Object.values(elfBuyables))}
                             <Spacer />
                             {renderRow(...Object.values(factoryBuyables))}
+                            <Spacer />
+                            {renderRow(...Object.values(upgrades))}
                         </>
                     ))
                 })),
