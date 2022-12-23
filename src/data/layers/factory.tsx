@@ -28,7 +28,7 @@ import {
     Modifier
 } from "game/modifiers";
 import { noPersist, Persistent, persistent, State } from "game/persistence";
-import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
+import Decimal, { DecimalSource, format, formatList, formatWhole } from "util/bignum";
 import { Direction, WithRequired } from "util/common";
 import { ProcessedComputable } from "util/computed";
 import { render, renderGrid, renderRow, VueFeature } from "util/vue";
@@ -287,6 +287,21 @@ const factory = createLayer(id, () => {
 
     // ---------------------------------------------- Components
 
+
+    function generateComponentDescription(declaration: FactoryComponentDeclaration) {
+
+        let str = declaration.inputs === undefined ? "Produces " : "Turns ";
+        if (declaration.inputs !== undefined) {
+            str += formatList(Object.entries(declaration.inputs)
+                .map(x => formatWhole(unref(x[1].amount)) + " " + RESOURCES[x[0] as ResourceNames].name)) + " into ";
+        }
+        if (declaration.outputs !== undefined) {
+            str += formatList(Object.entries(declaration.outputs)
+                .map(x => formatWhole(unref(x[1].amount)) + " " + RESOURCES[x[0] as ResourceNames].name)) + " per tick.";
+        }
+        return str;
+    }
+
     const FACTORY_COMPONENTS = {
         cursor: {
             imageSrc: _cursor,
@@ -343,7 +358,7 @@ const factory = createLayer(id, () => {
             key: "1",
             name: "Wood Machine",
             type: "processor",
-            description: "Produces 1 wood per tick.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.wood)),
             energyCost: 10,
             tick: 1,
             outputs: {
@@ -358,7 +373,7 @@ const factory = createLayer(id, () => {
             key: "2",
             name: "Cloth Machine",
             type: "processor",
-            description: "Produces 1 cloth per tick.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.cloth)),
             energyCost: 10,
             tick: 1,
             outputs: {
@@ -373,7 +388,7 @@ const factory = createLayer(id, () => {
             key: "3",
             name: "Dye Machine",
             type: "processor",
-            description: "Produces 1 dye per tick.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.dye)),
             energyCost: 10,
             tick: 1,
             outputs: {
@@ -388,7 +403,7 @@ const factory = createLayer(id, () => {
             key: "4",
             name: "Metal Machine",
             type: "processor",
-            description: "Produces 1 metal per tick.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.metal)),
             energyCost: 10,
             tick: 1,
             outputs: {
@@ -403,7 +418,7 @@ const factory = createLayer(id, () => {
             key: "5",
             name: "Plastic Machine",
             type: "processor",
-            description: "Produces 1 plastic per tick.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.plastic)),
             energyCost: 10,
             tick: 1,
             outputs: {
@@ -417,7 +432,7 @@ const factory = createLayer(id, () => {
             key: "shift+1",
             name: "Sawmill",
             type: "processor",
-            description: "Turns 1 wood into 1 plank per tick.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.plank)),
             energyCost: 2,
             tick: 1,
             inputs: {
@@ -436,7 +451,7 @@ const factory = createLayer(id, () => {
             key: "shift+2",
             name: "Thread Spinner",
             type: "processor",
-            description: "Turns 1 cloth into 1 thread per tick.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.thread)),
             energyCost: 2,
             tick: 1,
             inputs: {
@@ -455,13 +470,7 @@ const factory = createLayer(id, () => {
             key: "shift+3",
             name: "Wheel Crafter",
             type: "processor",
-            // TODO construct descriptions dynamically better
-            description: computed(
-                () =>
-                    `Turns 1 plastic into ${
-                        toys.milestones.milestone5.earned.value ? "2 wheels" : "1 wheel"
-                    } per tick.`
-            ),
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.wheel)),
             energyCost: 2,
             tick: 1,
             inputs: {
@@ -480,7 +489,7 @@ const factory = createLayer(id, () => {
             key: "shift+4",
             name: "Button Maker",
             type: "processor",
-            description: "Turns 1 plastic into 2 buttons every second.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.button)),
             energyCost: 2,
             tick: 1,
             inputs: {
@@ -500,7 +509,7 @@ const factory = createLayer(id, () => {
             key: "shift+5",
             name: "Cloth Shredder",
             type: "processor",
-            description: "Turns 1 cloth into 1 stuffing every second.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.stuffing)),
             energyCost: 2,
             tick: 1,
             inputs: {
@@ -520,7 +529,7 @@ const factory = createLayer(id, () => {
             key: "shift+6",
             name: "Shovel Maker",
             type: "processor",
-            description: "Turns 2 plastic into 1 shovel every second.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.shovel)),
             energyCost: 2,
             tick: 1,
             inputs: {
@@ -540,7 +549,7 @@ const factory = createLayer(id, () => {
             key: "shift+7",
             name: "Bucket Maker",
             type: "processor",
-            description: "Turns 3 plastic into 1 bucket every second.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.bucket)),
             energyCost: 2,
             tick: 1,
             inputs: {
@@ -560,7 +569,7 @@ const factory = createLayer(id, () => {
             key: "shift+8",
             name: "Circuit Board Manufacturer",
             type: "processor",
-            description: "Turns 1 metal and 1 plastic into 1 circuit board every second.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.circuitBoard)),
             energyCost: 2,
             tick: 1,
             inputs: {
@@ -583,7 +592,7 @@ const factory = createLayer(id, () => {
             key: "ctrl+1",
             name: "Wooden Block Maker",
             type: "processor",
-            description: "Turns 1 plank into 1 wooden block per tick.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.blocks)),
             energyCost: 20,
             tick: 1,
             inputs: {
@@ -603,7 +612,7 @@ const factory = createLayer(id, () => {
             key: "ctrl+2",
             name: "Clothes Maker",
             type: "processor",
-            description: "Turns 2 threads, 3 cloth, and 1 dye into 1 clothes per tick.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.clothes)),
             energyCost: 20,
             tick: 1,
             inputs: {
@@ -629,7 +638,7 @@ const factory = createLayer(id, () => {
             key: "ctrl+3",
             name: "Trucks Maker",
             type: "processor",
-            description: "Turns 2 metal and 4 wheels into 1 truck per tick.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.trucks)),
             energyCost: 20,
             tick: 1,
             inputs: {
@@ -652,8 +661,7 @@ const factory = createLayer(id, () => {
             key: "ctrl+4",
             name: "Teddy Bear Maker",
             type: "processor",
-            description:
-                "Turns 1 thread, 1 stuffing, 1 dye, and 3 buttons into 1 teddy bear every second.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.bear)),
             energyCost: 20,
             tick: 1,
             inputs: {
@@ -683,7 +691,7 @@ const factory = createLayer(id, () => {
             key: "ctrl+5",
             name: "Shovel and Pail Maker",
             type: "processor",
-            description: "Turns 1 bucket and 1 shovel into 1 shovel and pail every second.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.bucketShovel)),
             energyCost: 20,
             tick: 1,
             inputs: {
@@ -707,8 +715,7 @@ const factory = createLayer(id, () => {
             key: "ctrl+6",
             name: "Game Console Maker",
             type: "processor",
-            description:
-                "Turns 1 metal, 3 plastic, and 1 circuit board into 1 game console every second.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.console)),
             energyCost: 20,
             tick: 1,
             inputs: {
@@ -730,7 +737,7 @@ const factory = createLayer(id, () => {
             },
             visible: main.days[advancedDay - 1].opened
         } as FactoryComponentDeclaration
-    } as const;
+    } as Record<string, FactoryComponentDeclaration>;
     const RESOURCES = {
         // Raw resources
         wood: {
@@ -1486,6 +1493,7 @@ const factory = createLayer(id, () => {
         const factoryBaseData = FACTORY_COMPONENTS[data.type];
         if (factoryBaseData == undefined) return;
         const sheet = Assets.get(factoryBaseData.imageSrc);
+
         const sprite = new Sprite(sheet);
 
         watchEffect(() => {
@@ -1507,6 +1515,7 @@ const factory = createLayer(id, () => {
             ) *
                 Math.PI) /
             2;
+
         if (factoryBaseData.extraImage != null) {
             const sheet = Assets.get(factoryBaseData.extraImage);
             const extraSprite = new Sprite(sheet);
