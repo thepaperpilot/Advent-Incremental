@@ -1044,7 +1044,8 @@ const factory = createLayer(id, () => {
             display: {
                 title: "Sawmill Efficiency",
                 description: "Metal increases sawmill consumption and production by *log(metal)/10"
-            }
+            },
+            visible: () => showIf(main.days[advancedDay - 1].opened.value)
         })),
         createUpgrade(() => ({
             resource: paper.paper,
@@ -1052,7 +1053,8 @@ const factory = createLayer(id, () => {
             display: {
                 title: "News Ticker",
                 description: "Paper boosts tick speed" // formula: *1+log(x)/100
-            }
+            },
+            visible: () => showIf(main.days[advancedDay - 1].opened.value)
         })),
         createUpgrade(() => ({
             resource: toys.trucks,
@@ -1060,7 +1062,8 @@ const factory = createLayer(id, () => {
             display: {
                 title: "Haul wood in trucks",
                 description: "Trucks multiply wood gain"
-            }
+            },
+            visible: () => showIf(main.days[advancedDay - 1].opened.value)
         })),
         createUpgrade(() => ({
             resource: metal.metal,
@@ -1068,7 +1071,8 @@ const factory = createLayer(id, () => {
             display: {
                 title: "Diamond-tipped drills",
                 description: "Drill power ^1.2"
-            }
+            },
+            visible: () => showIf(main.days[advancedDay - 1].opened.value)
         }))],
         [createUpgrade(() => ({
             resource: toys.woodenBlocks,
@@ -1076,7 +1080,8 @@ const factory = createLayer(id, () => {
             display: {
                 title: "Larger wood pieces",
                 description: "Wooden block producers produce 3x as much"
-            }
+            },
+            visible: () => showIf(main.days[advancedDay - 1].opened.value)
         })),
         createUpgrade(() => ({
             resource: dyes.dyes.red.amount,
@@ -1084,7 +1089,8 @@ const factory = createLayer(id, () => {
             display: {
                 title: "Colorful clothes",
                 description: "Dye producers produce 4x as much"
-            }
+            },
+            visible: () => showIf(main.days[advancedDay - 1].opened.value)
         })),
         createUpgrade(() => ({
             resource: plastic.plastic,
@@ -1092,7 +1098,8 @@ const factory = createLayer(id, () => {
             display: {
                 title: "Improved plastic producers",
                 description: "Plastic producers produce 4x as much"
-            }
+            },
+            visible: () => showIf(main.days[advancedDay - 1].opened.value)
         }))],
     ]
         
