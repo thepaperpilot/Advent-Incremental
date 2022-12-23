@@ -65,6 +65,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         );
     }
     const sleighProgress = computed(() => sleigh.amount)
+    const sleighCost = computed(() => {
+        let v = sleighProgress.value.value;
+        return {
+            wood: Decimal.mul(1e100, Decimal.pow(1.2, v)),
+            metal: Decimal.mul(1e60, Decimal.pow(1.1, v)),
+            plastic: Decimal.mul(1e20, Decimal.pow(1.05, v))
+        };
+    });
     const sleigh = createBuyable(() => ({
         display: jsx(() => (
             <>
@@ -73,45 +81,31 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     Increase sleigh fixed by 1%
                 </div>
                 <div>
-                    Costs {displayCost(trees.logs, Decimal.pow(10, 100), "logs")},
+                    Costs {displayCost(trees.logs, sleighCost.value.wood, "logs")},
+                    {displayCost(metal.metal, sleighCost.value.metal, "metal")},
+                    {displayCost(plastic.plastic, sleighCost.value.plastic, "plastic")}
                 </div>
             </>
         )),
         canPurchase(): boolean {
             return (
-                /*classroomCost.value.wood.lte(trees.logs.value) &&
-                classroomCost.value.paper.lte(paper.paper.value) &&
-                classroomCost.value.boxes.lte(boxes.boxes.value) &&
-                classroomCost.value.metalIngots.lte(metal.metal.value)*/
-                true
+                sleighCost.value.wood.lte(trees.logs.value) &&
+                sleighCost.value.metal.lte(metal.metal.value) &&
+                sleighCost.value.plastic.lte(plastic.plastic.value)
             );
         },
         onPurchase() {
-            /*trees.logs.value = Decimal.sub(trees.logs.value, classroomCost.value.wood);
-            paper.paper.value = Decimal.sub(paper.paper.value, classroomCost.value.paper);
-            boxes.boxes.value = Decimal.sub(boxes.boxes.value, classroomCost.value.boxes);
-            metal.metal.value = Decimal.sub(metal.metal.value, classroomCost.value.metalIngots);
-            this.amount.value = Decimal.add(this.amount.value, 1);*/
+            this.amount.value = Decimal.add(this.amount.value, 1);
         },
         visibility: () => showIf(Decimal.lt(sleighProgress.value.value, 100)),
         style: "width: 600px"
     })) as GenericBuyable;
 
-
-    /*const buildFoundationHK = createHotkey(() => ({
-        key: "x",
-        description: "Fix sleigh",
-        onPress: () => {
-            if (buildFoundation.canClick.value) buildFoundation.onClick();
-        },
-        enabled: noPersist(main.days[day - 1].opened)
-    }));*/
-
-    const shouldShowPopups = computed(() => !elves.milestones[6].earned.value);
+    const shouldShowPopups = computed(() => true);
     const milestone1 = createMilestone(() => ({
         display: {
-            requirement: "1% Foundation Completed",
-            effectDisplay: "Trees give 5% more logs for each % of foundation completed"
+            requirement: "1% Sleigh Fixed",
+            effectDisplay: "Ore gives 5% more metal for each % of sleigh fixed"
         },
         shouldEarn: () => Decimal.gte(sleighProgress.value.value, 1),
         showPopups: shouldShowPopups
@@ -184,11 +178,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {render(dayProgress)}
                 <Spacer />
                 <div>
-                    <span>The foundation is </span>
+                    <span>The sleigh is </span>
                     <h2 style={`color: ${color}; text-shadow: 0 0 10px ${color}`}>
                         {formatWhole(sleighProgress.value.value)}
                     </h2>
-                    % completed
+                    % fixed
                 </div>
                 {Decimal.lt(sleighProgress.value.value, 100) ||
                 management.elfTraining.expandersElfTraining.milestones[2].earned.value ? (
