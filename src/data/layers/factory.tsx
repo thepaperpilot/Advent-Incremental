@@ -18,17 +18,18 @@ import { createResource, Resource } from "features/resources/resource";
 import { createTab } from "features/tabs/tab";
 import { createTabFamily } from "features/tabs/tabFamily";
 import Tooltip from "features/tooltips/Tooltip.vue";
+import { createUpgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
 import { createLayer } from "game/layers";
-import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
 import {
     createAdditiveModifier,
     createMultiplicativeModifier,
-    createSequentialModifier
+    createSequentialModifier,
+    Modifier
 } from "game/modifiers";
 import { noPersist, Persistent, persistent, State } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
-import { Direction } from "util/common";
+import { Direction, WithRequired } from "util/common";
 import { ProcessedComputable } from "util/computed";
 import { render, renderGrid, renderRow, VueFeature } from "util/vue";
 import { computed, ComputedRef, reactive, ref, unref, watchEffect } from "vue";
@@ -38,22 +39,23 @@ import _metal from "../symbols/metal.png";
 import _plastic from "../symbols/plastic.png";
 import boxes from "./boxes";
 import coal from "./coal";
+import dyes from "./dyes";
 import _bear from "./factory-components/bear.svg";
 import _bearMaker from "./factory-components/bearmaker.svg";
-import _stuffing from "./factory-components/stuffing.svg";
-import _console from "./factory-components/console.svg";
-import _circuitBoard from "./factory-components/circuit.svg";
-import _stuffingMaker from "./factory-components/stuffingmaker.svg";
-import _consoleMaker from "./factory-components/consolemaker.svg";
-import _circuitBoardMaker from "./factory-components/circuitmaker.svg";
 import _block from "./factory-components/block.svg";
 import _blockMaker from "./factory-components/blockmaker.svg";
 import _bucket from "./factory-components/bucket.svg";
 import _bucketMaker from "./factory-components/bucketmaker.svg";
 import _bucketShovel from "./factory-components/bucketshovel.svg";
 import _bucketShovelMaker from "./factory-components/bucketshovelmaker.svg";
+import _button from "./factory-components/button.svg";
+import _buttonMaker from "./factory-components/buttonmaker.svg";
+import _circuitBoard from "./factory-components/circuit.svg";
+import _circuitBoardMaker from "./factory-components/circuitmaker.svg";
 import _clothes from "./factory-components/clothes.svg";
 import _clothesMaker from "./factory-components/clothesmaker.svg";
+import _console from "./factory-components/console.svg";
+import _consoleMaker from "./factory-components/consolemaker.svg";
 import _conveyor from "./factory-components/conveyor.png";
 import _cursor from "./factory-components/cursor.svg";
 import _delete from "./factory-components/delete.svg";
@@ -63,10 +65,10 @@ import _rotateLeft from "./factory-components/rotateLeft.svg";
 import _rotateRight from "./factory-components/rotateRight.svg";
 import _plankMaker from "./factory-components/sawmill.svg";
 import _shed from "./factory-components/shed.svg";
-import _button from "./factory-components/button.svg";
 import _shovel from "./factory-components/shovel.svg";
 import _shovelMaker from "./factory-components/shovelmaker.svg";
-import _buttonMaker from "./factory-components/buttonmaker.svg";
+import _stuffing from "./factory-components/stuffing.svg";
+import _stuffingMaker from "./factory-components/stuffingmaker.svg";
 import _thread from "./factory-components/thread.svg";
 import _threadMaker from "./factory-components/threadmaker.svg";
 import _truck from "./factory-components/truck.svg";
@@ -74,16 +76,15 @@ import _truckMaker from "./factory-components/truckmaker.svg";
 import _wheel from "./factory-components/wheel.svg";
 import _wheelMaker from "./factory-components/wheelmaker.svg";
 import Factory from "./Factory.vue";
+import metal from "./metal";
 import oil from "./oil";
+import paper from "./paper";
+import plastic from "./plastic";
 import "./styles/factory.css";
 import Toy from "./Toy.vue";
 import toys from "./toys";
 import trees from "./trees";
 import workshop from "./workshop";
-import paper from "./paper";
-import metal from "./metal";
-import dyes from "./dyes";
-import plastic from "./plastic";
 
 const id = "factory";
 
@@ -172,7 +173,7 @@ const factory = createLayer(id, () => {
             description: "6000 toys",
             enabled: toys.milestones.milestone6.earned
         }))
-    ]);
+    ]) as WithRequired<Modifier, "revert" | "description">;
     const computedEnergy = computed(() => energy.apply(0));
     const energyConsumption = computed(() =>
         Object.values(components.value)
@@ -1057,116 +1058,124 @@ const factory = createLayer(id, () => {
         visible: () => showIf(main.days[advancedDay - 1].opened.value)
     })) as GenericBuyable;
     const factoryBuyables = { expandFactory, oilFuel, carryToys };
-    const upgrades = [[createUpgrade(() => ({
-            resource: trees.logs,
-            cost: () =>Decimal.pow(5, upgradeAmount.value).mul(1e75),
-            display: {
-                title: "Sawmill Efficiency",
-                description: "Double sawmill consumption and production and metal supplier efficiency"
-            },
-            visible: () => showIf(main.days[advancedDay - 1].opened.value)
-        })),
-        createUpgrade(() => ({
-            resource: paper.paper,
-            cost: () =>Decimal.pow(5, upgradeAmount.value).mul(1e90),
-            display: {
-                title: "News Ticker",
-                description: "Paper boosts tick speed"
-            },
-            visible: () => showIf(main.days[advancedDay - 1].opened.value)
-        })),
-        createUpgrade(() => ({
-            resource: toys.trucks,
-            cost: () =>Decimal.pow(1.2, upgradeAmount.value).mul(1000),
-            display: {
-                title: "Haul wood in trucks",
-                description: "Trucks multiply wood gain"
-            },
-            visible: () => showIf(main.days[advancedDay - 1].opened.value)
-        })),
-        createUpgrade(() => ({
-            resource: metal.metal,
-            cost: () =>Decimal.pow(3, upgradeAmount.value).mul(1e53),
-            display: {
-                title: "Diamond-tipped drills",
-                description: "Drill power ^1.2"
-            },
-            visible: () => showIf(main.days[advancedDay - 1].opened.value)
-        }))],
-        [createUpgrade(() => ({
-            resource: toys.woodenBlocks,
-            cost: () =>Decimal.pow(1.2, upgradeAmount.value).mul(2000),
-            display: {
-                title: "Larger wood pieces",
-                description: "Wooden block producers produce 3x as much"
-            },
-            visible: () => showIf(main.days[advancedDay - 1].opened.value)
-        })),
-        createUpgrade(() => ({
-            resource: dyes.dyes.red.amount,
-            cost: () =>Decimal.pow(1.5, upgradeAmount.value).mul(4e16),
-            display: {
-                title: "Colorful clothes",
-                description: "Dye producers produce 4x as much"
-            },
-            visible: () => showIf(main.days[advancedDay - 1].opened.value)
-        })),
-        createUpgrade(() => ({
-            resource: plastic.plastic,
-            cost: () =>Decimal.pow(2, upgradeAmount.value).mul(1e17),
-            display: {
-                title: "Improved plastic producers",
-                description: "Plastic producers produce 4x as much"
-            },
-            visible: () => showIf(main.days[advancedDay - 1].opened.value)
-        })),
-        createUpgrade(() => ({
-            resource: oil.oil,
-            cost: () =>Decimal.pow(1.5, upgradeAmount.value).mul(1e22),
-            display: {
-                title: "Capitalism",
-                description: "Console production is tripled"
-            },
-            visible: () => showIf(main.days[advancedDay - 1].opened.value)
-        }))],
-        [createUpgrade(() => ({
-            resource: coal.coal,
-            cost: () =>Decimal.pow(5, upgradeAmount.value).mul(1e130),
-            display: {
-                title: "Brighter work rooms",
-                description: "Unused electricity makes ticks faster"
-            },
-            visible: () => showIf(main.days[advancedDay - 1].opened.value)
-        })),
-        createUpgrade(() => ({
-            resource: dyes.dyes.blue.amount,
-            cost: () =>Decimal.pow(1.4, upgradeAmount.value).mul(1e15),
-            display: {
-                title: "Colorful teddy bears",
-                description: "Teddy bears produce 2x as much"
-            },
-            visible: () => showIf(main.days[advancedDay - 1].opened.value)
-        })),
-        createUpgrade(() => ({
-            resource: dyes.dyes.black.amount,
-            cost: () =>Decimal.pow(1.5, upgradeAmount.value).mul(1e6),
-            display: {
-                title: "New Colors",
-                description: "Unlock white dye"
-            },
-            visible: () => showIf(main.days[advancedDay - 1].opened.value)
-        })),
-        createUpgrade(() => ({
-            resource: boxes.boxes,
-            cost: () =>Decimal.pow(3, upgradeAmount.value).mul(1e80),
-            display: {
-                title: "Carry ticks in boxes",
-                description: "Tick speed x1.5"
-            },
-            visible: () => showIf(main.days[advancedDay - 1].opened.value)
-        }))],
-    ]
-        
+    const upgrades = [
+        [
+            createUpgrade(() => ({
+                resource: trees.logs,
+                cost: () => Decimal.pow(5, upgradeAmount.value).mul(1e75),
+                display: {
+                    title: "Sawmill Efficiency",
+                    description:
+                        "Double sawmill consumption and production and metal supplier efficiency"
+                },
+                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+            })),
+            createUpgrade(() => ({
+                resource: paper.paper,
+                cost: () => Decimal.pow(5, upgradeAmount.value).mul(1e90),
+                display: {
+                    title: "News Ticker",
+                    description: "Paper boosts tick speed"
+                },
+                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+            })),
+            createUpgrade(() => ({
+                resource: toys.trucks,
+                cost: () => Decimal.pow(1.2, upgradeAmount.value).mul(1000),
+                display: {
+                    title: "Haul wood in trucks",
+                    description: "Trucks multiply wood gain"
+                },
+                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+            })),
+            createUpgrade(() => ({
+                resource: metal.metal,
+                cost: () => Decimal.pow(3, upgradeAmount.value).mul(1e53),
+                display: {
+                    title: "Diamond-tipped drills",
+                    description: "Drill power ^1.2"
+                },
+                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+            }))
+        ],
+        [
+            createUpgrade(() => ({
+                resource: toys.woodenBlocks,
+                cost: () => Decimal.pow(1.2, upgradeAmount.value).mul(2000),
+                display: {
+                    title: "Larger wood pieces",
+                    description: "Wooden block producers produce 3x as much"
+                },
+                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+            })),
+            createUpgrade(() => ({
+                resource: dyes.dyes.red.amount,
+                cost: () => Decimal.pow(1.5, upgradeAmount.value).mul(4e16),
+                display: {
+                    title: "Colorful clothes",
+                    description: "Dye producers produce 4x as much"
+                },
+                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+            })),
+            createUpgrade(() => ({
+                resource: plastic.plastic,
+                cost: () => Decimal.pow(2, upgradeAmount.value).mul(1e17),
+                display: {
+                    title: "Improved plastic producers",
+                    description: "Plastic producers produce 4x as much"
+                },
+                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+            })),
+            createUpgrade(() => ({
+                resource: oil.oil,
+                cost: () => Decimal.pow(1.5, upgradeAmount.value).mul(1e22),
+                display: {
+                    title: "Capitalism",
+                    description: "Console production is tripled"
+                },
+                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+            }))
+        ],
+        [
+            createUpgrade(() => ({
+                resource: coal.coal,
+                cost: () => Decimal.pow(5, upgradeAmount.value).mul(1e130),
+                display: {
+                    title: "Brighter work rooms",
+                    description: "Unused electricity makes ticks faster"
+                },
+                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+            })),
+            createUpgrade(() => ({
+                resource: dyes.dyes.blue.amount,
+                cost: () => Decimal.pow(1.4, upgradeAmount.value).mul(1e15),
+                display: {
+                    title: "Colorful teddy bears",
+                    description: "Teddy bears produce 2x as much"
+                },
+                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+            })),
+            createUpgrade(() => ({
+                resource: dyes.dyes.black.amount,
+                cost: () => Decimal.pow(1.5, upgradeAmount.value).mul(1e6),
+                display: {
+                    title: "New Colors",
+                    description: "Unlock white dye"
+                },
+                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+            })),
+            createUpgrade(() => ({
+                resource: boxes.boxes,
+                cost: () => Decimal.pow(3, upgradeAmount.value).mul(1e80),
+                display: {
+                    title: "Carry ticks in boxes",
+                    description: "Tick speed x1.5"
+                },
+                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+            }))
+        ]
+    ];
+
     // pixi
     const upgradeAmount = computed(
         () => upgrades.flat().filter(u => u.bought.value).length
