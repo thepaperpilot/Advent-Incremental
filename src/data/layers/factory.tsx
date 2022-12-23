@@ -1122,7 +1122,7 @@ const factory = createLayer(id, () => {
         })),
         createUpgrade(() => ({
             resource: oil.oil,
-            cost: () =>Decimal.pow(2, upgradeAmount.value).mul(1e22),
+            cost: () =>Decimal.pow(1.5, upgradeAmount.value).mul(1e22),
             display: {
                 title: "Capitalism",
                 description: "Console production is tripled"
