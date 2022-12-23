@@ -482,9 +482,9 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 22,
             shouldNotify: false,
-            layer: null, // "sleigh"
+            layer: "sleigh", // "sleigh"
             symbol: "",
-            story: "",
+            story: "default body",
             completedStory: "",
             masteredStory: ""
         })),
