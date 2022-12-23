@@ -92,7 +92,7 @@ const advancedDay = 19;
 const presentsDay = 20;
 
 const toyGoal = 750;
-const advancedToyGoal = 2000;
+const advancedToyGoal = 1500;
 
 // 20x20 block size
 // TODO: unhardcode stuff
