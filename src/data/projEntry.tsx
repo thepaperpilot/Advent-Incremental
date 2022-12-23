@@ -35,6 +35,7 @@ import ribbon from "./layers/ribbon";
 import toys from "./layers/toys";
 import trees from "./layers/trees";
 import workshop from "./layers/workshop";
+import sleigh from "./layers/sleigh";
 import wrappingPaper from "./layers/wrapping-paper";
 import boxesSymbol from "./symbols/cardboardBox.png";
 import clothSymbol from "./symbols/cloth.png";
@@ -615,7 +616,8 @@ export const getInitialLayers = (
     wrappingPaper,
     ribbon,
     toys,
-    factory
+    factory,
+    sleigh
 ];
 
 /**
