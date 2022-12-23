@@ -223,6 +223,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
                             showLoreModal.value = true;
                         },
                         onOpenLayer() {
+                            if (day == 25) return;
                             recentlyUpdated.value = false;
                             // 1468 is because two tabs with minWidth of 700px plus the minimized calendar of 60px plus 2 dividers of 4px each
                             if (window.matchMedia("(min-width: 1468px)").matches) {
@@ -241,11 +242,11 @@ export const main = createLayer("main", function (this: BaseLayer) {
                             layers[layer ?? "trees"]!.minimized.value = false;
                         },
                         onUnlockLayer() {
-                            if (layer != null) {
+                            if (layer != null || day == 25) {
                                 opened.value = true;
                                 setTimeout(() => {
                                     loreScene.value = -1;
-                                    loreTitle.value = unref(layers[layer ?? "trees"]?.name ?? "");
+                                    loreTitle.value = day == 25 ? "The End!" : unref(layers[layer ?? "trees"]?.name ?? "");
                                     loreBody.value = story;
                                     if (player.autoPause) player.devSpeed = null;
                                     showLoreModal.value = true;
@@ -503,6 +504,15 @@ export const main = createLayer("main", function (this: BaseLayer) {
             layer: null, // "packing the presents"
             symbol: "",
             story: "",
+            completedStory: "",
+            masteredStory: ""
+        })),
+        createDay(() => ({
+            day: 25,
+            shouldNotify: false,
+            layer: null, // credits
+            symbol: "",
+            story: "It's Christmas. Thanks to your efforts, Santa has delivered all the presents to people all over the world. That is, all but one...",
             completedStory: "",
             masteredStory: ""
         }))
