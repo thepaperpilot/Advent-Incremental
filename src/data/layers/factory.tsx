@@ -1841,6 +1841,9 @@ const factory = createLayer(id, () => {
                         {Object.entries(FACTORY_COMPONENTS).map(value => {
                             const key = value[0] as FactoryCompNames;
                             const item = value[1];
+                            if (unref(item.visible) === false) {
+                                return null;
+                            }
                             return (
                                 <div class="comp">
                                     <img
