@@ -10,8 +10,8 @@ import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections } from "data/common";
 import { main } from "data/projEntry";
 import { createBar, GenericBar } from "features/bars/bar";
-import { createBuyable } from "features/buyable";
-import { jsx } from "features/feature";
+import { createBuyable, GenericBuyable } from "features/buyable";
+import { jsx, showIf } from "features/feature";
 import { createHotkey, GenericHotkey } from "features/hotkey";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource, Resource } from "features/resources/resource";
@@ -20,6 +20,7 @@ import { createTabFamily } from "features/tabs/tabFamily";
 import Tooltip from "features/tooltips/Tooltip.vue";
 import { globalBus } from "game/events";
 import { createLayer } from "game/layers";
+import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
 import {
     createAdditiveModifier,
     createMultiplicativeModifier,
@@ -29,11 +30,32 @@ import { noPersist, Persistent, persistent, State } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { ProcessedComputable } from "util/computed";
-import { render, renderRow } from "util/vue";
+import { render, renderGrid, renderRow } from "util/vue";
 import { computed, ComputedRef, reactive, ref, unref, watchEffect } from "vue";
+import _cloth from "../symbols/cloth.png";
+import _dye from "../symbols/dyes.png";
+import _metal from "../symbols/metal.png";
+import _plastic from "../symbols/plastic.png";
+import boxes from "./boxes";
 import coal from "./coal";
+import {
+    default as _bear,
+    default as _circuitBoard,
+    default as _console,
+    default as _stuffing
+} from "./factory-components/bear.svg";
+import {
+    default as _bearMaker,
+    default as _circuitBoardMaker,
+    default as _consoleMaker,
+    default as _stuffingMaker
+} from "./factory-components/bearmaker.svg";
 import _block from "./factory-components/block.svg";
 import _blockMaker from "./factory-components/blockmaker.svg";
+import _bucket from "./factory-components/bucket.svg";
+import _bucketMaker from "./factory-components/bucketmaker.svg";
+import _bucketShovel from "./factory-components/bucketshovel.svg";
+import _bucketShovelMaker from "./factory-components/bucketshovelmaker.svg";
 import _clothes from "./factory-components/clothes.svg";
 import _clothesMaker from "./factory-components/clothesmaker.svg";
 import _conveyor from "./factory-components/conveyor.png";
@@ -45,10 +67,11 @@ import _rotateLeft from "./factory-components/rotateLeft.svg";
 import _rotateRight from "./factory-components/rotateRight.svg";
 import _plankMaker from "./factory-components/sawmill.svg";
 import _shed from "./factory-components/shed.svg";
-import _metal from "../symbols/metal.png";
-import _plastic from "../symbols/plastic.png";
-import _cloth from "../symbols/cloth.png";
-import _dye from "../symbols/dyes.png";
+import { default as _button, default as _shovel } from "./factory-components/shovel.svg";
+import {
+    default as _buttonMaker,
+    default as _shovelMaker
+} from "./factory-components/shovelmaker.svg";
 import _thread from "./factory-components/thread.svg";
 import _threadMaker from "./factory-components/threadmaker.svg";
 import _truck from "./factory-components/truck.svg";
@@ -56,16 +79,25 @@ import _truckMaker from "./factory-components/truckmaker.svg";
 import _wheel from "./factory-components/wheel.svg";
 import _wheelMaker from "./factory-components/wheelmaker.svg";
 import Factory from "./Factory.vue";
+import oil from "./oil";
 import "./styles/factory.css";
 import Toy from "./Toy.vue";
 import toys from "./toys";
+import trees from "./trees";
+import workshop from "./workshop";
+import paper from "./paper";
+import metal from "./metal";
+import dyes from "./dyes"
+import plastic from "./plastic"
 
 const id = "factory";
 
-// what is the actual day?
 const day = 18;
+const advancedDay = 19;
+const presentsDay = 20;
 
 const toyGoal = 750;
+const advancedToyGoal = 2000;
 
 // 20x20 block size
 // TODO: unhardcode stuff
@@ -107,11 +139,6 @@ function getDirection(dir: Direction) {
             return "v";
     }
 }
-
-const factorySize = {
-    width: 7,
-    height: 7
-};
 const blockSize = 50;
 
 const factory = createLayer(id, () => {
@@ -119,10 +146,24 @@ const factory = createLayer(id, () => {
     const name = "The Factory";
     const color = "grey";
 
+    const bears = createResource<DecimalSource>(0, "teddy bears");
+    const bucketAndShovels = createResource<DecimalSource>(0, "shovel and pails");
+    const consoles = createResource<DecimalSource>(0, "consoles");
+
     const energy = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: () => Decimal.add(1, coal.coal.value).log10(),
             description: "Coal Energy Production"
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: Decimal.add(1, coal.coal.value).log10().div(100),
+            description: "1400% workshop",
+            enabled: workshop.milestones.extraExpansionMilestone7.earned
+        })),
+        createAdditiveModifier(() => ({
+            addend: () => Decimal.times(oilFuel.amount.value, 10),
+            description: "Oil Fuel",
+            enabled: () => Decimal.gt(oilFuel.amount.value, 0)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 1.4,
@@ -145,12 +186,25 @@ const factory = createLayer(id, () => {
             description: "Trained Elves"
         })),
         createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.div(carryToys.amount.value, 10).add(1),
+            description: "Carry toys in boxes",
+            enabled: () => Decimal.gt(carryToys.amount.value, 0)
+        })),
+        createMultiplicativeModifier(() => ({
             multiplier: energyEfficiency,
             description: "Energy Consumption",
             enabled: () => Decimal.gt(energyConsumption.value, computedEnergy.value)
         }))
     ]);
     const computedTickRate = computed(() => tickRate.apply(1));
+    const factorySize = createSequentialModifier(() => [
+        createAdditiveModifier(() => ({
+            addend: expandFactory.amount,
+            description: "Expand Factory",
+            enabled: () => Decimal.gt(expandFactory.amount.value, 0)
+        }))
+    ]);
+    const computedFactorySize = computed(() => new Decimal(factorySize.apply(7)).toNumber());
 
     const energyBar = createBar(() => ({
         width: 680,
@@ -399,6 +453,109 @@ const factory = createLayer(id, () => {
                 }
             }
         } as FactoryComponentDeclaration,
+        button: {
+            imageSrc: _buttonMaker,
+            key: "shift+4",
+            name: "Button Maker",
+            type: "processor",
+            description: "Turns 1 plastic into 2 buttons every second.",
+            energyCost: 2,
+            tick: 1,
+            inputs: {
+                plastic: {
+                    amount: 1
+                }
+            },
+            outputs: {
+                buttons: {
+                    amount: 2
+                }
+            },
+            visible: main.days[advancedDay - 1].opened
+        } as FactoryComponentDeclaration,
+        stuffing: {
+            imageSrc: _stuffingMaker,
+            key: "shift+5",
+            name: "Cloth Shredder",
+            type: "processor",
+            description: "Turns 1 cloth into 1 stuffing every second.",
+            energyCost: 2,
+            tick: 1,
+            inputs: {
+                cloth: {
+                    amount: 1
+                }
+            },
+            outputs: {
+                stuffing: {
+                    amount: 1
+                }
+            },
+            visible: main.days[advancedDay - 1].opened
+        } as FactoryComponentDeclaration,
+        shovel: {
+            imageSrc: _shovelMaker,
+            key: "shift+6",
+            name: "Shovel Maker",
+            type: "processor",
+            description: "Turns 2 plastic into 1 shovel every second.",
+            energyCost: 2,
+            tick: 1,
+            inputs: {
+                plastic: {
+                    amount: 2
+                }
+            },
+            outputs: {
+                shovel: {
+                    amount: 1
+                }
+            },
+            visible: main.days[advancedDay - 1].opened
+        } as FactoryComponentDeclaration,
+        bucket: {
+            imageSrc: _bucketMaker,
+            key: "shift+7",
+            name: "Bucket Maker",
+            type: "processor",
+            description: "Turns 3 plastic into 1 bucket every second.",
+            energyCost: 2,
+            tick: 1,
+            inputs: {
+                plastic: {
+                    amount: 3
+                }
+            },
+            outputs: {
+                shovel: {
+                    amount: 1
+                }
+            },
+            visible: main.days[advancedDay - 1].opened
+        } as FactoryComponentDeclaration,
+        circuitBoard: {
+            imageSrc: _circuitBoardMaker,
+            key: "shift+8",
+            name: "Circuit Board Manufacturer",
+            type: "processor",
+            description: "Turns 1 metal and 1 plastic into 1 circuit board every second.",
+            energyCost: 2,
+            tick: 1,
+            inputs: {
+                metal: {
+                    amount: 1
+                },
+                plastic: {
+                    amount: 1
+                }
+            },
+            outputs: {
+                circuitBoard: {
+                    amount: 1
+                }
+            },
+            visible: main.days[advancedDay - 1].opened
+        } as FactoryComponentDeclaration,
         blocks: {
             imageSrc: _blockMaker,
             key: "ctrl+shift+1",
@@ -467,6 +624,89 @@ const factory = createLayer(id, () => {
                     resource: toys.trucks
                 }
             }
+        } as FactoryComponentDeclaration,
+        bear: {
+            imageSrc: _bearMaker,
+            key: "ctrl+shift+4",
+            name: "Teddy Bear Maker",
+            type: "processor",
+            description:
+                "Turns 1 thread, 1 stuffing, 1 dye, and 3 buttons into 1 teddy bear every second.",
+            energyCost: 20,
+            tick: 1,
+            inputs: {
+                thread: {
+                    amount: 1
+                },
+                stuffing: {
+                    amount: 1
+                },
+                dye: {
+                    amount: 1
+                },
+                buttons: {
+                    amount: 3
+                }
+            },
+            outputs: {
+                bear: {
+                    amount: 1,
+                    resource: bears
+                }
+            },
+            visible: main.days[advancedDay - 1].opened
+        } as FactoryComponentDeclaration,
+        bucketShovel: {
+            imageSrc: _bucketShovelMaker,
+            key: "ctrl+shift+5",
+            name: "Shovel and Pail Maker",
+            type: "processor",
+            description: "Turns 1 bucket and 1 shovel into 1 shovel and pail every second.",
+            energyCost: 20,
+            tick: 1,
+            inputs: {
+                bucket: {
+                    amount: 1
+                },
+                shovel: {
+                    amount: 1
+                }
+            },
+            outputs: {
+                shovelBucket: {
+                    amount: 1,
+                    resource: bucketAndShovels
+                }
+            },
+            visible: main.days[advancedDay - 1].opened
+        } as FactoryComponentDeclaration,
+        console: {
+            imageSrc: _consoleMaker,
+            key: "ctrl+shift+6",
+            name: "Game Console Maker",
+            type: "processor",
+            description:
+                "Turns 1 metal, 3 plastic, and 1 circuit board into 1 game console every second.",
+            energyCost: 20,
+            tick: 1,
+            inputs: {
+                metal: {
+                    amount: 1
+                },
+                plastic: {
+                    amount: 3
+                },
+                circuitBoard: {
+                    amount: 1
+                }
+            },
+            outputs: {
+                console: {
+                    amount: 1,
+                    resource: consoles
+                }
+            },
+            visible: main.days[advancedDay - 1].opened
         } as FactoryComponentDeclaration
     } as const;
     const RESOURCES = {
@@ -504,6 +744,26 @@ const factory = createLayer(id, () => {
             name: "Wheels",
             imageSrc: _wheel
         },
+        buttons: {
+            name: "Buttons",
+            imageSrc: _button
+        },
+        stuffing: {
+            name: "Stuffing",
+            imageSrc: _stuffing
+        },
+        shovel: {
+            name: "Shovel",
+            imageSrc: _shovel
+        },
+        bucket: {
+            name: "Bucket",
+            imageSrc: _bucket
+        },
+        circuitBoard: {
+            name: "Circuit Board",
+            imageSrc: _circuitBoard
+        },
         // Toys
         block: {
             name: "Wooden Blocks",
@@ -516,6 +776,18 @@ const factory = createLayer(id, () => {
         trucks: {
             name: "Trucks",
             imageSrc: _truck
+        },
+        bear: {
+            name: "Teddy Bear",
+            imageSrc: _bear
+        },
+        shovelBucket: {
+            name: "Shovel and Pail",
+            imageSrc: _bucketShovel
+        },
+        console: {
+            name: "Game Console",
+            imageSrc: _console
         }
     } as const;
 
@@ -575,6 +847,7 @@ const factory = createLayer(id, () => {
         type: "command" | "conveyor" | "processor";
         description: ProcessedComputable<string>;
         energyCost?: number;
+        visible?: ProcessedComputable<boolean>;
 
         /** amount it consumes */
         inputs?: Stock;
@@ -639,7 +912,8 @@ const factory = createLayer(id, () => {
         display: {
             title: "Train elves to make clothes",
             description: "Use your finished toys to train an elf on factory work"
-        }
+        },
+        style: "width: 110px"
     }));
     const blocksBuyable = createBuyable(() => ({
         resource: toys.woodenBlocks,
@@ -649,7 +923,8 @@ const factory = createLayer(id, () => {
         display: {
             title: "Train elves to make wooden blocks",
             description: "Use your finished toys to train an elf on factory work"
-        }
+        },
+        style: "width: 110px"
     }));
     const trucksBuyable = createBuyable(() => ({
         resource: toys.trucks,
@@ -659,9 +934,53 @@ const factory = createLayer(id, () => {
         display: {
             title: "Train elves to make toy trucks",
             description: "Use your finished toys to train an elf on factory work"
-        }
+        },
+        style: "width: 110px"
     }));
-    const elfBuyables = { clothesBuyable, blocksBuyable, trucksBuyable };
+    const bearsBuyable = createBuyable(() => ({
+        resource: bears,
+        cost() {
+            return Decimal.pow(2, Decimal.add(this.amount.value, 5));
+        },
+        display: {
+            title: "Train elves to make bears",
+            description: "Use your finished toys to train an elf on factory work"
+        },
+        style: "width: 110px",
+        visible: () => showIf(main.days[advancedDay - 1].opened.value)
+    }));
+    const bucketBuyable = createBuyable(() => ({
+        resource: bucketAndShovels,
+        cost() {
+            return Decimal.pow(2, Decimal.add(this.amount.value, 5));
+        },
+        display: {
+            title: "Train elves to make shovel and pails",
+            description: "Use your finished toys to train an elf on factory work"
+        },
+        style: "width: 110px",
+        visible: () => showIf(main.days[advancedDay - 1].opened.value)
+    }));
+    const consolesBuyable = createBuyable(() => ({
+        resource: consoles,
+        cost() {
+            return Decimal.pow(2, Decimal.add(this.amount.value, 5));
+        },
+        display: {
+            title: "Train elves to make consoles",
+            description: "Use your finished toys to train an elf on factory work"
+        },
+        style: "width: 110px",
+        visible: () => showIf(main.days[advancedDay - 1].opened.value)
+    }));
+    const elfBuyables = {
+        clothesBuyable,
+        blocksBuyable,
+        trucksBuyable,
+        bearsBuyable,
+        bucketBuyable,
+        consolesBuyable
+    };
 
     const sumElves = computed(() =>
         Object.values(elfBuyables)
@@ -669,10 +988,116 @@ const factory = createLayer(id, () => {
             .reduce(Decimal.add, 0)
     );
     const trainedElves = createResource<DecimalSource>(sumElves, "trained elves");
-    const elvesEffect = computed(() => Decimal.add(trainedElves.value, 1).log10().add(1));
+    const elvesEffect = computed(() => Decimal.pow(1.05, trainedElves.value));
 
+    const expandFactory = createBuyable(() => ({
+        resource: trees.logs,
+        cost() {
+            return Decimal.pow(1e4, this.amount.value).times(1e72);
+        },
+        display: {
+            title: "Expand Factory",
+            description:
+                "Use some surplus wood to slightly expand the walls of your factory. Also add +100% to the max workshop size",
+            effectDisplay: jsx(() => (
+                <>+{formatWhole(expandFactory.amount.value)} each dimension</>
+            )),
+            showAmount: false
+        },
+        style: "width: 200px",
+        visible: () => showIf(main.days[advancedDay - 1].opened.value)
+    })) as GenericBuyable;
+    const oilFuel = createBuyable(() => ({
+        resource: oil.oil,
+        cost() {
+            return Decimal.pow(10, this.amount.value).times(1e24);
+        },
+        display: {
+            title: "Oil Fuel",
+            description: "Use some surplus oil to generate more electricity",
+            effectDisplay: jsx(() => <>+{formatWhole(Decimal.times(oilFuel.amount.value, 10))}</>),
+            showAmount: false
+        },
+        style: "width: 200px",
+        visible: () => showIf(main.days[advancedDay - 1].opened.value)
+    })) as GenericBuyable;
+    const carryToys = createBuyable(() => ({
+        resource: boxes.boxes,
+        cost() {
+            return Decimal.pow(100, this.amount.value).times(1e80);
+        },
+        display: {
+            title: "Carry toys in boxes",
+            description: "Use some surplus boxes to speed up the whole factory",
+            effectDisplay: jsx(() => (
+                <>x{format(Decimal.div(carryToys.amount.value, 10).add(1))} tick rate</>
+            )),
+            showAmount: false
+        },
+        style: "width: 200px",
+        visible: () => showIf(main.days[advancedDay - 1].opened.value)
+    })) as GenericBuyable;
+    const factoryBuyables = { expandFactory, oilFuel, carryToys };
+    const upgrades = [[createUpgrade(() => ({
+            resource: trees.logs,
+            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e80),
+            display: {
+                title: "Sawmill Efficiency",
+                description: "Metal increases sawmill consumption and production by *log(metal)/10"
+            }
+        })),
+        createUpgrade(() => ({
+            resource: paper.paper,
+            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e94),
+            display: {
+                title: "News Ticker",
+                description: "Paper boosts tick speed" // formula: *1+log(x)/100
+            }
+        })),
+        createUpgrade(() => ({
+            resource: toys.trucks,
+            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1000),
+            display: {
+                title: "Haul wood in trucks",
+                description: "Trucks multiply wood gain"
+            }
+        })),
+        createUpgrade(() => ({
+            resource: metal.metal,
+            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e55),
+            display: {
+                title: "Diamond-tipped drills",
+                description: "Drill power ^1.2"
+            }
+        }))],
+        [createUpgrade(() => ({
+            resource: toys.woodenBlocks,
+            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1000),
+            display: {
+                title: "Larger wood pieces",
+                description: "Wooden block producers produce 3x as much"
+            }
+        })),
+        createUpgrade(() => ({
+            resource: dyes.dyes.red.amount,
+            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e17),
+            display: {
+                title: "Colorful clothes",
+                description: "Dye producers produce 4x as much"
+            }
+        })),
+        createUpgrade(() => ({
+            resource: plastic.plastic,
+            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e17),
+            display: {
+                title: "Improved plastic producers",
+                description: "Plastic producers produce 4x as much"
+            }
+        }))],
+    ]
+        
     // pixi
-
+    const upgradeAmount = computed(() => Object.values(upgrades).filter(u => u.bought.value).length) as ComputedRef<number>
     // load every sprite here so pixi doesn't complain about loading multiple times
     const assetsLoading = Promise.all([
         Assets.load(Object.values(FACTORY_COMPONENTS).map(x => x.imageSrc)),
@@ -709,15 +1134,19 @@ const factory = createLayer(id, () => {
         app.stage.addChild(spriteContainer);
 
         const floorGraphics = new Graphics();
-        floorGraphics.beginFill(0x70645d);
-        floorGraphics.drawRect(
-            (-factorySize.width * blockSize) / 2,
-            (-factorySize.height * blockSize) / 2,
-            factorySize.width * blockSize,
-            factorySize.height * blockSize
-        );
-        floorGraphics.endFill();
         spriteContainer.addChild(floorGraphics);
+
+        watchEffect(() => {
+            floorGraphics.clear();
+            floorGraphics.beginFill(0x70645d);
+            floorGraphics.drawRect(
+                (-computedFactorySize.value * blockSize) / 2,
+                (-computedFactorySize.value * blockSize) / 2,
+                computedFactorySize.value * blockSize,
+                computedFactorySize.value * blockSize
+            );
+            floorGraphics.endFill();
+        });
 
         await assetsLoading;
 
@@ -956,16 +1385,23 @@ const factory = createLayer(id, () => {
         y: number,
         data: Partial<FactoryComponent> & { type: BuildableCompName }
     ) {
-        if (x < -factorySize.width / 2 || x >= factorySize.width / 2) return;
-        if (y < -factorySize.height / 2 || y >= factorySize.height / 2) return;
+        if (x < -computedFactorySize.value / 2 || x >= computedFactorySize.value / 2) return;
+        if (y < -computedFactorySize.value / 2 || y >= computedFactorySize.value / 2) return;
 
         const factoryBaseData = FACTORY_COMPONENTS[data.type];
         if (factoryBaseData == undefined) return;
         const sheet = Assets.get(factoryBaseData.imageSrc);
         const sprite = new Sprite(sheet);
 
-        sprite.x = x * blockSize;
-        sprite.y = y * blockSize;
+        watchEffect(() => {
+            if (computedFactorySize.value % 2 === 0) {
+                sprite.x = (x + 0.5) * blockSize;
+                sprite.y = (y + 0.5) * blockSize;
+            } else {
+                sprite.x = x * blockSize;
+                sprite.y = y * blockSize;
+            }
+        });
         sprite.width = blockSize;
         sprite.height = blockSize;
         sprite.anchor.x = 0.5;
@@ -1104,12 +1540,12 @@ const factory = createLayer(id, () => {
             // the maximum you can see currently
             // total size of blocks - current size = amount you should move
             mapOffset.x = Math.min(
-                Math.max(mapOffset.x, (-factorySize.width + 1) / 2),
-                (factorySize.width + 1) / 2
+                Math.max(mapOffset.x, (-computedFactorySize.value + 1) / 2),
+                (computedFactorySize.value + 1) / 2
             );
             mapOffset.y = Math.min(
-                Math.max(mapOffset.y, (-factorySize.height + 1) / 2),
-                (factorySize.height + 1) / 2
+                Math.max(mapOffset.y, (-computedFactorySize.value + 1) / 2),
+                (computedFactorySize.value + 1) / 2
             );
         }
         if (!pointerDown.value && !pointerDrag.value) {
@@ -1241,6 +1677,7 @@ const factory = createLayer(id, () => {
     const hovered = ref(false);
     const componentsList = jsx(() => {
         return (
+
             <div class={{ "comp-container": true, hovered: hovered.value }}>
                 <div class="comp-list">
                     <div
@@ -1374,6 +1811,10 @@ const factory = createLayer(id, () => {
                             <div>
                                 {main.day.value === day
                                     ? `Reach ${format(toyGoal)} for each toy to complete the day`
+                                    : main.day.value === advancedDay
+                                    ? `Reach ${format(
+                                          advancedToyGoal
+                                      )} for each toy to complete the day`
                                     : `${name} Complete!`}{" "}
                                 -{" "}
                                 <button
@@ -1394,6 +1835,21 @@ const factory = createLayer(id, () => {
                                     color="cornflowerblue"
                                 />
                                 <Toy resource={toys.trucks} image={_truck} color="cadetblue" />
+                                {main.days[advancedDay - 1].opened.value ? (
+                                    <>
+                                        <Toy resource={bears} image={_bear} color="teal" />
+                                        <Toy
+                                            resource={bucketAndShovels}
+                                            image={_bucketShovel}
+                                            color="cyan"
+                                        />
+                                        <Toy
+                                            resource={consoles}
+                                            image={_console}
+                                            color="dodgerblue"
+                                        />
+                                    </>
+                                ) : null}
                             </Row>
                             <Spacer />
                             <MainDisplay
@@ -1404,6 +1860,10 @@ const factory = createLayer(id, () => {
                                 )}x`}
                             />
                             {renderRow(...Object.values(elfBuyables))}
+                            <Spacer />
+                            {renderRow(...Object.values(factoryBuyables))}
+                            <Spacer />
+                            {renderGrid(upgrades as VueFeature[])}
                         </>
                     ))
                 })),
@@ -1474,6 +1934,11 @@ const factory = createLayer(id, () => {
                       .add(Decimal.div(toys.woodenBlocks.value, toyGoal).clampMax(1))
                       .add(Decimal.div(toys.trucks.value, toyGoal).clampMax(1))
                       .div(3)
+                : main.day.value === advancedDay
+                ? [toys.clothes, toys.woodenBlocks, toys.trucks, bears, bucketAndShovels, consoles]
+                      .map(r => Decimal.div(r.value, advancedToyGoal).clampMax(1))
+                      .reduce(Decimal.add, Decimal.dZero)
+                      .div(6)
                 : 1,
         display: jsx(() =>
             main.day.value === day ? (
@@ -1484,6 +1949,20 @@ const factory = createLayer(id, () => {
                         ).length
                     }{" "}
                     / 3
+                </>
+            ) : main.day.value === advancedDay ? (
+                <>
+                    {
+                        [
+                            toys.clothes,
+                            toys.woodenBlocks,
+                            toys.trucks,
+                            bears,
+                            bucketAndShovels,
+                            consoles
+                        ].filter(d => Decimal.gte(d.value, advancedToyGoal)).length
+                    }{" "}
+                    / 6
                 </>
             ) : (
                 ""
@@ -1499,21 +1978,39 @@ const factory = createLayer(id, () => {
             Decimal.gte(toys.trucks.value, toyGoal)
         ) {
             main.completeDay();
+        } else if (
+            main.day.value === advancedDay &&
+            [
+                toys.clothes,
+                toys.woodenBlocks,
+                toys.trucks,
+                bears,
+                bucketAndShovels,
+                consoles
+            ].filter(d => Decimal.gte(d.value, advancedToyGoal)).length >= 6
+        ) {
+            main.completeDay();
         }
     });
 
     return {
         name,
         day,
+        advancedDay,
         color,
         minWidth: 700,
         minimizable: true,
         style: { overflow: "hidden" },
         components,
         elfBuyables,
+        bears,
+        bucketAndShovels,
+        consoles,
         tabs,
+        factoryBuyables,
         generalTabCollapsed,
         hotkeys,
+        upgrades,
         display: jsx(() => (
             <>
                 {render(modifiersModal)}

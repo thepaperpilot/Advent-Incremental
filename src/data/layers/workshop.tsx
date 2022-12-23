@@ -4,7 +4,8 @@
  */
 import HotkeyVue from "components/Hotkey.vue";
 import Spacer from "components/layout/Spacer.vue";
-import { createCollapsibleMilestones } from "data/common";
+import Modal from "components/Modal.vue";
+import { createCollapsibleMilestones, createCollapsibleModifierSections } from "data/common";
 import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
 import { createClickable } from "features/clickables/clickable";
@@ -20,6 +21,7 @@ import { createMilestone } from "features/milestones/milestone";
 import { createResource, displayResource } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
 import {
+    createAdditiveModifier,
     createExponentialModifier,
     createMultiplicativeModifier,
     createSequentialModifier
@@ -28,12 +30,13 @@ import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render } from "util/vue";
-import { computed, unref, watchEffect } from "vue";
+import { computed, ref, unref, watchEffect } from "vue";
 import elves from "./elves";
+import factory from "./factory";
 import management from "./management";
+import toys from "./toys";
 import trees from "./trees";
 import wrappingPaper from "./wrapping-paper";
-import toys from "./toys";
 
 const id = "workshop";
 const day = 2;
@@ -44,17 +47,30 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const foundationProgress = createResource<DecimalSource>(0, "foundation progress");
 
+    const maxFoundation = createSequentialModifier(() => [
+        createAdditiveModifier(() => ({
+            addend: 900,
+            description: "Hope Level 3",
+            enabled: management.elfTraining.expandersElfTraining.milestones[2].earned
+        })),
+        createAdditiveModifier(() => ({
+            addend: 200,
+            description: "Build wooden towers",
+            enabled: toys.row1Upgrades[2].bought
+        })),
+        createAdditiveModifier(() => ({
+            addend: () => Decimal.times(factory.factoryBuyables.expandFactory.amount.value, 100),
+            description: "Expand Factory",
+            enabled: () => Decimal.gt(factory.factoryBuyables.expandFactory.amount.value, 0)
+        }))
+    ]);
+    const computedMaxFoundation = computed(() => maxFoundation.apply(100));
+
     const foundationConversion = createIndependentConversion(() => ({
         // note: 5423 is a magic number. Don't touch this or it'll self-destruct.
         scaling: addHardcap(
             addSoftcap(addSoftcap(createPolynomialScaling(250, 1.5), 5423, 1 / 1e10), 1e20, 3e8),
-            computed(() =>
-                toys.row1Upgrades[2].bought.value
-                    ? 1200
-                    : management.elfTraining.expandersElfTraining.milestones[2].earned.value
-                    ? 1000
-                    : 100
-            )
+            computedMaxFoundation
         ),
         baseResource: trees.logs,
         gainResource: noPersist(foundationProgress),
@@ -104,17 +120,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 </span>
             </>
         )),
-        visibility: () =>
-            showIf(
-                Decimal.lt(
-                    foundationProgress.value,
-                    toys.row1Upgrades[2].bought.value
-                        ? 1200
-                        : management.elfTraining.expandersElfTraining.milestones[2].earned.value
-                        ? 1000
-                        : 100
-                )
-            ),
+        visibility: () => showIf(Decimal.lt(foundationProgress.value, computedMaxFoundation.value)),
         canClick: () => {
             if (Decimal.lt(trees.logs.value, foundationConversion.nextAt.value)) {
                 return false;
@@ -122,14 +128,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (main.isMastery.value && main.currentlyMastering.value?.name === "Trees") {
                 return false;
             }
-            let cap = 100;
-            if (management.elfTraining.expandersElfTraining.milestones[2].earned.value) {
-                cap = 1000;
-            }
-            if (toys.row1Upgrades[2].bought.value) {
-                cap = 1200;
-            }
-            if (Decimal.gte(foundationProgress.value, cap)) {
+            if (Decimal.gte(foundationProgress.value, computedMaxFoundation.value)) {
                 return false;
             }
             return true;
@@ -300,6 +299,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             showIf(extraExpansionMilestone5.earned.value && toys.row1Upgrades[2].bought.value),
         showPopups: shouldShowPopups
     }));
+    const extraExpansionMilestone7 = createMilestone(() => ({
+        display: {
+            requirement: "1400% Foundation Completed",
+            effectDisplay: "Coal has a greater effect on energy gain"
+        },
+        shouldEarn: () => Decimal.gte(foundationProgress.value, 1400),
+        visibility: () =>
+            showIf(extraExpansionMilestone6.earned.value && toys.row1Upgrades[2].bought.value),
+        showPopups: shouldShowPopups
+    }));
     const milestones = {
         logGainMilestone1,
         autoCutMilestone1,
@@ -314,7 +323,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         extraExpansionMilestone3,
         extraExpansionMilestone4,
         extraExpansionMilestone5,
-        extraExpansionMilestone6
+        extraExpansionMilestone6,
+        extraExpansionMilestone7
     };
     const { collapseMilestones, display: milestonesDisplay } =
         createCollapsibleMilestones(milestones);
@@ -336,6 +346,25 @@ const layer = createLayer(id, function (this: BaseLayer) {
             )
         )
     }));
+
+    const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
+        {
+            title: "Max Foundation",
+            modifier: maxFoundation,
+            base: 100
+        }
+    ]);
+    const showModifiersModal = ref(false);
+    const modifiersModal = jsx(() => (
+        <Modal
+            modelValue={showModifiersModal.value}
+            onUpdate:modelValue={(value: boolean) => (showModifiersModal.value = value)}
+            v-slots={{
+                header: () => <h2>{name} Modifiers</h2>,
+                body: generalTab
+            }}
+        />
+    ));
 
     watchEffect(() => {
         if (main.day.value === day && Decimal.gte(foundationProgress.value, 100)) {
@@ -381,6 +410,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         collapseMilestones,
         minWidth: 700,
         buildFoundationHK,
+        generalTabCollapsed,
         display: jsx(() => (
             <>
                 <div>
@@ -389,8 +419,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         : main.currentlyMastering.value?.name === name
                         ? `Complete the foundation to decorate the day`
                         : `${name} Complete!`}
+                    {Decimal.gt(computedMaxFoundation.value, 100) ? (
+                        <>
+                            {" - "}
+                            <button
+                                class="button"
+                                style="display: inline-block;"
+                                onClick={() => (showModifiersModal.value = true)}
+                            >
+                                Check Modifiers
+                            </button>
+                        </>
+                    ) : null}
                 </div>
                 {render(dayProgress)}
+                {render(modifiersModal)}
                 <Spacer />
                 {masteryEffectActive.value ? (
                     <>
