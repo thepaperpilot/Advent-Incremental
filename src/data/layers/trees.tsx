@@ -39,6 +39,7 @@ import paper from "./paper";
 import workshop from "./workshop";
 import wrappingPaper from "./wrapping-paper";
 import toys from "./toys";
+import factory from "./factory";
 const id = "trees";
 const day = 1;
 
@@ -550,6 +551,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.add(toys.clothes.value, 1).pow(0.75),
             description: "3000 Toys",
             enabled: toys.milestones.milestone7.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(toys.trucks.value, 1),
+            description: "Haul wood in trucks",
+            enabled: factory.upgrades[0][2].bought
         })),
         createExponentialModifier(() => ({
             exponent: 1.2,

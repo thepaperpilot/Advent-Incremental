@@ -25,6 +25,7 @@ import {
     createSequentialModifier,
     createAdditiveModifier,
     createMultiplicativeModifier,
+    createExponentialModifier,
     Modifier
 } from "game/modifiers";
 import { main } from "data/projEntry";
@@ -41,6 +42,7 @@ import workshop from "./workshop";
 import { WithRequired } from "util/common";
 import { ElfBuyable } from "./elves";
 import toys from "./toys";
+import factory from "./factory";
 
 const id = "oil";
 const day = 9;
@@ -889,6 +891,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: dyes.boosts.red2,
             description: "Red Dye",
             enabled: dyes.masteryEffectActive
+        })),
+        createExponentialModifier(() => ({
+            exponent: 1.2,
+            description: "Diamond-tipped drills",
+            enabled: factory.upgrades[0][3].bought
         }))
     ]);
     const computedDrillPower = computed(() => drillPower.apply(0));

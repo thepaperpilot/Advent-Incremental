@@ -18,17 +18,18 @@ import { createResource, Resource } from "features/resources/resource";
 import { createTab } from "features/tabs/tab";
 import { createTabFamily } from "features/tabs/tabFamily";
 import Tooltip from "features/tooltips/Tooltip.vue";
+import { createUpgrade } from "features/upgrades/upgrade";
 import { globalBus } from "game/events";
 import { createLayer } from "game/layers";
-import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
 import {
     createAdditiveModifier,
     createMultiplicativeModifier,
-    createSequentialModifier
+    createSequentialModifier,
+    Modifier
 } from "game/modifiers";
 import { noPersist, Persistent, persistent, State } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
-import { Direction } from "util/common";
+import { Direction, WithRequired } from "util/common";
 import { ProcessedComputable } from "util/computed";
 import { render, renderGrid, renderRow, VueFeature } from "util/vue";
 import { computed, ComputedRef, reactive, ref, shallowRef, unref, watchEffect } from "vue";
@@ -38,22 +39,23 @@ import _metal from "../symbols/metal.png";
 import _plastic from "../symbols/plastic.png";
 import boxes from "./boxes";
 import coal from "./coal";
+import dyes from "./dyes";
 import _bear from "./factory-components/bear.svg";
 import _bearMaker from "./factory-components/bearmaker.svg";
-import _stuffing from "./factory-components/stuffing.svg";
-import _console from "./factory-components/console.svg";
-import _circuitBoard from "./factory-components/circuit.svg";
-import _stuffingMaker from "./factory-components/stuffingmaker.svg";
-import _consoleMaker from "./factory-components/consolemaker.svg";
-import _circuitBoardMaker from "./factory-components/circuitmaker.svg";
 import _block from "./factory-components/block.svg";
 import _blockMaker from "./factory-components/blockmaker.svg";
 import _bucket from "./factory-components/bucket.svg";
 import _bucketMaker from "./factory-components/bucketmaker.svg";
 import _bucketShovel from "./factory-components/bucketshovel.svg";
 import _bucketShovelMaker from "./factory-components/bucketshovelmaker.svg";
+import _button from "./factory-components/button.svg";
+import _buttonMaker from "./factory-components/buttonmaker.svg";
+import _circuitBoard from "./factory-components/circuit.svg";
+import _circuitBoardMaker from "./factory-components/circuitmaker.svg";
 import _clothes from "./factory-components/clothes.svg";
 import _clothesMaker from "./factory-components/clothesmaker.svg";
+import _console from "./factory-components/console.svg";
+import _consoleMaker from "./factory-components/consolemaker.svg";
 import _conveyor from "./factory-components/conveyor.png";
 import _cursor from "./factory-components/cursor.svg";
 import _delete from "./factory-components/delete.svg";
@@ -63,10 +65,10 @@ import _rotateLeft from "./factory-components/rotateLeft.svg";
 import _rotateRight from "./factory-components/rotateRight.svg";
 import _plankMaker from "./factory-components/sawmill.svg";
 import _shed from "./factory-components/shed.svg";
-import _button from "./factory-components/button.svg";
 import _shovel from "./factory-components/shovel.svg";
 import _shovelMaker from "./factory-components/shovelmaker.svg";
-import _buttonMaker from "./factory-components/buttonmaker.svg";
+import _stuffing from "./factory-components/stuffing.svg";
+import _stuffingMaker from "./factory-components/stuffingmaker.svg";
 import _thread from "./factory-components/thread.svg";
 import _threadMaker from "./factory-components/threadmaker.svg";
 import _truck from "./factory-components/truck.svg";
@@ -74,16 +76,15 @@ import _truckMaker from "./factory-components/truckmaker.svg";
 import _wheel from "./factory-components/wheel.svg";
 import _wheelMaker from "./factory-components/wheelmaker.svg";
 import Factory from "./Factory.vue";
+import metal from "./metal";
 import oil from "./oil";
+import paper from "./paper";
+import plastic from "./plastic";
 import "./styles/factory.css";
 import Toy from "./Toy.vue";
 import toys from "./toys";
 import trees from "./trees";
 import workshop from "./workshop";
-import paper from "./paper";
-import metal from "./metal";
-import dyes from "./dyes";
-import plastic from "./plastic";
 
 const id = "factory";
 
@@ -92,20 +93,13 @@ const advancedDay = 19;
 const presentsDay = 20;
 
 const toyGoal = 750;
-const advancedToyGoal = 2000;
+const advancedToyGoal = 1500;
 
 // 20x20 block size
 // TODO: unhardcode stuff
 
 function roundDownTo(num: number, multiple: number) {
     return Math.floor((num + multiple / 2) / multiple) * multiple;
-}
-function getRelativeCoords(e: MouseEvent) {
-    const rect = (e.target as HTMLElement).getBoundingClientRect();
-    return {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-    };
 }
 function rotateDir(dir: Direction, relative = Direction.Right) {
     const directions = [Direction.Up, Direction.Right, Direction.Down, Direction.Left];
@@ -145,6 +139,15 @@ const factory = createLayer(id, () => {
     const bucketAndShovels = createResource<DecimalSource>(0, "shovel and pails");
     const consoles = createResource<DecimalSource>(0, "consoles");
 
+    function getRelativeCoords(e: MouseEvent) {
+        const rect = (e.target as HTMLElement).getBoundingClientRect();
+        const offset = computedFactorySize.value % 2 === 0 ? -blockSize / 2 : 0;
+        return {
+            x: e.clientX - rect.left + offset,
+            y: e.clientY - rect.top + offset
+        };
+    }
+
     const energy = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: () => Decimal.add(1, coal.coal.value).log10(),
@@ -162,10 +165,15 @@ const factory = createLayer(id, () => {
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 1.4,
-            description: "2000 toys",
+            description: "1500 toys",
+            enabled: toys.milestones.milestone6.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 1.4,
+            description: "6000 toys",
             enabled: toys.milestones.milestone6.earned
         }))
-    ]);
+    ]) as WithRequired<Modifier, "revert" | "description">;
     const computedEnergy = computed(() => energy.apply(0));
     const energyConsumption = computed(() =>
         Object.values(components.value)
@@ -189,6 +197,23 @@ const factory = createLayer(id, () => {
             multiplier: energyEfficiency,
             description: "Energy Consumption",
             enabled: () => Decimal.gt(energyConsumption.value, computedEnergy.value)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: Decimal.add(paper.paper.value, 1).log10().div(100).add(1),
+            description: "News Ticker",
+            enabled: () => upgrades[0][1].bought.value
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: Decimal.lt(energyEfficiency.value, 1)
+                ? 1
+                : Decimal.sub(2, Decimal.div(energyConsumption.value, computedEnergy.value)),
+            description: "Brighter work rooms",
+            enabled: () => upgrades[2][1].bought.value
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 1.5,
+            description: "Carry ticks in boxes",
+            enabled: () => upgrades[2][3].bought.value
         }))
     ]);
     const computedTickRate = computed(() => tickRate.apply(1));
@@ -351,7 +376,7 @@ const factory = createLayer(id, () => {
             tick: 1,
             outputs: {
                 dye: {
-                    amount: 1
+                    amount: computed(() => (upgrades[1][1].bought.value ? 4 : 1))
                 }
             }
         } as FactoryComponentDeclaration,
@@ -381,7 +406,7 @@ const factory = createLayer(id, () => {
             tick: 1,
             outputs: {
                 plastic: {
-                    amount: 1
+                    amount: computed(() => (upgrades[1][2].bought.value ? 4 : 1))
                 }
             }
         } as FactoryComponentDeclaration,
@@ -395,12 +420,12 @@ const factory = createLayer(id, () => {
             tick: 1,
             inputs: {
                 wood: {
-                    amount: 1
+                    amount: computed(() => (upgrades[0][0].bought.value ? 2 : 1))
                 }
             },
             outputs: {
                 plank: {
-                    amount: 1
+                    amount: computed(() => (upgrades[0][0].bought.value ? 2 : 1))
                 }
             }
         } as FactoryComponentDeclaration,
@@ -522,7 +547,7 @@ const factory = createLayer(id, () => {
                 }
             },
             outputs: {
-                shovel: {
+                bucket: {
                     amount: 1
                 }
             },
@@ -566,7 +591,7 @@ const factory = createLayer(id, () => {
             },
             outputs: {
                 block: {
-                    amount: 1,
+                    amount: computed(() => (upgrades[1][0].bought.value ? 3 : 1)),
                     resource: toys.woodenBlocks
                 }
             }
@@ -645,7 +670,7 @@ const factory = createLayer(id, () => {
             },
             outputs: {
                 bear: {
-                    amount: 1,
+                    amount: computed(() => (upgrades[1][3].bought.value ? 2 : 1)),
                     resource: bears
                 }
             },
@@ -697,7 +722,7 @@ const factory = createLayer(id, () => {
             },
             outputs: {
                 console: {
-                    amount: 1,
+                    amount: computed(() => (upgrades[1][3].bought.value ? 3 : 1)),
                     resource: consoles
                 }
             },
@@ -1009,7 +1034,7 @@ const factory = createLayer(id, () => {
     const oilFuel = createBuyable(() => ({
         resource: oil.oil,
         cost() {
-            return Decimal.pow(10, this.amount.value).times(1e24);
+            return Decimal.pow(10, this.amount.value).times(1e23);
         },
         display: {
             title: "Oil Fuel",
@@ -1037,73 +1062,128 @@ const factory = createLayer(id, () => {
         visible: () => showIf(main.days[advancedDay - 1].opened.value)
     })) as GenericBuyable;
     const factoryBuyables = { expandFactory, oilFuel, carryToys };
-    const upgrades = [[createUpgrade(() => ({
-            resource: trees.logs,
-            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e80),
-            display: {
-                title: "Sawmill Efficiency",
-                description: "Metal increases sawmill consumption and production by *log(metal)/10"
-            },
-            visible: () => showIf(main.days[advancedDay - 1].opened.value)
-        })),
-        createUpgrade(() => ({
-            resource: paper.paper,
-            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e94),
-            display: {
-                title: "News Ticker",
-                description: "Paper boosts tick speed" // formula: *1+log(x)/100
-            },
-            visible: () => showIf(main.days[advancedDay - 1].opened.value)
-        })),
-        createUpgrade(() => ({
-            resource: toys.trucks,
-            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1000),
-            display: {
-                title: "Haul wood in trucks",
-                description: "Trucks multiply wood gain"
-            },
-            visible: () => showIf(main.days[advancedDay - 1].opened.value)
-        })),
-        createUpgrade(() => ({
-            resource: metal.metal,
-            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e55),
-            display: {
-                title: "Diamond-tipped drills",
-                description: "Drill power ^1.2"
-            },
-            visible: () => showIf(main.days[advancedDay - 1].opened.value)
-        }))],
-        [createUpgrade(() => ({
-            resource: toys.woodenBlocks,
-            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1000),
-            display: {
-                title: "Larger wood pieces",
-                description: "Wooden block producers produce 3x as much"
-            },
-            visible: () => showIf(main.days[advancedDay - 1].opened.value)
-        })),
-        createUpgrade(() => ({
-            resource: dyes.dyes.red.amount,
-            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e17),
-            display: {
-                title: "Colorful clothes",
-                description: "Dye producers produce 4x as much"
-            },
-            visible: () => showIf(main.days[advancedDay - 1].opened.value)
-        })),
-        createUpgrade(() => ({
-            resource: plastic.plastic,
-            cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e17),
-            display: {
-                title: "Improved plastic producers",
-                description: "Plastic producers produce 4x as much"
-            },
-            visible: () => showIf(main.days[advancedDay - 1].opened.value)
-        }))],
-    ]
-        
+    const upgrades = [
+        [
+            createUpgrade(() => ({
+                resource: trees.logs,
+                cost: () => Decimal.pow(5, upgradeAmount.value).mul(1e75),
+                display: {
+                    title: "Sawmill Efficiency",
+                    description:
+                        "Double sawmill consumption and production and metal supplier efficiency"
+                },
+                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+            })),
+            createUpgrade(() => ({
+                resource: paper.paper,
+                cost: () => Decimal.pow(5, upgradeAmount.value).mul(1e90),
+                display: {
+                    title: "News Ticker",
+                    description: "Paper boosts tick speed"
+                },
+                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+            })),
+            createUpgrade(() => ({
+                resource: toys.trucks,
+                cost: () => Decimal.pow(1.2, upgradeAmount.value).mul(1000),
+                display: {
+                    title: "Haul wood in trucks",
+                    description: "Trucks multiply wood gain"
+                },
+                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+            })),
+            createUpgrade(() => ({
+                resource: metal.metal,
+                cost: () => Decimal.pow(3, upgradeAmount.value).mul(1e53),
+                display: {
+                    title: "Diamond-tipped drills",
+                    description: "Drill power ^1.2"
+                },
+                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+            }))
+        ],
+        [
+            createUpgrade(() => ({
+                resource: toys.woodenBlocks,
+                cost: () => Decimal.pow(1.2, upgradeAmount.value).mul(2000),
+                display: {
+                    title: "Larger wood pieces",
+                    description: "Wooden block producers produce 3x as much"
+                },
+                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+            })),
+            createUpgrade(() => ({
+                resource: dyes.dyes.red.amount,
+                cost: () => Decimal.pow(1.5, upgradeAmount.value).mul(4e16),
+                display: {
+                    title: "Colorful clothes",
+                    description: "Dye producers produce 4x as much"
+                },
+                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+            })),
+            createUpgrade(() => ({
+                resource: plastic.plastic,
+                cost: () => Decimal.pow(2, upgradeAmount.value).mul(1e17),
+                display: {
+                    title: "Improved plastic producers",
+                    description: "Plastic producers produce 4x as much"
+                },
+                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+            })),
+            createUpgrade(() => ({
+                resource: oil.oil,
+                cost: () => Decimal.pow(1.5, upgradeAmount.value).mul(1e22),
+                display: {
+                    title: "Capitalism",
+                    description: "Console production is tripled"
+                },
+                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+            }))
+        ],
+        [
+            createUpgrade(() => ({
+                resource: coal.coal,
+                cost: () => Decimal.pow(5, upgradeAmount.value).mul(1e130),
+                display: {
+                    title: "Brighter work rooms",
+                    description: "Unused electricity makes ticks faster"
+                },
+                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+            })),
+            createUpgrade(() => ({
+                resource: dyes.dyes.blue.amount,
+                cost: () => Decimal.pow(1.4, upgradeAmount.value).mul(1e15),
+                display: {
+                    title: "Colorful teddy bears",
+                    description: "Teddy bears produce 2x as much"
+                },
+                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+            })),
+            createUpgrade(() => ({
+                resource: dyes.dyes.black.amount,
+                cost: () => Decimal.pow(1.5, upgradeAmount.value).mul(1e6),
+                display: {
+                    title: "New Colors",
+                    description: "Unlock white dye"
+                },
+                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+            })),
+            createUpgrade(() => ({
+                resource: boxes.boxes,
+                cost: () => Decimal.pow(3, upgradeAmount.value).mul(1e80),
+                display: {
+                    title: "Carry ticks in boxes",
+                    description: "Tick speed x1.5"
+                },
+                visible: () => showIf(main.days[advancedDay - 1].opened.value)
+            }))
+        ]
+    ];
+
     // pixi
-    const upgradeAmount = computed(() => upgrades.flat().filter(u => u.bought.value).length) as ComputedRef<number>
+    const upgradeAmount = computed(
+        () => upgrades.flat().filter(u => u.bought.value).length
+    ) as ComputedRef<number>;
     // load every sprite here so pixi doesn't complain about loading multiple times
     const assetsLoading = Promise.all([
         Assets.load(Object.values(FACTORY_COMPONENTS).map(x => x.imageSrc)),
@@ -1169,8 +1249,6 @@ const factory = createLayer(id, () => {
                 addFactoryComp(x, y, data);
             }
         }
-
-        updateGraphics();
 
         loaded = true;
         watchEffect(updateGraphics);
@@ -1526,19 +1604,20 @@ const factory = createLayer(id, () => {
 
         graphicContainer.removeChild(hoverSprite);
         if (isMouseHoverShown.value && compSelected.value !== "cursor") {
+            // Offset half a block if factory size is even
+            const factorySizeOffset = computedFactorySize.value % 2 === 0 ? blockSize / 2 : 0;
             const { tx, ty } = spriteContainer.localTransform;
+            const x =
+                roundDownTo(mouseCoords.x - tx, blockSize) + factorySizeOffset + tx - blockSize / 2;
+            const y =
+                roundDownTo(mouseCoords.y - ty, blockSize) + factorySizeOffset + ty - blockSize / 2;
             graphicContainer.lineStyle(4, 0x808080, 1);
-            graphicContainer.drawRect(
-                roundDownTo(mouseCoords.x - tx, blockSize) + tx - blockSize / 2,
-                roundDownTo(mouseCoords.y - ty, blockSize) + ty - blockSize / 2,
-                blockSize,
-                blockSize
-            );
+            graphicContainer.drawRect(x, y, blockSize, blockSize);
             const factoryBaseData = FACTORY_COMPONENTS[compSelected.value];
             const sheet = Assets.get(factoryBaseData.imageSrc);
             hoverSprite = new Sprite(sheet);
-            hoverSprite.x = roundDownTo(mouseCoords.x - tx, blockSize) + tx - blockSize / 2;
-            hoverSprite.y = roundDownTo(mouseCoords.y - ty, blockSize) + ty - blockSize / 2;
+            hoverSprite.x = x;
+            hoverSprite.y = y;
             hoverSprite.width = blockSize;
             hoverSprite.height = blockSize;
             hoverSprite.alpha = 0.5;
@@ -1710,7 +1789,6 @@ const factory = createLayer(id, () => {
     const hovered = ref(false);
     const componentsList = jsx(() => {
         return (
-
             <div class={{ "comp-container": true, hovered: hovered.value }}>
                 <div class="comp-list">
                     <div
@@ -1792,22 +1870,24 @@ const factory = createLayer(id, () => {
         );
     }
 
-    const hoveredComponent = jsx(() =>
-        compHovered.value !== undefined && compInternalHovered.value !== undefined ? (
+    const hoveredComponent = jsx(() => {
+        if (compHovered.value == null || compInternalHovered.value == null) {
+            return "";
+        }
+        const factorySizeOffset = computedFactorySize.value % 2 === 0 ? blockSize / 2 : 0;
+        const x = mouseCoords.x + factorySizeOffset;
+        const y = mouseCoords.y + factorySizeOffset;
+        const onRight =
+            x + (document.getElementById("factory-info")?.clientWidth ?? 0) > app.view.width - 30;
+        const onTop =
+            y + (document.getElementById("factory-info")?.clientHeight ?? 0) > app.view.height - 30;
+        return (
             <div
                 class="info-container"
                 id="factory-info"
                 style={{
-                    ...(mouseCoords.x +
-                        (document.getElementById("factory-info")?.clientWidth ?? 0) >
-                    app.view.width - 30
-                        ? { right: app.view.width - mouseCoords.x + "px" }
-                        : { left: mouseCoords.x + 148 + "px" }),
-                    ...(mouseCoords.y +
-                        (document.getElementById("factory-info")?.clientHeight ?? 0) >
-                    app.view.height - 30
-                        ? { bottom: app.view.height - mouseCoords.y + "px" }
-                        : { top: mouseCoords.y + "px" })
+                    ...(onRight ? { right: app.view.width - x + "px" } : { left: x + 148 + "px" }),
+                    ...(onTop ? { bottom: app.view.height - y + "px" } : { top: y + "px" })
                 }}
             >
                 <h3>{FACTORY_COMPONENTS[compHovered.value.type].name}</h3>
@@ -1852,10 +1932,8 @@ const factory = createLayer(id, () => {
                     </>
                 ) : undefined}
             </div>
-        ) : (
-            ""
-        )
-    );
+        );
+    });
 
     const tabs = createTabFamily(
         {
@@ -1918,7 +1996,7 @@ const factory = createLayer(id, () => {
                             <Spacer />
                             {renderRow(...Object.values(factoryBuyables))}
                             <Spacer />
-                            {renderGrid(...upgrades as VueFeature[][])}
+                            {renderGrid(...(upgrades as VueFeature[][]))}
                         </>
                     ))
                 })),
