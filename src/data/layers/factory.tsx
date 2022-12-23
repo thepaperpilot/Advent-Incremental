@@ -29,8 +29,8 @@ import { noPersist, Persistent, persistent, State } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { ProcessedComputable } from "util/computed";
-import { render, renderRow } from "util/vue";
-import { computed, ComputedRef, reactive, ref, unref, watchEffect } from "vue";
+import { render, renderRow, VueFeature } from "util/vue";
+import { computed, ComputedRef, reactive, ref, shallowRef, unref, watchEffect } from "vue";
 import coal from "./coal";
 import _block from "./factory-components/block.svg";
 import _blockMaker from "./factory-components/blockmaker.svg";
@@ -249,7 +249,7 @@ const factory = createLayer(id, () => {
             key: "0",
             name: "Conveyor",
             type: "conveyor",
-            description: "Moves items at 1 block per second.",
+            description: "Moves items at 1 block per tick.",
             energyCost: 1,
             tick: 1,
             ports: {
@@ -267,7 +267,7 @@ const factory = createLayer(id, () => {
             key: "1",
             name: "Wood Machine",
             type: "processor",
-            description: "Produces 1 wood every 1 second.",
+            description: "Produces 1 wood per tick.",
             energyCost: 10,
             tick: 1,
             outputs: {
@@ -282,7 +282,7 @@ const factory = createLayer(id, () => {
             key: "2",
             name: "Cloth Machine",
             type: "processor",
-            description: "Produces 1 cloth every 1 second.",
+            description: "Produces 1 cloth per tick.",
             energyCost: 10,
             tick: 1,
             outputs: {
@@ -297,7 +297,7 @@ const factory = createLayer(id, () => {
             key: "3",
             name: "Dye Machine",
             type: "processor",
-            description: "Produces 1 dye every 1 second.",
+            description: "Produces 1 dye per tick.",
             energyCost: 10,
             tick: 1,
             outputs: {
@@ -312,7 +312,7 @@ const factory = createLayer(id, () => {
             key: "4",
             name: "Metal Machine",
             type: "processor",
-            description: "Produces 1 metal every 1 second.",
+            description: "Produces 1 metal per tick.",
             energyCost: 10,
             tick: 1,
             outputs: {
@@ -327,7 +327,7 @@ const factory = createLayer(id, () => {
             key: "5",
             name: "Plastic Machine",
             type: "processor",
-            description: "Produces 1 plastic every 1 second.",
+            description: "Produces 1 plastic per tick.",
             energyCost: 10,
             tick: 1,
             outputs: {
@@ -341,7 +341,7 @@ const factory = createLayer(id, () => {
             key: "shift+1",
             name: "Sawmill",
             type: "processor",
-            description: "Turns 1 wood into 1 plank every second.",
+            description: "Turns 1 wood into 1 plank per tick.",
             energyCost: 2,
             tick: 1,
             inputs: {
@@ -360,7 +360,7 @@ const factory = createLayer(id, () => {
             key: "shift+2",
             name: "Thread Spinner",
             type: "processor",
-            description: "Turns 1 cloth into 1 thread every second.",
+            description: "Turns 1 cloth into 1 thread per tick.",
             energyCost: 2,
             tick: 1,
             inputs: {
@@ -384,7 +384,7 @@ const factory = createLayer(id, () => {
                 () =>
                     `Turns 1 plastic into ${
                         toys.milestones.milestone5.earned.value ? "2 wheels" : "1 wheel"
-                    } every second.`
+                    } per tick.`
             ),
             energyCost: 2,
             tick: 1,
@@ -404,7 +404,7 @@ const factory = createLayer(id, () => {
             key: "ctrl+shift+1",
             name: "Wooden Block Maker",
             type: "processor",
-            description: "Turns 1 plank into 1 wooden block every second.",
+            description: "Turns 1 plank into 1 wooden block per tick.",
             energyCost: 20,
             tick: 1,
             inputs: {
@@ -424,7 +424,7 @@ const factory = createLayer(id, () => {
             key: "ctrl+shift+2",
             name: "Clothes Maker",
             type: "processor",
-            description: "Turns 2 threads, 3 cloth, and 1 dye into 1 clothes every second.",
+            description: "Turns 2 threads, 3 cloth, and 1 dye into 1 clothes per tick.",
             energyCost: 20,
             tick: 1,
             inputs: {
@@ -450,7 +450,7 @@ const factory = createLayer(id, () => {
             key: "ctrl+shift+3",
             name: "Trucks Maker",
             type: "processor",
-            description: "Turns 2 metal and 4 wheels into 1 truck every second.",
+            description: "Turns 2 metal and 4 wheels into 1 truck per tick.",
             energyCost: 20,
             tick: 1,
             inputs: {
@@ -575,10 +575,6 @@ const factory = createLayer(id, () => {
         type: "command" | "conveyor" | "processor";
         description: ProcessedComputable<string>;
         energyCost?: number;
-        size?: {
-            width: number;
-            height: number;
-        };
 
         /** amount it consumes */
         inputs?: Stock;
@@ -605,21 +601,12 @@ const factory = createLayer(id, () => {
     }
     interface FactoryInternalProcessor extends FactoryInternalBase {
         type: Exclude<BuildableCompName, "conveyor">;
-    }
+        lastProdTimes: number[];
 
-    /**
-     * Fragment is just a hint that this spot is occupied by another component
-     * Does not actually do anything, but stores the string that the actual
-     * component is stored under
-     */
-    interface FactoryInternalFragment {
-        type: "fragment";
-        initalLocation: string;
+        lastFactoryProd: number;
+        average: ComputedRef<number | undefined>;
     }
-    type FactoryInternal =
-        | FactoryInternalConveyor
-        | FactoryInternalProcessor
-        | FactoryInternalFragment;
+    type FactoryInternal = FactoryInternalConveyor | FactoryInternalProcessor;
 
     interface Block {
         sprite: Sprite;
@@ -760,9 +747,6 @@ const factory = createLayer(id, () => {
         loaded = true;
         watchEffect(updateGraphics);
     });
-    (window as any).internal = compInternalData;
-    (window as any).comp = components;
-    (window as any).blocks = movingBlocks;
 
     function moveBlock(block: Block, newBlock: FactoryInternal, blockData: FactoryComponent) {
         // empty spot
@@ -800,7 +784,6 @@ const factory = createLayer(id, () => {
             const _data = components.value[id];
             const _compData = compInternalData[id];
             if (_data === undefined || _compData === undefined) continue;
-            if (_compData.type === "fragment") continue;
             const factoryData = FACTORY_COMPONENTS[_data.type];
             // debugger;
             if (_data.type === "conveyor") {
@@ -818,7 +801,7 @@ const factory = createLayer(id, () => {
                     const dirAmt = directionToNum(inputDirection);
                     if (dirType === "h") {
                         if ((block.x - x) * dirAmt >= 1 + block.turbulance) {
-                            let compBehind = compInternalData[x + dirAmt + "x" + y];
+                            const compBehind = compInternalData[x + dirAmt + "x" + y];
                             const storedComp = components.value[x + dirAmt + "x" + y];
 
                             moveBlock(block, compBehind, storedComp);
@@ -834,7 +817,7 @@ const factory = createLayer(id, () => {
                         }
                     } else {
                         if ((block.y - y) * dirAmt >= 1 + block.turbulance) {
-                            let compBehind = compInternalData[x + "x" + (y + dirAmt)];
+                            const compBehind = compInternalData[x + "x" + (y + dirAmt)];
                             const storedComp = components.value[x + "x" + (y + dirAmt)];
 
                             moveBlock(block, compBehind, storedComp);
@@ -883,6 +866,12 @@ const factory = createLayer(id, () => {
                             }
                         }
                         data.ticksDone -= cyclesDone * factoryData.tick;
+                        const now = Date.now();
+                        const diff = (now - compData.lastFactoryProd) / 1000;
+                        compData.lastProdTimes.push(diff);
+                        console.log(compData.lastProdTimes);
+                        if (compData.lastProdTimes.length > 10) compData.lastProdTimes.shift();
+                        compData.lastFactoryProd = now;
                     }
                 } else {
                     data.ticksDone += factoryTicks;
@@ -982,10 +971,6 @@ const factory = createLayer(id, () => {
 
         const factoryBaseData = FACTORY_COMPONENTS[data.type];
         if (factoryBaseData == undefined) return;
-        const size = factoryBaseData.size ?? { width: 1, height: 1 };
-
-        // this is too big
-        if (x + size.width >= factorySize.width || y + size.height >= factorySize.height) return;
         const sheet = Assets.get(factoryBaseData.imageSrc);
         const sprite = new Sprite(sheet);
 
@@ -1031,6 +1016,26 @@ const factory = createLayer(id, () => {
             type: data.type,
             packages: isConveyor ? [] : undefined,
             nextPackages: isConveyor ? [] : undefined,
+            lastProdTimes: !isConveyor ? (reactive([]) as number[]) : undefined,
+            lastFactoryProd: !isConveyor
+                ? Date.now() -
+                  1000 * Decimal.div(data.ticksDone ?? 0, computedTickRate.value).toNumber()
+                : undefined,
+            average: !isConveyor
+                ? computed(() => {
+                      const times = (compInternalData[x + "x" + y] as FactoryInternalProcessor)
+                          .lastProdTimes;
+                      if (times.length === 0) return undefined;
+
+                      // times is in SECONDS, not ticks
+                      // seconds * Ticks per second -> ticks taken
+
+                      return Decimal.mul(times.length, factoryBaseData.tick)
+                          .div(times.reduce((x, n) => x + n, 0))
+                          .div(computedTickRate.value)
+                          .toNumber();
+                  })
+                : undefined,
             canProduce: computed(() => {
                 if (data.type === "conveyor") return true;
                 if (!(factoryBaseData.canProduce?.value ?? true)) return false;
@@ -1054,14 +1059,6 @@ const factory = createLayer(id, () => {
             }),
             sprite
         } as FactoryInternalProcessor;
-        for (let _x = 0; _x < size.width; _x++) {
-            for (let _y = 0; _y < size.height; _y++) {
-                compInternalData[_x + "x" + _y] = {
-                    type: "fragment",
-                    initalLocation: x + "x" + y
-                };
-            }
-        }
         spriteContainer.addChild(sprite);
     }
 
@@ -1069,27 +1066,10 @@ const factory = createLayer(id, () => {
         const data = compInternalData[x + "x" + y];
         if (data === undefined) return;
 
-        if (data.type === "fragment") {
-            const [x, y] = data.initalLocation.split("x").map(i => +i);
-            removeFactoryComp(x, y);
-            return;
-        }
-
         if (data.type === "conveyor") {
             const cData = data as FactoryInternalConveyor;
             for (const p of cData.packages) {
                 p.sprite.destroy();
-            }
-        } else {
-            const size = FACTORY_COMPONENTS[data.type].size ?? { width: 1, height: 1 };
-
-            // delete all components
-            for (let x = 0; x < size.width; x++) {
-                for (let y = 0; y < size.height; y++) {
-                    // this will be handled below
-                    if (x === 0 && y === 0) continue;
-                    delete compInternalData[x + "x" + y];
-                }
             }
         }
 
@@ -1135,6 +1115,7 @@ const factory = createLayer(id, () => {
     const pointerDown = ref(false),
         pointerDrag = ref(false),
         compHovered = ref<FactoryComponent | undefined>(undefined),
+        compInternalHovered = shallowRef<FactoryInternal | undefined>(undefined),
         paused = ref(false);
 
     function onFactoryPointerMove(e: PointerEvent) {
@@ -1164,12 +1145,12 @@ const factory = createLayer(id, () => {
         }
         if (!pointerDown.value && !pointerDrag.value) {
             const { tx, ty } = spriteContainer.localTransform;
-            compHovered.value =
-                components.value[
-                    Math.round(roundDownTo(x - tx, blockSize) / blockSize) +
-                        "x" +
-                        Math.round(roundDownTo(y - ty, blockSize) / blockSize)
-                ];
+            const xyPos =
+                Math.round(roundDownTo(x - tx, blockSize) / blockSize) +
+                "x" +
+                Math.round(roundDownTo(y - ty, blockSize) / blockSize);
+            compHovered.value = components.value[xyPos];
+            compInternalHovered.value = compInternalData[xyPos];
         }
     }
     function onFactoryPointerDown(e: PointerEvent) {
@@ -1191,8 +1172,7 @@ const factory = createLayer(id, () => {
                 if (compSelected.value === "rotateLeft") {
                     if (
                         components.value[x + "x" + y] != null &&
-                        components.value[x + "x" + y].direction != null &&
-                        compInternalData[x + "x" + y].type !== "fragment"
+                        components.value[x + "x" + y].direction != null
                     ) {
                         components.value[x + "x" + y] = {
                             ...components.value[x + "x" + y],
@@ -1202,15 +1182,12 @@ const factory = createLayer(id, () => {
                                 Direction.Left
                             )
                         };
-                        (
-                            compInternalData[x + "x" + y] as FactoryInternalProcessor
-                        ).sprite.rotation -= Math.PI / 2;
+                        compInternalData[x + "x" + y].sprite.rotation -= Math.PI / 2;
                     }
                 } else if (compSelected.value === "rotateRight") {
                     if (
                         components.value[x + "x" + y] != null &&
-                        components.value[x + "x" + y].direction != null &&
-                        compInternalData[x + "x" + y]?.type !== "fragment"
+                        components.value[x + "x" + y].direction != null
                     ) {
                         components.value[x + "x" + y] = {
                             ...components.value[x + "x" + y],
@@ -1220,18 +1197,9 @@ const factory = createLayer(id, () => {
                                 Direction.Right
                             )
                         };
-                        (
-                            compInternalData[x + "x" + y] as FactoryInternalProcessor
-                        ).sprite.rotation += Math.PI / 2;
+                        compInternalData[x + "x" + y].sprite.rotation += Math.PI / 2;
                     }
                 } else if (compSelected.value === "delete") {
-                    if (compInternalData[x + "x" + y]?.type === "fragment") {
-                        [x, y] = (
-                            compInternalData[x + "x" + y] as FactoryInternalFragment
-                        ).initalLocation
-                            .split("x")
-                            .map(i => +i);
-                    }
                     removeFactoryComp(x, y);
                 } else if (compSelected.value !== "cursor") {
                     if (components.value[x + "x" + y] == null) {
@@ -1267,7 +1235,6 @@ const factory = createLayer(id, () => {
     function setTracks() {
         for (const [key, comp] of Object.entries(compInternalData)) {
             if (comp == null) continue;
-            if (comp.type === "fragment") continue;
             if (comp.type === "conveyor") {
                 const cComp = comp as FactoryInternalConveyor;
                 for (const pkg of [...cComp.nextPackages, ...cComp.packages]) {
@@ -1278,6 +1245,7 @@ const factory = createLayer(id, () => {
                 cComp.packages = [];
             } else {
                 const producerComp = components.value[key] as FactoryComponentProcessor;
+                const cComp = comp as FactoryInternalProcessor;
                 if (producerComp.outputStock !== undefined) {
                     for (const key in producerComp.outputStock) {
                         delete producerComp.outputStock[key as ResourceNames];
@@ -1289,13 +1257,14 @@ const factory = createLayer(id, () => {
                     }
                 }
                 producerComp.ticksDone = 0;
+                cComp.lastFactoryProd = Date.now();
+                cComp.lastProdTimes.splice(0, Infinity);
             }
         }
     }
 
     function clearFactory() {
         for (const key of Object.keys(compInternalData)) {
-            if (compInternalData[key].type === "fragment") continue;
             const [x, y] = key.split("x").map(i => +i);
             removeFactoryComp(x, y);
         }
@@ -1401,7 +1370,7 @@ const factory = createLayer(id, () => {
     }
 
     const hoveredComponent = jsx(() =>
-        compHovered.value !== undefined ? (
+        compHovered.value !== undefined && compInternalHovered.value !== undefined ? (
             <div
                 class="info-container"
                 id="factory-info"
@@ -1422,7 +1391,8 @@ const factory = createLayer(id, () => {
                 <br />
                 {unref(FACTORY_COMPONENTS[compHovered.value.type].description)}
                 <br />
-                {compHovered.value.type !== "conveyor" ? (
+                {compHovered.value.type !== "conveyor" &&
+                compInternalHovered.value.type !== "conveyor" ? (
                     <>
                         {showStockAmount(
                             compHovered.value.inputStock,
@@ -1435,6 +1405,27 @@ const factory = createLayer(id, () => {
                             "Outputs:",
                             false
                         )}
+                        <br />
+                        Efficency:{" "}
+                        {compInternalHovered.value.average.value !== undefined ? (
+                            <span
+                                style={{
+                                    color:
+                                        compInternalHovered.value.average.value > 1
+                                            ? "purple"
+                                            : compInternalHovered.value.average.value >= 0.9
+                                            ? "green"
+                                            : compInternalHovered.value.average.value >= 0.5
+                                            ? "yellow"
+                                            : "red"
+                                }}
+                            >
+                                {formatWhole(compInternalHovered.value.average.value * 100)}
+                            </span>
+                        ) : (
+                            "--"
+                        )}
+                        %
                     </>
                 ) : undefined}
             </div>
@@ -1595,7 +1586,7 @@ const factory = createLayer(id, () => {
         display: jsx(() => (
             <>
                 {render(modifiersModal)}
-                {render(tabs)}
+                {render(tabs as VueFeature)}
             </>
         ))
     };
