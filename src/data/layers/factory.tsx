@@ -189,7 +189,13 @@ const factory = createLayer(id, () => {
             multiplier: energyEfficiency,
             description: "Energy Consumption",
             enabled: () => Decimal.gt(energyConsumption.value, computedEnergy.value)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: Decimal.add(paper.paper.value, 1).log10().div(100).add(1),
+            description: "News Ticker",
+            enabled: () => upgrades[0][1].bought.value 
         }))
+        
     ]);
     const computedTickRate = computed(() => tickRate.apply(1));
     const factorySize = createSequentialModifier(() => [
@@ -395,12 +401,12 @@ const factory = createLayer(id, () => {
             tick: 1,
             inputs: {
                 wood: {
-                    amount: 1
+                    amount: computed(() => (upgrades[0][0].bought.value ? 2 : 1))
                 }
             },
             outputs: {
                 plank: {
-                    amount: 1
+                    amount: computed(() => (upgrades[0][0].bought.value ? 2 : 1))
                 }
             }
         } as FactoryComponentDeclaration,
@@ -1038,7 +1044,7 @@ const factory = createLayer(id, () => {
             cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e80),
             display: {
                 title: "Sawmill Efficiency",
-                description: "Metal increases sawmill consumption and production by *log(metal)/10"
+                description: "Double sawmill consumption and production and metal supplier efficiency"
             },
             visible: () => showIf(main.days[advancedDay - 1].opened.value)
         })),
@@ -1047,7 +1053,7 @@ const factory = createLayer(id, () => {
             cost: () =>Decimal.pow(10, upgradeAmount.value).mul(1e94),
             display: {
                 title: "News Ticker",
-                description: "Paper boosts tick speed" // formula: *1+log(x)/100
+                description: "Paper boosts tick speed"
             },
             visible: () => showIf(main.days[advancedDay - 1].opened.value)
         })),
