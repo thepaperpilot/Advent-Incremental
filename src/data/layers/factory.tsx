@@ -30,7 +30,7 @@ import { noPersist, Persistent, persistent, State } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { ProcessedComputable } from "util/computed";
-import { render, renderGrid, renderRow } from "util/vue";
+import { render, renderGrid, renderRow, VueFeature } from "util/vue";
 import { computed, ComputedRef, reactive, ref, unref, watchEffect } from "vue";
 import _cloth from "../symbols/cloth.png";
 import _dye from "../symbols/dyes.png";
@@ -1097,7 +1097,7 @@ const factory = createLayer(id, () => {
     ]
         
     // pixi
-    const upgradeAmount = computed(() => Object.values(upgrades).filter(u => u.bought.value).length) as ComputedRef<number>
+    const upgradeAmount = computed(() => upgrades.flat().filter(u => u.bought.value).length) as ComputedRef<number>
     // load every sprite here so pixi doesn't complain about loading multiple times
     const assetsLoading = Promise.all([
         Assets.load(Object.values(FACTORY_COMPONENTS).map(x => x.imageSrc)),
@@ -1856,7 +1856,7 @@ const factory = createLayer(id, () => {
                             <Spacer />
                             {renderRow(...Object.values(factoryBuyables))}
                             <Spacer />
-                            {renderGrid(upgrades as VueFeature[])}
+                            {renderGrid(...upgrades as VueFeature[][])}
                         </>
                     ))
                 })),
