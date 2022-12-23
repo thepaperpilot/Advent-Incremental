@@ -33,29 +33,51 @@ import { Direction, WithRequired } from "util/common";
 import { ProcessedComputable } from "util/computed";
 import { render, renderGrid, renderRow, VueFeature } from "util/vue";
 import { computed, ComputedRef, reactive, ref, shallowRef, unref, watchEffect } from "vue";
+import boxes from "./boxes";
+import coal from "./coal";
+import dyes from "./dyes";
+import Factory from "./Factory.vue";
+import metal from "./metal";
+import oil from "./oil";
+import paper from "./paper";
+import plastic from "./plastic";
+import "./styles/factory.css";
+import Toy from "./Toy.vue";
+import toys from "./toys";
+import trees from "./trees";
+import workshop from "./workshop";
+
 import _cloth from "../symbols/cloth.png";
 import _dye from "../symbols/dyes.png";
 import _metal from "../symbols/metal.png";
 import _plastic from "../symbols/plastic.png";
-import boxes from "./boxes";
-import coal from "./coal";
-import dyes from "./dyes";
+import _boxes from "../symbols/cardboardBox.png";
+import _wrappingPaper from "../symbols/wrappingPaper.png";
+import _ribbon from "../symbols/ribbons.png";
+
 import _bear from "./factory-components/bear.svg";
 import _bearMaker from "./factory-components/bearmaker.svg";
+import _bearWrapper from "./factory-components/__placeholder.png";
 import _block from "./factory-components/block.svg";
 import _blockMaker from "./factory-components/blockmaker.svg";
+import _blockWrapper from "./factory-components/__placeholder.png";
+import _bow from "./factory-components/__placeholder.png";
+import _bowMaker from "./factory-components/__placeholder.png";
 import _bucket from "./factory-components/bucket.svg";
 import _bucketMaker from "./factory-components/bucketmaker.svg";
 import _bucketShovel from "./factory-components/bucketshovel.svg";
 import _bucketShovelMaker from "./factory-components/bucketshovelmaker.svg";
+import _bucketShovelWrapper from "./factory-components/__placeholder.png";
 import _button from "./factory-components/button.svg";
 import _buttonMaker from "./factory-components/buttonmaker.svg";
 import _circuitBoard from "./factory-components/circuit.svg";
 import _circuitBoardMaker from "./factory-components/circuitmaker.svg";
 import _clothes from "./factory-components/clothes.svg";
 import _clothesMaker from "./factory-components/clothesmaker.svg";
+import _clothesWrapper from "./factory-components/__placeholder.png";
 import _console from "./factory-components/console.svg";
 import _consoleMaker from "./factory-components/consolemaker.svg";
+import _consoleWrapper from "./factory-components/__placeholder.png";
 import _conveyor from "./factory-components/conveyor.png";
 import _cursor from "./factory-components/cursor.svg";
 import _delete from "./factory-components/delete.svg";
@@ -73,18 +95,11 @@ import _thread from "./factory-components/thread.svg";
 import _threadMaker from "./factory-components/threadmaker.svg";
 import _truck from "./factory-components/truck.svg";
 import _truckMaker from "./factory-components/truckmaker.svg";
+import _truckWrapper from "./factory-components/__placeholder.png";
 import _wheel from "./factory-components/wheel.svg";
 import _wheelMaker from "./factory-components/wheelmaker.svg";
-import Factory from "./Factory.vue";
-import metal from "./metal";
-import oil from "./oil";
-import paper from "./paper";
-import plastic from "./plastic";
-import "./styles/factory.css";
-import Toy from "./Toy.vue";
-import toys from "./toys";
-import trees from "./trees";
-import workshop from "./workshop";
+import _wrappedBox from "./factory-components/__placeholder.png";
+import _wrappedBoxMaker from "./factory-components/__placeholder.png";
 
 const id = "factory";
 
@@ -356,7 +371,7 @@ const factory = createLayer(id, () => {
             imageSrc: _shed,
             extraImage: _wood,
             key: "1",
-            name: "Wood Machine",
+            name: "Wood Warehouse",
             type: "processor",
             description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.wood)),
             energyCost: 10,
@@ -371,7 +386,7 @@ const factory = createLayer(id, () => {
             imageSrc: _shed,
             extraImage: _cloth,
             key: "2",
-            name: "Cloth Machine",
+            name: "Cloth Warehouse",
             type: "processor",
             description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.cloth)),
             energyCost: 10,
@@ -386,7 +401,7 @@ const factory = createLayer(id, () => {
             imageSrc: _shed,
             extraImage: _dye,
             key: "3",
-            name: "Dye Machine",
+            name: "Dye Warehouse",
             type: "processor",
             description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.dye)),
             energyCost: 10,
@@ -401,7 +416,7 @@ const factory = createLayer(id, () => {
             imageSrc: _shed,
             extraImage: _metal,
             key: "4",
-            name: "Metal Machine",
+            name: "Metal Warehouse",
             type: "processor",
             description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.metal)),
             energyCost: 10,
@@ -416,7 +431,7 @@ const factory = createLayer(id, () => {
             imageSrc: _shed,
             extraImage: _plastic,
             key: "5",
-            name: "Plastic Machine",
+            name: "Plastic Warehouse",
             type: "processor",
             description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.plastic)),
             energyCost: 10,
@@ -426,6 +441,54 @@ const factory = createLayer(id, () => {
                     amount: computed(() => (upgrades[1][2].bought.value ? 4 : 1))
                 }
             }
+        } as FactoryComponentDeclaration,
+        boxes: {
+            imageSrc: _shed,
+            extraImage: _boxes,
+            key: "6",
+            name: "Box Warehouse",
+            type: "processor",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.boxes)),
+            energyCost: 10,
+            tick: 1,
+            outputs: {
+                boxes: {
+                    amount: 1
+                }
+            },
+            visible: main.days[presentsDay - 1].opened
+        } as FactoryComponentDeclaration,
+        wrappingPaper: {
+            imageSrc: _shed,
+            extraImage: _wrappingPaper,
+            key: "7",
+            name: "Wrapping Paper Warehouse",
+            type: "processor",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.wrappingPaper)),
+            energyCost: 10,
+            tick: 1,
+            outputs: {
+                wrappingPaper: {
+                    amount: 1
+                }
+            },
+            visible: main.days[presentsDay - 1].opened
+        } as FactoryComponentDeclaration,
+        ribbon: {
+            imageSrc: _shed,
+            extraImage: _ribbon,
+            key: "8",
+            name: "Ribbon Warehouse",
+            type: "processor",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.ribbon)),
+            energyCost: 10,
+            tick: 1,
+            outputs: {
+                ribbon: {
+                    amount: 1
+                }
+            },
+            visible: main.days[presentsDay - 1].opened
         } as FactoryComponentDeclaration,
         plank: {
             imageSrc: _plankMaker,
@@ -587,6 +650,55 @@ const factory = createLayer(id, () => {
             },
             visible: main.days[advancedDay - 1].opened
         } as FactoryComponentDeclaration,
+        bow: {
+            imageSrc: _bowMaker,
+            key: "shift+0",
+            name: "Wrapped Box Manufacturer",
+            type: "processor",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.bow)),
+            energyCost: 2,
+            tick: 1,
+            inputs: {
+                ribbon: {
+                    amount: 1
+                }
+            },
+            outputs: {
+                bow: {
+                    amount: 1
+                }
+            },
+            visible: main.days[presentsDay - 1].opened
+        } as FactoryComponentDeclaration,
+        wrappedBox: {
+            imageSrc: _wrappedBoxMaker,
+            key: "shift+0",
+            name: "Wrapped Box Manufacturer",
+            type: "processor",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.wrappedBox)),
+            energyCost: 2,
+            tick: 1,
+            inputs: {
+                boxes: {
+                    amount: 1
+                },
+                wrappingPaper: {
+                    amount: 1
+                },
+                bow: {
+                    amount: 1
+                },
+                ribbon: {
+                    amount: 1
+                }
+            },
+            outputs: {
+                wrappedBox: {
+                    amount: 1
+                }
+            },
+            visible: main.days[presentsDay - 1].opened
+        } as FactoryComponentDeclaration,
         blocks: {
             imageSrc: _blockMaker,
             key: "ctrl+1",
@@ -736,6 +848,144 @@ const factory = createLayer(id, () => {
                 }
             },
             visible: main.days[advancedDay - 1].opened
+        } as FactoryComponentDeclaration,
+        wrappedBlocks: {
+            imageSrc: _blockWrapper,
+            key: "ctrl+shift+1",
+            name: "Wooden Block Wrapper",
+            type: "processor",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.wrappedBlocks)),
+            energyCost: 20,
+            tick: 1,
+            inputs: {
+                block: {
+                    amount: 1
+                },
+                wrappedBox: {
+                    amount: 1
+                }
+            },
+            outputs: {
+                wrappedBlock: {
+                    amount: 1
+                }
+            },
+            visible: main.days[presentsDay - 1].opened
+        } as FactoryComponentDeclaration,
+        wrappedClothes: {
+            imageSrc: _clothesWrapper,
+            key: "ctrl+shift+2",
+            name: "Clothes Wrapper",
+            type: "processor",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.wrappedClothes)),
+            energyCost: 20,
+            tick: 1,
+            inputs: {
+                clothes: {
+                    amount: 1
+                },
+                wrappedBox: {
+                    amount: 1
+                }
+            },
+            outputs: {
+                wrappedClothes: {
+                    amount: 1
+                }
+            },
+            visible: main.days[presentsDay - 1].opened
+        } as FactoryComponentDeclaration,
+        wrappedTrucks: {
+            imageSrc: _truckWrapper,
+            key: "ctrl+shift+3",
+            name: "Trucks Wrapper",
+            type: "processor",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.wrappedTrucks)),
+            energyCost: 20,
+            tick: 1,
+            inputs: {
+                trucks: {
+                    amount: 1
+                },
+                wrappedBox: {
+                    amount: 1
+                }
+            },
+            outputs: {
+                wrappedTrucks: {
+                    amount: 1
+                }
+            },
+            visible: main.days[presentsDay - 1].opened
+        } as FactoryComponentDeclaration,
+        wrappedBear: {
+            imageSrc: _bearWrapper,
+            key: "ctrl+shift+4",
+            name: "Teddy Bear Wrapper",
+            type: "processor",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.wrappedBear)),
+            energyCost: 20,
+            tick: 1,
+            inputs: {
+                bear: {
+                    amount: 1
+                },
+                wrappedBox: {
+                    amount: 1
+                }
+            },
+            outputs: {
+                wrappedBear: {
+                    amount: 1
+                }
+            },
+            visible: main.days[presentsDay - 1].opened
+        } as FactoryComponentDeclaration,
+        wrappedBucketShovel: {
+            imageSrc: _bucketShovelWrapper,
+            key: "ctrl+shift+5",
+            name: "Shovel and Pail Wrapper",
+            type: "processor",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.wrappedBucketShovel)),
+            energyCost: 20,
+            tick: 1,
+            inputs: {
+                shovelBucket: {
+                    amount: 1
+                },
+                wrappedBox: {
+                    amount: 1
+                }
+            },
+            outputs: {
+                wrappedShovelBucket: {
+                    amount: 1
+                }
+            },
+            visible: main.days[presentsDay - 1].opened
+        } as FactoryComponentDeclaration,
+        wrappedConsole: {
+            imageSrc: _consoleWrapper,
+            key: "ctrl+shift+6",
+            name: "Game Console Wrapper",
+            type: "processor",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.wrappedConsole)),
+            energyCost: 20,
+            tick: 1,
+            inputs: {
+                console: {
+                    amount: 1
+                },
+                wrappedBox: {
+                    amount: 1
+                }
+            },
+            outputs: {
+                wrappedConsole: {
+                    amount: 1
+                }
+            },
+            visible: main.days[presentsDay - 1].opened
         } as FactoryComponentDeclaration
     } as Record<string, FactoryComponentDeclaration>;
     const RESOURCES = {
@@ -759,6 +1009,18 @@ const factory = createLayer(id, () => {
         metal: {
             name: "Metal",
             imageSrc: _metal
+        },
+        boxes: {
+            name: "Boxes",
+            imageSrc: _boxes
+        },
+        wrappingPaper: {
+            name: "Wrapping Paper",
+            imageSrc: _wrappingPaper
+        },
+        ribbon: {
+            name: "Ribbon",
+            imageSrc: _ribbon
         },
         // Processed resources
         plank: {
@@ -793,6 +1055,14 @@ const factory = createLayer(id, () => {
             name: "Circuit Board",
             imageSrc: _circuitBoard
         },
+        bow: {
+            name: "Bow",
+            imageSrc: _bow
+        },
+        wrappedBox: {
+            name: "Wrapped Box",
+            imageSrc: _wrappedBox
+        },
         // Toys
         block: {
             name: "Wooden Blocks",
@@ -816,6 +1086,31 @@ const factory = createLayer(id, () => {
         },
         console: {
             name: "Game Console",
+            imageSrc: _console
+        },
+        // Wrapped toys
+        wrappedBlock: {
+            name: "Wrapped Wooden Blocks",
+            imageSrc: _block
+        },
+        wrappedClothes: {
+            name: "Wrapped Clothes",
+            imageSrc: _clothes
+        },
+        wrappedTrucks: {
+            name: "Wrapped Trucks",
+            imageSrc: _truck
+        },
+        wrappedBear: {
+            name: "Wrapped Teddy Bear",
+            imageSrc: _bear
+        },
+        wrappedShovelBucket: {
+            name: "Wrapped Shovel and Pail",
+            imageSrc: _bucketShovel
+        },
+        wrappedConsole: {
+            name: "Wrapped Game Console",
             imageSrc: _console
         }
     } as const;
