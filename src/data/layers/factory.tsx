@@ -1572,7 +1572,7 @@ const factory = createLayer(id, () => {
                 const compData = components.value[x + "x" + y] as FactoryComponentProcessor;
                 if (factoryBaseData.inputs !== undefined) {
                     for (const [res, val] of Object.entries(factoryBaseData.inputs))
-                        if ((compData.inputStock?.[res as ResourceNames] ?? 0) < val.amount)
+                        if ((compData.inputStock?.[res as ResourceNames] ?? 0) < unref(val.amount))
                             return false;
                 }
                 if (factoryBaseData.outputs !== undefined) {
