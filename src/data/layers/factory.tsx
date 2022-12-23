@@ -206,7 +206,10 @@ const factory = createLayer(id, () => {
         createMultiplicativeModifier(() => ({
             multiplier: Decimal.lt(energyEfficiency.value, 1)
                 ? 1
-                : Decimal.sub(2, Decimal.div(energyConsumption.value, Decimal.max(computedEnergy.value, 1))),
+                : Decimal.sub(
+                      2,
+                      Decimal.div(energyConsumption.value, Decimal.max(computedEnergy.value, 1))
+                  ),
             description: "Brighter work rooms",
             enabled: () => upgrades[2][0].bought.value
         })),
@@ -287,17 +290,29 @@ const factory = createLayer(id, () => {
 
     // ---------------------------------------------- Components
 
-
     function generateComponentDescription(declaration: FactoryComponentDeclaration) {
-
         let str = declaration.inputs === undefined ? "Produces " : "Turns ";
         if (declaration.inputs !== undefined) {
-            str += formatList(Object.entries(declaration.inputs)
-                .map(x => formatWhole(unref(x[1].amount)) + " " + RESOURCES[x[0] as ResourceNames].name)) + " into ";
+            str +=
+                formatList(
+                    Object.entries(declaration.inputs).map(
+                        x =>
+                            formatWhole(unref(x[1].amount)) +
+                            " " +
+                            RESOURCES[x[0] as ResourceNames].name
+                    )
+                ) + " into ";
         }
         if (declaration.outputs !== undefined) {
-            str += formatList(Object.entries(declaration.outputs)
-                .map(x => formatWhole(unref(x[1].amount)) + " " + RESOURCES[x[0] as ResourceNames].name)) + " per tick.";
+            str +=
+                formatList(
+                    Object.entries(declaration.outputs).map(
+                        x =>
+                            formatWhole(unref(x[1].amount)) +
+                            " " +
+                            RESOURCES[x[0] as ResourceNames].name
+                    )
+                ) + " per tick.";
         }
         return str;
     }
@@ -569,7 +584,9 @@ const factory = createLayer(id, () => {
             key: "shift+8",
             name: "Circuit Board Manufacturer",
             type: "processor",
-            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.circuitBoard)),
+            description: computed(() =>
+                generateComponentDescription(FACTORY_COMPONENTS.circuitBoard)
+            ),
             energyCost: 2,
             tick: 1,
             inputs: {
@@ -691,7 +708,9 @@ const factory = createLayer(id, () => {
             key: "ctrl+5",
             name: "Shovel and Pail Maker",
             type: "processor",
-            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.bucketShovel)),
+            description: computed(() =>
+                generateComponentDescription(FACTORY_COMPONENTS.bucketShovel)
+            ),
             energyCost: 20,
             tick: 1,
             inputs: {
@@ -1548,7 +1567,11 @@ const factory = createLayer(id, () => {
             lastProdTimes: !isConveyor ? (reactive([]) as number[]) : undefined,
             lastFactoryProd: !isConveyor
                 ? Date.now() -
-                  1000 * Decimal.div(data.ticksDone ?? 0, computedActualTickRate.value).toNumber()
+                  1000 *
+                      Decimal.div(
+                          (data as FactoryComponentProcessor).ticksDone ?? 0,
+                          computedActualTickRate.value
+                      ).toNumber()
                 : undefined,
             average: !isConveyor
                 ? computed(() => {
@@ -1914,32 +1937,41 @@ const factory = createLayer(id, () => {
                 compInternalHovered.value.type !== "conveyor" ? (
                     <>
                         {showStockAmount(
-                            compHovered.value.inputStock,
+                            (compHovered.value as FactoryComponentProcessor).inputStock,
                             FACTORY_COMPONENTS[compHovered.value.type].inputs,
                             "Inputs:"
                         )}
                         {showStockAmount(
-                            compHovered.value.outputStock,
+                            (compHovered.value as FactoryComponentProcessor).outputStock,
                             FACTORY_COMPONENTS[compHovered.value.type].outputs,
                             "Outputs:",
                             false
                         )}
                         <br />
                         Efficency:{" "}
-                        {compInternalHovered.value.average.value !== undefined ? (
+                        {(compInternalHovered.value as FactoryInternalProcessor).average.value !==
+                        undefined ? (
                             <span
                                 style={{
                                     color:
-                                        compInternalHovered.value.average.value > 1
+                                        (compInternalHovered.value as FactoryInternalProcessor)
+                                            .average.value! > 1
                                             ? "purple"
-                                            : compInternalHovered.value.average.value >= 0.9
+                                            : (
+                                                  compInternalHovered.value as FactoryInternalProcessor
+                                              ).average.value! >= 0.9
                                             ? "green"
-                                            : compInternalHovered.value.average.value >= 0.5
+                                            : (
+                                                  compInternalHovered.value as FactoryInternalProcessor
+                                              ).average.value! >= 0.5
                                             ? "yellow"
                                             : "red"
                                 }}
                             >
-                                {formatWhole(compInternalHovered.value.average.value * 100)}
+                                {formatWhole(
+                                    (compInternalHovered.value as FactoryInternalProcessor).average
+                                        .value! * 100
+                                )}
                             </span>
                         ) : (
                             "--"
