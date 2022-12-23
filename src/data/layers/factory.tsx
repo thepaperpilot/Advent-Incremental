@@ -28,11 +28,11 @@ import {
     Modifier
 } from "game/modifiers";
 import { noPersist, Persistent, persistent, State } from "game/persistence";
-import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
+import Decimal, { DecimalSource, format, formatList, formatWhole } from "util/bignum";
 import { Direction, WithRequired } from "util/common";
 import { ProcessedComputable } from "util/computed";
 import { render, renderGrid, renderRow, VueFeature } from "util/vue";
-import { computed, ComputedRef, reactive, ref, unref, watchEffect } from "vue";
+import { computed, ComputedRef, reactive, ref, shallowRef, unref, watchEffect } from "vue";
 import _cloth from "../symbols/cloth.png";
 import _dye from "../symbols/dyes.png";
 import _metal from "../symbols/metal.png";
@@ -206,9 +206,12 @@ const factory = createLayer(id, () => {
         createMultiplicativeModifier(() => ({
             multiplier: Decimal.lt(energyEfficiency.value, 1)
                 ? 1
-                : Decimal.sub(2, Decimal.div(energyConsumption.value, computedEnergy.value)),
+                : Decimal.sub(
+                      2,
+                      Decimal.div(energyConsumption.value, Decimal.max(computedEnergy.value, 1))
+                  ),
             description: "Brighter work rooms",
-            enabled: () => upgrades[2][1].bought.value
+            enabled: () => upgrades[2][0].bought.value
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 1.5,
@@ -217,6 +220,8 @@ const factory = createLayer(id, () => {
         }))
     ]);
     const computedTickRate = computed(() => tickRate.apply(1));
+    const computedActualTickRate = computed(() => Decimal.min(computedTickRate.value, 5));
+    const computedToyMultiplier = computed(() => Decimal.div(computedTickRate.value, 5).max(1));
     const factorySize = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: expandFactory.amount,
@@ -285,6 +290,33 @@ const factory = createLayer(id, () => {
 
     // ---------------------------------------------- Components
 
+    function generateComponentDescription(declaration: FactoryComponentDeclaration) {
+        let str = declaration.inputs === undefined ? "Produces " : "Turns ";
+        if (declaration.inputs !== undefined) {
+            str +=
+                formatList(
+                    Object.entries(declaration.inputs).map(
+                        x =>
+                            formatWhole(unref(x[1].amount)) +
+                            " " +
+                            RESOURCES[x[0] as ResourceNames].name
+                    )
+                ) + " into ";
+        }
+        if (declaration.outputs !== undefined) {
+            str +=
+                formatList(
+                    Object.entries(declaration.outputs).map(
+                        x =>
+                            formatWhole(unref(x[1].amount)) +
+                            " " +
+                            RESOURCES[x[0] as ResourceNames].name
+                    )
+                ) + " per tick.";
+        }
+        return str;
+    }
+
     const FACTORY_COMPONENTS = {
         cursor: {
             imageSrc: _cursor,
@@ -341,7 +373,7 @@ const factory = createLayer(id, () => {
             key: "1",
             name: "Wood Machine",
             type: "processor",
-            description: "Produces 1 wood per tick.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.wood)),
             energyCost: 10,
             tick: 1,
             outputs: {
@@ -356,7 +388,7 @@ const factory = createLayer(id, () => {
             key: "2",
             name: "Cloth Machine",
             type: "processor",
-            description: "Produces 1 cloth per tick.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.cloth)),
             energyCost: 10,
             tick: 1,
             outputs: {
@@ -371,7 +403,7 @@ const factory = createLayer(id, () => {
             key: "3",
             name: "Dye Machine",
             type: "processor",
-            description: "Produces 1 dye per tick.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.dye)),
             energyCost: 10,
             tick: 1,
             outputs: {
@@ -386,7 +418,7 @@ const factory = createLayer(id, () => {
             key: "4",
             name: "Metal Machine",
             type: "processor",
-            description: "Produces 1 metal per tick.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.metal)),
             energyCost: 10,
             tick: 1,
             outputs: {
@@ -401,7 +433,7 @@ const factory = createLayer(id, () => {
             key: "5",
             name: "Plastic Machine",
             type: "processor",
-            description: "Produces 1 plastic per tick.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.plastic)),
             energyCost: 10,
             tick: 1,
             outputs: {
@@ -415,7 +447,7 @@ const factory = createLayer(id, () => {
             key: "shift+1",
             name: "Sawmill",
             type: "processor",
-            description: "Turns 1 wood into 1 plank per tick.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.plank)),
             energyCost: 2,
             tick: 1,
             inputs: {
@@ -434,7 +466,7 @@ const factory = createLayer(id, () => {
             key: "shift+2",
             name: "Thread Spinner",
             type: "processor",
-            description: "Turns 1 cloth into 1 thread per tick.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.thread)),
             energyCost: 2,
             tick: 1,
             inputs: {
@@ -453,13 +485,7 @@ const factory = createLayer(id, () => {
             key: "shift+3",
             name: "Wheel Crafter",
             type: "processor",
-            // TODO construct descriptions dynamically better
-            description: computed(
-                () =>
-                    `Turns 1 plastic into ${
-                        toys.milestones.milestone5.earned.value ? "2 wheels" : "1 wheel"
-                    } per tick.`
-            ),
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.wheel)),
             energyCost: 2,
             tick: 1,
             inputs: {
@@ -478,7 +504,7 @@ const factory = createLayer(id, () => {
             key: "shift+4",
             name: "Button Maker",
             type: "processor",
-            description: "Turns 1 plastic into 2 buttons every second.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.button)),
             energyCost: 2,
             tick: 1,
             inputs: {
@@ -498,7 +524,7 @@ const factory = createLayer(id, () => {
             key: "shift+5",
             name: "Cloth Shredder",
             type: "processor",
-            description: "Turns 1 cloth into 1 stuffing every second.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.stuffing)),
             energyCost: 2,
             tick: 1,
             inputs: {
@@ -518,7 +544,7 @@ const factory = createLayer(id, () => {
             key: "shift+6",
             name: "Shovel Maker",
             type: "processor",
-            description: "Turns 2 plastic into 1 shovel every second.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.shovel)),
             energyCost: 2,
             tick: 1,
             inputs: {
@@ -538,7 +564,7 @@ const factory = createLayer(id, () => {
             key: "shift+7",
             name: "Bucket Maker",
             type: "processor",
-            description: "Turns 3 plastic into 1 bucket every second.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.bucket)),
             energyCost: 2,
             tick: 1,
             inputs: {
@@ -558,7 +584,9 @@ const factory = createLayer(id, () => {
             key: "shift+8",
             name: "Circuit Board Manufacturer",
             type: "processor",
-            description: "Turns 1 metal and 1 plastic into 1 circuit board every second.",
+            description: computed(() =>
+                generateComponentDescription(FACTORY_COMPONENTS.circuitBoard)
+            ),
             energyCost: 2,
             tick: 1,
             inputs: {
@@ -578,10 +606,10 @@ const factory = createLayer(id, () => {
         } as FactoryComponentDeclaration,
         blocks: {
             imageSrc: _blockMaker,
-            key: "ctrl+shift+1",
+            key: "ctrl+1",
             name: "Wooden Block Maker",
             type: "processor",
-            description: "Turns 1 plank into 1 wooden block per tick.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.blocks)),
             energyCost: 20,
             tick: 1,
             inputs: {
@@ -598,10 +626,10 @@ const factory = createLayer(id, () => {
         } as FactoryComponentDeclaration,
         clothes: {
             imageSrc: _clothesMaker,
-            key: "ctrl+shift+2",
+            key: "ctrl+2",
             name: "Clothes Maker",
             type: "processor",
-            description: "Turns 2 threads, 3 cloth, and 1 dye into 1 clothes per tick.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.clothes)),
             energyCost: 20,
             tick: 1,
             inputs: {
@@ -624,10 +652,10 @@ const factory = createLayer(id, () => {
         } as FactoryComponentDeclaration,
         trucks: {
             imageSrc: _truckMaker,
-            key: "ctrl+shift+3",
+            key: "ctrl+3",
             name: "Trucks Maker",
             type: "processor",
-            description: "Turns 2 metal and 4 wheels into 1 truck per tick.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.trucks)),
             energyCost: 20,
             tick: 1,
             inputs: {
@@ -647,11 +675,10 @@ const factory = createLayer(id, () => {
         } as FactoryComponentDeclaration,
         bear: {
             imageSrc: _bearMaker,
-            key: "ctrl+shift+4",
+            key: "ctrl+4",
             name: "Teddy Bear Maker",
             type: "processor",
-            description:
-                "Turns 1 thread, 1 stuffing, 1 dye, and 3 buttons into 1 teddy bear every second.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.bear)),
             energyCost: 20,
             tick: 1,
             inputs: {
@@ -671,17 +698,19 @@ const factory = createLayer(id, () => {
             outputs: {
                 bear: {
                     amount: computed(() => (upgrades[1][3].bought.value ? 2 : 1)),
-                    resource: bears
+                    resource: noPersist(bears)
                 }
             },
             visible: main.days[advancedDay - 1].opened
         } as FactoryComponentDeclaration,
         bucketShovel: {
             imageSrc: _bucketShovelMaker,
-            key: "ctrl+shift+5",
+            key: "ctrl+5",
             name: "Shovel and Pail Maker",
             type: "processor",
-            description: "Turns 1 bucket and 1 shovel into 1 shovel and pail every second.",
+            description: computed(() =>
+                generateComponentDescription(FACTORY_COMPONENTS.bucketShovel)
+            ),
             energyCost: 20,
             tick: 1,
             inputs: {
@@ -695,18 +724,17 @@ const factory = createLayer(id, () => {
             outputs: {
                 shovelBucket: {
                     amount: 1,
-                    resource: bucketAndShovels
+                    resource: noPersist(bucketAndShovels)
                 }
             },
             visible: main.days[advancedDay - 1].opened
         } as FactoryComponentDeclaration,
         console: {
             imageSrc: _consoleMaker,
-            key: "ctrl+shift+6",
+            key: "ctrl+6",
             name: "Game Console Maker",
             type: "processor",
-            description:
-                "Turns 1 metal, 3 plastic, and 1 circuit board into 1 game console every second.",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.console)),
             energyCost: 20,
             tick: 1,
             inputs: {
@@ -723,12 +751,12 @@ const factory = createLayer(id, () => {
             outputs: {
                 console: {
                     amount: computed(() => (upgrades[1][3].bought.value ? 3 : 1)),
-                    resource: consoles
+                    resource: noPersist(consoles)
                 }
             },
             visible: main.days[advancedDay - 1].opened
         } as FactoryComponentDeclaration
-    } as const;
+    } as Record<string, FactoryComponentDeclaration>;
     const RESOURCES = {
         // Raw resources
         wood: {
@@ -894,6 +922,10 @@ const factory = createLayer(id, () => {
     }
     interface FactoryInternalProcessor extends FactoryInternalBase {
         type: Exclude<BuildableCompName, "conveyor">;
+        lastProdTimes: number[];
+
+        lastFactoryProd: number;
+        average: ComputedRef<number | undefined>;
     }
     type FactoryInternal = FactoryInternalConveyor | FactoryInternalProcessor;
 
@@ -958,7 +990,7 @@ const factory = createLayer(id, () => {
         style: "width: 110px"
     }));
     const bearsBuyable = createBuyable(() => ({
-        resource: bears,
+        resource: noPersist(bears),
         cost() {
             return Decimal.pow(2, Decimal.add(this.amount.value, 5));
         },
@@ -970,7 +1002,7 @@ const factory = createLayer(id, () => {
         visible: () => showIf(main.days[advancedDay - 1].opened.value)
     }));
     const bucketBuyable = createBuyable(() => ({
-        resource: bucketAndShovels,
+        resource: noPersist(bucketAndShovels),
         cost() {
             return Decimal.pow(2, Decimal.add(this.amount.value, 5));
         },
@@ -982,7 +1014,7 @@ const factory = createLayer(id, () => {
         visible: () => showIf(main.days[advancedDay - 1].opened.value)
     }));
     const consolesBuyable = createBuyable(() => ({
-        resource: consoles,
+        resource: noPersist(consoles),
         cost() {
             return Decimal.pow(2, Decimal.add(this.amount.value, 5));
         },
@@ -1249,9 +1281,6 @@ const factory = createLayer(id, () => {
         loaded = true;
         watchEffect(updateGraphics);
     });
-    (window as any).internal = compInternalData;
-    (window as any).comp = components;
-    (window as any).blocks = movingBlocks;
 
     function moveBlock(block: Block, newBlock: FactoryInternal, blockData: FactoryComponent) {
         // empty spot
@@ -1280,7 +1309,7 @@ const factory = createLayer(id, () => {
     globalBus.on("update", diff => {
         if (!loaded || paused.value) return;
 
-        const factoryTicks = Decimal.times(computedTickRate.value, diff).toNumber();
+        const factoryTicks = Decimal.times(computedActualTickRate.value, diff).toNumber();
 
         //debugger
         // make them produce
@@ -1361,7 +1390,10 @@ const factory = createLayer(id, () => {
                                 if (val.resource != null) {
                                     val.resource.value = Decimal.add(
                                         val.resource.value,
-                                        unref(val.amount)
+                                        Decimal.times(
+                                            computedToyMultiplier.value,
+                                            unref(val.amount)
+                                        )
                                     );
                                 } else {
                                     data.outputStock[key as ResourceNames] =
@@ -1371,6 +1403,11 @@ const factory = createLayer(id, () => {
                             }
                         }
                         data.ticksDone -= cyclesDone * factoryData.tick;
+                        const now = Date.now();
+                        const diff = (now - compData.lastFactoryProd) / 1000;
+                        compData.lastProdTimes.push(diff);
+                        if (compData.lastProdTimes.length > 10) compData.lastProdTimes.shift();
+                        compData.lastFactoryProd = now;
                     }
                 } else {
                     data.ticksDone += factoryTicks;
@@ -1474,6 +1511,7 @@ const factory = createLayer(id, () => {
         const factoryBaseData = FACTORY_COMPONENTS[data.type];
         if (factoryBaseData == undefined) return;
         const sheet = Assets.get(factoryBaseData.imageSrc);
+
         const sprite = new Sprite(sheet);
 
         watchEffect(() => {
@@ -1495,6 +1533,7 @@ const factory = createLayer(id, () => {
             ) *
                 Math.PI) /
             2;
+
         if (factoryBaseData.extraImage != null) {
             const sheet = Assets.get(factoryBaseData.extraImage);
             const extraSprite = new Sprite(sheet);
@@ -1525,6 +1564,30 @@ const factory = createLayer(id, () => {
             type: data.type,
             packages: isConveyor ? [] : undefined,
             nextPackages: isConveyor ? [] : undefined,
+            lastProdTimes: !isConveyor ? (reactive([]) as number[]) : undefined,
+            lastFactoryProd: !isConveyor
+                ? Date.now() -
+                  1000 *
+                      Decimal.div(
+                          (data as FactoryComponentProcessor).ticksDone ?? 0,
+                          computedActualTickRate.value
+                      ).toNumber()
+                : undefined,
+            average: !isConveyor
+                ? computed(() => {
+                      const times = (compInternalData[x + "x" + y] as FactoryInternalProcessor)
+                          .lastProdTimes;
+                      if (times.length === 0) return undefined;
+
+                      // times is in SECONDS, not ticks
+                      // seconds * Ticks per second -> ticks taken
+
+                      return Decimal.mul(times.length, factoryBaseData.tick)
+                          .div(times.reduce((x, n) => x + n, 0))
+                          .div(computedActualTickRate.value)
+                          .toNumber();
+                  })
+                : undefined,
             canProduce: computed(() => {
                 if (data.type === "conveyor") return true;
                 if (!(factoryBaseData.canProduce?.value ?? true)) return false;
@@ -1532,7 +1595,7 @@ const factory = createLayer(id, () => {
                 const compData = components.value[x + "x" + y] as FactoryComponentProcessor;
                 if (factoryBaseData.inputs !== undefined) {
                     for (const [res, val] of Object.entries(factoryBaseData.inputs))
-                        if ((compData.inputStock?.[res as ResourceNames] ?? 0) < val.amount)
+                        if ((compData.inputStock?.[res as ResourceNames] ?? 0) < unref(val.amount))
                             return false;
                 }
                 if (factoryBaseData.outputs !== undefined) {
@@ -1605,6 +1668,7 @@ const factory = createLayer(id, () => {
     const pointerDown = ref(false),
         pointerDrag = ref(false),
         compHovered = ref<FactoryComponent | undefined>(undefined),
+        compInternalHovered = shallowRef<FactoryInternal | undefined>(undefined),
         paused = ref(false);
 
     function onFactoryPointerMove(e: PointerEvent) {
@@ -1634,12 +1698,12 @@ const factory = createLayer(id, () => {
         }
         if (!pointerDown.value && !pointerDrag.value) {
             const { tx, ty } = spriteContainer.localTransform;
-            compHovered.value =
-                components.value[
-                    Math.round(roundDownTo(x - tx, blockSize) / blockSize) +
-                        "x" +
-                        Math.round(roundDownTo(y - ty, blockSize) / blockSize)
-                ];
+            const xyPos =
+                Math.round(roundDownTo(x - tx, blockSize) / blockSize) +
+                "x" +
+                Math.round(roundDownTo(y - ty, blockSize) / blockSize);
+            compHovered.value = components.value[xyPos];
+            compInternalHovered.value = compInternalData[xyPos];
         }
     }
     function onFactoryPointerDown(e: PointerEvent) {
@@ -1727,6 +1791,7 @@ const factory = createLayer(id, () => {
                 cComp.packages = [];
             } else {
                 const producerComp = components.value[key] as FactoryComponentProcessor;
+                const cComp = comp as FactoryInternalProcessor;
                 if (producerComp.outputStock !== undefined) {
                     for (const key in producerComp.outputStock) {
                         delete producerComp.outputStock[key as ResourceNames];
@@ -1738,6 +1803,8 @@ const factory = createLayer(id, () => {
                     }
                 }
                 producerComp.ticksDone = 0;
+                cComp.lastFactoryProd = Date.now();
+                cComp.lastProdTimes.splice(0, Infinity);
             }
         }
     }
@@ -1843,7 +1910,7 @@ const factory = createLayer(id, () => {
     }
 
     const hoveredComponent = jsx(() => {
-        if (compHovered.value == null) {
+        if (compHovered.value == null || compInternalHovered.value == null) {
             return "";
         }
         const factorySizeOffset = computedFactorySize.value % 2 === 0 ? blockSize / 2 : 0;
@@ -1866,19 +1933,50 @@ const factory = createLayer(id, () => {
                 <br />
                 {unref(FACTORY_COMPONENTS[compHovered.value.type].description)}
                 <br />
-                {compHovered.value.type !== "conveyor" ? (
+                {compHovered.value.type !== "conveyor" &&
+                compInternalHovered.value.type !== "conveyor" ? (
                     <>
                         {showStockAmount(
-                            compHovered.value.inputStock,
+                            (compHovered.value as FactoryComponentProcessor).inputStock,
                             FACTORY_COMPONENTS[compHovered.value.type].inputs,
                             "Inputs:"
                         )}
                         {showStockAmount(
-                            compHovered.value.outputStock,
+                            (compHovered.value as FactoryComponentProcessor).outputStock,
                             FACTORY_COMPONENTS[compHovered.value.type].outputs,
                             "Outputs:",
                             false
                         )}
+                        <br />
+                        Efficency:{" "}
+                        {(compInternalHovered.value as FactoryInternalProcessor).average.value !==
+                        undefined ? (
+                            <span
+                                style={{
+                                    color:
+                                        (compInternalHovered.value as FactoryInternalProcessor)
+                                            .average.value! > 1
+                                            ? "purple"
+                                            : (
+                                                  compInternalHovered.value as FactoryInternalProcessor
+                                              ).average.value! >= 0.9
+                                            ? "green"
+                                            : (
+                                                  compInternalHovered.value as FactoryInternalProcessor
+                                              ).average.value! >= 0.5
+                                            ? "yellow"
+                                            : "red"
+                                }}
+                            >
+                                {formatWhole(
+                                    (compInternalHovered.value as FactoryInternalProcessor).average
+                                        .value! * 100
+                                )}
+                            </span>
+                        ) : (
+                            "--"
+                        )}
+                        %
                     </>
                 ) : undefined}
             </div>
@@ -2000,7 +2098,20 @@ const factory = createLayer(id, () => {
             onUpdate:modelValue={(value: boolean) => (showModifiersModal.value = value)}
             v-slots={{
                 header: () => <h2>{name} Modifiers</h2>,
-                body: generalTab
+                body: () => (
+                    <>
+                        {render(generalTab)}
+                        {Decimal.gte(computedTickRate.value, 5) ? (
+                            <>
+                                <br />
+                                Note: the actual tick rate is capped at 5 TPS, but you'll gain extra
+                                toys based on excessive tick rate as a compensation.
+                            </>
+                        ) : (
+                            ""
+                        )}
+                    </>
+                )
             }}
         />
     ));
@@ -2009,7 +2120,7 @@ const factory = createLayer(id, () => {
         direction: Direction.Right,
         width: 600,
         height: 25,
-        fillStyle: `backgroundColor: ${color}`,
+        fillStyle: `animation: 15s factory-bar linear infinite`,
         progress: () =>
             main.day.value === day
                 ? Decimal.div(toys.clothes.value, toyGoal)
@@ -2097,7 +2208,7 @@ const factory = createLayer(id, () => {
         display: jsx(() => (
             <>
                 {render(modifiersModal)}
-                {render(tabs)}
+                {render(tabs as VueFeature)}
             </>
         ))
     };

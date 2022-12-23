@@ -64,7 +64,7 @@
     left: 0px;
     right: 0px;
     position: absolute;
-    background-color: var(--raised-background);
+    background-color: snow;
     overflow: hidden;
     z-index: 1;
 }
@@ -109,7 +109,7 @@
 .comp-info {
     position: absolute;
     top: 0;
-    right: -10px;
+    right: 0px;
     padding: 5px 10px;
 
     width: max-content;
@@ -125,13 +125,14 @@
     pointer-events: none;
     transition: transform 0.3s;
 
-    z-index: -1;
+    z-index: -2;
 }
 .comp-list .comp:nth-child(2n - 1) .comp-info {
-    right: -85px;
+    right: -75px;
 }
 .comp-list .comp:hover .comp-info {
     transform: translateX(calc(20px + 100%));
+    z-index: -1;
 }
 
 .comp-list {
@@ -141,6 +142,7 @@
     overflow-x: hidden;
     padding-right: 370px;
     direction: rtl;
+    padding-left: 10px;
 }
 
 .comp-list-child {
@@ -158,6 +160,7 @@
     position: absolute;
     border-right: solid 2px var(--locked);
     background: var(--raised-background);
+    box-shadow: 0 2px 10px #0007;
     top: 0;
     bottom: 0;
     left: 0;
