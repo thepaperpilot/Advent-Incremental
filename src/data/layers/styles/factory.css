@@ -141,6 +141,7 @@
     overflow-x: hidden;
     padding-right: 370px;
     direction: rtl;
+    padding-left: 10px;
 }
 
 .comp-list-child {

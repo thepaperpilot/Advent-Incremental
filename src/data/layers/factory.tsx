@@ -671,7 +671,7 @@ const factory = createLayer(id, () => {
             outputs: {
                 bear: {
                     amount: computed(() => (upgrades[1][3].bought.value ? 2 : 1)),
-                    resource: bears
+                    resource: noPersist(bears)
                 }
             },
             visible: main.days[advancedDay - 1].opened
@@ -695,7 +695,7 @@ const factory = createLayer(id, () => {
             outputs: {
                 shovelBucket: {
                     amount: 1,
-                    resource: bucketAndShovels
+                    resource: noPersist(bucketAndShovels)
                 }
             },
             visible: main.days[advancedDay - 1].opened
@@ -723,7 +723,7 @@ const factory = createLayer(id, () => {
             outputs: {
                 console: {
                     amount: computed(() => (upgrades[1][3].bought.value ? 3 : 1)),
-                    resource: consoles
+                    resource: noPersist(consoles)
                 }
             },
             visible: main.days[advancedDay - 1].opened
@@ -958,7 +958,7 @@ const factory = createLayer(id, () => {
         style: "width: 110px"
     }));
     const bearsBuyable = createBuyable(() => ({
-        resource: bears,
+        resource: noPersist(bears),
         cost() {
             return Decimal.pow(2, Decimal.add(this.amount.value, 5));
         },
@@ -970,7 +970,7 @@ const factory = createLayer(id, () => {
         visible: () => showIf(main.days[advancedDay - 1].opened.value)
     }));
     const bucketBuyable = createBuyable(() => ({
-        resource: bucketAndShovels,
+        resource: noPersist(bucketAndShovels),
         cost() {
             return Decimal.pow(2, Decimal.add(this.amount.value, 5));
         },
@@ -982,7 +982,7 @@ const factory = createLayer(id, () => {
         visible: () => showIf(main.days[advancedDay - 1].opened.value)
     }));
     const consolesBuyable = createBuyable(() => ({
-        resource: consoles,
+        resource: noPersist(consoles),
         cost() {
             return Decimal.pow(2, Decimal.add(this.amount.value, 5));
         },
