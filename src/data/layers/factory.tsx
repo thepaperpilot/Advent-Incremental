@@ -208,7 +208,7 @@ const factory = createLayer(id, () => {
                 ? 1
                 : Decimal.sub(2, Decimal.div(energyConsumption.value, computedEnergy.value)),
             description: "Brighter work rooms",
-            enabled: () => upgrades[2][1].bought.value
+            enabled: () => upgrades[2][0].bought.value
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 1.5,
@@ -217,6 +217,8 @@ const factory = createLayer(id, () => {
         }))
     ]);
     const computedTickRate = computed(() => tickRate.apply(1));
+    const computedActualTickRate = computed(() => Decimal.min(computedTickRate.value, 5));
+    const computedToyMultiplier = computed(() => Decimal.div(computedTickRate.value, 5).max(1));
     const factorySize = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: expandFactory.amount,
@@ -578,7 +580,7 @@ const factory = createLayer(id, () => {
         } as FactoryComponentDeclaration,
         blocks: {
             imageSrc: _blockMaker,
-            key: "ctrl+shift+1",
+            key: "ctrl+1",
             name: "Wooden Block Maker",
             type: "processor",
             description: "Turns 1 plank into 1 wooden block per tick.",
@@ -598,7 +600,7 @@ const factory = createLayer(id, () => {
         } as FactoryComponentDeclaration,
         clothes: {
             imageSrc: _clothesMaker,
-            key: "ctrl+shift+2",
+            key: "ctrl+2",
             name: "Clothes Maker",
             type: "processor",
             description: "Turns 2 threads, 3 cloth, and 1 dye into 1 clothes per tick.",
@@ -624,7 +626,7 @@ const factory = createLayer(id, () => {
         } as FactoryComponentDeclaration,
         trucks: {
             imageSrc: _truckMaker,
-            key: "ctrl+shift+3",
+            key: "ctrl+3",
             name: "Trucks Maker",
             type: "processor",
             description: "Turns 2 metal and 4 wheels into 1 truck per tick.",
@@ -647,7 +649,7 @@ const factory = createLayer(id, () => {
         } as FactoryComponentDeclaration,
         bear: {
             imageSrc: _bearMaker,
-            key: "ctrl+shift+4",
+            key: "ctrl+4",
             name: "Teddy Bear Maker",
             type: "processor",
             description:
@@ -678,7 +680,7 @@ const factory = createLayer(id, () => {
         } as FactoryComponentDeclaration,
         bucketShovel: {
             imageSrc: _bucketShovelMaker,
-            key: "ctrl+shift+5",
+            key: "ctrl+5",
             name: "Shovel and Pail Maker",
             type: "processor",
             description: "Turns 1 bucket and 1 shovel into 1 shovel and pail every second.",
@@ -702,7 +704,7 @@ const factory = createLayer(id, () => {
         } as FactoryComponentDeclaration,
         console: {
             imageSrc: _consoleMaker,
-            key: "ctrl+shift+6",
+            key: "ctrl+6",
             name: "Game Console Maker",
             type: "processor",
             description:
@@ -1281,7 +1283,7 @@ const factory = createLayer(id, () => {
     globalBus.on("update", diff => {
         if (!loaded || paused.value) return;
 
-        const factoryTicks = Decimal.times(computedTickRate.value, diff).toNumber();
+        const factoryTicks = Decimal.times(computedActualTickRate.value, diff).toNumber();
 
         //debugger
         // make them produce
@@ -1362,7 +1364,10 @@ const factory = createLayer(id, () => {
                                 if (val.resource != null) {
                                     val.resource.value = Decimal.add(
                                         val.resource.value,
-                                        unref(val.amount)
+                                        Decimal.times(
+                                            computedToyMultiplier.value,
+                                            unref(val.amount)
+                                        )
                                     );
                                 } else {
                                     data.outputStock[key as ResourceNames] =
@@ -1444,9 +1449,17 @@ const factory = createLayer(id, () => {
                 // however it needs to be aligned if Y is being moved
                 // vice-versa
                 sprite.x =
-                    (x + xInc * 0.3 + (xInc == 0 ? Math.random() * 0.4 - 0.2 : 0)) * blockSize;
+                    (x + xInc * 0.3 + (xInc == 0 ? Math.random() * 0.4 - 0.2 : 0) + 0.5) *
+                    blockSize;
                 sprite.y =
-                    (y + yInc * 0.3 + (yInc == 0 ? Math.random() * 0.4 - 0.2 : 0)) * blockSize;
+                    (y + yInc * 0.3 + (yInc == 0 ? Math.random() * 0.4 - 0.2 : 0) + 0.5) *
+                    blockSize;
+
+                if (computedFactorySize.value % 2 !== 0) {
+                    sprite.x -= 0.5 * blockSize;
+                    sprite.y -= 0.5 * blockSize;
+                }
+
                 sprite.anchor.set(0.5);
                 sprite.width = blockSize / 2.5;
                 sprite.height = blockSize / 2.5;
@@ -1532,7 +1545,7 @@ const factory = createLayer(id, () => {
             lastProdTimes: !isConveyor ? (reactive([]) as number[]) : undefined,
             lastFactoryProd: !isConveyor
                 ? Date.now() -
-                  1000 * Decimal.div(data.ticksDone ?? 0, computedTickRate.value).toNumber()
+                  1000 * Decimal.div(data.ticksDone ?? 0, computedActualTickRate.value).toNumber()
                 : undefined,
             average: !isConveyor
                 ? computed(() => {
@@ -1545,7 +1558,7 @@ const factory = createLayer(id, () => {
 
                       return Decimal.mul(times.length, factoryBaseData.tick)
                           .div(times.reduce((x, n) => x + n, 0))
-                          .div(computedTickRate.value)
+                          .div(computedActualTickRate.value)
                           .toNumber();
                   })
                 : undefined,
@@ -2050,7 +2063,20 @@ const factory = createLayer(id, () => {
             onUpdate:modelValue={(value: boolean) => (showModifiersModal.value = value)}
             v-slots={{
                 header: () => <h2>{name} Modifiers</h2>,
-                body: generalTab
+                body: () => (
+                    <>
+                        {render(generalTab)}
+                        {Decimal.gte(computedTickRate.value, 5) ? (
+                            <>
+                                <br />
+                                Note: the actual tick rate is capped at 5 TPS, but you'll gain extra
+                                toys based on excessive tick rate as a compensation.
+                            </>
+                        ) : (
+                            ""
+                        )}
+                    </>
+                )
             }}
         />
     ));
@@ -2059,7 +2085,7 @@ const factory = createLayer(id, () => {
         direction: Direction.Right,
         width: 600,
         height: 25,
-        fillStyle: `backgroundColor: ${color}`,
+        fillStyle: `animation: 15s factory-bar linear infinite`,
         progress: () =>
             main.day.value === day
                 ? Decimal.div(toys.clothes.value, toyGoal)
