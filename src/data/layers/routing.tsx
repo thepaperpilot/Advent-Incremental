@@ -2,38 +2,55 @@
  * @module
  * @hidden
  */
-import HotkeyVue from "components/Hotkey.vue";
 import Spacer from "components/layout/Spacer.vue";
 import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections } from "data/common";
 import { main } from "data/projEntry";
 import { createBar, GenericBar } from "features/bars/bar";
-import { createClickable } from "features/clickables/clickable";
+import { BoardNode, BoardNodeLink, createBoard, Shape } from "features/boards/board";
+import { createClickable, GenericClickable } from "features/clickables/clickable";
 import { jsx } from "features/feature";
-import { createHotkey, GenericHotkey } from "features/hotkey";
-import { createUpgrade } from "features/upgrades/upgrade";
+import MainDisplay from "features/resources/MainDisplay.vue";
+import { createResource } from "features/resources/resource";
 import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
-import {
-    createAdditiveModifier,
-    createMultiplicativeModifier,
-    createSequentialModifier
-} from "game/modifiers";
+import { createAdditiveModifier, createSequentialModifier } from "game/modifiers";
 import { persistent } from "game/persistence";
-import Decimal, { DecimalSource, format, formatTime, formatWhole } from "util/bignum";
+import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
-import { render, renderGrid } from "util/vue";
+import { render, renderRow } from "util/vue";
 import { computed, ref, unref, watchEffect } from "vue";
-import boxes from "./boxes";
-import cloth from "./cloth";
-import coal from "./coal";
-import dyes from "./dyes";
-import metal from "./metal";
-import oil from "./oil";
-import paper from "./paper";
-import plastic from "./plastic";
+import { resourceLimits } from "worker_threads";
 import "./styles/reindeer.css";
-import trees from "./trees";
+
+const alpha = [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "X",
+    "Y",
+    "Z"
+];
 
 const id = "routing";
 const day = 23;
@@ -41,424 +58,426 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Routing";
     const color = "navajowhite";
 
-    const feedGoal = 2.5e3;
+    const citiesGoal = 100;
 
-    const timeSinceFocus = persistent<number>(0);
+    const citiesCompleted = createResource<DecimalSource>(0, "cities solved");
+    const currentCity = persistent<number[][]>([]);
+    const currentRoute = persistent<number[]>([]);
+    const checkRouteProgress = persistent<number>(0);
 
-    const currMultiplier = persistent<DecimalSource>(1);
-    const currTargets = persistent<Record<string, boolean>>({});
-    const currCooldown = persistent<number>(0);
-    const crit = persistent<number>(0);
-
-    const maxMultiplier = createSequentialModifier(() => [
-        createMultiplicativeModifier(() => ({
-            multiplier: 2,
-            description: "Carry food in boxes",
-            enabled: upgrade4.bought
-        }))
-    ]);
-    const computedMaxMultiplier = computed(() => maxMultiplier.apply(2));
-    const targetsCount = createSequentialModifier(() => [
-        createAdditiveModifier(() => ({
-            addend: 1,
-            description: "Guide to Reindeer Handling",
-            enabled: upgrade3.bought
-        })),
-        createAdditiveModifier(() => ({
-            addend: crit,
-            description: "Metal clapper",
-            enabled: upgrade5.bought
-        }))
-    ]);
-    const computedTargetsCount = computed(() => targetsCount.apply(1));
-    const computedMaxCooldown = computed(() => 10);
-
-    function focus() {
-        let targetsSelected = 0;
-        currTargets.value = {};
-        timeSinceFocus.value = 0;
-        while (Decimal.gt(computedTargetsCount.value, targetsSelected)) {
-            const selectedReindeer =
-                Object.values(reindeer)[Math.floor(Math.random() * Object.values(reindeer).length)];
-            const roll = selectedReindeer?.name ?? "";
-            if (!currTargets.value[roll]) {
-                currTargets.value[roll] = true;
-                targetsSelected++;
-            }
+    const currentRouteDuration = computed(() => {
+        const route = currentRoute.value;
+        let duration = 0;
+        for (let i = 0; i < route.length - 1; i++) {
+            duration += currentCity.value[route[i]][route[i + 1]];
         }
+        return duration;
+    });
+
+    globalBus.on("onLoad", () => {
+        if (currentCity.value.length === 0) {
+            generateCity();
+        }
+    });
+
+    function stringifyRoute(route: number[]) {
+        route
+            .map(h => (city.types.house.title as (node: BoardNode) => string)(city.nodes.value[h]))
+            .join("->");
     }
 
-    const focusMeter = createBar(() => ({
-        direction: Direction.Right,
-        width: 476,
-        height: 50,
-        style: `border-radius: 0`,
-        borderStyle: `border-radius: 0`,
-        fillStyle: () => ({
-            background: currCooldown.value > 0 ? color : "#7f7f00",
-            animation: currCooldown.value > 0 ? "1s focused-eating-bar linear infinite" : "",
-            opacity: currCooldown.value > 0 ? currCooldown.value / 10 : 1,
-            transition: "none"
-        }),
-        progress: () =>
-            Decimal.sub(currMultiplier.value, 1)
-                .div(Decimal.sub(computedMaxMultiplier.value, 1))
-                .toNumber(),
-        display: jsx(() => (
-            <>
-                {format(currMultiplier.value)}x
-                {currCooldown.value > 0 ? (
-                    <>
-                        {" "}
-                        to {Object.keys(currTargets.value).join(", ")} for{" "}
-                        {formatTime(currCooldown.value)}
-                    </>
-                ) : (
-                    ""
-                )}
-            </>
-        ))
-    })) as GenericBar;
+    function generateCity() {
+        const numHouses = new Decimal(computedHouses.value).clampMin(3).toNumber();
+        const min = computedMinWeight.value;
+        const max = computedMaxWeight.value;
+        const diff = Decimal.sub(max, min);
+        const city: number[][] = [];
+        for (let i = 0; i < numHouses; i++) {
+            const house: number[] = [];
+            for (let j = 0; j < numHouses; j++) {
+                if (i === j) {
+                    house.push(0);
+                } else if (j < i) {
+                    house.push(city[j][i]);
+                } else {
+                    house.push(Decimal.times(diff, Math.random()).add(min).floor().toNumber());
+                }
+            }
+            city.push(house);
+        }
+        currentCity.value = city;
+        routesChecked.value = 0;
+        getNextRoute();
+    }
 
-    const focusButton = createClickable(() => ({
+    const routesChecked = ref(0);
+    function getNextRoute() {
+        if (routesChecked.value === 0) {
+            const numHouses = new Decimal(computedHouses.value).clampMin(3).toNumber();
+            currentRoute.value = new Array(numHouses).fill(0).map((_, i) => i);
+        } else {
+            const route = currentRoute.value.slice();
+            // Loop through each location as if they were digits, from right to left
+            // Try to increment a digit.
+            // If that makes it equal to the location to its left, then it has performed a full cycle:
+            // In this case, we mark that location as needing to be re-calculated and move to the next digit to the left
+            // If that digit was the starting location, then we've completed this city entirely
+            // If incrementing a digit doesn't make it equal to its left neighbor, but it _does_ appear elsewhere to its left, then try incrementing the digit again
+            // Once we find a digit that can be incremented successfully without completing a full cycle, save that new value and exit this loop
+            // If we marked a location as needing to be re-calculated, then set it to one above its left neighbor, skipping over any values present in other digits to its left, and repeat this process for every digit to the right of the marked one
+            let recalculateFrom = route.length;
+            outer: for (let i = route.length - 1; i >= 0; i--) {
+                let newHouse = route[i] + 1;
+                while (true) {
+                    if (newHouse >= route.length) {
+                        if (i === 0) {
+                            // Overflowing on starting location means we're done!
+                            citiesCompleted.value = Decimal.add(citiesCompleted.value, 1);
+                            generateCity();
+                            return;
+                        }
+                        newHouse = 0;
+                    }
+                    if (i > 0 && newHouse === route[i - 1]) {
+                        // This location is completed, so we'll increment the next location
+                        // (going right to left)
+                        recalculateFrom = i;
+                        route[i] = -1;
+                        break;
+                    }
+                    if (route.includes(newHouse)) {
+                        // Skip over locations that appear to the left in the route
+                        newHouse++;
+                    } else {
+                        // The route is fully valid
+                        route[i] = newHouse;
+                        break outer;
+                    }
+                }
+            }
+            if (recalculateFrom <= 0) {
+                console.error("thepaperpilot's logic failed :skull:");
+            } else {
+                for (let i = recalculateFrom; i < route.length; i++) {
+                    let j = route[i - 1] + 1;
+                    while (true) {
+                        if (j >= route.length) {
+                            j = 0;
+                        } else if (route.includes(j)) {
+                            j++;
+                        } else {
+                            break;
+                        }
+                    }
+                    route[i] = j;
+                }
+                currentRoute.value = route;
+            }
+        }
+        checkRouteProgress.value = 0;
+    }
+
+    const newCityProgress = persistent<DecimalSource>(0);
+    const newCityProgressBar = createBar(() => ({
+        direction: Direction.Right,
+        width: 100,
+        height: 10,
+        style: "margin-top: 8px",
+        borderStyle: "border-color: black",
+        baseStyle: "margin-top: -1px",
+        fillStyle: "margin-top: -1px; transition-duration: 0s; background: black",
+        progress: () => Decimal.div(newCityProgress.value, 10)
+    }));
+    const getNewCity = createClickable(() => ({
         display: {
-            title: "Focus",
             description: jsx(() => (
                 <>
-                    Motivate reindeer to eat, multiplying {formatWhole(computedTargetsCount.value)}{" "}
-                    random reindeer's eating rate by up to {format(computedMaxMultiplier.value)}x
-                    for {formatTime(computedMaxCooldown.value)}, equal to the focus bar's effect.
+                    Generate New City
+                    <br />
+                    {render(newCityProgressBar)}
                 </>
             ))
         },
         style: {
-            width: "480px",
-            minHeight: "80px",
-            zIndex: 4
+            minHeight: "40px",
+            "--layer-color": "var(--danger)"
         },
-        canClick: () => Decimal.eq(currCooldown.value, 0),
+        canClick: () => Decimal.gte(newCityProgress.value, 10),
         onClick() {
-            currCooldown.value = Decimal.fromValue(computedMaxCooldown.value).toNumber();
-            focus();
+            if (!unref(getNewCity.canClick)) {
+                return;
+            }
+            generateCity();
+            newCityProgress.value = 0;
         }
     }));
 
-    const cooldown = createSequentialModifier(() => [
-        createMultiplicativeModifier(() => ({
-            multiplier: 0.5,
-            description: "Pile of coal",
-            enabled: upgrade2.bought
-        }))
-    ]);
-    const computedCooldown = computed(() => cooldown.apply(10));
+    const boostProgress = persistent<DecimalSource>(0);
+    const boostProgressBar = createBar(() => ({
+        direction: Direction.Right,
+        width: 100,
+        height: 10,
+        style: "margin-top: 8px",
+        borderStyle: "border-color: black",
+        baseStyle: "margin-top: -1px",
+        fillStyle: "margin-top: -1px; transition-duration: 0s; background: black",
+        progress: () => Decimal.div(boostProgress.value, computedManualCooldown.value)
+    }));
+    const boost = createClickable(() => ({
+        display: {
+            description: jsx(() => (
+                <>
+                    Perform {formatWhole(computedManualBoost.value)} units of work
+                    <br />
+                    {render(boostProgressBar)}
+                </>
+            ))
+        },
+        style: {
+            minHeight: "40px"
+        },
+        canClick: () => Decimal.gte(boostProgress.value, computedManualCooldown.value),
+        onClick() {
+            if (!unref(boost.canClick)) {
+                return;
+            }
+            checkRouteProgress.value = Decimal.add(
+                checkRouteProgress.value,
+                computedManualBoost.value
+            ).toNumber();
+            boostProgress.value = 0;
+        }
+    }));
 
-    function createReindeer(options: {
-        name: string;
-        key: string;
-        boostDescription: string;
-        boostAmount: DecimalSource;
-    }) {
-        const timesFed = persistent<DecimalSource>(0);
-        const progress = persistent<DecimalSource>(0);
+    const redundantProgress = persistent<DecimalSource>(0);
+    const redundantProgressBar = createBar(() => ({
+        direction: Direction.Right,
+        width: 100,
+        height: 10,
+        style: "margin-top: 8px",
+        borderStyle: "border-color: black",
+        baseStyle: "margin-top: -1px",
+        fillStyle: "margin-top: -1px; transition-duration: 0s; background: black",
+        progress: () => Decimal.div(redundantProgress.value, computedRedundantCooldown.value)
+    }));
+    const removeRedundantRoute = createClickable(() => ({
+        display: {
+            description: jsx(() => (
+                <>
+                    Remove a redundant route from the list to check
+                    <br />
+                    {render(redundantProgressBar)}
+                </>
+            ))
+        },
+        style: {
+            minHeight: "40px"
+        },
+        canClick: () => Decimal.gte(redundantProgress.value, computedRedundantCooldown.value),
+        onClick() {
+            if (!unref(removeRedundantRoute.canClick)) {
+                return;
+            }
+            // TODO remove redundant route
+            redundantProgress.value = 0;
+        }
+    }));
 
-        const hotkey = createHotkey(() => ({
-            key: "Numpad " + options.key,
-            description: "Feed " + options.name,
-            enabled: main.days[day - 1].opened,
-            onPress: clickable.onClick
-        })) as GenericHotkey;
+    const city = createBoard(() => ({
+        startNodes: () => [],
+        types: {
+            house: {
+                shape: Shape.Circle,
+                fillColor: "var(--highlighted)",
+                outlineColor(node) {
+                    return currentRoute.value.includes(node.state as number)
+                        ? "var(--accent1)"
+                        : "var(--outline)";
+                },
+                size: 20,
+                title(node) {
+                    let letter = node.state as number;
+                    let name = "";
+                    while (true) {
+                        if (letter < 26) {
+                            name += alpha[letter];
+                            break;
+                        }
+                        let thisLetter = letter;
+                        let iterations = 0;
+                        while (Math.floor(thisLetter / 26) - 1 >= 0) {
+                            thisLetter = Math.floor(thisLetter / 26) - 1;
+                            iterations++;
+                        }
+                        name += alpha[thisLetter];
 
-        const clickable = createClickable(() => {
-            const progressBar = createBar(() => ({
-                direction: Direction.Right,
-                width: 140,
-                height: 10,
-                style: "margin-top: 8px",
-                borderStyle: "border-color: black",
-                baseStyle: "margin-top: -1px",
-                fillStyle: () => ({
-                    marginTop: "-1px",
-                    transitionDuration: "0s",
-                    background: "black",
-                    animation:
-                        currTargets.value[options.name] && currCooldown.value > 0
-                            ? ".5s focused-eating-bar linear infinite"
-                            : ""
-                }),
-                progress: () => Decimal.div(progress.value, computedCooldown.value)
-            }));
-
-            const modifier = createMultiplicativeModifier(() => ({
-                multiplier: effect,
-                description: options.name,
-                enabled: () => Decimal.gt(timesFed.value, 0)
-            }));
-
-            const effect = computed(() =>
-                Decimal.times(options.boostAmount, timesFed.value)
-                    .add(1)
-                    .pow(upgrade9.bought.value ? 1.1 : 1)
-            );
-
+                        let amountToDecrement = thisLetter + 1;
+                        for (let i = 0; i < iterations; i++) {
+                            amountToDecrement *= 26;
+                        }
+                        letter -= amountToDecrement;
+                    }
+                    return name;
+                }
+            }
+        },
+        width: "600px",
+        height: "600px",
+        style: {
+            background: "var(--raised-background)",
+            borderRadius: "var(--border-radius) var(--border-radius) 0 0",
+            boxShadow: "0 2px 10px rgb(0 0 0 / 50%)"
+        },
+        state: computed(() => {
+            const nodes: BoardNode[] = [];
+            const city = currentCity.value;
+            const rows = Math.ceil(Math.sqrt(city.length));
+            const cols = Math.ceil(city.length / rows);
+            for (let i = 0; i < city.length; i++) {
+                const row = Math.floor(i / rows);
+                const col = Math.floor(i % rows);
+                nodes.push({
+                    id: i,
+                    position: {
+                        x: 80 * (-(cols - 1) / 2 + col),
+                        y: 80 * (-(rows - 1) / 2 + row)
+                    },
+                    type: "house",
+                    state: i
+                });
+            }
             return {
-                ...options,
-                hotkey,
-                timesFed,
-                progress,
-                effect,
-                modifier,
-                display: {
-                    title: jsx(() => (
-                        <h3>
-                            Feed {options.name} <HotkeyVue hotkey={hotkey} />
-                        </h3>
-                    )),
-                    description: jsx(() => (
-                        <>
-                            <br />
-                            Each time you feed {options.name} will increase your{" "}
-                            {options.boostDescription} by +{format(options.boostAmount)}x
-                            <Spacer />
-                            Currently {format(effect.value)}x
-                            <br />
-                            {render(progressBar)}
-                        </>
-                    ))
-                },
-                style: {
-                    width: "160px",
-                    height: "160px"
-                },
-                canClick() {
-                    return Decimal.gte(progress.value, computedCooldown.value);
-                },
-                onClick() {
-                    if (!unref(clickable.canClick)) {
-                        return;
-                    }
-                    let amount = Decimal.div(progress.value, computedCooldown.value);
-                    if (upgrade1.bought.value) {
-                        amount = Decimal.times(amount, 2);
-                    }
-                    timesFed.value = Decimal.add(timesFed.value, amount);
-                    progress.value = 0;
-                },
-                update(diff: number) {
-                    if (Decimal.gte(progress.value, computedCooldown.value)) {
-                        progress.value = computedCooldown.value;
-                    } else {
-                        let amount: DecimalSource = diff;
-                        const isFocused = currTargets.value[options.name] && currCooldown.value > 0;
-                        if (isFocused) {
-                            amount = Decimal.times(amount, currMultiplier.value);
+                nodes,
+                selectedNode: null,
+                selectedAction: null
+            };
+        }),
+        links() {
+            const links: BoardNodeLink[] = [];
+            const citySize = currentCity.value.length;
+            for (let i = 0; i < citySize; i++) {
+                for (let j = 0; j < citySize; j++) {
+                    if (i !== j) {
+                        // Bloody O(n^2) performance Batman!
+                        let isActive = false;
+                        const endPoints = [
+                            currentRoute.value[0],
+                            currentRoute.value[currentRoute.value.length - 1]
+                        ];
+                        if (
+                            (!endPoints.includes(i) || !endPoints.includes(j)) &&
+                            currentRoute.value.includes(i) &&
+                            currentRoute.value.includes(j)
+                        ) {
+                            isActive = true;
                         }
-                        progress.value = Decimal.add(progress.value, amount);
-                        if (clickable.isHolding.value || (upgrade8.bought.value && isFocused)) {
-                            clickable.onClick();
-                        }
+                        links.push({
+                            startNode: city.nodes.value[i],
+                            endNode: city.nodes.value[j],
+                            stroke: isActive ? "red" : "white",
+                            "stroke-width": isActive ? 4 : 2,
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            weight: i < j ? null : currentCity.value[i][j]
+                        });
                     }
                 }
-            };
-        });
-        return clickable;
-    }
-    const dasher = createReindeer({
-        name: "Dasher",
-        key: "7",
-        boostDescription: "log gain",
-        boostAmount: 1
-    });
-    const dancer = createReindeer({
-        name: "Dancer",
-        key: "8",
-        boostDescription: "coal gain",
-        boostAmount: 0.1
-    });
-    const prancer = createReindeer({
-        name: "Prancer",
-        key: "9",
-        boostDescription: "paper gain",
-        boostAmount: 0.1
-    });
-    const vixen = createReindeer({
-        name: "Vixen",
-        key: "4",
-        boostDescription: "boxes gain",
-        boostAmount: 0.1
-    });
-    const comet = createReindeer({
-        name: "Comet",
-        key: "5",
-        boostDescription: "metal gain",
-        boostAmount: 0.1
-    });
-    const cupid = createReindeer({
-        name: "Cupid",
-        key: "6",
-        boostDescription: "cloth actions",
-        boostAmount: 0.1
-    });
-    const donner = createReindeer({
-        name: "Donner",
-        key: "1",
-        boostDescription: "oil gain",
-        boostAmount: 0.01
-    });
-    const blitzen = createReindeer({
-        name: "Blitzen",
-        key: "2",
-        boostDescription: "plastic gain",
-        boostAmount: 0.1
-    });
-    const rudolph = createReindeer({
-        name: "Rudolph",
-        key: "3",
-        boostDescription: "dye gain",
-        boostAmount: 0.01
-    });
-    // order is designed so hotkeys appear 1-9, even though they're displayed in numpad order in the layer itself
-    const reindeer = { donner, blitzen, rudolph, vixen, comet, cupid, dasher, dancer, prancer };
+            }
+            return links;
+        }
+    }));
 
-    const sumTimesFed = computed(() =>
-        Object.values(reindeer)
-            .map(r => r.timesFed.value)
-            .reduce(Decimal.add, Decimal.dZero)
-    );
+    const checkRouteProgressBar = createBar(() => ({
+        direction: Direction.Right,
+        width: 597,
+        height: 24,
+        style: {
+            borderRadius: "0 0 var(--border-radius) var(--border-radius)",
+            background: "var(--raised-background)",
+            marginTop: "-24px"
+        },
+        borderStyle: {
+            borderRadius: "0 0 var(--border-radius) var(--border-radius)",
+            borderColor: "var(--outline)",
+            marginTop: "unset"
+        },
+        fillStyle: {
+            background: "black",
+            marginTop: "unset"
+        },
+        progress() {
+            return Decimal.div(checkRouteProgress.value, currentRouteDuration.value);
+        },
+        display: jsx(() => (
+            <>
+                {Math.floor(checkRouteProgress.value)}/{currentRouteDuration.value}
+            </>
+        ))
+    }));
 
-    const upgrade1 = createUpgrade(() => ({
-        resource: trees.logs,
-        cost: 0,
-        style: {
-            width: "160px"
-        },
-        display: {
-            title: "Sawdust?",
-            description:
-                "Adding some sawdust to the feed allows you to make more of it. Each feed action counts twice"
-        }
-    }));
-    const upgrade2 = createUpgrade(() => ({
-        resource: coal.coal,
-        cost: 0,
-        style: {
-            width: "160px"
-        },
-        display: {
-            title: "Pile of coal",
-            description:
-                "Building a threatening pile of coal encourages the reindeer to behave. Each reindeer eats twice as fast"
-        }
-    }));
-    const upgrade3 = createUpgrade(() => ({
-        resource: paper.paper,
-        cost: 0,
-        style: {
-            width: "160px"
-        },
-        display: {
-            title: "Guide to Reindeer Handling",
-            description:
-                "Written reindeer handling instructions allow you to help more focus at once. Increase focus targets by one"
-        }
-    }));
-    const upgrade4 = createUpgrade(() => ({
-        resource: boxes.boxes,
-        cost: 0,
-        style: {
-            width: "160px"
-        },
-        display: {
-            title: "Carry food in boxes",
-            description:
-                "Carrying reindeer food in boxes allows you to distribute it faster. Double the maximum focus multiplier"
-        }
-    }));
-    const upgrade5 = createUpgrade(() => ({
-        resource: metal.metal,
-        cost: 0,
-        style: {
-            width: "160px"
-        },
-        display: {
-            title: "Metal clapper",
-            description:
-                'Striking two rods of metal can help get more reindeer\'s attention when done right. "Critical" focuses now affect up to two additional reindeer'
-        }
-    }));
-    const upgrade6 = createUpgrade(() => ({
-        resource: cloth.cloth,
-        cost: 0,
-        style: {
-            width: "160px"
-        },
-        display: {
-            title: "Focus bar padding",
-            description:
-                "Adding padding to the focus bar lets you slow it down when it's closer to the max value"
-        }
-    }));
-    const upgrade7 = createUpgrade(() => ({
-        resource: oil.oil,
-        cost: 0,
-        style: {
-            width: "160px"
-        },
-        display: {
-            title: "Oil can do that?",
-            description:
-                "Using a lot of oil somehow let's reindeers focus themselves with a random value when left un-focused for 10s"
-        }
-    }));
-    const upgrade8 = createUpgrade(() => ({
-        resource: plastic.plastic,
-        cost: 0,
-        style: {
-            width: "160px"
-        },
-        display: {
-            title: "Autoamted feeder",
-            description: "An automated feeder let's focused reindeer eat automatically"
-        }
-    }));
-    const upgrade9 = createUpgrade(() => ({
-        resource: dyes.dyes.white.amount,
-        cost: 0,
-        style: {
-            width: "160px"
-        },
-        display: {
-            title: "Colorful food",
-            description:
-                "Adding some non-toxic dyes to the food makes them more powerful. Raise each reindeer's effect to the ^1.1"
-        }
-    }));
-    const upgrades = {
-        upgrade1,
-        upgrade2,
-        upgrade3,
-        upgrade4,
-        upgrade5,
-        upgrade6,
-        upgrade7,
-        upgrade8,
-        upgrade9
-    };
+    const houses = createSequentialModifier(() => [
+        createAdditiveModifier(() => ({
+            addend: citiesCompleted,
+            description: "Cities Completed"
+        }))
+    ]);
+    const computedHouses = computed(() => houses.apply(3));
+    const maxWeight = createSequentialModifier(() => [
+        createAdditiveModifier(() => ({
+            addend: () => Decimal.pow(citiesCompleted.value, 1.1),
+            description: "Cities Completed"
+        }))
+    ]);
+    const computedMaxWeight = computed(() => maxWeight.apply(10));
+    const minWeight = createSequentialModifier(() => [
+        createAdditiveModifier(() => ({
+            addend: citiesCompleted,
+            description: "Cities Completed"
+        }))
+    ]);
+    const computedMinWeight = computed(() => minWeight.apply(2));
+    const manualBoost = createSequentialModifier(() => []);
+    const computedManualBoost = computed(() => manualBoost.apply(1));
+    const manualCooldown = createSequentialModifier(() => []);
+    const computedManualCooldown = computed(() => manualCooldown.apply(1));
+    const redundantCooldown = createSequentialModifier(() => []);
+    const computedRedundantCooldown = computed(() => redundantCooldown.apply(10));
+    const autoProcessing = createSequentialModifier(() => []);
+    const computedAutoProcessing = computed(() => autoProcessing.apply(1));
 
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
         {
-            title: "Max Focus Multiplier",
-            modifier: maxMultiplier,
+            title: "Houses/city",
+            modifier: houses,
+            base: 3
+        },
+        {
+            title: "Minimum Weight",
+            modifier: minWeight,
             base: 2
         },
         {
-            title: "Focus Targets",
-            modifier: targetsCount,
+            title: "Manual Processing Amount",
+            modifier: manualBoost,
             base: 1
         },
         {
-            title: "Eating duration",
-            modifier: cooldown,
-            base: 10
+            title: "Manual Processing Cooldown",
+            modifier: manualCooldown,
+            base: 1,
+            unit: "s"
+        },
+        {
+            title: "Remove Redundant Route Cooldown",
+            modifier: redundantCooldown,
+            base: 10,
+            unit: "s"
+        },
+        {
+            title: "Auto Processing Speed",
+            modifier: autoProcessing,
+            base: 1,
+            unit: "/s"
         }
     ]);
     const showModifiersModal = ref(false);
@@ -478,32 +497,39 @@ const layer = createLayer(id, function (this: BaseLayer) {
             return;
         }
 
-        Object.values(reindeer).forEach(reindeer => reindeer.update(diff));
-
-        currCooldown.value = Math.max(currCooldown.value - diff, 0);
-
-        let auto = false;
-        if (upgrade7.bought.value) {
-            timeSinceFocus.value += diff;
-            if (timeSinceFocus.value > 10) {
-                auto = true;
+        if (Decimal.gte(newCityProgress.value, 10)) {
+            newCityProgress.value = 10;
+        } else {
+            newCityProgress.value = Decimal.add(newCityProgress.value, diff);
+            if (getNewCity.isHolding.value) {
+                getNewCity.onClick();
             }
         }
 
-        if (Decimal.eq(currCooldown.value, 0)) {
-            let speed = 1000;
-            if (auto) {
-                speed = Math.random() * 1000;
+        if (Decimal.gte(boostProgress.value, computedManualCooldown.value)) {
+            boostProgress.value = computedManualCooldown.value;
+        } else {
+            boostProgress.value = Decimal.add(boostProgress.value, diff);
+            if (boost.isHolding.value) {
+                boost.onClick();
             }
-            let stoppedAt = 1 - Math.abs(Math.sin((Date.now() / speed) * 2));
-            if (upgrade6.bought.value) {
-                stoppedAt = 1 - (1 - stoppedAt) ** 2;
+        }
+
+        if (Decimal.gte(redundantProgress.value, computedRedundantCooldown.value)) {
+            redundantProgress.value = computedRedundantCooldown.value;
+        } else {
+            redundantProgress.value = Decimal.add(redundantProgress.value, diff);
+            if (removeRedundantRoute.isHolding.value) {
+                removeRedundantRoute.onClick();
             }
-            crit.value = stoppedAt > 0.975 ? 2 : stoppedAt > 0.9 ? 1 : 0;
-            currMultiplier.value = Decimal.pow(computedMaxMultiplier.value, stoppedAt);
-            if (auto) {
-                focus();
-            }
+        }
+
+        checkRouteProgress.value = Decimal.times(diff, computedAutoProcessing.value)
+            .add(checkRouteProgress.value)
+            .toNumber();
+        if (checkRouteProgress.value > currentRouteDuration.value) {
+            routesChecked.value++;
+            getNextRoute();
         }
     });
 
@@ -512,11 +538,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         width: 600,
         height: 25,
         fillStyle: `backgroundColor: ${color}`,
-        progress: () => (main.day.value === day ? Decimal.div(sumTimesFed.value, feedGoal) : 1),
+        progress: () =>
+            main.day.value === day ? Decimal.div(citiesCompleted.value, citiesGoal) : 1,
         display: jsx(() =>
             main.day.value === day ? (
                 <>
-                    {formatWhole(sumTimesFed.value)}/{formatWhole(feedGoal)}
+                    {formatWhole(citiesCompleted.value)}/{formatWhole(citiesGoal)}
                 </>
             ) : (
                 ""
@@ -525,7 +552,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     })) as GenericBar;
 
     watchEffect(() => {
-        if (main.day.value === day && Decimal.gte(sumTimesFed.value, feedGoal)) {
+        if (main.day.value === day && Decimal.gte(citiesCompleted.value, citiesGoal)) {
             main.completeDay();
         }
     });
@@ -534,20 +561,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
         name,
         day,
         color,
-        reindeer,
+        citiesCompleted,
+        currentCity,
+        currentRoute,
+        checkRouteProgress,
+        newCityProgress,
         generalTabCollapsed,
-        timeSinceFocus,
-        currMultiplier,
-        currTargets,
-        currCooldown,
-        upgrades,
-        crit,
+        city,
         minWidth: 700,
         display: jsx(() => (
             <>
                 <div>
                     {main.day.value === day
-                        ? `Feed reindeer ${formatWhole(feedGoal)} times to complete the day`
+                        ? `Solve ${formatWhole(citiesGoal)} cities to complete the day`
                         : `${name} Complete!`}{" "}
                     -{" "}
                     <button
@@ -561,26 +587,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {render(dayProgress)}
                 {render(modifiersModal)}
                 <Spacer />
-                <div>You have fed reindeer {formatWhole(sumTimesFed.value)} times</div>
-                <Spacer />
-                {renderGrid(
-                    [focusButton],
-                    [focusMeter],
-                    [dasher, dancer, prancer],
-                    [vixen, comet, cupid],
-                    [donner, blitzen, rudolph]
-                )}
-                <Spacer />
-                {renderGrid(
-                    [upgrade1, upgrade2, upgrade3],
-                    [upgrade4, upgrade5, upgrade6],
-                    [upgrade7, upgrade8, upgrade9]
-                )}
+                <MainDisplay resource={citiesCompleted} color={color} />
+                {renderRow(getNewCity, boost, removeRedundantRoute)}
+                {render(city)}
+                {render(checkRouteProgressBar)}
             </>
         )),
         minimizedDisplay: jsx(() => (
             <div>
-                {name} <span class="desc">{format(sumTimesFed.value)} times fed</span>
+                {name} <span class="desc">{format(citiesCompleted.value)} cities solved</span>
             </div>
         ))
     };

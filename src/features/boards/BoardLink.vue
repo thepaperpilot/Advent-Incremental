@@ -8,6 +8,13 @@
         :x2="endPosition.x"
         :y2="endPosition.y"
     />
+    <text
+        v-if="link.weight"
+        :x="(startPosition.x + endPosition.x) / 2"
+        :y="(startPosition.y + endPosition.y) / 2 + 4"
+        style="text-anchor: middle"
+        >{{ link.weight }}</text
+    >
 </template>
 
 <script setup lang="ts">
@@ -15,7 +22,7 @@ import type { BoardNodeLink } from "features/boards/board";
 import { computed, toRefs, unref } from "vue";
 
 const _props = defineProps<{
-    link: BoardNodeLink;
+    link: BoardNodeLink & { weight?: number };
 }>();
 const props = toRefs(_props);
 
