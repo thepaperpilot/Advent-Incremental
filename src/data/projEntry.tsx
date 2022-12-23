@@ -55,6 +55,8 @@ import toysSymbol from "./symbols/truck.png";
 import advFactorySymbol from "./symbols/teddyBear.png";
 import advManagementSymbol from "./symbols/workshopMansion.png";
 import wrappingPaperSymbol from "./symbols/wrappingPaper.png";
+import snowflakeSymbol from "./symbols/snowflake.svg";
+import presentSymbol from "./layers/factory-components/present.svg"
 
 export interface Day extends VueFeature {
     day: number;
@@ -78,6 +80,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
     const loreScene = ref<number>(-1);
     const loreTitle = ref<string>("");
     const loreBody = ref<CoercableComponent | undefined>();
+
+    const creditsOpen = ref<boolean>(false);
 
     const currentlyMastering = computed(() =>
         isMastery.value
@@ -511,8 +515,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             day: 25,
             shouldNotify: false,
             layer: null, // credits
-            symbol: "",
-            story: "It's Christmas. Thanks to your efforts, Santa has delivered all the presents to people all over the world. That is, all but one...",
+            symbol: snowflakeSymbol,
+            story: `It's Christmas. Thanks to your efforts, Santa has delivered all the presents to people all over the world. That is, all but one... <br><br> <div style='text-align: center'><img class='present-clickable' onclick ='layers.main.showLoreModal.value = false; layers.main.creditsOpen.value = true' src='${presentSymbol}' /><br>Open your present</div>`,
             completedStory: "",
             masteredStory: ""
         }))
@@ -565,6 +569,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         swappingMastery,
         currentlyMastering,
         masteredDays,
+        creditsOpen,
         display: jsx(() => (
             <>
                 {player.devSpeed === 0 ? <div>Game Paused</div> : null}

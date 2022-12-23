@@ -43,6 +43,31 @@
                 </div>
             </template>
         </Modal>
+        <Modal
+            :modelValue="main.creditsOpen.value"
+            @update:model-value="value => (main.creditsOpen.value = value)"
+        >
+            credits go here
+            <!--<template v-slot:header
+                ><h2>{{ main.loreTitle.value }}</h2></template
+            >
+            <template v-slot:body>
+                <component v-if="loreBody" :is="loreBody" />
+                <div v-if="main.loreScene.value !== -1">
+                    <Scene :day="main.loreScene.value" />
+                    <br />
+                    You can help continue the <i>advent</i>ure at:
+                    <a
+                        href="https://discord.gg/WzejVAx"
+                        class="info-modal-discord-link"
+                        target="_blank"
+                    >
+                        <span class="material-icons info-modal-discord">discord</span>
+                        The Paper Pilot Community
+                    </a>
+                </div>
+            </template>-->
+        </Modal>
     </div>
 </template>
 

@@ -29,3 +29,13 @@
     justify-content: space-around;
     margin-bottom: -5%;
 }
+
+.present-clickable {
+    cursor: pointer;
+    width: 30%;
+    text-align: center;
+    transition: all .2s ease-in-out; 
+}
+.present-clickable:hover {
+    transform: scale(1.2); 
+}
