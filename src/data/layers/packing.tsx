@@ -1,6 +1,6 @@
 import { isArray } from "@vue/shared";
 import SpacerVue from "components/layout/Spacer.vue";
-import { setUpDailyProgressTracker } from "data/common";
+import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
 import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
 import { createBuyable, GenericBuyable } from "features/buyable";
@@ -15,7 +15,7 @@ import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render, renderRow } from "util/vue";
-import { computed, ComputedRef, unref } from "vue";
+import { computed, ComputedRef, ref, unref } from "vue";
 import metal from "./metal";
 import oil from "./oil";
 import { createCollapsibleMilestones } from "data/common"
@@ -24,6 +24,7 @@ import { createUpgrade } from "features/upgrades/upgrade";
 import { ElfBuyable } from "./elves";
 import management from "./management";
 import paper from "./paper";
+import ModalVue from "components/Modal.vue";
 
 const id = "packing"
 const day = 24;
@@ -429,6 +430,30 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const { collapseMilestones, display: milestonesDisplay } =
         createCollapsibleMilestones(packingMilestones);
 
+    const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
+        {
+            title: "Elf Packing Speed",
+            modifier: elfPackingSpeed,
+            base: 1
+        },
+        {
+            title: "Loader Packing Speed",
+            modifier: loaderPackingSpeed,
+            base: 1000
+        }
+    ]);
+    const showModifiersModal = ref(false);
+    const modifiersModal = jsx(() => (
+        <ModalVue
+            modelValue={showModifiersModal.value}
+            onUpdate:modelValue={(value: boolean) => (showModifiersModal.value = value)}
+            v-slots={{
+                header: () => <h2>{name} Modifiers</h2>,
+                body: generalTab
+            }}
+        />
+    ));
+
     const { trackerDisplay } = setUpDailyProgressTracker({
         resource: packedPresents,
         ignoreTotal: true,
@@ -440,6 +465,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             duration: "15s"
         },
         textColor: "var(--bought)",
+        modal: {
+            show: showModifiersModal,
+            display: modifiersModal
+        }
     });
 
     globalBus.on("update", diff => {
@@ -479,6 +508,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         upgrades,
         packingMilestones,
         collapseMilestones,
+        generalTabCollapsed,
         display: jsx(() => (
             <>
                 {render(trackerDisplay)}
