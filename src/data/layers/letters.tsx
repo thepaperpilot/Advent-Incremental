@@ -76,10 +76,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.lt(processingProgress.value, computedProcessingCooldown.value)) {
                 return;
             }
-            const amount = Decimal.div(
-                processingProgress.value,
-                computedProcessingCooldown.value
-            ).floor();
+            const amount = Decimal.div(processingProgress.value, computedProcessingCooldown.value)
+                .floor()
+                .max(1);
             letters.value = Decimal.times(amount, computedLettersGain.value)
                 .add(letters.value)
                 .min(8e9);

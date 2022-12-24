@@ -49,11 +49,12 @@ import metalSymbol from "./symbols/metal.png";
 import oilSymbol from "./symbols/oil.png";
 import paperSymbol from "./symbols/paperStacks.png";
 import plasticSymbol from "./symbols/plastic.png";
+import presentsSymbol from "./symbols/presents.png";
 import ribbonsSymbol from "./symbols/ribbons.png";
 import workshopSymbol from "./symbols/sws.png";
+import advFactorySymbol from "./symbols/teddyBear.png";
 import treeSymbol from "./symbols/tree.png";
 import toysSymbol from "./symbols/truck.png";
-import advFactorySymbol from "./symbols/teddyBear.png";
 import advManagementSymbol from "./symbols/workshopMansion.png";
 import wrappingPaperSymbol from "./symbols/wrappingPaper.png";
 
@@ -465,10 +466,11 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 20,
             shouldNotify: false,
-            layer: null, // "presents"
-            symbol: wrappingPaperSymbol,
-            story: "",
-            completedStory: "",
+            layer: "factory",
+            symbol: presentsSymbol,
+            story: "Santa comes by again, and tells you that just toys may not be appealing enough. He tells you that you should probably wrap them in some wrapping paper so that it's more of a surprise. You try to argue that you've already done too much for him and deserve a day off, but Santa argues that it's for the benefit of everyone and that you'll get your vacation soon. Oh well, time to get back to the factory and expand it even more. Here we go again!",
+            completedStory:
+                "That was a lot of work, but it certainly felt worth actually using all those decorative supplies you'd previously made. One more sleepless night down, just a handful more to go. Good Job!",
             masteredStory: ""
         })),
         createDay(() => ({

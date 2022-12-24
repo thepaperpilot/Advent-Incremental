@@ -143,6 +143,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: "width: 600px; min-height: unset"
     }));
 
+    watchEffect(() => {
+        if (Decimal.lt(computedMaxFoundation.value, foundationProgress.value)) {
+            foundationProgress.value = Decimal.min(0, computedMaxFoundation.value);
+        }
+    });
+
     const buildFoundationHK = createHotkey(() => ({
         key: "w",
         description: "Build foundation",
