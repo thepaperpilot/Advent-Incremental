@@ -16,7 +16,7 @@ import { Computable, convertComputable, ProcessedComputable } from "util/compute
 import { createLazyProxy } from "util/proxies";
 import { save } from "util/save";
 import { render, renderRow, VueFeature } from "util/vue";
-import { Ref, watchEffect } from "vue";
+import { Ref, watch, watchEffect } from "vue";
 import { computed, ref, unref } from "vue";
 import "./advent.css";
 import Day from "./Day.vue";
@@ -80,6 +80,8 @@ export interface Day extends VueFeature {
 
 export const main = createLayer("main", function (this: BaseLayer) {
     const day = persistent<number>(1);
+    const hasWon = persistent<boolean>(false);
+
     const timeUntilNewDay = computed(
         () => (+new Date(new Date().getFullYear(), 11, day.value) - player.time) / 1000
     );
@@ -684,11 +686,12 @@ export const main = createLayer("main", function (this: BaseLayer) {
     }
 
     watchEffect(() => {
-        if (day.value === 25 && showLoreModal.value === false) {
+        if (day.value === 25 && showLoreModal.value === false && !hasWon.value) {
             loreScene.value = -1;
             loreTitle.value = "Merry Christmas!";
             loreBody.value = days[day.value - 1].story;
             showLoreModal.value = true;
+            hasWon.value = true;
         }
     });
 
@@ -713,6 +716,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         masteredDays,
         creditsOpen,
         credits,
+        hasWon,
         display: jsx(() => (
             <>
                 {player.devSpeed === 0 ? <div>Game Paused</div> : null}
@@ -743,6 +747,18 @@ export const main = createLayer("main", function (this: BaseLayer) {
                         )
                         .map((days: Day[]) => renderRow(...days))}
                 </div>
+                {hasWon.value ? (
+                    <>
+                        <Spacer />
+                        <button
+                            class="button"
+                            style="font-size: xx-large"
+                            onClick={() => (creditsOpen.value = true)}
+                        >
+                            Open Credits
+                        </button>
+                    </>
+                ) : null}
                 {
                     render(
                         particles
