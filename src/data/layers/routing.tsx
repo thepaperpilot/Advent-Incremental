@@ -594,17 +594,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const routes = currentRoutes.value.slice();
         let showPrevious = false;
         let showNext = 0;
-        if (routes.length > 18) {
+        if (routes.length > 6) {
             routes.splice(0, routeIndex.value);
             showPrevious = true;
-            if (routes.length > 17) {
-                showNext = routes.length - 16;
-                routes.splice(16);
+            if (routes.length > 6) {
+                showNext = routes.length - 5;
+                routes.splice(5);
             }
         }
         return (
             <div class="routes-list">
-                {showPrevious ? (
+                {showPrevious && routeIndex.value > 0 ? (
                     <div class="checked">{formatWhole(routeIndex.value)} already checked</div>
                 ) : null}
                 {routes.map((route, i) => {
@@ -671,7 +671,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {render(city)}
                 {render(checkRouteProgressBar)}
                 <Spacer />
-                <h3>Routes to Check</h3>
+                <h3>Checking Routes...</h3>
                 {displayRoutes()}
                 <Spacer />
                 {milestonesDisplay()}

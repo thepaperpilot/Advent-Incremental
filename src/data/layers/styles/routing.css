@@ -1,9 +1,3 @@
-.routes-list {
-    width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-}
-
 .routes-list .checked {
     color: var(--bought);
 }
