@@ -89,6 +89,7 @@ import Toy from "./Toy.vue";
 import toys from "./toys";
 import trees from "./trees";
 import workshop from "./workshop";
+import ribbon from "./ribbon";
 
 const id = "factory";
 
@@ -262,9 +263,15 @@ const factory = createLayer(id, () => {
             enabled: () => computedToyMultiplier.value.gt(1)
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: Decimal.div(boxes.buyables3.presentBuyable.amount.value, 10).add(1).pow(2),
-            description: "Carry boxes in... presents?",
+            multiplier: () =>
+                Decimal.div(boxes.buyables3.presentBuyable.amount.value, 10).add(1).pow(2),
+            description: "Carry presents in boxes",
             enabled: carryPresents.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(ribbon.ribbon.value, 1),
+            description: "With a bow",
+            enabled: bowUpgrade.bought
         }))
     ]);
     const computedPresentMultipliers = computed(() => presentMultipliers.apply(1));
@@ -830,7 +837,10 @@ const factory = createLayer(id, () => {
                         computedToyMultiplier.value
                     )} toys of any type (from storage) to produce ${formatWhole(
                         computedPresentMultipliers.value
-                    )} presents every tick.`
+                    )} presents every tick.` +
+                    (catalysts.bought.value
+                        ? " You can feed it wheels, buttons, stuffing, and circuit boards to increase its output."
+                        : "")
             ),
             tick: 1,
             energyCost: 50,
@@ -850,7 +860,20 @@ const factory = createLayer(id, () => {
             },
             catalysts: computed(() => {
                 if (!catalysts.bought.value) return [] as ResourceNames[];
-                return ["block", "clothes", "trucks", "bear", "shovelBucket", "console"];
+                return {
+                    wheel: {
+                        amount: 1
+                    },
+                    buttons: {
+                        amount: 1
+                    },
+                    stuffing: {
+                        amount: 1
+                    },
+                    circuitBoard: {
+                        amount: 1
+                    }
+                };
             }),
             canProduce: computed(() => {
                 return Object.values(allToys).some(i =>
@@ -860,8 +883,17 @@ const factory = createLayer(id, () => {
             onProduce(times, stock) {
                 const value = Object.values(allToys);
 
-                // TODO: use catalysts to multiply present gain
-                // catalysts are essentally excess inputs
+                let sumCatalysts: DecimalSource = catalysts.bought.value
+                    ? (["wheel", "buttons", "stuffing", "circuitBoard"] as const)
+                          .map(c => stock?.[c] ?? 0)
+                          .reduce(Decimal.add, Decimal.dZero)
+                          .add(1)
+                    : 1;
+                if (stock) {
+                    (["wheel", "buttons", "stuffing", "circuitBoard"] as const).forEach(
+                        c => delete stock[c]
+                    );
+                }
 
                 while (times > 0) {
                     while (Decimal.lt(value[toysIndex].value, computedToyMultiplier.value)) {
@@ -871,7 +903,11 @@ const factory = createLayer(id, () => {
                     toysIndex = (toysIndex + 1) % value.length;
                     toyToPick.value = Decimal.sub(toyToPick.value, computedToyMultiplier.value);
                     times--;
-                    presents.value = Decimal.add(presents.value, computedPresentMultipliers.value);
+                    presents.value = Decimal.add(
+                        presents.value,
+                        Decimal.times(computedPresentMultipliers.value, sumCatalysts)
+                    );
+                    sumCatalysts = 1;
                 }
             },
             visible: main.days[presentsDay - 1].opened
@@ -1025,7 +1061,7 @@ const factory = createLayer(id, () => {
         inputs?: Stock;
         /** amount it produces */
         outputs?: Stock;
-        catalysts?: ProcessedComputable<ResourceNames[]>;
+        catalysts?: ProcessedComputable<Stock>;
 
         /** on produce, do something */
         onProduce?: (
@@ -1308,6 +1344,16 @@ const factory = createLayer(id, () => {
         },
         visibility: () => showIf(carryPresents.bought.value)
     }));
+    const bowUpgrade = createUpgrade(() => ({
+        resource: noPersist(presents),
+        cost: 1e7,
+        display: {
+            title: "With a bow",
+            description:
+                "These presents need ribbon to make the bows, right? Multiply present gain by the amount of ribbon you have"
+        },
+        visibility: () => showIf(catalysts.bought.value)
+    }));
     const factoryBuyables = { expandFactory, oilFuel, carryToys };
     const factoryBuyables2 = { carryBoxes };
     const upgrades = [
@@ -1427,7 +1473,7 @@ const factory = createLayer(id, () => {
             }))
         ],
         [betterFactory, betterLighting, excitmentUpgrade, carryPresents],
-        [catalysts]
+        [catalysts, bowUpgrade]
     ];
 
     // pixi
@@ -2182,7 +2228,8 @@ const factory = createLayer(id, () => {
                             (compHovered.value as FactoryComponentProcessor).inputStock,
                             {
                                 ...(FACTORY_COMPONENTS[compHovered.value.type].inputs ?? {}),
-                                ...(FACTORY_COMPONENTS[compHovered.value.type].catalysts ?? {})
+                                ...(unref(FACTORY_COMPONENTS[compHovered.value.type].catalysts) ??
+                                    {})
                             },
                             "Inputs:"
                         )}
