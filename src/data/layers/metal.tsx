@@ -760,7 +760,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                             Decoration effect:
                             <br />
                             The lesser of ore mining amount x speed and auto smelting speed is
-                            increased to match the greater
+                            increased to match the greater, and Twinkle buys max
                         </div>
                         <Spacer />
                     </>
@@ -854,7 +854,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             </div>
         )),
         mastery,
-        mastered
+        mastered,
+        masteryEffectActive
     };
 });
 

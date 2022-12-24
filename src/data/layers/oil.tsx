@@ -44,6 +44,7 @@ import { ElfBuyable } from "./elves";
 import toys from "./toys";
 import factory from "./factory";
 import reindeer from "./reindeer";
+import routing from "./routing";
 
 const id = "oil";
 const day = 9;
@@ -996,7 +997,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "350 toys",
             enabled: toys.milestones.milestone4.earned
         })),
-        reindeer.reindeer.donner.modifier
+        reindeer.reindeer.donner.modifier,
+        createMultiplicativeModifier(() => ({
+            multiplier: 4,
+            description: "600,000 Cities Solved",
+            enabled: routing.metaMilestones[5].earned
+        }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedOilSpeed = computed(() => oilSpeed.apply(0));
 

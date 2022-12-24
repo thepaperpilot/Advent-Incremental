@@ -439,7 +439,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 }
             }
             return links;
-        }
+        },
+        visibility: () => showIf(Decimal.lt(citiesCompleted.value, 50))
     }));
 
     const checkCityProgressBar = createBar(() => ({
@@ -554,7 +555,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const milestone5 = createMilestone(() => ({
         display: {
             requirement: "5 Cities Solved",
-            effectDisplay: "Remove 1 city from the map"
+            effectDisplay: "Remove 1 house from the map"
         },
         shouldEarn() {
             return Decimal.gte(citiesCompleted.value, 5);
@@ -714,7 +715,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 requirement: "5000 Cities Solved",
                 effectDisplay:
-                    "Elves can learn past level 5 and gain 0.1 base city solved per second for each level elves learnt"
+                    "Elves can learn past level 5 and gain 0.5 base city solved per second for each level elves learnt"
             },
             shouldEarn() {
                 return Decimal.gte(citiesCompleted.value, 5000);
@@ -749,7 +750,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 requirement: "300,000 Cities Solved",
                 effectDisplay:
-                    "Multiply the amount of factory input resources by the amount of their corresponding warehouses appeared in the factory, plus 1"
+                    "Multiply the amount of factory input resources by the amount of their corresponding warehouses appeared in the factory, plus 1. Also unlocks a button to fill your factory with warehouses."
             },
             shouldEarn() {
                 return Decimal.gte(citiesCompleted.value, 300000);
@@ -759,8 +760,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         5: createMilestone(() => ({
             display: {
                 requirement: "600,000 Cities Solved",
-                effectDisplay:
-                    "Unlocks a button to let you fill the remaining empty spaces in the factory with warehouses, useful for the previous milestone"
+                effectDisplay: "Quadruple oil gain"
             },
             shouldEarn() {
                 return Decimal.gte(citiesCompleted.value, 600000);
@@ -775,7 +775,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         Increases base city solving speed by{" "}
                         <Fraction>
                             <div>factory tick rate</div>
-                            <div>1000</div>
+                            <div>100</div>
                         </Fraction>
                     </>
                 ))
@@ -859,14 +859,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const computedAutoProcessing = computed(() => autoProcessing.apply(1));
     const metaSolvingSpeed = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
-            addend: () => Decimal.div(management.totalElfLevels.value, 10),
+            addend: () => Decimal.div(management.totalElfLevels.value, 2),
             description: "5000 Cities Solved",
             enabled: metaMilestones[1].earned
         })),
         createAdditiveModifier(() => ({
-            addend: () => Decimal.div(factory.computedTickRate.value, 1000),
+            addend: () => Decimal.div(factory.computedTickRate.value, 100),
             description: "1,000,000 Cities Solved",
-            enabled: metaMilestones[1].earned
+            enabled: metaMilestones[6].earned
         })),
         ...Object.values(metaBuyables).map(x =>
             createMultiplicativeModifier(() => ({
@@ -876,7 +876,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }))
         )
     ]) as WithRequired<Modifier, "description">;
-    const computedMetaSolvingSpeed = computed(() => metaSolvingSpeed.apply(20));
+    const computedMetaSolvingSpeed = computed(() => metaSolvingSpeed.apply(50));
 
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
         {
@@ -927,7 +927,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         {
             title: "Post-Inflation Solving Speed",
             modifier: metaSolvingSpeed,
-            base: 20,
+            base: 50,
             unit: "/s",
             visible: () => Decimal.gt(citiesCompleted.value, 50)
         }
@@ -1138,10 +1138,22 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     </>
                 ) : (
                     <>
-                        You're solving {formatWhole(computedMetaSolvingSpeed.value)} cities per
-                        second
-                        <Spacer />
-                        {renderRow(...Object.values(metaBuyables))}
+                        {Decimal.lt(citiesCompleted.value, citiesGoal) ? (
+                            <>
+                                You're solving {formatWhole(computedMetaSolvingSpeed.value)} cities
+                                per second
+                                <Spacer />
+                                {renderRow(...Object.values(metaBuyables))}
+                            </>
+                        ) : (
+                            <>
+                                You've solved all cities on Earth!
+                                <br />
+                                <span style="text-decoration: line-through">
+                                    (and proved the travelling salesman problem to be O(1))
+                                </span>
+                            </>
+                        )}
                         <Spacer />
                         {metaMilestonesDisplay()}
                     </>
