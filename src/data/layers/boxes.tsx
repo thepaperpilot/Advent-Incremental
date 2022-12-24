@@ -28,6 +28,7 @@ import { render, renderGrid } from "util/vue";
 import { computed, ComputedRef, ref, unref } from "vue";
 import dyes from "./dyes";
 import elves, { ElfBuyable } from "./elves";
+import factory from "./factory";
 import management from "./management";
 import paper from "./paper";
 import plastic from "./plastic";
@@ -587,7 +588,36 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.add(plasticBoxesBuyable.amount.value, plasticBoxesBuyable.freeLevels.value)
         )
     })) as BoxesBuyable;
+    const presentBuyable = createBuyable(() => ({
+        display: {
+            title: "Carry presents in boxes",
+            description: jsx(() => (
+                <>
+                    Use boxes to carry presents, boosting its gain
+                    <br />
+                    <br />
+                    <div>Amount: {formatWhole(presentBuyable.amount.value)} boxes</div>
+                </>
+            )),
+            effectDisplay: jsx(() => (
+                <>{format(Decimal.div(presentBuyable.amount.value, 10).add(1).pow(2))}x</>
+            )),
+            showAmount: false
+        },
+        resource: noPersist(boxes),
+        cost() {
+            return Decimal.pow(2, presentBuyable.amount.value).mul(1e87);
+        },
+        inverseCost(x: DecimalSource) {
+            const amt = Decimal.div(x, 1e87).log2();
+            return Decimal.isNaN(amt) ? Decimal.dZero : amt.floor().max(0);
+        },
+        freeLevels: computed(() => 0),
+        totalAmount: computed(() => presentBuyable.amount.value),
+        visibility: () => showIf(factory.upgrades[3][3].bought.value)
+    })) as BoxesBuyable;
     const buyables2 = { oreBoxesBuyable, metalBoxesBuyable, plasticBoxesBuyable };
+    const buyables3 = { presentBuyable };
     globalBus.on("update", diff => {
         if (Decimal.lt(main.day.value, day)) {
             return;
@@ -677,6 +707,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         row3Upgrades,
         buyables,
         buyables2,
+        buyables3,
         minWidth: 700,
         generalTabCollapsed,
         display: jsx(() => (
@@ -703,7 +734,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     Object.values(row3Upgrades)
                 )}
                 <Spacer />
-                {renderGrid(Object.values(buyables), Object.values(buyables2))}
+                {renderGrid(
+                    Object.values(buyables),
+                    Object.values(buyables2),
+                    Object.values(buyables3)
+                )}
             </>
         )),
         minimizedDisplay: jsx(() => (
