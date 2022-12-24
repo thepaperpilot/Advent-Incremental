@@ -123,9 +123,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
         visibility: () => showIf(Decimal.lt(foundationProgress.value, computedMaxFoundation.value)),
         canClick: () => {
-            if (Decimal.gt(computedMaxFoundation.value, foundationProgress.value)){
-                foundationProgress.value = Decimal.min(0, computedMaxFoundation.value)
-            }
             if (Decimal.lt(trees.logs.value, foundationConversion.nextAt.value)) {
                 return false;
             }
@@ -145,6 +142,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: "width: 600px; min-height: unset"
     }));
+
+    watchEffect(() => {
+        if (Decimal.lt(computedMaxFoundation.value, foundationProgress.value)) {
+            foundationProgress.value = Decimal.min(0, computedMaxFoundation.value);
+        }
+    });
 
     const buildFoundationHK = createHotkey(() => ({
         key: "w",
