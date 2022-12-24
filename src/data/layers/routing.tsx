@@ -21,7 +21,7 @@ import {
     createMultiplicativeModifier,
     createSequentialModifier
 } from "game/modifiers";
-import { persistent } from "game/persistence";
+import { DefaultValue, persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render, renderRow } from "util/vue";
@@ -65,7 +65,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const citiesGoal = 10;
 
-    const citiesCompleted = createResource<DecimalSource>(0, "countries solved");
+    const citiesCompleted = createResource<DecimalSource>(0, "cities solved");
     const currentCity = persistent<number[][]>([]);
     const routeIndex = persistent<number>(0);
     const checkRouteProgress = persistent<number>(0);
@@ -143,35 +143,37 @@ const layer = createLayer(id, function (this: BaseLayer) {
     function stringifyRoute(route: number[]) {
         return route
             .map(h => (city.types.house.title as (node: BoardNode) => string)(city.nodes.value[h]))
-            .join("->");
+            .join(" > ");
     }
 
     function generateCity() {
-        const numHouses = new Decimal(computedHouses.value).clampMin(3).toNumber();
-        const min = computedMinWeight.value;
-        const max = milestone6.earned.value ? min : computedMaxWeight.value;
-        const diff = Decimal.sub(max, min);
-        const city: number[][] = [];
-        for (let i = 0; i < numHouses; i++) {
-            const house: number[] = [];
-            for (let j = 0; j < numHouses; j++) {
-                if (i === j) {
-                    house.push(0);
-                } else if (j < i) {
-                    house.push(city[j][i]);
-                } else {
-                    house.push(Decimal.times(diff, Math.random()).add(min).floor().toNumber());
+        if (Decimal.lte(citiesCompleted.value, 50)) {
+            const numHouses = new Decimal(computedHouses.value).clampMin(3).toNumber();
+            const min = computedMinWeight.value;
+            const max = milestone6.earned.value ? min : computedMaxWeight.value;
+            const diff = Decimal.sub(max, min);
+            const city: number[][] = [];
+            for (let i = 0; i < numHouses; i++) {
+                const house: number[] = [];
+                for (let j = 0; j < numHouses; j++) {
+                    if (i === j) {
+                        house.push(0);
+                    } else if (j < i) {
+                        house.push(city[j][i]);
+                    } else {
+                        house.push(Decimal.times(diff, Math.random()).add(min).floor().toNumber());
+                    }
                 }
+                city.push(house);
             }
-            city.push(house);
+            currentCity.value = city;
+            routeIndex.value = 0;
+            redundanciesRemoved.value = Decimal.gte(citiesCompleted.value, 7)
+                ? Decimal.factorial(currentCity.value.length).div(2).toNumber()
+                : 0;
+            routesToSkip.value = [];
+            getNextRoute();
         }
-        currentCity.value = city;
-        routeIndex.value = 0;
-        redundanciesRemoved.value = Decimal.gte(citiesCompleted.value, 7)
-            ? Decimal.factorial(currentCity.value.length).div(2).toNumber()
-            : 0;
-        routesToSkip.value = [];
-        getNextRoute();
     }
 
     function getNextRoute() {
@@ -342,12 +344,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         width: "600px",
         height: "600px",
-        style: {
-            background: "var(--raised-background)",
-            borderRadius: "var(--border-radius) var(--border-radius) 0 0",
-            boxShadow: "0 2px 10px rgb(0 0 0 / 50%)"
-        },
         state: computed(() => {
+            if (Decimal.gte(citiesCompleted.value, 20))
+                return {
+                    nodes: [],
+                    selectedNode: null,
+                    selectedAction: null
+                };
             const nodes: BoardNode[] = [];
             const city = currentCity.value;
             const rows = Math.ceil(Math.sqrt(city.length));
@@ -373,6 +376,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             };
         }),
         links() {
+            if (Decimal.gte(citiesCompleted.value, 20)) return [];
             const links: BoardNodeLink[] = [];
             const route = currentRoute.value;
             if (route == null) {
@@ -432,6 +436,44 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
 
+    const checkCityProgressBar = createBar(() => ({
+        direction: Direction.Right,
+        width: 597,
+        height: 24,
+        style: {
+            borderRadius: "var(--border-radius) var(--border-radius) 0 0",
+            background: "var(--raised-background)",
+            marginBottom: "-24px"
+        },
+        borderStyle: {
+            borderRadius: "var(--border-radius) var(--border-radius) 0 0",
+            borderColor: "transparent",
+            marginBottom: "unset"
+        },
+        fillStyle: {
+            background: "black",
+            marginBottom: "unset"
+        },
+        progress() {
+            return Decimal.div(
+                routeIndex.value,
+                typeof currentRoutes.value == "number"
+                    ? Math.floor(currentRoutes.value)
+                    : currentRoutes.value.length
+            );
+        },
+        display: jsx(() => (
+            <>
+                {formatWhole(Math.floor(routeIndex.value))} /{" "}
+                {formatWhole(
+                    typeof currentRoutes.value == "number"
+                        ? Math.floor(currentRoutes.value)
+                        : currentRoutes.value.length
+                )}
+            </>
+        ))
+    }));
+
     const checkRouteProgressBar = createBar(() => ({
         direction: Direction.Right,
         width: 597,
@@ -443,7 +485,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         borderStyle: {
             borderRadius: "0 0 var(--border-radius) var(--border-radius)",
-            borderColor: "var(--outline)",
+            borderColor: "transparent",
             marginTop: "unset"
         },
         fillStyle: {
@@ -455,7 +497,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         display: jsx(() => (
             <>
-                {Math.floor(checkRouteProgress.value)}/{currentRouteDuration.value}
+                {formatWhole(Math.floor(checkRouteProgress.value))} /{" "}
+                {formatWhole(currentRouteDuration.value)}
             </>
         ))
     }));
@@ -505,7 +548,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const milestone5 = createMilestone(() => ({
         display: {
             requirement: "5 Countries Solved",
-            effectDisplay: "Remove 1 city"
+            effectDisplay: "Remove 1 city from the map"
         },
         shouldEarn() {
             return Decimal.gte(citiesCompleted.value, 5);
@@ -616,46 +659,61 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     ]);
     const computedAutoProcessing = computed(() => autoProcessing.apply(1));
+    const metaSolvingSpeed = createSequentialModifier(() => []);
+    const computedMetaSolvingSpeed = computed(() => metaSolvingSpeed.apply(20));
 
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
         {
             title: "Cities/country",
             modifier: houses,
-            base: 3
+            base: 3,
+            visible: () => Decimal.lte(citiesCompleted.value, 50)
         },
         {
             title: () => (milestone6.earned.value ? "Weight" : "Minimum Weight"),
             modifier: minWeight,
-            base: 2
+            base: 2,
+            visible: () => Decimal.lte(citiesCompleted.value, 50)
         },
         {
             title: "Maximum Weight",
             modifier: maxWeight,
             base: 10,
-            visible: () => !milestone6.earned.value
+            visible: () => !milestone6.earned.value && Decimal.lte(citiesCompleted.value, 50)
         },
         {
             title: "Manual Processing Amount",
             modifier: manualBoost,
-            base: 1
+            base: 1,
+            visible: () => Decimal.lte(citiesCompleted.value, 50)
         },
         {
             title: "Manual Processing Cooldown",
             modifier: manualCooldown,
             base: 1,
-            unit: "s"
+            unit: "s",
+            visible: () => Decimal.lte(citiesCompleted.value, 50)
         },
         {
             title: "Remove Redundant Route Cooldown",
             modifier: redundantCooldown,
             base: 10,
-            unit: "s"
+            unit: "s",
+            visible: () => Decimal.lte(citiesCompleted.value, 50)
         },
         {
             title: "Auto Processing Speed",
             modifier: autoProcessing,
             base: 1,
-            unit: "/s"
+            unit: "/s",
+            visible: () => Decimal.lte(citiesCompleted.value, 50)
+        },
+        {
+            title: "Post-Inflation Solving Speed",
+            modifier: metaSolvingSpeed,
+            base: 20,
+            unit: "/s",
+            visible: () => Decimal.gt(citiesCompleted.value, 50)
         }
     ]);
     const showModifiersModal = ref(false);
@@ -674,54 +732,60 @@ const layer = createLayer(id, function (this: BaseLayer) {
         if (Decimal.lt(main.day.value, day)) {
             return;
         }
+        if (Decimal.lte(citiesCompleted[DefaultValue], 50)) {
+            if (Decimal.gte(newCityProgress.value, 10)) {
+                newCityProgress.value = 10;
+            } else {
+                newCityProgress.value = Decimal.add(newCityProgress.value, diff);
+                if (getNewCity.isHolding.value) {
+                    getNewCity.onClick();
+                }
+            }
 
-        if (Decimal.gte(newCityProgress.value, 10)) {
-            newCityProgress.value = 10;
+            if (Decimal.gte(boostProgress.value, computedManualCooldown.value)) {
+                boostProgress.value = computedManualCooldown.value;
+            } else {
+                boostProgress.value = Decimal.add(boostProgress.value, diff);
+                if (boost.isHolding.value) {
+                    boost.onClick();
+                }
+            }
+
+            if (Decimal.gte(redundantProgress.value, computedRedundantCooldown.value)) {
+                redundantProgress.value = computedRedundantCooldown.value;
+            } else {
+                redundantProgress.value = Decimal.add(redundantProgress.value, diff);
+                if (removeRedundantRoute.isHolding.value) {
+                    removeRedundantRoute.onClick();
+                }
+            }
+
+            checkRouteProgress.value = Decimal.times(diff, computedAutoProcessing.value)
+                .add(checkRouteProgress.value)
+                .toNumber();
+            if (checkRouteProgress.value > currentRouteDuration.value) {
+                const overflow = checkRouteProgress.value - currentRouteDuration.value;
+                routeIndex.value++;
+                if (milestone6.earned.value && currentRoute.value != null) {
+                    const length =
+                        typeof currentRoute.value === "number"
+                            ? currentRoute.value
+                            : currentRoute.value.length;
+                    const extraRoutes = Decimal.div(
+                        overflow,
+                        Decimal.times(length, computedMinWeight.value)
+                    )
+                        .floor()
+                        .toNumber();
+                    routeIndex.value += extraRoutes;
+                }
+                getNextRoute();
+            }
         } else {
-            newCityProgress.value = Decimal.add(newCityProgress.value, diff);
-            if (getNewCity.isHolding.value) {
-                getNewCity.onClick();
-            }
-        }
-
-        if (Decimal.gte(boostProgress.value, computedManualCooldown.value)) {
-            boostProgress.value = computedManualCooldown.value;
-        } else {
-            boostProgress.value = Decimal.add(boostProgress.value, diff);
-            if (boost.isHolding.value) {
-                boost.onClick();
-            }
-        }
-
-        if (Decimal.gte(redundantProgress.value, computedRedundantCooldown.value)) {
-            redundantProgress.value = computedRedundantCooldown.value;
-        } else {
-            redundantProgress.value = Decimal.add(redundantProgress.value, diff);
-            if (removeRedundantRoute.isHolding.value) {
-                removeRedundantRoute.onClick();
-            }
-        }
-
-        checkRouteProgress.value = Decimal.times(diff, computedAutoProcessing.value)
-            .add(checkRouteProgress.value)
-            .toNumber();
-        if (checkRouteProgress.value > currentRouteDuration.value) {
-            const overflow = checkRouteProgress.value - currentRouteDuration.value;
-            routeIndex.value++;
-            if (milestone6.earned.value && currentRoute.value != null) {
-                const length =
-                    typeof currentRoute.value === "number"
-                        ? currentRoute.value
-                        : currentRoute.value.length;
-                const extraRoutes = Decimal.div(
-                    overflow,
-                    Decimal.times(length, computedMinWeight.value)
-                )
-                    .floor()
-                    .toNumber();
-                routeIndex.value += extraRoutes;
-            }
-            getNextRoute();
+            citiesCompleted.value = Decimal.add(
+                citiesCompleted.value,
+                computedMetaSolvingSpeed.value
+            );
         }
     });
 
@@ -757,16 +821,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             return "";
         }
         if (typeof currentRoutes.value === "number") {
-            return (
-                <div class="routes-list">
-                    {routeIndex.value > 0 ? (
-                        <div class="checked">{formatWhole(routeIndex.value)} already checked</div>
-                    ) : null}
-                    <div>
-                        {formatWhole(currentRoutes.value - routeIndex.value)} routes left to check
-                    </div>
-                </div>
-            );
+            return <div class="routes-list">&nbsp;</div>;
         }
         if (typeof currentRoutes.value === "number") {
             console.error("Something went horribly wrong");
@@ -774,22 +829,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
         const routes = currentRoutes.value.slice();
         let showPrevious = false;
-        let showNext = 0;
-        if (routes.length > 6) {
-            routes.splice(0, routeIndex.value);
+        if (routes.length > 25) {
+            routes.splice(0, Math.max(routeIndex.value - 12, 0));
             showPrevious = true;
-            if (routes.length > 6) {
-                showNext = routes.length - 5;
-                routes.splice(5);
+            if (routes.length > 25) {
+                routes.splice(25);
             }
         }
         return (
             <div class="routes-list">
-                {showPrevious && routeIndex.value > 0 ? (
-                    <div class="checked">{formatWhole(routeIndex.value)} already checked</div>
-                ) : null}
                 {routes.map((route, i) => {
-                    const index = i + (showPrevious ? routeIndex.value : 0);
+                    const index = i + (showPrevious ? Math.max(routeIndex.value - 12, 0) : 0);
                     return (
                         <div
                             class={{
@@ -799,13 +849,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
                                 skipped:
                                     routeIndex.value < index && routesToSkip.value.includes(index)
                             }}
+                            style={{
+                                "--opacity": 1 - Math.abs(index - routeIndex.value) / 13
+                            }}
                         >
                             {stringifyRoute(route)}
                         </div>
                     );
                 })}
-
-                {showNext > 0 ? <div>+ {formatWhole(showNext)} more</div> : null}
             </div>
         );
     }
@@ -849,19 +900,28 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {render(modifiersModal)}
                 <Spacer />
                 <MainDisplay resource={citiesCompleted} color={color} />
-                {renderRow(boost, removeRedundantRoute)}
-                {render(city)}
-                {render(checkRouteProgressBar)}
-                <Spacer />
-                <h3>Checking Routes...</h3>
-                {displayRoutes()}
-                <Spacer />
-                {milestonesDisplay()}
+                {Decimal.lte(citiesCompleted.value, 50) ? (
+                    <>
+                        {renderRow(boost, removeRedundantRoute)}
+                        {render(checkCityProgressBar)}
+                        {displayRoutes()}
+                        {render(city)}
+                        {render(checkRouteProgressBar)}
+                        <Spacer />
+                        {milestonesDisplay()}
+                    </>
+                ) : (
+                    <>
+                        You're solving {formatWhole(computedMetaSolvingSpeed.value)} cities per
+                        second
+                    </>
+                )}
             </>
         )),
         minimizedDisplay: jsx(() => (
             <div>
-                {name} <span class="desc">{format(citiesCompleted.value)} countries solved</span>
+                {name}{" "}
+                <span class="desc">{formatWhole(citiesCompleted.value)} countries solved</span>
             </div>
         ))
     };

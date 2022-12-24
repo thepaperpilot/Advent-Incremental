@@ -1,3 +1,15 @@
+.routes-list {
+    width: 600px;
+    height: 573px;
+    margin-bottom: -604px;
+    margin-top: -4px;
+    padding-top: 35px;
+    pointer-events: none;
+    border-radius: var(--border-radius);
+    background: var(--raised-background);
+    box-shadow: 0 2px 10px rgb(0 0 0 / 50%);
+}
+
 .routes-list .checked {
     color: var(--bought);
 }
@@ -7,7 +19,7 @@
 }
 
 .routes-list .redundant:not(.checked):not(.processing) {
-    opacity: 0.5;
+    color: var(--accent1);
 }
 
 .routes-list .skipped {
@@ -16,5 +28,12 @@
 }
 
 .routes-list > * {
+    position: relative;
+    --opacity: 1;
     flex: 1 1 33%;
+    opacity: var(--opacity);
+    transition: all 0s;
+}
+.routes-list + div {
+    position: relative;
 }
