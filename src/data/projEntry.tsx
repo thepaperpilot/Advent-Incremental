@@ -61,6 +61,7 @@ import toysSymbol from "./symbols/truck.png";
 import advManagementSymbol from "./symbols/workshopMansion.png";
 import wrappingPaperSymbol from "./symbols/wrappingPaper.png";
 import sleighSymbol from "./symbols/sleigh.png";
+import routingSymbol from "./symbols/gps.png";
 
 export interface Day extends VueFeature {
     day: number;
@@ -501,7 +502,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
             day: 23,
             shouldNotify: false,
             layer: "routing",
-            symbol: "",
+            symbol: routingSymbol,
             story: "You're almost ready for the big day! The next step is to find an optimal route to ensure you can get all the presents delivered before kids start waking up! This is like the travelling salesman problem on steroids. Good Luck!",
             completedStory:
                 "Take that, math majors! Optimal route planned with time to spare. Good Job!",
