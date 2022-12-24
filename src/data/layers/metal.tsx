@@ -38,6 +38,7 @@ import workshop from "./workshop";
 import wrappingPaper from "./wrapping-paper";
 import toys from "./toys";
 import reindeer from "./reindeer";
+import sleigh from "./sleigh";
 
 const id = "metal";
 const day = 7;

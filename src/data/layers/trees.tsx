@@ -41,6 +41,7 @@ import wrappingPaper from "./wrapping-paper";
 import toys from "./toys";
 import factory from "./factory";
 import reindeer from "./reindeer";
+import sleigh from "./sleigh";
 const id = "trees";
 const day = 1;
 

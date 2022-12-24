@@ -38,6 +38,7 @@ import paper from "./paper";
 import workshop from "./workshop";
 import toys from "./toys";
 import reindeer from "./reindeer";
+import sleigh from "./sleigh";
 
 const id = "plastic";
 const day = 10;
