@@ -93,6 +93,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
 
     const packedPresentsSize = computed(() => Decimal.times(packedPresents.value, 0.008).dividedBy(packingDensity.value));
+    const currentMaxPresents = computed(() => Decimal.times(sledSpace, packingDensity.value).div(0.008));
     const remainingSize = computed(() => Decimal.sub(sledSpace, packedPresentsSize.value));
 
     const elfPackingSpeed = createSequentialModifier(() => [
@@ -462,7 +463,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         packedPresents.value = Decimal.add(
             Decimal.times(helpers.elf.amount.value, computedElfPackingSpeed.value),
             Decimal.times(helpers.loader.amount.value, computedLoaderPackingSpeed.value)
-        ).times(diff).plus(packedPresents.value).min(8e9);
+        ).times(diff).plus(packedPresents.value).min(currentMaxPresents.value);
     });
 
     return {
