@@ -653,7 +653,7 @@ export function fixOldSave(
     if (oldVersion !== undefined && oldVersion < "0.6") {
         if ((player.layers?.main as typeof main)?.day !== undefined) {
             (player.layers?.main as typeof main).day.value = Math.min(
-                (player.layers.main as typeof main).day.value,
+                (player.layers?.main as typeof main).day.value,
                 23
             );
         }
