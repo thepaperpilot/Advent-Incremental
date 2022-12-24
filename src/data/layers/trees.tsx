@@ -42,6 +42,7 @@ import toys from "./toys";
 import factory from "./factory";
 import reindeer from "./reindeer";
 import sleigh from "./sleigh";
+import routing from "./routing";
 const id = "trees";
 const day = 1;
 
@@ -560,7 +561,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: factory.upgrades[0][2].bought
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.div(sleigh.sleighProgress.value.value, 5).floor().mul(0.05).add(1),
+            multiplier: () =>
+                Decimal.div(sleigh.sleighProgress.value.value, 5).floor().mul(0.05).add(1),
             description: "10% Sleigh Fixed",
             enabled: sleigh.milestones.milestone2.earned
         })),
@@ -568,6 +570,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 10,
             description: "50% Sleigh Fixed",
             enabled: sleigh.milestones.milestone6.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () =>
+                Object.values(factory.components).reduce(
+                    (x, y) => y + (x.type == "wood" ? 1 : 0),
+                    1
+                ) as number,
+            description: "300,000 Cities Solved",
+            enabled: routing.metaMilestones[4].earned
         })),
         reindeer.reindeer.dasher.modifier,
         createExponentialModifier(() => ({

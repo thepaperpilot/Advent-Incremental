@@ -649,5 +649,14 @@ export function fixOldSave(
     oldVersion: string | undefined,
     player: Partial<PlayerData>
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-): void {}
+): void {
+    if (oldVersion !== undefined && oldVersion < "0.6") {
+        if ((player.layers?.main as typeof main)?.day !== undefined) {
+            (player.layers?.main as typeof main).day.value = Math.min(
+                (player.layers.main as typeof main).day.value,
+                23
+            );
+        }
+    }
+}
 /* eslint-enable @typescript-eslint/no-unused-vars */

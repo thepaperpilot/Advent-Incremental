@@ -39,6 +39,8 @@ import wrappingPaper from "./wrapping-paper";
 import toys from "./toys";
 import reindeer from "./reindeer";
 import sleigh from "./sleigh";
+import factory from "./factory";
+import routing from "./routing";
 
 const id = "metal";
 const day = 7;
@@ -108,6 +110,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: management.elfTraining.metalElfTraining.milestones[0].earned
         })),
         reindeer.reindeer.comet.modifier,
+        createMultiplicativeModifier(() => ({
+            multiplier: () =>
+                Object.values(factory.components).reduce(
+                    (x, y) => y + (x.type == "metal" ? 1 : 0),
+                    1
+                ) as number,
+            description: "300,000 Cities Solved",
+            enabled: routing.metaMilestones[4].earned
+        })),
         createExponentialModifier(() => ({
             exponent: 1.1,
             description: "Mary Level 2",

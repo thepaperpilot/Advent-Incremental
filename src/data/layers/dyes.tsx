@@ -38,6 +38,7 @@ import trees from "./trees";
 import toys from "./toys";
 import factory from "./factory";
 import reindeer from "./reindeer";
+import routing from "./routing";
 
 interface Dye {
     name: string;
@@ -58,7 +59,15 @@ type DyeUpg =
     | "blueDyeUpg2"
     | "coalUpg";
 
-export type enumColor = "red" | "green" | "blue" | "yellow" | "purple" | "orange" | "black" | "white";
+export type enumColor =
+    | "red"
+    | "green"
+    | "blue"
+    | "yellow"
+    | "purple"
+    | "orange"
+    | "black"
+    | "white";
 
 const id = "dyes";
 const day = 11;
@@ -203,6 +212,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 }))
             );
             modifiers.push(reindeer.reindeer.rudolph.modifier);
+            modifiers.push(
+                createMultiplicativeModifier(() => ({
+                    multiplier: () =>
+                        Object.values(factory.components).reduce(
+                            (x, y) => y + (x.type == "dye" ? 1 : 0),
+                            1
+                        ) as number,
+                    description: "300,000 Cities Solved",
+                    enabled: routing.metaMilestones[4].earned
+                }))
+            );
             return modifiers;
         }) as WithRequired<Modifier, "description" | "revert">;
         const computedToGenerate = computed(() => toGenerate.apply(0));
