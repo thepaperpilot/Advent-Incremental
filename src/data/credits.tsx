@@ -46,27 +46,30 @@ const dayCredits: Credits[] = [
     {
         name: "Cloth",
         creator: "thepaperpilot",
-        
+        help: "emanresu, Jacorb"
     },
     {
         name: "Oil",
         creator: "ducdat0507",
+        help: "thepaperpilot, Jacorb, incremental_gamer",
     },
     {
         name: "Plastic",
         creator: "thepaperpilot",
+        help: "Jacorb"
     },
     {
         name: "Dyes",
         creator: "Jacorb",
+        help: "thepaperpilot, ducdat0507"
     },
     {
         name: "Management",
-        creator: "incremental_gamer, downvoid, thepaperpilot",
+        creator: "incremental_gamer, downvoid, thepaperpilot, Escapee",
     },
     {
         name: "Management II",
-        creator: "incremental_gamer, downvoid, thepaperpilot",
+        creator: "incremental_gamer, downvoid, thepaperpilot, Escapee",
     },
     {
         name: "Letters",
@@ -84,6 +87,7 @@ const dayCredits: Credits[] = [
     {
         name: "Toys",
         creator: "downvoid",
+        help: "thepaperpilot"
     },
     {
         name: "Factory",
@@ -150,7 +154,7 @@ const display = jsx(() => (
             ))
         }
         <p>Credits created by emanresu</p>
-        <br /> <br /> <br /> <br /> <br />
+        <br /> <br /> <br /> 
         <h1>Special Thanks</h1>
         <p>Nekosity</p>
         <p>Yhvr</p> 

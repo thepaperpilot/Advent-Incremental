@@ -108,7 +108,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
     const emitter = particles.addEmitter({
         emit: false,
         autoUpdate: true,
-        lifetime: { min: 5, max: 5 },
+        lifetime: { min: 10, max: 10 },
         emitterLifetime: -1,
         pos: { x: 0, y: 0 },
         frequency: 0.05,
@@ -159,7 +159,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
                     data: {
                         x: 0,
                         y: 0,
-                        w: 800,
+                        w: 1600,
                         h: 1
                     }
                 }
