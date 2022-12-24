@@ -20,6 +20,12 @@
             style="left: 26%; bottom: 12%; width: 40px; height: 40px"
         />
         <img
+            v-if="day >= 21"
+            :src="sleigh"
+            class="scene-item"
+            style="left: 10%; bottom: 56%; transform: rotate(24deg); width: 100px; height: 100px"
+        />
+        <img
             v-if="day >= 12"
             :src="advManagement"
             class="scene-item"
@@ -102,6 +108,7 @@ import factory from "./symbols/gears.png";
 import advFactory from "./symbols/teddyBear.png";
 import presents from "./symbols/presents.png";
 import reindeer from "./symbols/reindeer.png";
+import sleigh from "./symbols/sleigh.png";
 
 defineProps<{
     day: number;

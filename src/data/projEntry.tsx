@@ -59,6 +59,7 @@ import treeSymbol from "./symbols/tree.png";
 import toysSymbol from "./symbols/truck.png";
 import advManagementSymbol from "./symbols/workshopMansion.png";
 import wrappingPaperSymbol from "./symbols/wrappingPaper.png";
+import sleighSymbol from "./symbols/sleigh.png";
 
 export interface Day extends VueFeature {
     day: number;
@@ -488,10 +489,11 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 22,
             shouldNotify: false,
-            layer: "sleigh", // "sleigh"
-            symbol: "",
-            story: "default body",
-            completedStory: "",
+            layer: "sleigh",
+            symbol: sleighSymbol,
+            story: "You realize you haven't noticed a very important object since you've started working here. Where's the sleigh? You bring it up to Santa and he immediately becomes visibly stressed, mentioning it's been in disrepair and he completely forgot! You promise you'll get it back in shape in no time!",
+            completedStory:
+                "Crisis averted! The sleigh has been returned to it's full splendor. Santa is incredibly appreciative. Good Job!",
             masteredStory: ""
         })),
         createDay(() => ({
