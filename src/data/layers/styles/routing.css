@@ -20,3 +20,7 @@
     text-decoration: line-through;
     text-decoration-thickness: 5px;
 }
+
+.routes-list > * {
+    flex: 1 1 33%;
+}

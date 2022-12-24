@@ -4,7 +4,7 @@
  */
 import Spacer from "components/layout/Spacer.vue";
 import Modal from "components/Modal.vue";
-import { createCollapsibleModifierSections } from "data/common";
+import { createCollapsibleMilestones, createCollapsibleModifierSections } from "data/common";
 import { main } from "data/projEntry";
 import { createBar, GenericBar } from "features/bars/bar";
 import { BoardNode, BoardNodeLink, createBoard, Shape } from "features/boards/board";
@@ -26,7 +26,7 @@ import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render, renderCol, renderRow } from "util/vue";
-import { computed, ref, unref, watchEffect } from "vue";
+import { computed, ComputedRef, ref, unref, watchEffect } from "vue";
 import "./styles/routing.css";
 
 const alpha = [
@@ -96,14 +96,26 @@ const layer = createLayer(id, function (this: BaseLayer) {
         return result;
     });
     const redundantRoutes = computed(() => {
-        return currentRoutes.value.filter(route => route[0] > route[1]);
+        const routes = currentRoutes.value;
+        const redundancies = [];
+        for (let i = 0; i < routes.length; i++) {
+            if (routes[i][0] > routes[i][1]) {
+                redundancies.push(i);
+            }
+        }
+        return redundancies;
     });
     const routesToSkip = ref<number[]>([]);
 
-    const currentRoute = computed(() => currentRoutes.value[routeIndex.value]);
+    const currentRoute: ComputedRef<number[] | undefined> = computed(
+        () => currentRoutes.value[routeIndex.value]
+    );
 
     const currentRouteDuration = computed(() => {
         const route = currentRoute.value;
+        if (route == null) {
+            return 0;
+        }
         let duration = 0;
         for (let i = 0; i < route.length - 1; i++) {
             duration += currentCity.value[route[i]][route[i + 1]];
@@ -144,6 +156,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
         currentCity.value = city;
         routeIndex.value = 0;
+        routesToSkip.value = [];
         getNextRoute();
     }
 
@@ -154,10 +167,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         ) {
             routeIndex.value++;
         }
-        if (routeIndex.value > currentRoutes.value.length) {
+        if (routeIndex.value >= currentRoutes.value.length) {
+            citiesCompleted.value = Decimal.add(citiesCompleted.value, 1);
             generateCity();
         } else {
-            if (redundantRoutes.value.includes(currentRoute.value)) {
+            if (redundantRoutes.value.includes(routeIndex.value)) {
                 routesToSkip.value = [...routesToSkip.value, routeIndex.value];
             }
             checkRouteProgress.value = 0;
@@ -269,7 +283,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
             routesToSkip.value = [
                 ...routesToSkip.value,
-                currentRoutes.value.indexOf(redundantRoutes.value[routesToSkip.value.length])
+                redundantRoutes.value[routesToSkip.value.length]
             ];
             redundantProgress.value = 0;
         }
@@ -282,7 +296,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 shape: Shape.Circle,
                 fillColor: "var(--highlighted)",
                 outlineColor(node) {
-                    return currentRoute.value.includes(node.state as number)
+                    return currentRoute.value?.includes(node.state as number)
                         ? "var(--accent1)"
                         : "var(--outline)";
                 },
@@ -347,20 +361,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }),
         links() {
             const links: BoardNodeLink[] = [];
+            const route = currentRoute.value;
+            if (route == null) {
+                return links;
+            }
             const citySize = currentCity.value.length;
             for (let i = 0; i < citySize; i++) {
                 for (let j = 0; j < citySize; j++) {
                     if (i !== j) {
                         // Bloody O(n^2) performance Batman!
                         let isActive = false;
-                        const endPoints = [
-                            currentRoute.value[0],
-                            currentRoute.value[currentRoute.value.length - 1]
-                        ];
+                        const endPoints = [route[0], route[route.length - 1]];
                         if (
                             (!endPoints.includes(i) || !endPoints.includes(j)) &&
-                            currentRoute.value.includes(i) &&
-                            currentRoute.value.includes(j)
+                            route.includes(i) &&
+                            route.includes(j)
                         ) {
                             isActive = true;
                         }
@@ -418,6 +433,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const milestones = { milestone1 };
+    const { collapseMilestones, display: milestonesDisplay } =
+        createCollapsibleMilestones(milestones);
 
     const houses = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
@@ -573,37 +590,44 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     });
 
-    const tabs = createTabFamily({
-        routes: () => ({
-            display: "Routes to check",
-            tab: createTab(() => ({
-                display: jsx(() => (
-                    <div class="routes-list">
-                        {currentRoutes.value.map((route, index) => (
-                            <div
-                                class={{
-                                    redundant: route[0] > route[1],
-                                    checked: routeIndex.value > index,
-                                    processing: routeIndex.value === index,
-                                    skipped:
-                                        routeIndex.value < index &&
-                                        routesToSkip.value.includes(index)
-                                }}
-                            >
-                                {stringifyRoute(route)}
-                            </div>
-                        ))}
-                    </div>
-                ))
-            }))
-        }),
-        improvements: () => ({
-            display: "Improvements",
-            tab: createTab(() => ({
-                display: jsx(() => renderCol(...Object.values(milestones)))
-            }))
-        })
-    });
+    function displayRoutes() {
+        const routes = currentRoutes.value.slice();
+        let showPrevious = false;
+        let showNext = 0;
+        if (routes.length > 18) {
+            routes.splice(0, routeIndex.value);
+            showPrevious = true;
+            if (routes.length > 17) {
+                showNext = routes.length - 16;
+                routes.splice(16);
+            }
+        }
+        return (
+            <div class="routes-list">
+                {showPrevious ? (
+                    <div class="checked">{formatWhole(routeIndex.value)} already checked</div>
+                ) : null}
+                {routes.map((route, i) => {
+                    const index = i + (showPrevious ? routeIndex.value : 0);
+                    return (
+                        <div
+                            class={{
+                                redundant: route[0] > route[1],
+                                checked: routeIndex.value > index,
+                                processing: routeIndex.value === index,
+                                skipped:
+                                    routeIndex.value < index && routesToSkip.value.includes(index)
+                            }}
+                        >
+                            {stringifyRoute(route)}
+                        </div>
+                    );
+                })}
+
+                {showNext > 0 ? <div>+ {formatWhole(showNext)} more</div> : null}
+            </div>
+        );
+    }
 
     return {
         name,
@@ -621,6 +645,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         redundantRoutes,
         routesToSkip,
         city,
+        milestones,
+        collapseMilestones,
         minWidth: 700,
         display: jsx(() => (
             <>
@@ -644,7 +670,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {renderRow(getNewCity, boost, removeRedundantRoute)}
                 {render(city)}
                 {render(checkRouteProgressBar)}
-                {render(tabs)}
+                <Spacer />
+                <h3>Routes to Check</h3>
+                {displayRoutes()}
+                <Spacer />
+                {milestonesDisplay()}
             </>
         )),
         minimizedDisplay: jsx(() => (
