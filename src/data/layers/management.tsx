@@ -1426,8 +1426,8 @@ const layer = createLayer(id, () => {
         direction: Direction.Right,
         width: 566,
         height: 50,
-        style: `border-radius: 4px 4px 0 0`,
-        borderStyle: `border-radius: 4px 4px 0 0`,
+        style: `border-radius: 0`,
+        borderStyle: `border-radius: 0`,
         fillStyle: () => ({
             background: focusTime.value > 0 ? color : "#7f7f00",
             animation: focusTime.value > 0 ? "1s focused-focus-bar linear infinite" : "",
@@ -1472,7 +1472,9 @@ const layer = createLayer(id, () => {
             ))
         },
         style: {
-            width: "300px"
+            width: "570px",
+            minHeight: "80px",
+            zIndex: 4
         },
         canClick: () => Decimal.eq(focusCooldown.value, 0),
         onClick() {
@@ -2132,10 +2134,10 @@ const layer = createLayer(id, () => {
                         Click on an elf to see their milestones.
                         <Spacer />
                         <Spacer />
-                        {render(focusButton)}
                         {renderGrid(upgrades, upgrades2)}
                         <Spacer />
                         {renderGrid(
+                            [focusButton],
                             [focusMeter],
                             treeElfTraining,
                             coalElfTraining,
