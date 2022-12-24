@@ -65,7 +65,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const citiesGoal = 10;
 
-    const citiesCompleted = createResource<DecimalSource>(0, "cities solved");
+    const citiesCompleted = createResource<DecimalSource>(0, "countries solved");
     const currentCity = persistent<number[][]>([]);
     const routeIndex = persistent<number>(0);
     const checkRouteProgress = persistent<number>(0);
@@ -182,7 +182,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         while (routeIndex.value <= numRoutes && routesToSkip.value.includes(routeIndex.value)) {
             routeIndex.value++;
         }
-        console.log(numRoutes);
         if (routeIndex.value >= numRoutes) {
             citiesCompleted.value = Decimal.add(citiesCompleted.value, 1);
             generateCity();
@@ -209,7 +208,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         display: {
             description: jsx(() => (
                 <>
-                    Generate New City
+                    Generate New Country
                     <br />
                     {render(newCityProgressBar)}
                 </>
@@ -463,8 +462,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const milestone1 = createMilestone(() => ({
         display: {
-            requirement: "1 City Solved",
-            effectDisplay: "Each city solved doubles manual and auto processing speed"
+            requirement: "1 Country Solved",
+            effectDisplay: "Each country solved doubles manual and auto processing speed"
         },
         shouldEarn() {
             return Decimal.gte(citiesCompleted.value, 1);
@@ -472,9 +471,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const milestone2 = createMilestone(() => ({
         display: {
-            requirement: "2 Cities Solved",
+            requirement: "2 Countries Solved",
             effectDisplay:
-                "Manually checking routes does additional work based on number of routes checked in this city"
+                "Manually checking routes does additional work based on number of routes checked in this country"
         },
         shouldEarn() {
             return Decimal.gte(citiesCompleted.value, 2);
@@ -483,9 +482,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const milestone3 = createMilestone(() => ({
         display: {
-            requirement: "3 Cities Solved",
+            requirement: "3 Countries Solved",
             effectDisplay:
-                "Each city solved makes the cooldown for removing a redundant route 25% shorter"
+                "Each country solved makes the cooldown for removing a redundant route 25% shorter"
         },
         shouldEarn() {
             return Decimal.gte(citiesCompleted.value, 3);
@@ -494,9 +493,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const milestone4 = createMilestone(() => ({
         display: {
-            requirement: "4 Cities Solved",
+            requirement: "4 Countries Solved",
             effectDisplay:
-                "Automatic processing speed is multiplied by the amount of redundant routes removed from this city"
+                "Automatic processing speed is multiplied by the amount of redundant routes removed from this country"
         },
         shouldEarn() {
             return Decimal.gte(citiesCompleted.value, 4);
@@ -505,8 +504,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const milestone5 = createMilestone(() => ({
         display: {
-            requirement: "5 Cities Solved",
-            effectDisplay: "Remove 1 house"
+            requirement: "5 Countries Solved",
+            effectDisplay: "Remove 1 city"
         },
         shouldEarn() {
             return Decimal.gte(citiesCompleted.value, 5);
@@ -518,7 +517,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const milestone6 = createMilestone(() => ({
         display: {
-            requirement: "6 Cities Solved",
+            requirement: "6 Countries Solved",
             effectDisplay:
                 "Lower max weight to the min weight, and uncap amount of routes that can be checked per tick"
         },
@@ -529,7 +528,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const milestone7 = createMilestone(() => ({
         display: {
-            requirement: "7 Cities Solved",
+            requirement: "7 Countries Solved",
             effectDisplay: "All redundancies are removed"
         },
         shouldEarn() {
@@ -552,11 +551,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const houses = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: citiesCompleted,
-            description: "Cities Completed"
+            description: "Countries Completed"
         })),
         createAdditiveModifier(() => ({
             addend: 1,
-            description: "5 Cities Completed",
+            description: "5 Countries Completed",
             enabled: milestone5.earned
         }))
     ]);
@@ -564,18 +563,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const maxWeight = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: () => Decimal.pow(citiesCompleted.value, 1.1),
-            description: "Cities Completed"
+            description: "Countries Completed"
         }))
     ]);
     const computedMaxWeight = computed(() => maxWeight.apply(10));
     const minWeight = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: citiesCompleted,
-            description: "Cities Completed"
+            description: "Countries Completed"
         })),
         createExponentialModifier(() => ({
             exponent: 3,
-            description: "Cities Completed",
+            description: "Countries Completed",
             enabled: milestone7.earned
         }))
     ]);
@@ -583,7 +582,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const manualBoost = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: () => Decimal.add(routeIndex.value, 1).sqrt(),
-            description: "2 Cities Solved",
+            description: "2 Countries Solved",
             enabled: milestone2.earned
         }))
     ]);
@@ -591,7 +590,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const manualCooldown = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.pow(0.5, citiesCompleted.value),
-            description: "1 City Solved",
+            description: "1 Country Solved",
             enabled: milestone1.earned
         }))
     ]);
@@ -599,7 +598,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const redundantCooldown = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.pow(0.75, citiesCompleted.value),
-            description: "3 Cities Solved",
+            description: "3 Countries Solved",
             enabled: milestone3.earned
         }))
     ]);
@@ -607,12 +606,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const autoProcessing = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.pow(2, citiesCompleted.value),
-            description: "1 City Solved",
+            description: "1 Country Solved",
             enabled: milestone1.earned
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.add(redundanciesRemoved.value, 1),
-            description: "4 Cities Solved",
+            description: "4 Countries Solved",
             enabled: milestone4.earned
         }))
     ]);
@@ -620,7 +619,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
         {
-            title: "Houses/city",
+            title: "Cities/country",
             modifier: houses,
             base: 3
         },
@@ -835,7 +834,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 <div>
                     {main.day.value === day
-                        ? `Solve ${formatWhole(citiesGoal)} cities to complete the day`
+                        ? `Solve ${formatWhole(citiesGoal)} countries to complete the day`
                         : `${name} Complete!`}{" "}
                     -{" "}
                     <button
@@ -862,7 +861,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
         minimizedDisplay: jsx(() => (
             <div>
-                {name} <span class="desc">{format(citiesCompleted.value)} cities solved</span>
+                {name} <span class="desc">{format(citiesCompleted.value)} countries solved</span>
             </div>
         ))
     };
