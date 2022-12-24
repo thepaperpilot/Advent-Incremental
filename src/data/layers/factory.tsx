@@ -505,8 +505,7 @@ const factory = createLayer(id, () => {
                 plank: {
                     amount: computed(() => (upgrades[0][0].bought.value ? 2 : 1))
                 }
-            },
-            visible: main.days[presentsDay - 1].opened
+            }
         } as FactoryComponentDeclaration,
         thread: {
             imageSrc: _threadMaker,
