@@ -119,7 +119,8 @@ const dayCredits: Credits[] = [
     },
     {
         name: "Sleigh Repair",
-        creator: "downvoid"
+        creator: "downvoid",
+        help: "ducdat0507"
     },
     {
         name: "Routing",
@@ -127,7 +128,7 @@ const dayCredits: Credits[] = [
     },
     {
         name: "Present Packing",
-        creator: "Escapee",
+        creator: "Escapee, emanresu",
         fs: '26px'
     }
 ]
