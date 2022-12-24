@@ -55,6 +55,7 @@ import toysSymbol from "./symbols/truck.png";
 import advFactorySymbol from "./symbols/teddyBear.png";
 import advManagementSymbol from "./symbols/workshopMansion.png";
 import wrappingPaperSymbol from "./symbols/wrappingPaper.png";
+import packing from "./layers/packing";
 
 export interface Day extends VueFeature {
     day: number;
@@ -500,7 +501,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 24,
             shouldNotify: false,
-            layer: null, // "packing the presents"
+            layer: "packing",
             symbol: "",
             story: "",
             completedStory: "",
@@ -615,7 +616,8 @@ export const getInitialLayers = (
     wrappingPaper,
     ribbon,
     toys,
-    factory
+    factory,
+    packing
 ];
 
 /**
