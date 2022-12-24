@@ -1,5 +1,4 @@
 import { isArray } from "@vue/shared";
-import HotkeyVue from "components/Hotkey.vue";
 import SpacerVue from "components/layout/Spacer.vue";
 import { setUpDailyProgressTracker } from "data/common";
 import { main } from "data/projEntry";
@@ -7,13 +6,12 @@ import { createBar } from "features/bars/bar";
 import { createBuyable, GenericBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
-import { createHotkey } from "features/hotkey";
 import { createMilestone, GenericMilestone } from "features/milestones/milestone";
 import MainDisplayVue from "features/resources/MainDisplay.vue";
 import { createResource, trackBest, trackTotal, Resource } from "features/resources/resource";
 import { createLayer, BaseLayer } from "game/layers";
 import { createSequentialModifier } from "game/modifiers";
-import { noPersist, persistent } from "game/persistence";
+import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render, renderRow } from "util/vue";
@@ -64,7 +62,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: jsx(() => (
                 <>
                     <h3>
-                        Pack a present <HotkeyVue hotkey={packHotkey} />
+                        Pack a present
                     </h3><br />
                     {render(packingProgressBar)}
                 </>
@@ -79,12 +77,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
             packedPresents.value = Decimal.add(packedPresents.value, 1);
             packingProgress.value = 0;
         }
-    }));
-    const packHotkey = createHotkey(() => ({
-        key: "p",
-        description: "Pack a present",
-        onPress() { if (packPresent.canClick.value) packPresent.onClick(); },
-        enabled: noPersist(main.days[day - 1].opened)
     }));
 
     const packingDensity = computed(() => {
@@ -170,7 +162,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 120),
             visibility: () => showIf(packingMilestones.logBoost.earned.value)
-        })) ,
+        })),
         clothBoost: createMilestone(() => ({
             display: {
                 requirement: `600 ${packedPresents.displayName}`,
@@ -178,7 +170,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 600),
             visibility: () => showIf(packingMilestones.boxBoost.earned.value)
-        })) ,
+        })),
         oilBoost: createMilestone(() => ({
             display: {
                 requirement: `2,800 ${packedPresents.displayName}`,
@@ -186,7 +178,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 2800),
             visibility: () => showIf(packingMilestones.clothBoost.earned.value)
-        })) ,
+        })),
         coalBoost: createMilestone(() => ({
             display: {
                 requirement: `14,000 ${packedPresents.displayName}`,
@@ -194,7 +186,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 14000),
             visibility: () => showIf(packingMilestones.oilBoost.earned.value)
-        })) ,
+        })),
         metalBoost: createMilestone(() => ({
             display: {
                 requirement: `69,200 ${packedPresents.displayName}`,
@@ -202,7 +194,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 69200),
             visibility: () => showIf(packingMilestones.coalBoost.earned.value)
-        })) ,
+        })),
         wrappingPaperBoost: createMilestone(() => ({
             display: {
                 requirement: `340,000 ${packedPresents.displayName}`,
@@ -210,7 +202,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 340000),
             visibility: () => showIf(packingMilestones.metalBoost.earned.value)
-        })) ,
+        })),
         oreBoost: createMilestone(() => ({
             display: {
                 requirement: `1,670,000 ${packedPresents.displayName}`,
@@ -218,7 +210,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 1670000),
             visibility: () => showIf(packingMilestones.wrappingPaperBoost.earned.value)
-        })) ,
+        })),
         ribbonBoost: createMilestone(() => ({
             display: {
                 requirement: `8,230,000 ${packedPresents.displayName}`,
@@ -226,7 +218,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 8230000),
             visibility: () => showIf(packingMilestones.oreBoost.earned.value)
-        })) ,
+        })),
         secondaryDyeBoost: createMilestone(() => ({
             display: {
                 requirement: `40,400,000 ${packedPresents.displayName}`,
@@ -234,7 +226,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 40400000),
             visibility: () => showIf(packingMilestones.ribbonBoost.earned.value)
-        })) ,
+        })),
         paperBoost: createMilestone(() => ({
             display: {
                 requirement: `199,000,000 ${packedPresents.displayName}`,
@@ -242,7 +234,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 199000000),
             visibility: () => showIf(packingMilestones.secondaryDyeBoost.earned.value)
-        })) ,
+        })),
         primaryDyeBoost: createMilestone(() => ({
             display: {
                 requirement: `977,000,000 ${packedPresents.displayName}`,
@@ -250,7 +242,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 977000000),
             visibility: () => showIf(packingMilestones.paperBoost.earned.value)
-        })) ,
+        })),
         wrappingPaperBoost2: createMilestone(() => ({
             display: {
                 requirement: `664,000 ${packedPresents.displayName}`,
@@ -258,7 +250,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 664000) && packingResets.value >= 1,
             visibility: () => showIf(packingResets.value >= 1)
-        })) ,
+        })),
         coalBoost2: createMilestone(() => ({
             display: {
                 requirement: `6,360,000 ${packedPresents.displayName}`,
@@ -266,7 +258,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 6360000) && packingResets.value >= 1,
             visibility: () => showIf(packingMilestones.wrappingPaperBoost2.earned.value)
-        })) ,
+        })),
         oreBoost2: createMilestone(() => ({
             display: {
                 requirement: `60,900,000 ${packedPresents.displayName}`,
@@ -274,7 +266,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 60900000) && packingResets.value >= 1,
             visibility: () => showIf(packingMilestones.coalBoost2.earned.value)
-        })) ,
+        })),
         primaryDyeBoost2: createMilestone(() => ({
             display: {
                 requirement: `584,000,000 ${packedPresents.displayName}`,
@@ -282,7 +274,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 584000000) && packingResets.value >= 1,
             visibility: () => showIf(packingMilestones.oreBoost2.earned.value)
-        })) ,
+        })),
         ribbonBoost2: createMilestone(() => ({
             display: {
                 requirement: `734,000 ${packedPresents.displayName}`,
@@ -290,7 +282,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 734000) && packingResets.value >= 2,
             visibility: () => showIf(packingMilestones.primaryDyeBoost2.earned.value)
-        })) ,
+        })),
         boxesBoost2: createMilestone(() => ({
             display: {
                 requirement: `7,200,000 ${packedPresents.displayName}`,
@@ -298,7 +290,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 7200000) && packingResets.value >= 2,
             visibility: () => showIf(packingMilestones.ribbonBoost2.earned.value)
-        })) ,
+        })),
         secondaryDyeBoost2: createMilestone(() => ({
             display: {
                 requirement: `70,700,000 ${packedPresents.displayName}`,
@@ -306,7 +298,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 70700000) && packingResets.value >= 2,
             visibility: () => showIf(packingMilestones.boxesBoost2.earned.value)
-        })) ,
+        })),
         paperBoost2: createMilestone(() => ({
             display: {
                 requirement: `693,000,000 ${packedPresents.displayName}`,
@@ -314,7 +306,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 693000000) && packingResets.value >= 2,
             visibility: () => showIf(packingMilestones.secondaryDyeBoost2.earned.value)
-        })) ,
+        })),
         oilBoost2: createMilestone(() => ({
             display: {
                 requirement: `820,000 ${packedPresents.displayName}`,
@@ -322,7 +314,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 820000) && packingResets.value >= 3,
             visibility: () => showIf(packingMilestones.paperBoost2.earned.value)
-        })) ,
+        })),
         clothBoost2: createMilestone(() => ({
             display: {
                 requirement: `8,150,000 ${packedPresents.displayName}`,
@@ -330,7 +322,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 8150000) && packingResets.value >= 3,
             visibility: () => showIf(packingMilestones.oilBoost2.earned.value)
-        })) ,
+        })),
         logsBoost2: createMilestone(() => ({
             display: {
                 requirement: `81,000,000 ${packedPresents.displayName}`,
@@ -338,7 +330,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 81000000) && packingResets.value >= 3,
             visibility: () => showIf(packingMilestones.clothBoost2.earned.value)
-        })) ,
+        })),
         metalBoost2: createMilestone(() => ({
             display: {
                 requirement: `800,000,000 ${packedPresents.displayName}`,
@@ -346,7 +338,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 800000000) && packingResets.value >= 3,
             visibility: () => showIf(packingMilestones.logsBoost2.earned.value)
-        })) 
+        }))
     };
     const { collapseMilestones, display: milestonesDisplay } =
         createCollapsibleMilestones(packingMilestones);
