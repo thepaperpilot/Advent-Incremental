@@ -198,7 +198,7 @@ const layer = createLayer(id, () => {
             costMulti /= 3;
         }
         if (elf.name == "Jingle") {
-            costMulti *= 30;
+            costMulti *= 100000;
         }
         const costBase = 4000 * costMulti;
         const expRequiredForNextLevel = computed(() => Decimal.pow(5, level.value).mul(costBase));

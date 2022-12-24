@@ -1138,10 +1138,22 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     </>
                 ) : (
                     <>
-                        You're solving {formatWhole(computedMetaSolvingSpeed.value)} cities per
-                        second
-                        <Spacer />
-                        {renderRow(...Object.values(metaBuyables))}
+                        {Decimal.lt(citiesCompleted.value, 50) ? (
+                            <>
+                                You're solving {formatWhole(computedMetaSolvingSpeed.value)} cities
+                                per second
+                                <Spacer />
+                                {renderRow(...Object.values(metaBuyables))}
+                            </>
+                        ) : (
+                            <>
+                                You've solved all of cities on Earth!
+                                <br />
+                                <strike style="font-size: smaller">
+                                    (and proved the travelling salesman problem to be O(1))
+                                </strike>
+                            </>
+                        )}
                         <Spacer />
                         {metaMilestonesDisplay()}
                     </>
