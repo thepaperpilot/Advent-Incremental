@@ -624,15 +624,6 @@ export const main = createLayer("main", function (this: BaseLayer) {
             symbol: snowflakeSymbol,
             story: `It's Christmas. Thanks to your efforts, Santa has delivered all the presents to people all over the world. That is, all but one... <br><br> <div style='text-align: center'><img class='present-clickable' onclick ='layers.main.showLoreModal.value = false; layers.main.creditsOpen.value = true' src='${presentSymbol}' /><br>Open your present</div><br/>`,
             completedStory: "",
-            masteredStory: ""
-        })),
-        createDay(() => ({
-            day: 25,
-            shouldNotify: false,
-            layer: null, // credits
-            symbol: snowflakeSymbol,
-            story: `It's Christmas. Thanks to your efforts, Santa has delivered all the presents to people all over the world. That is, all but one... <br><br> <div style='text-align: center'><img class='present-clickable' onclick ='layers.main.showLoreModal.value = false; layers.main.creditsOpen.value = true' src='${presentSymbol}' /><br>Open your present</div><br/>`,
-            completedStory: "",
             masteredStory: "",
             visibility: Visibility.None
         }))
