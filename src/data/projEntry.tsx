@@ -4,7 +4,8 @@ import {
     Component,
     GatherProps,
     GenericComponent,
-    jsx
+    jsx,
+    Visibility
 } from "features/feature";
 import { BaseLayer, createLayer, GenericLayer, layers } from "game/layers";
 import { isPersistent, Persistent, persistent } from "game/persistence";
@@ -15,7 +16,7 @@ import { Computable, convertComputable, ProcessedComputable } from "util/compute
 import { createLazyProxy } from "util/proxies";
 import { save } from "util/save";
 import { render, renderRow, VueFeature } from "util/vue";
-import type { Ref } from "vue";
+import { Ref, watchEffect } from "vue";
 import { computed, ref, unref } from "vue";
 import "./advent.css";
 import Day from "./Day.vue";
@@ -60,7 +61,7 @@ import toysSymbol from "./symbols/truck.png";
 import advManagementSymbol from "./symbols/workshopMansion.png";
 import wrappingPaperSymbol from "./symbols/wrappingPaper.png";
 import snowflakeSymbol from "./symbols/snowflake.svg";
-import presentSymbol from "./layers/factory-components/present.svg"
+import presentSymbol from "./layers/factory-components/present.svg";
 import { createParticles } from "features/particles/particles";
 import { credits } from "./credits";
 
@@ -74,6 +75,7 @@ export interface Day extends VueFeature {
     opened: Persistent<boolean>;
     recentlyUpdated: Ref<boolean>; // Has the tab recieved an update since the player last opened it?
     shouldNotify: ProcessedComputable<boolean>;
+    visibility?: Visibility;
 }
 
 export const main = createLayer("main", function (this: BaseLayer) {
@@ -96,112 +98,113 @@ export const main = createLayer("main", function (this: BaseLayer) {
             this.boundingRect.value = boundingRect;
         },
         style: "z-index: -1"
-    }))
+    }));
 
-    particles.addEmitter({
-        lifetime: {min: 5, max: 5},
-        pos: {x: 0, y: 0},
-        frequency: 0.05,
-        behaviors: [
-            {
-                type: 'alpha',
-                config: {
-                    alpha: {
-                        list: [
-                            {
-                                value: 1,
-                                time: 0
-                            },
-                            {
-                                value: 1,
-                                time: 1
-                            }
-                        ],
-                    },
-                }
-            },
-            {
-                type: 'scale',
-                config: {
-                    scale: {
-                        list: [
-                            {
-                                value: 1,
-                                time: 0
-                            },
-                            {
-                                value: 1,
-                                time: 1
-                            }
-                        ],
-                    },
-                }
-            },
-            {
-                type: 'color',
-                config: {
-                    color: {
-                        list: [
-                            {
-                                value: "fb1010",
-                                time: 0
-                            },
-                            {
-                                value: "f5b830",
-                                time: 1
-                            }
-                        ],
-                    },
-                }
-            },
-            {
-                type: 'moveSpeed',
-                config: {
-                    speed: {
-                        list: [
-                            {
-                                value: 200,
-                                time: 0
-                            },
-                            {
-                                value: 100,
-                                time: 1
-                            }
-                        ],
-                        isStepped: false
-                    },
-                }
-            },
-            {
-                type: 'rotationStatic',
-                config: {
-                    min: 70,
-                    max: 110
-                }
-            },
-            {
-                type: 'spawnShape',
-                config: {
-                    type: 'rect',
-                    data: {
-                        x: 0,
-                        y: 0,
-                        width: 800,
-                        height: 10
+    particles
+        .addEmitter({
+            lifetime: { min: 5, max: 5 },
+            pos: { x: 0, y: 0 },
+            frequency: 0.05,
+            behaviors: [
+                {
+                    type: "alpha",
+                    config: {
+                        alpha: {
+                            list: [
+                                {
+                                    value: 1,
+                                    time: 0
+                                },
+                                {
+                                    value: 1,
+                                    time: 1
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    type: "scale",
+                    config: {
+                        scale: {
+                            list: [
+                                {
+                                    value: 1,
+                                    time: 0
+                                },
+                                {
+                                    value: 1,
+                                    time: 1
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    type: "color",
+                    config: {
+                        color: {
+                            list: [
+                                {
+                                    value: "fb1010",
+                                    time: 0
+                                },
+                                {
+                                    value: "f5b830",
+                                    time: 1
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    type: "moveSpeed",
+                    config: {
+                        speed: {
+                            list: [
+                                {
+                                    value: 200,
+                                    time: 0
+                                },
+                                {
+                                    value: 100,
+                                    time: 1
+                                }
+                            ],
+                            isStepped: false
+                        }
+                    }
+                },
+                {
+                    type: "rotationStatic",
+                    config: {
+                        min: 70,
+                        max: 110
+                    }
+                },
+                {
+                    type: "spawnShape",
+                    config: {
+                        type: "rect",
+                        data: {
+                            x: 0,
+                            y: 0,
+                            width: 800,
+                            height: 10
+                        }
+                    }
+                },
+                {
+                    type: "textureSingle",
+                    config: {
+                        texture: snowflakeSymbol
                     }
                 }
-            },
-            {
-                type: 'textureSingle',
-                config: {
-                    texture: snowflakeSymbol
-                }
-            }
-        ]
-    }).then(e => {
-        e.autoUpdate = true;
-    })
-
+            ]
+        })
+        .then(e => {
+            e.autoUpdate = true;
+        });
 
     const currentlyMastering = computed(() =>
         isMastery.value
@@ -285,6 +288,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
             story: string;
             completedStory: string;
             masteredStory: string;
+            visibility?: Visibility;
         }
     ): Day {
         const opened = persistent<boolean>(false);
@@ -314,7 +318,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
                         story,
                         completedStory,
                         masteredStory,
-                        recentlyUpdated
+                        recentlyUpdated,
+                        visibility
                     } = this;
 
                     const mastered: Ref<boolean> =
@@ -327,6 +332,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
                         recentlyUpdated,
                         shouldNotify,
                         mastered,
+                        visibility,
                         onOpenLore() {
                             const completed = main.day.value > day;
                             loreScene.value = completed ? day - 1 : -1;
@@ -370,7 +376,10 @@ export const main = createLayer("main", function (this: BaseLayer) {
                                 opened.value = true;
                                 setTimeout(() => {
                                     loreScene.value = -1;
-                                    loreTitle.value = day == 25 ? "The End!" : unref(layers[layer ?? "trees"]?.name ?? "");
+                                    loreTitle.value =
+                                        day == 25
+                                            ? "The End!"
+                                            : unref(layers[layer ?? "trees"]?.name ?? "");
                                     loreBody.value = story;
                                     if (player.autoPause) player.devSpeed = null;
                                     showLoreModal.value = true;
@@ -638,9 +647,10 @@ export const main = createLayer("main", function (this: BaseLayer) {
             shouldNotify: false,
             layer: null, // credits
             symbol: snowflakeSymbol,
-            story: `It's Christmas. Thanks to your efforts, Santa has delivered all the presents to people all over the world. That is, all but one... <br><br> <div style='text-align: center'><img class='present-clickable' onclick ='layers.main.showLoreModal.value = false; layers.main.creditsOpen.value = true' src='${presentSymbol}' /><br>Open your present</div>`,
+            story: `It's Christmas. Thanks to your efforts, Santa has delivered all the presents to people all over the world. That is, all but one... <br><br> <div style='text-align: center'><img class='present-clickable' onclick ='layers.main.showLoreModal.value = false; layers.main.creditsOpen.value = true' src='${presentSymbol}' /><br>Open your present</div><br/>`,
             completedStory: "",
-            masteredStory: ""
+            masteredStory: "",
+            visibility: Visibility.None
         }))
     ];
 
@@ -672,6 +682,15 @@ export const main = createLayer("main", function (this: BaseLayer) {
             elves.elves.plasticElf.bought.value = true;
         }
     }
+
+    watchEffect(() => {
+        if (day.value === 25 && showLoreModal.value === false) {
+            loreScene.value = -1;
+            loreTitle.value = "Merry Christmas!";
+            loreBody.value = days[day.value - 1].story;
+            showLoreModal.value = true;
+        }
+    });
 
     return {
         name: "Calendar",
@@ -724,7 +743,11 @@ export const main = createLayer("main", function (this: BaseLayer) {
                         )
                         .map((days: Day[]) => renderRow(...days))}
                 </div>
-                {render(particles) /*creditsOpen.value || day.value == 25 ? render(particles) : null*/}
+                {
+                    render(
+                        particles
+                    ) /*creditsOpen.value || day.value == 25 ? render(particles) : null*/
+                }
             </>
         ))
     };

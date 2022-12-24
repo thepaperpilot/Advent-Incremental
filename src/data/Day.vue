@@ -6,7 +6,7 @@
             masteryLock,
             wallpaper: day < 8
         }"
-        v-if="opened.value"
+        v-if="opened.value && visibility !== Visibility.None"
     >
         <div class="ribbon" v-if="day >= 8" />
         <Tooltip :display="layers[layer ?? '']?.name ?? ''" :direction="Direction.Up" yoffset="5px">
@@ -26,7 +26,7 @@
         </Tooltip>
     </div>
     <div
-        v-else
+        v-else-if="visibility !== Visibility.None"
         class="day feature dontMerge"
         :class="{ can: canOpen, locked: !canOpen, canOpen, mastered: unref(mastered) }"
         @click="tryUnlock"
@@ -47,6 +47,7 @@
 
 <script setup lang="ts">
 import Notif from "components/Notif.vue";
+import { Visibility } from "features/feature";
 import Tooltip from "features/tooltips/Tooltip.vue";
 import { layers } from "game/layers";
 import Decimal from "util/bignum";
@@ -66,6 +67,7 @@ const props = defineProps<{
     recentlyUpdated: Ref<boolean>;
     shouldNotify: ProcessedComputable<boolean>;
     mastered: Ref<boolean>;
+    visibility?: Visibility;
 }>();
 
 const emit = defineEmits<{
