@@ -50,6 +50,7 @@ import oilSymbol from "./symbols/oil.png";
 import paperSymbol from "./symbols/paperStacks.png";
 import plasticSymbol from "./symbols/plastic.png";
 import presentsSymbol from "./symbols/presents.png";
+import reindeerSymbol from "./symbols/reindeer.png";
 import ribbonsSymbol from "./symbols/ribbons.png";
 import workshopSymbol from "./symbols/sws.png";
 import advFactorySymbol from "./symbols/teddyBear.png";
@@ -477,7 +478,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
             day: 21,
             shouldNotify: false,
             layer: "reindeer",
-            symbol: "",
+            symbol: reindeerSymbol,
             story: "Now that the toys are being taken care of, it's time to make sure everything is prepped for the big night. One immediate concern is the reindeer, who are going to have to be in tip-top shape. Fortunately, Santa has a recipe to a very strong vitamin-filled kibble that'll get them pumped in no time!",
             completedStory:
                 "Alright, now that the reindeer have been given all their ste- vitamins, I mean, they should be prepared for Christmas. Good Job!",

@@ -6,7 +6,13 @@
             class="scene-item"
             style="left: 4%; bottom: 3%; width: 40px; height: 40px"
         />
-        <img v-if="day >= 0" :src="tree" class="scene-item" style="left: 10%; bottom: 10%" />
+        <img
+            v-if="day >= 0"
+            :src="tree"
+            class="scene-item"
+            style="left: 6%; bottom: 10%; width: 120px; height: 120px"
+        />
+        <img v-if="day >= 20" :src="reindeer" class="scene-item" style="left: 13%; bottom: 8%" />
         <img
             v-if="day >= 13"
             :src="letters"
@@ -95,6 +101,7 @@ import toys from "./symbols/truck.png";
 import factory from "./symbols/gears.png";
 import advFactory from "./symbols/teddyBear.png";
 import presents from "./symbols/presents.png";
+import reindeer from "./symbols/reindeer.png";
 
 defineProps<{
     day: number;
