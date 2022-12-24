@@ -93,7 +93,6 @@ const layer = createLayer(id, () => {
             if (!unref(makeRibbon.canClick)) {
                 return;
             }
-            currentDyeType.value.amount.value = 0;
             currentDyeType.value.buyable.amount.value = 0;
             cloth.cloth.value = Decimal.sub(cloth.cloth.value, 1e9);
             ribbon.value = Decimal.add(ribbon.value, 1);
