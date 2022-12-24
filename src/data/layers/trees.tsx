@@ -559,6 +559,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Haul wood in trucks",
             enabled: factory.upgrades[0][2].bought
         })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.div(sleigh.sleighProgress.value.value, 5).floor().mul(0.05).add(1),
+            description: "10% Sleigh Fixed",
+            enabled: sleigh.milestones.milestone2.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 10,
+            description: "50% Sleigh Fixed",
+            enabled: sleigh.milestones.milestone6.earned
+        })),
         reindeer.reindeer.dasher.modifier,
         createExponentialModifier(() => ({
             exponent: 1.2,

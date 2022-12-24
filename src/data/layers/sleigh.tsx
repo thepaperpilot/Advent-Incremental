@@ -43,9 +43,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const sleighCost = computed(() => {
         let v = sleighProgress.value.value;
         return {
-            wood: Decimal.mul(1e60, Decimal.pow(1.2, v)),
-            metal: Decimal.mul(1e40, Decimal.pow(1.1, v)),
-            plastic: Decimal.mul(1e10, Decimal.pow(1.05, v))
+            wood: Decimal.mul(1e97, Decimal.pow(1.2, v)),
+            metal: Decimal.mul(1e67, Decimal.pow(1.1, v)),
+            plastic: Decimal.mul(1e22, Decimal.pow(1.05, v))
         };
     });
     const sleigh = createBuyable(() => ({
@@ -55,7 +55,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <br />
                 <br />
                 <span style="font-size: large">
-                    Cost: {displayCost(trees.logs, sleighCost.value.wood, "logs")},
+                    Requires: {displayCost(trees.logs, sleighCost.value.wood, "logs")},
                     {displayCost(metal.metal, sleighCost.value.metal, "metal")},
                     {displayCost(plastic.plastic, sleighCost.value.plastic, "plastic")}
                 </span>
@@ -111,7 +111,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const milestone5 = createMilestone(() => ({
         display: {
             requirement: "40% Sleigh Fixed",
-            effectDisplay: "Plastic gain is doubled"
+            effectDisplay: "Plastic gain is quadrupled"
         },
         shouldEarn: () => Decimal.gte(sleighProgress.value.value, 40),
         showPopups: shouldShowPopups
@@ -127,7 +127,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const milestone7 = createMilestone(() => ({
         display: {
             requirement: "75% Sleigh Fixed",
-            effectDisplay: "Gain 10 extra refineries for every 2% of sleigh fixed"
+            effectDisplay: "Gain 40 extra refineries for every 2% of sleigh fixed"
         },
         shouldEarn: () => Decimal.gte(sleighProgress.value.value, 75),
         showPopups: shouldShowPopups
