@@ -47,13 +47,16 @@
             :modelValue="main.creditsOpen.value"
             @update:model-value="value => (main.creditsOpen.value = value)"
         >
-            credits go here
-            <!--<template v-slot:header
-                ><h2>{{ main.loreTitle.value }}</h2></template
-            >
+            <template v-slot:header>
+                <h2>Credits</h2>
+            </template>
             <template v-slot:body>
-                <component v-if="loreBody" :is="loreBody" />
-                <div v-if="main.loreScene.value !== -1">
+                <div>
+                    <component :is=convertComputable(main.credits) />
+                </div>
+
+                
+                <!--<div v-if="main.loreScene.value !== -1">
                     <Scene :day="main.loreScene.value" />
                     <br />
                     You can help continue the <i>advent</i>ure at:
@@ -65,9 +68,10 @@
                         <span class="material-icons info-modal-discord">discord</span>
                         The Paper Pilot Community
                     </a>
-                </div>
-            </template>-->
+                </div>-->
+            </template>
         </Modal>
+        <!--<component :is="main.particles" />-->
     </div>
 </template>
 
@@ -78,6 +82,7 @@ import Scene from "data/Scene.vue";
 import type { GenericLayer } from "game/layers";
 import { layers } from "game/layers";
 import player from "game/player";
+import { convertComputable } from "util/computed";
 import { computeOptionalComponent } from "util/vue";
 import { computed, toRef, unref } from "vue";
 import Layer from "./Layer.vue";
@@ -94,7 +99,7 @@ function gatherLayerProps(layer: GenericLayer) {
     const { display, minimized, minWidth, name, color, minimizable, nodes, minimizedDisplay } =
         layer;
     return { display, minimized, minWidth, name, color, minimizable, nodes, minimizedDisplay };
-}
+};
 </script>
 
 <style scoped>

@@ -14,7 +14,7 @@ import { format, formatTime } from "util/bignum";
 import { Computable, convertComputable, ProcessedComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { save } from "util/save";
-import { renderRow, VueFeature } from "util/vue";
+import { render, renderRow, VueFeature } from "util/vue";
 import type { Ref } from "vue";
 import { computed, ref, unref } from "vue";
 import "./advent.css";
@@ -57,6 +57,8 @@ import advManagementSymbol from "./symbols/workshopMansion.png";
 import wrappingPaperSymbol from "./symbols/wrappingPaper.png";
 import snowflakeSymbol from "./symbols/snowflake.svg";
 import presentSymbol from "./layers/factory-components/present.svg"
+import { createParticles } from "features/particles/particles";
+import { credits } from "./credits";
 
 export interface Day extends VueFeature {
     day: number;
@@ -82,6 +84,120 @@ export const main = createLayer("main", function (this: BaseLayer) {
     const loreBody = ref<CoercableComponent | undefined>();
 
     const creditsOpen = ref<boolean>(false);
+
+    // I don't understand how this works
+    const particles = createParticles(() => ({
+        boundingRect: ref<null | DOMRect>(null),
+        onContainerResized(boundingRect) {
+            this.boundingRect.value = boundingRect;
+        },
+        style: "z-index: -1"
+    }))
+
+    particles.addEmitter({
+        lifetime: {min: 5, max: 5},
+        pos: {x: 0, y: 0},
+        frequency: 0.05,
+        behaviors: [
+            {
+                type: 'alpha',
+                config: {
+                    alpha: {
+                        list: [
+                            {
+                                value: 1,
+                                time: 0
+                            },
+                            {
+                                value: 1,
+                                time: 1
+                            }
+                        ],
+                    },
+                }
+            },
+            {
+                type: 'scale',
+                config: {
+                    scale: {
+                        list: [
+                            {
+                                value: 1,
+                                time: 0
+                            },
+                            {
+                                value: 1,
+                                time: 1
+                            }
+                        ],
+                    },
+                }
+            },
+            {
+                type: 'color',
+                config: {
+                    color: {
+                        list: [
+                            {
+                                value: "fb1010",
+                                time: 0
+                            },
+                            {
+                                value: "f5b830",
+                                time: 1
+                            }
+                        ],
+                    },
+                }
+            },
+            {
+                type: 'moveSpeed',
+                config: {
+                    speed: {
+                        list: [
+                            {
+                                value: 200,
+                                time: 0
+                            },
+                            {
+                                value: 100,
+                                time: 1
+                            }
+                        ],
+                        isStepped: false
+                    },
+                }
+            },
+            {
+                type: 'rotationStatic',
+                config: {
+                    min: 70,
+                    max: 110
+                }
+            },
+            {
+                type: 'spawnShape',
+                config: {
+                    type: 'rect',
+                    data: {
+                        x: 0,
+                        y: 0,
+                        width: 800,
+                        height: 10
+                    }
+                }
+            },
+            {
+                type: 'textureSingle',
+                config: {
+                    texture: snowflakeSymbol
+                }
+            }
+        ]
+    }).then(e => {
+        e.autoUpdate = true;
+    })
+
 
     const currentlyMastering = computed(() =>
         isMastery.value
@@ -560,6 +676,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         loreScene,
         loreTitle,
         loreBody,
+        particles,
         showLoreModal,
         completeDay,
         completeMastery,
@@ -570,6 +687,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         currentlyMastering,
         masteredDays,
         creditsOpen,
+        credits,
         display: jsx(() => (
             <>
                 {player.devSpeed === 0 ? <div>Game Paused</div> : null}
@@ -600,6 +718,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
                         )
                         .map((days: Day[]) => renderRow(...days))}
                 </div>
+                {render(particles) /*creditsOpen.value || day.value == 25 ? render(particles) : null*/}
             </>
         ))
     };
