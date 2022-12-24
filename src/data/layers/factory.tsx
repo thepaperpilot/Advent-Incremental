@@ -101,9 +101,6 @@ const toyGoal = 750;
 const advancedToyGoal = 1500;
 const presentsGoal = 8e9;
 
-// 20x20 block size
-// TODO: unhardcode stuff
-
 function roundDownTo(num: number, multiple: number) {
     return Math.floor((num + multiple / 2) / multiple) * multiple;
 }
@@ -1641,6 +1638,7 @@ const factory = createLayer(id, () => {
                 const compData = _compData as FactoryInternalProcessor;
                 // factory part
                 // PRODUCTION
+                data.ticksDone += factoryTicks;
                 if (data.ticksDone >= factoryData.tick) {
                     if (compData.canProduce.value) {
                         const cyclesDone = Math.floor(data.ticksDone / factoryData.tick);
@@ -1678,8 +1676,6 @@ const factory = createLayer(id, () => {
                         if (compData.lastProdTimes.length > 10) compData.lastProdTimes.shift();
                         compData.lastFactoryProd = now;
                     }
-                } else {
-                    data.ticksDone += factoryTicks;
                 }
                 // now look at each component direction and see if it accepts items coming in
                 // components are 1x1 so simple math for now
