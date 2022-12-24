@@ -38,6 +38,7 @@ import trees from "./trees";
 import toys from "./toys";
 import factory from "./factory";
 import reindeer from "./reindeer";
+import packing from "./packing"
 
 interface Dye {
     name: string;
@@ -162,20 +163,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         multiplier: 2,
                         description: "Wetter Dyes",
                         enabled: upgrades.yellowDyeUpg.bought
-                    }))
-                );
-                modifiers.push(
+                    })),
                     createMultiplicativeModifier(() => ({
                         multiplier: () => Decimal.add(cloth.cloth.value, Math.E).ln(),
                         description: "Gingersnap Level 1",
                         enabled: management.elfTraining.clothElfTraining.milestones[0].earned
-                    }))
-                );
-                modifiers.push(
+                    })),
                     createMultiplicativeModifier(() => ({
                         multiplier: 2,
                         description: "Carol Level 1",
                         enabled: management.elfTraining.dyeElfTraining.milestones[0].earned
+                    })),
+                    createMultiplicativeModifier(() => ({
+                        multiplier: 5,
+                        description: "977,000,000 Presents Packed",
+                        enabled: packing.packingMilestones.primaryDyeBoost.earned
                     }))
                 );
             }
@@ -708,6 +710,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.add(dyes.orange.amount.value, 1)
                 .log2()
                 .plus(1)
+                .mul(packing.packingMilestones.secondaryDyeBoost.earned.value ? 2 : 1)
                 .pow(oil.row3Upgrades[1].bought.value ? 2.5 : 1)
         ),
         green1: computed(() =>
@@ -719,6 +722,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.add(dyes.green.amount.value, 1)
                 .log2()
                 .plus(1)
+                .mul(packing.packingMilestones.secondaryDyeBoost.earned.value ? 2 : 1)
                 .pow(upgrades.coalUpg.bought.value ? 2 : 1)
         ),
         purple1: computed(() =>
@@ -726,7 +730,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 .pow(upgrades.coalUpg.bought.value ? 1.2 : 1)
                 .pow(management.elfTraining.clothElfTraining.milestones[3].earned.value ? 1.1 : 1)
         ),
-        purple2: computed(() => Decimal.add(dyes.purple.amount.value, 1).log2().plus(1)),
+        purple2: computed(() => Decimal.add(dyes.purple.amount.value, 1).log2().plus(1).mul(packing.packingMilestones.secondaryDyeBoost.earned.value ? 2 : 1)),
         black1: computed(() =>
             Decimal.pow(2, Decimal.add(dyes.black.amount.value, 1).log2().sqrt())
                 .pow(upgrades.coalUpg.bought.value ? 1.2 : 1)

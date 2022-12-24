@@ -219,7 +219,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             resource: totalPresentsResource,
             style: {
                 width: "200px"
-            }
+            }/*,
+            onPurchase () {
+                main.days[3].recentlyUpdated.value = true;
+            }*/
         })),
         loaderUnlock: createUpgrade(() => ({
             display: {
@@ -245,7 +248,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         boxBoost: createMilestone(() => ({
             display: {
                 requirement: `120 ${packedPresents.displayName}`,
-                effectDisplay: "Boxes are 10% bigger"
+                effectDisplay: "Create 10% more boxes"
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 120),
             visibility: () => showIf(packingMilestones.logBoost.earned.value)
@@ -301,7 +304,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         ribbonBoost: createMilestone(() => ({
             display: {
                 requirement: `8,230,000 ${packedPresents.displayName}`,
-                effectDisplay: "Ribbons are 90% cheaper"
+                effectDisplay: "Halve ribbon cost"
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 8230000),
             visibility: () => showIf(packingMilestones.oreBoost.earned.value)
@@ -330,102 +333,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             shouldEarn: () => Decimal.gte(packedPresents.value, 977000000),
             visibility: () => showIf(packingMilestones.paperBoost.earned.value)
         })),
-        wrappingPaperBoost2: createMilestone(() => ({
-            display: {
-                requirement: `664,000 ${packedPresents.displayName}`,
-                effectDisplay: "Double the strength of wrapping paper bonuses, again"
-            },
-            shouldEarn: () => Decimal.gte(packedPresents.value, 664000) && packingResets.value >= 1,
-            visibility: () => showIf(packingResets.value >= 1)
-        })),
-        coalBoost2: createMilestone(() => ({
-            display: {
-                requirement: `6,360,000 ${packedPresents.displayName}`,
-                effectDisplay: "Coal producers grow half as fast, again"
-            },
-            shouldEarn: () => Decimal.gte(packedPresents.value, 6360000) && packingResets.value >= 1,
-            visibility: () => showIf(packingMilestones.wrappingPaperBoost2.earned.value)
-        })),
-        oreBoost2: createMilestone(() => ({
-            display: {
-                requirement: `60,900,000 ${packedPresents.displayName}`,
-                effectDisplay: "Ore mining speed multiplies ore gain, again"
-            },
-            shouldEarn: () => Decimal.gte(packedPresents.value, 60900000) && packingResets.value >= 1,
-            visibility: () => showIf(packingMilestones.coalBoost2.earned.value)
-        })),
-        primaryDyeBoost2: createMilestone(() => ({
-            display: {
-                requirement: `584,000,000 ${packedPresents.displayName}`,
-                effectDisplay: "Quintuple primary dye gain, again"
-            },
-            shouldEarn: () => Decimal.gte(packedPresents.value, 584000000) && packingResets.value >= 1,
-            visibility: () => showIf(packingMilestones.oreBoost2.earned.value)
-        })),
-        ribbonBoost2: createMilestone(() => ({
-            display: {
-                requirement: `734,000 ${packedPresents.displayName}`,
-                effectDisplay: "Ribbons are 90% cheaper, again"
-            },
-            shouldEarn: () => Decimal.gte(packedPresents.value, 734000) && packingResets.value >= 2,
-            visibility: () => showIf(packingMilestones.primaryDyeBoost2.earned.value)
-        })),
-        boxesBoost2: createMilestone(() => ({
-            display: {
-                requirement: `7,200,000 ${packedPresents.displayName}`,
-                effectDisplay: "Boxes are 10% bigger, again"
-            },
-            shouldEarn: () => Decimal.gte(packedPresents.value, 7200000) && packingResets.value >= 2,
-            visibility: () => showIf(packingMilestones.ribbonBoost2.earned.value)
-        })),
-        secondaryDyeBoost2: createMilestone(() => ({
-            display: {
-                requirement: `70,700,000 ${packedPresents.displayName}`,
-                effectDisplay: "Double the second effect of each secondary dye, again"
-            },
-            shouldEarn: () => Decimal.gte(packedPresents.value, 70700000) && packingResets.value >= 2,
-            visibility: () => showIf(packingMilestones.boxesBoost2.earned.value)
-        })),
-        paperBoost2: createMilestone(() => ({
-            display: {
-                requirement: `693,000,000 ${packedPresents.displayName}`,
-                effectDisplay: "Produce another 10x as much paper"
-            },
-            shouldEarn: () => Decimal.gte(packedPresents.value, 693000000) && packingResets.value >= 2,
-            visibility: () => showIf(packingMilestones.secondaryDyeBoost2.earned.value)
-        })),
-        oilBoost2: createMilestone(() => ({
-            display: {
-                requirement: `820,000 ${packedPresents.displayName}`,
-                effectDisplay: "Triple drill power, again"
-            },
-            shouldEarn: () => Decimal.gte(packedPresents.value, 820000) && packingResets.value >= 3,
-            visibility: () => showIf(packingMilestones.paperBoost2.earned.value)
-        })),
-        clothBoost2: createMilestone(() => ({
-            display: {
-                requirement: `8,150,000 ${packedPresents.displayName}`,
-                effectDisplay: "Sheep grow 10x as much wool, again"
-            },
-            shouldEarn: () => Decimal.gte(packedPresents.value, 8150000) && packingResets.value >= 3,
-            visibility: () => showIf(packingMilestones.oilBoost2.earned.value)
-        })),
-        logsBoost2: createMilestone(() => ({
-            display: {
-                requirement: `81,000,000 ${packedPresents.displayName}`,
-                effectDisplay: "Raise tree size to the 1.25th power, again"
-            },
-            shouldEarn: () => Decimal.gte(packedPresents.value, 81000000) && packingResets.value >= 3,
-            visibility: () => showIf(packingMilestones.clothBoost2.earned.value)
-        })),
-        metalBoost2: createMilestone(() => ({
-            display: {
-                requirement: `800,000,000 ${packedPresents.displayName}`,
-                effectDisplay: "Raise ore purity to the 1.5th power, again"
-            },
-            shouldEarn: () => Decimal.gte(packedPresents.value, 800000000) && packingResets.value >= 3,
-            visibility: () => showIf(packingMilestones.logsBoost2.earned.value)
-        }))
+        // todo: something
     };
     const { collapseMilestones, display: milestonesDisplay } =
         createCollapsibleMilestones(packingMilestones);

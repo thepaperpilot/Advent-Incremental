@@ -439,6 +439,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Sunshine Wrapping Paper",
             enabled: () => Decimal.gte(wrappingPaper.boosts.sunshine1.value, 2)
         })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 10,
+            description: "199,000,000 Presents Packed",
+            enabled: packing.packingMilestones.paperBoost.earned
+        })),
         reindeer.reindeer.prancer.modifier
     ]) as WithRequired<Modifier, "description" | "revert">;
     const ashCost = createSequentialModifier(() => [

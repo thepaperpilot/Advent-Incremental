@@ -39,6 +39,7 @@ import wrappingPaper from "./wrapping-paper";
 import toys from "./toys";
 import reindeer from "./reindeer";
 import sleigh from "./sleigh";
+import packing from "./packing"
 
 const id = "metal";
 const day = 7;
@@ -117,6 +118,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             exponent: 1.2,
             description: "100% Sleigh Fixed",
             enabled: sleigh.milestones.milestone8.earned
+        })),
+        createExponentialModifier(() => ({
+            exponent: 1.5,
+            description: "69,200 Presents Packed",
+            enabled: packing.packingMilestones.metalBoost.earned
         }))
     ]);
     const computedOrePurity = computed(() => orePurity.apply(0.1));
@@ -375,6 +381,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createMultiplicativeModifier(() => ({
             multiplier: computedOreSpeed
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: computedOreSpeed,
+            description: "1,670,000 Presents Packed",
+            enabled: packing.packingMilestones.oreBoost.earned
         }))
     ]);
     const computedOreGain = computed(() => oreGain.apply(0));

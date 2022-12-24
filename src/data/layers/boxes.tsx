@@ -36,6 +36,7 @@ import reindeer from "./reindeer";
 import trees from "./trees";
 import workshop from "./workshop";
 import wrappingPaper from "./wrapping-paper";
+import packing from "./packing";
 
 export type BoxesBuyable = ElfBuyable & {
     resource: Resource;
@@ -58,11 +59,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: workshop.milestones.extraExpansionMilestone5.earned
         })),
         reindeer.reindeer.vixen.modifier,
+        createMultiplicativeModifier(() => ({
+            multiplier: 1.1,
+            description: "120 Presents Packed",
+            enabled: packing.packingMilestones.boxBoost.earned
+        })),
         createExponentialModifier(() => ({
             exponent: 1.1,
             description: "Bell Level 2",
             enabled: management.elfTraining.boxElfTraining.milestones[1].earned
-        }))
+        })),
+        
     ]) as WithRequired<Modifier, "description" | "revert">;
 
     const boxesConversion = createCumulativeConversion(() => ({

@@ -44,6 +44,7 @@ import plastic from "./plastic";
 import reindeer from "./reindeer";
 import trees from "./trees";
 import wrappingPaper from "./wrapping-paper";
+import packing from "./packing";
 
 interface BetterFertilizerUpgOptions {
     canAfford: () => boolean;
@@ -237,10 +238,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
             if (Decimal.gte(v, 10000)) v = Decimal.pow(v, 2).div(10000);
             v = Decimal.pow(0.95, paper.books.kilnBook.totalAmount.value).times(v);
-            return Decimal.pow(1.1, v).times(1e7);
+            return Decimal.pow(packing.packingMilestones.coalBoost.earned.value ? 1.05 : 1.1, v).times(1e7);
         },
         inverseCost(x: DecimalSource) {
-            let v = Decimal.div(x, 1e7).log(1.1);
+            let v = Decimal.div(x, 1e7).log(packing.packingMilestones.coalBoost.earned.value ? 1.05 : 1.1);
             v = v.div(Decimal.pow(0.95, paper.books.kilnBook.totalAmount.value));
             if (Decimal.gte(v, 10000)) v = Decimal.mul(v, 10000).root(2);
             if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(2);
@@ -299,7 +300,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
             if (Decimal.gte(v, 10000)) v = Decimal.pow(v, 2).div(10000);
             v = Decimal.pow(0.95, paper.books.coalDrillBook.totalAmount.value).times(v);
-            let cost = Decimal.pow(1.15, v).times(10);
+            let cost = Decimal.pow(packing.packingMilestones.coalBoost.earned.value ? 1.075 : 1.15, v).times(10);
             if (management.elfTraining.fertilizerElfTraining.milestones[2].earned.value) {
                 cost = cost.div(Decimal.add(trees.totalLogs.value, Math.E).ln());
             }
@@ -315,7 +316,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (management.elfTraining.fertilizerElfTraining.milestones[2].earned.value) {
                 x = Decimal.mul(x, Decimal.add(trees.totalLogs.value, Math.E).ln());
             }
-            let v = Decimal.div(x, 10).log(1.15);
+            let v = Decimal.div(x, 10).log(packing.packingMilestones.coalBoost.earned.value ? 1.075 : 1.15);
             v = v.div(Decimal.pow(0.95, paper.books.coalDrillBook.totalAmount.value));
             if (Decimal.gte(v, 10000)) v = Decimal.mul(v, 10000).root(2);
             if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100).root(2);

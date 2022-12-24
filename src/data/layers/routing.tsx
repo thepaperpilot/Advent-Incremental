@@ -674,6 +674,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         if (Decimal.lt(main.day.value, day)) {
             return;
         }
+        if (citiesCompleted.value >= 100) return;
 
         if (Decimal.gte(newCityProgress.value, 10)) {
             newCityProgress.value = 10;

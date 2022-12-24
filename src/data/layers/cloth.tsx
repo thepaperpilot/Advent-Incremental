@@ -40,6 +40,7 @@ import plastic from "./plastic";
 import reindeer from "./reindeer";
 import trees from "./trees";
 import workshop from "./workshop";
+import packing from "./packing"
 
 const id = "cloth";
 const day = 8;
@@ -497,6 +498,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: dyes.boosts.yellow2,
             description: "Yellow Dye",
             enabled: dyes.masteryEffectActive
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 10,
+            description: "600 Presents Packed",
+            enabled: packing.packingMilestones.clothBoost.earned
         })),
         reindeer.reindeer.cupid.modifier
     ]) as WithRequired<Modifier, "description" | "revert">;

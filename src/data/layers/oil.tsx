@@ -44,6 +44,7 @@ import { ElfBuyable } from "./elves";
 import toys from "./toys";
 import factory from "./factory";
 import reindeer from "./reindeer";
+import packing from "./packing"
 
 const id = "oil";
 const day = 9;
@@ -922,6 +923,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: dyes.boosts.red2,
             description: "Red Dye",
             enabled: dyes.masteryEffectActive
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 3,
+            description: "2,800 Presents Packaged",
+            enabled: packing.packingMilestones.oilBoost.earned
         })),
         createExponentialModifier(() => ({
             exponent: 1.2,

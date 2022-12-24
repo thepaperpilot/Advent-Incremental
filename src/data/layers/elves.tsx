@@ -757,7 +757,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 onPurchase() {
                     options.onPurchase?.();
                     if (
-                        !["Peppermint", "Twinkle", "Cocoa", "Frosty", "Carol"].includes(
+                        !["Peppermint", "Twinkle", "Cocoa", "Frosty", "Carol", "Jingle"].includes(
                             options.name
                         )
                     ) {
