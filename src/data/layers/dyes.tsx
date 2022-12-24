@@ -38,7 +38,8 @@ import trees from "./trees";
 import toys from "./toys";
 import factory from "./factory";
 import reindeer from "./reindeer";
-import packing from "./packing"
+import routing from "./routing";
+import packing from "./packing";
 
 interface Dye {
     name: string;
@@ -59,7 +60,15 @@ type DyeUpg =
     | "blueDyeUpg2"
     | "coalUpg";
 
-export type enumColor = "red" | "green" | "blue" | "yellow" | "purple" | "orange" | "black" | "white";
+export type enumColor =
+    | "red"
+    | "green"
+    | "blue"
+    | "yellow"
+    | "purple"
+    | "orange"
+    | "black"
+    | "white";
 
 const id = "dyes";
 const day = 11;
@@ -205,6 +214,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 }))
             );
             modifiers.push(reindeer.reindeer.rudolph.modifier);
+            modifiers.push(
+                createMultiplicativeModifier(() => ({
+                    multiplier: () =>
+                        Object.values(factory.components).reduce(
+                            (x, y) => y + (x.type == "dye" ? 1 : 0),
+                            1
+                        ) as number,
+                    description: "300,000 Cities Solved",
+                    enabled: routing.metaMilestones[4].earned
+                }))
+            );
             return modifiers;
         }) as WithRequired<Modifier, "description" | "revert">;
         const computedToGenerate = computed(() => toGenerate.apply(0));
@@ -730,7 +750,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 .pow(upgrades.coalUpg.bought.value ? 1.2 : 1)
                 .pow(management.elfTraining.clothElfTraining.milestones[3].earned.value ? 1.1 : 1)
         ),
-        purple2: computed(() => Decimal.add(dyes.purple.amount.value, 1).log2().plus(1).mul(packing.packingMilestones.secondaryDyeBoost.earned.value ? 2 : 1)),
+        purple2: computed(() =>
+            Decimal.add(dyes.purple.amount.value, 1)
+                .log2()
+                .plus(1)
+                .mul(packing.packingMilestones.secondaryDyeBoost.earned.value ? 2 : 1)
+        ),
         black1: computed(() =>
             Decimal.pow(2, Decimal.add(dyes.black.amount.value, 1).log2().sqrt())
                 .pow(upgrades.coalUpg.bought.value ? 1.2 : 1)

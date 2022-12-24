@@ -33,11 +33,13 @@ import { computed, ref, unref } from "vue";
 import boxes from "./boxes";
 import dyes from "./dyes";
 import { ElfBuyable } from "./elves";
+import factory from "./factory";
 import management from "./management";
 import metal from "./metal";
 import paper from "./paper";
 import plastic from "./plastic";
 import reindeer from "./reindeer";
+import routing from "./routing";
 import trees from "./trees";
 import workshop from "./workshop";
 import packing from "./packing"
@@ -550,7 +552,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Yellow Dye",
             enabled: dyes.masteryEffectActive
         })),
-        reindeer.reindeer.cupid.modifier
+        reindeer.reindeer.cupid.modifier,
+        createMultiplicativeModifier(() => ({
+            multiplier: () =>
+                Object.values(factory.components).reduce(
+                    (x, y) => y + (x.type == "cloth" ? 1 : 0),
+                    1
+                ) as number,
+            description: "300,000 Cities Solved",
+            enabled: routing.metaMilestones[4].earned
+        }))
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedSpinningAmount = computed(() => spinningAmount.apply(1));
     const spinningCooldown = createSequentialModifier(() => []);

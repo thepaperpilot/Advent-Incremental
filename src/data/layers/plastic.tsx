@@ -39,6 +39,8 @@ import workshop from "./workshop";
 import toys from "./toys";
 import reindeer from "./reindeer";
 import sleigh from "./sleigh";
+import factory from "./factory";
+import routing from "./routing";
 
 const id = "plastic";
 const day = 10;
@@ -323,9 +325,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createAdditiveModifier(() => ({
             addend: () =>
-            management.elfTraining.oilElfTraining.milestones[3].earned.value
-                ? Decimal.times(Decimal.div(sleigh.sleighProgress.value.value,2).floor(), 200)
-                : Decimal.times(activeRefinery.value, 40),
+                management.elfTraining.oilElfTraining.milestones[3].earned.value
+                    ? Decimal.times(Decimal.div(sleigh.sleighProgress.value.value, 2).floor(), 200)
+                    : Decimal.times(activeRefinery.value, 40),
             description: "75% Sleigh Fixed",
             enabled: sleigh.milestones.milestone7.earned
         })),
@@ -395,7 +397,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "White Dye Boost"
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.div(sleigh.sleighProgress.value.value, 5).floor().mul(0.05).add(1),
+            multiplier: () =>
+                Decimal.div(sleigh.sleighProgress.value.value, 5).floor().mul(0.05).add(1),
             description: "20% Sleigh Fixed",
             enabled: sleigh.milestones.milestone3.earned
         })),
@@ -404,7 +407,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "40% Sleigh Fixed",
             enabled: sleigh.milestones.milestone5.earned
         })),
-        reindeer.reindeer.blitzen.modifier
+        reindeer.reindeer.blitzen.modifier,
+        createMultiplicativeModifier(() => ({
+            multiplier: () =>
+                Object.values(factory.components).reduce(
+                    (x, y) => y + (x.type == "plastic" ? 1 : 0),
+                    1
+                ) as number,
+            description: "300,000 Cities Solved",
+            enabled: routing.metaMilestones[4].earned
+        }))
     ]);
     const computedPlasticGain = computed(() => plasticGain.apply(0));
 

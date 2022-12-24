@@ -36,6 +36,7 @@ import "./styles/management.css";
 import { Resource } from "features/resources/resource";
 import { isArray } from "@vue/shared";
 import { createTab } from "features/tabs/tab";
+import routing from "./routing";
 import packing from "./packing";
 import elves from "./elves";
 
@@ -203,7 +204,7 @@ const layer = createLayer(id, () => {
         const expRequiredForNextLevel = computed(() => Decimal.pow(5, level.value).mul(costBase));
         const level = computed(() =>
             Decimal.affordGeometricSeries(exp.value, costBase, 5, 0)
-                .min(schools.amount.value)
+                .min(routing.metaMilestones[1].earned.value ? Infinity : schools.amount.value)
                 .toNumber()
         );
         const expToNextLevel = computed(() =>
@@ -231,9 +232,13 @@ const layer = createLayer(id, () => {
                 animation: focusTargets.value[elf.name] ? ".5s focused-xp-bar linear infinite" : ""
             }),
             borderStyle: () =>
-                Decimal.gte(level.value, schools.amount.value) ? "border-color: red" : "",
+                !routing.metaMilestones[1].earned.value &&
+                Decimal.gte(level.value, schools.amount.value)
+                    ? "border-color: red"
+                    : "",
             progress: () => Decimal.div(expToNextLevel.value, expRequiredForNextLevel.value),
             display: jsx(() =>
+                !routing.metaMilestones[1].earned.value &&
                 Decimal.gte(level.value, schools.amount.value) ? (
                     <>Limit reached</>
                 ) : (
@@ -270,7 +275,8 @@ const layer = createLayer(id, () => {
                     <>
                         {elf.name} can buy buyables {formatWhole(elf.computedAutoBuyCooldown.value)}{" "}
                         times per second, gaining{" "}
-                        {Decimal.gte(level.value, schools.amount.value)
+                        {!routing.metaMilestones[1].earned.value &&
+                        Decimal.gte(level.value, schools.amount.value)
                             ? 0
                             : format(
                                   Decimal.mul(
@@ -1157,10 +1163,15 @@ const layer = createLayer(id, () => {
                 requirement: "Jingle Level 2",
                 effectDisplay: jsx(() => (
                     <>
-                        Each elf assistant increases packing speed by 10%<br />
-                        Currently: +{formatWhole(Decimal.times(packing.helpers.elf.amount.value, 0.1).times(100))}%
+                        Each elf assistant increases packing speed by 10%
+                        <br />
+                        Currently: +
+                        {formatWhole(
+                            Decimal.times(packing.helpers.elf.amount.value, 0.1).times(100)
+                        )}
+                        %
                     </>
-                ))  
+                ))
             },
             shouldEarn: () => packingElfTraining.level.value >= 2,
             visibility: () => showIf(packingElfMilestones[0].earned.value)
@@ -1170,8 +1181,15 @@ const layer = createLayer(id, () => {
                 requirement: "Jingle Level 3",
                 effectDisplay: jsx(() => (
                     <>
-                        Multiply packing speed by the number of completed packing milestones<br />
-                        Currently: {formatWhole(Object.values(packing.packingMilestones).filter(milestone => milestone.earned.value).length+1)}x
+                        Multiply packing speed by the number of completed packing milestones
+                        <br />
+                        Currently:{" "}
+                        {formatWhole(
+                            Object.values(packing.packingMilestones).filter(
+                                milestone => milestone.earned.value
+                            ).length + 1
+                        )}
+                        x
                     </>
                 ))
             },
@@ -1278,7 +1296,7 @@ const layer = createLayer(id, () => {
     const packingElfTraining = createElfTraining(elves.elves.packingElf, packingElfMilestones);
     const row5Elves = [coalDrillElfTraining, heavyDrillElfTraining, oilElfTraining];
     const row6Elves = [metalElfTraining, dyeElfTraining, plasticElfTraining];
-    const row7Elves = [packingElfTraining]
+    const row7Elves = [packingElfTraining];
     const elfTraining = {
         cutterElfTraining,
         planterElfTraining,
@@ -1342,7 +1360,10 @@ const layer = createLayer(id, () => {
             const times = Math.floor(elf.amountOfTimesDone.value);
             if (times >= 1) {
                 elf.amountOfTimesDone.value -= times;
-                if (Decimal.lt(elf.level.value, schools.amount.value))
+                if (
+                    routing.metaMilestones[1].earned.value ||
+                    Decimal.lt(elf.level.value, schools.amount.value)
+                )
                     elf.exp.value = Decimal.mul(elf.elfXPGainComputed.value, times).add(
                         elf.exp.value
                     );

@@ -8,9 +8,10 @@ import { createCollapsibleMilestones, createCollapsibleModifierSections } from "
 import { main } from "data/projEntry";
 import { createBar, GenericBar } from "features/bars/bar";
 import { BoardNode, BoardNodeLink, createBoard, Shape } from "features/boards/board";
+import { createBuyable, GenericBuyable } from "features/buyable";
 import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
-import { createMilestone } from "features/milestones/milestone";
+import { createMilestone, GenericMilestone } from "features/milestones/milestone";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource } from "features/resources/resource";
 import { globalBus } from "game/events";
@@ -19,14 +20,19 @@ import {
     createAdditiveModifier,
     createExponentialModifier,
     createMultiplicativeModifier,
-    createSequentialModifier
+    createSequentialModifier,
+    Modifier
 } from "game/modifiers";
-import { persistent } from "game/persistence";
+import { DefaultValue, persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
-import { Direction } from "util/common";
+import { Direction, WithRequired } from "util/common";
 import { render, renderRow } from "util/vue";
 import { computed, ComputedRef, ref, unref, watchEffect } from "vue";
+import factory from "./factory";
+import management from "./management";
+import metal from "./metal";
 import "./styles/routing.css";
+import Fraction from "components/math/Fraction.vue";
 
 const alpha = [
     "A",
@@ -63,9 +69,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Routing";
     const color = "navajowhite";
 
-    const citiesGoal = 10;
+    const citiesGoal = 5000000;
 
-    const citiesCompleted = createResource<DecimalSource>(0, "countries solved");
+    const citiesCompleted = createResource<DecimalSource>(0, "cities solved");
     const currentCity = persistent<number[][]>([]);
     const routeIndex = persistent<number>(0);
     const checkRouteProgress = persistent<number>(0);
@@ -143,35 +149,37 @@ const layer = createLayer(id, function (this: BaseLayer) {
     function stringifyRoute(route: number[]) {
         return route
             .map(h => (city.types.house.title as (node: BoardNode) => string)(city.nodes.value[h]))
-            .join("->");
+            .join(" > ");
     }
 
     function generateCity() {
-        const numHouses = new Decimal(computedHouses.value).clampMin(3).toNumber();
-        const min = computedMinWeight.value;
-        const max = milestone6.earned.value ? min : computedMaxWeight.value;
-        const diff = Decimal.sub(max, min);
-        const city: number[][] = [];
-        for (let i = 0; i < numHouses; i++) {
-            const house: number[] = [];
-            for (let j = 0; j < numHouses; j++) {
-                if (i === j) {
-                    house.push(0);
-                } else if (j < i) {
-                    house.push(city[j][i]);
-                } else {
-                    house.push(Decimal.times(diff, Math.random()).add(min).floor().toNumber());
+        if (Decimal.lte(citiesCompleted.value, 50)) {
+            const numHouses = new Decimal(computedHouses.value).clampMin(3).toNumber();
+            const min = computedMinWeight.value;
+            const max = milestone6.earned.value ? min : computedMaxWeight.value;
+            const diff = Decimal.sub(max, min);
+            const city: number[][] = [];
+            for (let i = 0; i < numHouses; i++) {
+                const house: number[] = [];
+                for (let j = 0; j < numHouses; j++) {
+                    if (i === j) {
+                        house.push(0);
+                    } else if (j < i) {
+                        house.push(city[j][i]);
+                    } else {
+                        house.push(Decimal.times(diff, Math.random()).add(min).floor().toNumber());
+                    }
                 }
+                city.push(house);
             }
-            city.push(house);
+            currentCity.value = city;
+            routeIndex.value = 0;
+            redundanciesRemoved.value = Decimal.gte(citiesCompleted.value, 7)
+                ? Decimal.factorial(currentCity.value.length).div(2).toNumber()
+                : 0;
+            routesToSkip.value = [];
+            getNextRoute();
         }
-        currentCity.value = city;
-        routeIndex.value = 0;
-        redundanciesRemoved.value = Decimal.gte(citiesCompleted.value, 7)
-            ? Decimal.factorial(currentCity.value.length).div(2).toNumber()
-            : 0;
-        routesToSkip.value = [];
-        getNextRoute();
     }
 
     function getNextRoute() {
@@ -208,7 +216,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         display: {
             description: jsx(() => (
                 <>
-                    Generate New Country
+                    Generate New City
                     <br />
                     {render(newCityProgressBar)}
                 </>
@@ -342,12 +350,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         width: "600px",
         height: "600px",
-        style: {
-            background: "var(--raised-background)",
-            borderRadius: "var(--border-radius) var(--border-radius) 0 0",
-            boxShadow: "0 2px 10px rgb(0 0 0 / 50%)"
-        },
         state: computed(() => {
+            if (Decimal.gte(citiesCompleted.value, 50))
+                return {
+                    nodes: [],
+                    selectedNode: null,
+                    selectedAction: null
+                };
             const nodes: BoardNode[] = [];
             const city = currentCity.value;
             const rows = Math.ceil(Math.sqrt(city.length));
@@ -373,6 +382,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             };
         }),
         links() {
+            if (Decimal.gte(citiesCompleted.value, 15)) return [];
             const links: BoardNodeLink[] = [];
             const route = currentRoute.value;
             if (route == null) {
@@ -432,6 +442,44 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
 
+    const checkCityProgressBar = createBar(() => ({
+        direction: Direction.Right,
+        width: 597,
+        height: 24,
+        style: {
+            borderRadius: "var(--border-radius) var(--border-radius) 0 0",
+            background: "var(--raised-background)",
+            marginBottom: "-24px"
+        },
+        borderStyle: {
+            borderRadius: "var(--border-radius) var(--border-radius) 0 0",
+            borderColor: "transparent",
+            marginBottom: "unset"
+        },
+        fillStyle: {
+            background: "black",
+            marginBottom: "unset"
+        },
+        progress() {
+            return Decimal.div(
+                routeIndex.value,
+                typeof currentRoutes.value == "number"
+                    ? Math.floor(currentRoutes.value)
+                    : currentRoutes.value.length
+            );
+        },
+        display: jsx(() => (
+            <>
+                {formatWhole(Math.floor(routeIndex.value))} /{" "}
+                {formatWhole(
+                    typeof currentRoutes.value == "number"
+                        ? Math.floor(currentRoutes.value)
+                        : currentRoutes.value.length
+                )}
+            </>
+        ))
+    }));
+
     const checkRouteProgressBar = createBar(() => ({
         direction: Direction.Right,
         width: 597,
@@ -443,7 +491,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         borderStyle: {
             borderRadius: "0 0 var(--border-radius) var(--border-radius)",
-            borderColor: "var(--outline)",
+            borderColor: "transparent",
             marginTop: "unset"
         },
         fillStyle: {
@@ -455,15 +503,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         display: jsx(() => (
             <>
-                {Math.floor(checkRouteProgress.value)}/{currentRouteDuration.value}
+                {formatWhole(Math.floor(checkRouteProgress.value))} /{" "}
+                {formatWhole(currentRouteDuration.value)}
             </>
         ))
     }));
 
     const milestone1 = createMilestone(() => ({
         display: {
-            requirement: "1 Country Solved",
-            effectDisplay: "Each country solved doubles manual and auto processing speed"
+            requirement: "1 City Solved",
+            effectDisplay: "Each city solved doubles manual and auto processing speed"
         },
         shouldEarn() {
             return Decimal.gte(citiesCompleted.value, 1);
@@ -471,9 +520,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const milestone2 = createMilestone(() => ({
         display: {
-            requirement: "2 Countries Solved",
+            requirement: "2 Cities Solved",
             effectDisplay:
-                "Manually checking routes does additional work based on number of routes checked in this country"
+                "Manually checking routes does additional work based on number of routes checked in this city"
         },
         shouldEarn() {
             return Decimal.gte(citiesCompleted.value, 2);
@@ -482,9 +531,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const milestone3 = createMilestone(() => ({
         display: {
-            requirement: "3 Countries Solved",
+            requirement: "3 Cities Solved",
             effectDisplay:
-                "Each country solved makes the cooldown for removing a redundant route 25% shorter"
+                "Each city solved makes the cooldown for removing a redundant route 25% shorter"
         },
         shouldEarn() {
             return Decimal.gte(citiesCompleted.value, 3);
@@ -493,9 +542,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const milestone4 = createMilestone(() => ({
         display: {
-            requirement: "4 Countries Solved",
+            requirement: "4 Cities Solved",
             effectDisplay:
-                "Automatic processing speed is multiplied by the amount of redundant routes removed from this country"
+                "Automatic processing speed is multiplied by the amount of redundant routes removed from this city"
         },
         shouldEarn() {
             return Decimal.gte(citiesCompleted.value, 4);
@@ -504,8 +553,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const milestone5 = createMilestone(() => ({
         display: {
-            requirement: "5 Countries Solved",
-            effectDisplay: "Remove 1 city"
+            requirement: "5 Cities Solved",
+            effectDisplay: "Remove 1 city from the map"
         },
         shouldEarn() {
             return Decimal.gte(citiesCompleted.value, 5);
@@ -517,7 +566,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const milestone6 = createMilestone(() => ({
         display: {
-            requirement: "6 Countries Solved",
+            requirement: "6 Cities Solved",
             effectDisplay:
                 "Lower max weight to the min weight, and uncap amount of routes that can be checked per tick"
         },
@@ -528,7 +577,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const milestone7 = createMilestone(() => ({
         display: {
-            requirement: "7 Countries Solved",
+            requirement: "7 Cities Solved",
             effectDisplay: "All redundancies are removed"
         },
         shouldEarn() {
@@ -548,14 +597,206 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const { collapseMilestones, display: milestonesDisplay } =
         createCollapsibleMilestones(milestones);
 
+    // ---------------------------------------------------- Meta stuff
+
+    const metaBuyables = {
+        metal: createBuyable(() => ({
+            resName: "Metal",
+            resource: metal.metal,
+            cost() {
+                const amount = Decimal.mul(this.amount.value, 1.05);
+                return Decimal.pow(5, amount).mul(1e83).div(Decimal.max(citiesCompleted.value, 1));
+            },
+            display: jsx(() => (
+                <>
+                    Upgrade computer
+                    <br />
+                    for {formatWhole(unref(metaBuyables.metal.cost ?? 0))} metal
+                    <br />
+                    Currently +{formatWhole(Decimal.mul(metaBuyables.metal.amount.value, 10))}%
+                </>
+            )),
+            style: "width: 150px; min-height: 60px"
+        })),
+        console: createBuyable(() => ({
+            resName: "Game Console",
+            resource: factory.consoles,
+            cost() {
+                const amount = Decimal.mul(this.amount.value, 1.15);
+                return Decimal.pow(1.2, amount)
+                    .mul(1e11)
+                    .div(Decimal.max(citiesCompleted.value, 1));
+            },
+            display: jsx(() => (
+                <>
+                    Upgrade computer
+                    <br />
+                    for {formatWhole(unref(metaBuyables.console.cost ?? 0))} game consoles
+                    <br />
+                    Currently +{formatWhole(Decimal.mul(metaBuyables.console.amount.value, 10))}%
+                </>
+            )),
+            style: "width: 150px; min-height: 60px"
+        })),
+        classroom: createBuyable(() => ({
+            resName: "Classroom",
+            cost() {
+                const amount = Decimal.mul(this.amount.value, 1.25);
+                return Decimal.pow(1.2, amount)
+                    .mul(1e6)
+                    .div(Decimal.max(citiesCompleted.value, 1).pow(0.5));
+            },
+            canPurchase() {
+                return Decimal.gte(
+                    management.classrooms.amount.value,
+                    unref(metaBuyables.classroom.cost ?? 0)
+                );
+            },
+            onPurchase() {
+                management.classrooms.amount.value = Decimal.sub(
+                    management.classrooms.amount.value,
+                    unref(metaBuyables.classroom.cost ?? 0)
+                );
+                this.amount.value = Decimal.add(this.amount.value, 1);
+            },
+            display: jsx(() => (
+                <>
+                    Upgrade computer
+                    <br />
+                    for {formatWhole(unref(metaBuyables.classroom.cost ?? 0))} classrooms
+                    <br />
+                    Currently +{formatWhole(Decimal.mul(metaBuyables.classroom.amount.value, 10))}%
+                </>
+            )),
+            style: "width: 150px; min-height: 60px"
+        })),
+        tick: createBuyable(() => ({
+            resName: "Factory Tick Rate",
+            cost() {
+                const amount = Decimal.mul(this.amount.value, 1.15);
+                return Decimal.pow(1.5, amount)
+                    .mul(5e6)
+                    .div(Decimal.max(citiesCompleted.value, 1).pow(0.5));
+            },
+            canPurchase() {
+                return Decimal.gte(
+                    factory.computedTickRate.value,
+                    unref(metaBuyables.tick.cost ?? 0)
+                );
+            },
+            onPurchase() {
+                this.amount.value = Decimal.add(this.amount.value, 1);
+            },
+            display: jsx(() => (
+                <>
+                    Upgrade computer
+                    <br />
+                    for {formatWhole(unref(metaBuyables.tick.cost ?? 0))} factory tick rate
+                    <br />
+                    Currently +{formatWhole(Decimal.mul(metaBuyables.tick.amount.value, 10))}%
+                </>
+            )),
+            style: "width: 150px; min-height: 60px"
+        }))
+    } as Record<string, GenericBuyable & { resName: string }>;
+
+    const metaMilestones = {
+        0: createMilestone(() => ({
+            display: {
+                requirement: "1000 Cities Solved",
+                effectDisplay: "Each city generates 1 classroom per minute"
+            },
+            shouldEarn() {
+                return Decimal.gte(citiesCompleted.value, 1000);
+            }
+        })),
+        1: createMilestone(() => ({
+            display: {
+                requirement: "5000 Cities Solved",
+                effectDisplay:
+                    "Elves can learn past level 5 and gain 0.1 base city solved per second for each level elves learnt"
+            },
+            shouldEarn() {
+                return Decimal.gte(citiesCompleted.value, 5000);
+            },
+            visibility: () => showIf(metaMilestones[0].earned.value)
+        })),
+        2: createMilestone(() => ({
+            display: {
+                requirement: "25,000 Cities Solved",
+                effectDisplay: jsx(() => (
+                    <>
+                        Multiply factory tick rate by log<sub>10</sub>(cities solved) - 3
+                    </>
+                ))
+            },
+            shouldEarn() {
+                return Decimal.gte(citiesCompleted.value, 25000);
+            },
+            visibility: () => showIf(metaMilestones[1].earned.value)
+        })),
+        3: createMilestone(() => ({
+            display: {
+                requirement: "80,000 Cities Solved",
+                effectDisplay: "Multiply game console production by 6"
+            },
+            shouldEarn() {
+                return Decimal.gte(citiesCompleted.value, 80000);
+            },
+            visibility: () => showIf(metaMilestones[2].earned.value)
+        })),
+        4: createMilestone(() => ({
+            display: {
+                requirement: "300,000 Cities Solved",
+                effectDisplay:
+                    "Multiply the amount of factory input resources by the amount of their corresponding warehouses appeared in the factory, plus 1"
+            },
+            shouldEarn() {
+                return Decimal.gte(citiesCompleted.value, 300000);
+            },
+            visibility: () => showIf(metaMilestones[3].earned.value)
+        })),
+        5: createMilestone(() => ({
+            display: {
+                requirement: "600,000 Cities Solved",
+                effectDisplay:
+                    "Unlocks a button to let you fill the remaining empty spaces in the factory with warehouses, useful for the previous milestone"
+            },
+            shouldEarn() {
+                return Decimal.gte(citiesCompleted.value, 600000);
+            },
+            visibility: () => showIf(metaMilestones[4].earned.value)
+        })),
+        6: createMilestone(() => ({
+            display: {
+                requirement: "1,000,000 Cities Solved",
+                effectDisplay: jsx(() => (
+                    <>
+                        Increases base city solving speed by{" "}
+                        <Fraction>
+                            <div>factory tick rate</div>
+                            <div>1000</div>
+                        </Fraction>
+                    </>
+                ))
+            },
+            shouldEarn() {
+                return Decimal.gte(citiesCompleted.value, 1000000);
+            },
+            visibility: () => showIf(metaMilestones[5].earned.value)
+        }))
+    } as Record<number, GenericMilestone>;
+    const { collapseMilestones: collapseMetaMilestones, display: metaMilestonesDisplay } =
+        createCollapsibleMilestones(metaMilestones);
+
     const houses = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: citiesCompleted,
-            description: "Countries Completed"
+            description: "Cities Completed"
         })),
         createAdditiveModifier(() => ({
             addend: -1,
-            description: "5 Countries Completed",
+            description: "5 Cities Completed",
             enabled: milestone5.earned
         }))
     ]);
@@ -563,18 +804,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const maxWeight = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: () => Decimal.pow(citiesCompleted.value, 1.1),
-            description: "Countries Completed"
+            description: "Cities Completed"
         }))
     ]);
     const computedMaxWeight = computed(() => maxWeight.apply(10));
     const minWeight = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: citiesCompleted,
-            description: "Countries Completed"
+            description: "Cities Completed"
         })),
         createExponentialModifier(() => ({
             exponent: 3,
-            description: "Countries Completed",
+            description: "Cities Completed",
             enabled: milestone7.earned
         }))
     ]);
@@ -582,7 +823,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const manualBoost = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             addend: () => Decimal.add(routeIndex.value, 1).sqrt(),
-            description: "2 Countries Solved",
+            description: "2 Cities Solved",
             enabled: milestone2.earned
         }))
     ]);
@@ -590,7 +831,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const manualCooldown = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.pow(0.5, citiesCompleted.value),
-            description: "1 Country Solved",
+            description: "1 City Solved",
             enabled: milestone1.earned
         }))
     ]);
@@ -598,7 +839,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const redundantCooldown = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.pow(0.75, citiesCompleted.value),
-            description: "3 Countries Solved",
+            description: "3 Cities Solved",
             enabled: milestone3.earned
         }))
     ]);
@@ -606,56 +847,89 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const autoProcessing = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.pow(2, citiesCompleted.value),
-            description: "1 Country Solved",
+            description: "1 City Solved",
             enabled: milestone1.earned
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.add(redundanciesRemoved.value, 1),
-            description: "4 Countries Solved",
+            description: "4 Cities Solved",
             enabled: milestone4.earned
         }))
     ]);
     const computedAutoProcessing = computed(() => autoProcessing.apply(1));
+    const metaSolvingSpeed = createSequentialModifier(() => [
+        createAdditiveModifier(() => ({
+            addend: () => Decimal.div(management.totalElfLevels.value, 10),
+            description: "5000 Cities Solved",
+            enabled: metaMilestones[1].earned
+        })),
+        createAdditiveModifier(() => ({
+            addend: () => Decimal.div(factory.computedTickRate.value, 1000),
+            description: "1,000,000 Cities Solved",
+            enabled: metaMilestones[1].earned
+        })),
+        ...Object.values(metaBuyables).map(x =>
+            createMultiplicativeModifier(() => ({
+                multiplier: () => Decimal.div(x.amount.value, 10).add(1),
+                description: x.resName + " Upgrade",
+                enabled: () => Decimal.gte(x.amount.value, 1)
+            }))
+        )
+    ]) as WithRequired<Modifier, "description">;
+    const computedMetaSolvingSpeed = computed(() => metaSolvingSpeed.apply(20));
 
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
         {
-            title: "Cities/country",
+            title: "Houses per City",
             modifier: houses,
-            base: 3
+            base: 3,
+            visible: () => Decimal.lte(citiesCompleted.value, 50)
         },
         {
             title: () => (milestone6.earned.value ? "Weight" : "Minimum Weight"),
             modifier: minWeight,
-            base: 2
+            base: 2,
+            visible: () => Decimal.lte(citiesCompleted.value, 50)
         },
         {
             title: "Maximum Weight",
             modifier: maxWeight,
             base: 10,
-            visible: () => !milestone6.earned.value
+            visible: () => !milestone6.earned.value && Decimal.lte(citiesCompleted.value, 50)
         },
         {
             title: "Manual Processing Amount",
             modifier: manualBoost,
-            base: 1
+            base: 1,
+            visible: () => Decimal.lte(citiesCompleted.value, 50)
         },
         {
             title: "Manual Processing Cooldown",
             modifier: manualCooldown,
             base: 1,
-            unit: "s"
+            unit: "s",
+            visible: () => Decimal.lte(citiesCompleted.value, 50)
         },
         {
             title: "Remove Redundant Route Cooldown",
             modifier: redundantCooldown,
             base: 10,
-            unit: "s"
+            unit: "s",
+            visible: () => Decimal.lte(citiesCompleted.value, 50)
         },
         {
             title: "Auto Processing Speed",
             modifier: autoProcessing,
             base: 1,
-            unit: "/s"
+            unit: "/s",
+            visible: () => Decimal.lte(citiesCompleted.value, 50)
+        },
+        {
+            title: "Post-Inflation Solving Speed",
+            modifier: metaSolvingSpeed,
+            base: 20,
+            unit: "/s",
+            visible: () => Decimal.gt(citiesCompleted.value, 50)
         }
     ]);
     const showModifiersModal = ref(false);
@@ -674,55 +948,67 @@ const layer = createLayer(id, function (this: BaseLayer) {
         if (Decimal.lt(main.day.value, day)) {
             return;
         }
-        if (citiesCompleted.value >= 100) return;
+        if (Decimal.lte(citiesCompleted.value, 50)) {
+            if (Decimal.gte(newCityProgress.value, 10)) {
+                newCityProgress.value = 10;
+            } else {
+                newCityProgress.value = Decimal.add(newCityProgress.value, diff);
+                if (getNewCity.isHolding.value) {
+                    getNewCity.onClick();
+                }
+            }
 
-        if (Decimal.gte(newCityProgress.value, 10)) {
-            newCityProgress.value = 10;
+            if (Decimal.gte(boostProgress.value, computedManualCooldown.value)) {
+                boostProgress.value = computedManualCooldown.value;
+            } else {
+                boostProgress.value = Decimal.add(boostProgress.value, diff);
+                if (boost.isHolding.value) {
+                    boost.onClick();
+                }
+            }
+
+            if (Decimal.gte(redundantProgress.value, computedRedundantCooldown.value)) {
+                redundantProgress.value = computedRedundantCooldown.value;
+            } else {
+                redundantProgress.value = Decimal.add(redundantProgress.value, diff);
+                if (removeRedundantRoute.isHolding.value) {
+                    removeRedundantRoute.onClick();
+                }
+            }
+
+            checkRouteProgress.value = Decimal.times(diff, computedAutoProcessing.value)
+                .add(checkRouteProgress.value)
+                .toNumber();
+            if (checkRouteProgress.value > currentRouteDuration.value) {
+                const overflow = checkRouteProgress.value - currentRouteDuration.value;
+                routeIndex.value++;
+                if (milestone6.earned.value && currentRoute.value != null) {
+                    const length =
+                        typeof currentRoute.value === "number"
+                            ? currentRoute.value
+                            : currentRoute.value.length;
+                    const extraRoutes = Decimal.div(
+                        overflow,
+                        Decimal.times(length, computedMinWeight.value)
+                    )
+                        .floor()
+                        .toNumber();
+                    routeIndex.value += extraRoutes;
+                }
+                getNextRoute();
+            }
         } else {
-            newCityProgress.value = Decimal.add(newCityProgress.value, diff);
-            if (getNewCity.isHolding.value) {
-                getNewCity.onClick();
-            }
-        }
+            citiesCompleted.value = Decimal.add(
+                citiesCompleted.value,
+                Decimal.times(computedMetaSolvingSpeed.value, diff)
+            ).min(5000000);
 
-        if (Decimal.gte(boostProgress.value, computedManualCooldown.value)) {
-            boostProgress.value = computedManualCooldown.value;
-        } else {
-            boostProgress.value = Decimal.add(boostProgress.value, diff);
-            if (boost.isHolding.value) {
-                boost.onClick();
+            if (metaMilestones[0].earned.value) {
+                management.classrooms.amount.value = Decimal.add(
+                    management.classrooms.amount.value,
+                    Decimal.times(citiesCompleted.value, diff).div(60)
+                );
             }
-        }
-
-        if (Decimal.gte(redundantProgress.value, computedRedundantCooldown.value)) {
-            redundantProgress.value = computedRedundantCooldown.value;
-        } else {
-            redundantProgress.value = Decimal.add(redundantProgress.value, diff);
-            if (removeRedundantRoute.isHolding.value) {
-                removeRedundantRoute.onClick();
-            }
-        }
-
-        checkRouteProgress.value = Decimal.times(diff, computedAutoProcessing.value)
-            .add(checkRouteProgress.value)
-            .toNumber();
-        if (checkRouteProgress.value > currentRouteDuration.value) {
-            const overflow = checkRouteProgress.value - currentRouteDuration.value;
-            routeIndex.value++;
-            if (milestone6.earned.value && currentRoute.value != null) {
-                const length =
-                    typeof currentRoute.value === "number"
-                        ? currentRoute.value
-                        : currentRoute.value.length;
-                const extraRoutes = Decimal.div(
-                    overflow,
-                    Decimal.times(length, computedMinWeight.value)
-                )
-                    .floor()
-                    .toNumber();
-                routeIndex.value += extraRoutes;
-            }
-            getNextRoute();
         }
     });
 
@@ -758,16 +1044,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             return "";
         }
         if (typeof currentRoutes.value === "number") {
-            return (
-                <div class="routes-list">
-                    {routeIndex.value > 0 ? (
-                        <div class="checked">{formatWhole(routeIndex.value)} already checked</div>
-                    ) : null}
-                    <div>
-                        {formatWhole(currentRoutes.value - routeIndex.value)} routes left to check
-                    </div>
-                </div>
-            );
+            return <div class="routes-list">&nbsp;</div>;
         }
         if (typeof currentRoutes.value === "number") {
             console.error("Something went horribly wrong");
@@ -775,22 +1052,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
         const routes = currentRoutes.value.slice();
         let showPrevious = false;
-        let showNext = 0;
-        if (routes.length > 6) {
-            routes.splice(0, routeIndex.value);
+        if (routes.length > 25) {
+            routes.splice(0, Math.max(routeIndex.value - 12, 0));
             showPrevious = true;
-            if (routes.length > 6) {
-                showNext = routes.length - 5;
-                routes.splice(5);
+            if (routes.length > 25) {
+                routes.splice(25);
             }
         }
         return (
             <div class="routes-list">
-                {showPrevious && routeIndex.value > 0 ? (
-                    <div class="checked">{formatWhole(routeIndex.value)} already checked</div>
-                ) : null}
                 {routes.map((route, i) => {
-                    const index = i + (showPrevious ? routeIndex.value : 0);
+                    const index = i + (showPrevious ? Math.max(routeIndex.value - 12, 0) : 0);
                     return (
                         <div
                             class={{
@@ -800,13 +1072,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
                                 skipped:
                                     routeIndex.value < index && routesToSkip.value.includes(index)
                             }}
+                            style={{
+                                "--opacity": 1 - Math.abs(index - routeIndex.value) / 13
+                            }}
                         >
                             {stringifyRoute(route)}
                         </div>
                     );
                 })}
-
-                {showNext > 0 ? <div>+ {formatWhole(showNext)} more</div> : null}
             </div>
         );
     }
@@ -828,14 +1101,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
         routesToSkip,
         redundanciesRemoved,
         city,
+        metaBuyables,
         milestones,
         collapseMilestones,
+        metaMilestones,
+        collapseMetaMilestones,
         minWidth: 700,
         display: jsx(() => (
             <>
                 <div>
                     {main.day.value === day
-                        ? `Solve ${formatWhole(citiesGoal)} countries to complete the day`
+                        ? `Solve ${formatWhole(citiesGoal)} cities to complete the day`
                         : `${name} Complete!`}{" "}
                     -{" "}
                     <button
@@ -850,19 +1126,31 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {render(modifiersModal)}
                 <Spacer />
                 <MainDisplay resource={citiesCompleted} color={color} />
-                {renderRow(boost, removeRedundantRoute)}
-                {render(city)}
-                {render(checkRouteProgressBar)}
-                <Spacer />
-                <h3>Checking Routes...</h3>
-                {displayRoutes()}
-                <Spacer />
-                {milestonesDisplay()}
+                {Decimal.lte(citiesCompleted.value, 50) ? (
+                    <>
+                        {renderRow(boost, removeRedundantRoute)}
+                        {render(checkCityProgressBar)}
+                        {displayRoutes()}
+                        {render(city)}
+                        {render(checkRouteProgressBar)}
+                        <Spacer />
+                        {milestonesDisplay()}
+                    </>
+                ) : (
+                    <>
+                        You're solving {formatWhole(computedMetaSolvingSpeed.value)} cities per
+                        second
+                        <Spacer />
+                        {renderRow(...Object.values(metaBuyables))}
+                        <Spacer />
+                        {metaMilestonesDisplay()}
+                    </>
+                )}
             </>
         )),
         minimizedDisplay: jsx(() => (
             <div>
-                {name} <span class="desc">{format(citiesCompleted.value)} countries solved</span>
+                {name} <span class="desc">{formatWhole(citiesCompleted.value)} cities solved</span>
             </div>
         ))
     };

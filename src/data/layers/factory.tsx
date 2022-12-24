@@ -90,6 +90,7 @@ import toys from "./toys";
 import trees from "./trees";
 import workshop from "./workshop";
 import ribbon from "./ribbon";
+import routing from "./routing";
 
 const id = "factory";
 
@@ -235,6 +236,11 @@ const factory = createLayer(id, () => {
             multiplier: 1.5,
             description: "Carry ticks in boxes",
             enabled: () => upgrades[2][3].bought.value
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.max(routing.citiesCompleted.value, 1).log10().sub(3).max(1),
+            description: "25,000 Cities Solved",
+            enabled: routing.metaMilestones[2].earned
         }))
     ]);
     const computedTickRate = computed(() => tickRate.apply(1));
@@ -301,6 +307,15 @@ const factory = createLayer(id, () => {
                     )}
                 </div>
                 <div>
+                    {routing.metaMilestones[5].earned.value ? (
+                        <Tooltip display="Polyfill" direction={Direction.Down}>
+                            <button class="control-btn material-icons" onClick={polyfill}>
+                                format_color_fill
+                            </button>
+                        </Tooltip>
+                    ) : (
+                        ""
+                    )}
                     <Tooltip display="Clear Tracks" direction={Direction.Down}>
                         <button class="control-btn material-icons" onClick={setTracks}>
                             clear
@@ -417,7 +432,7 @@ const factory = createLayer(id, () => {
             imageSrc: _shed,
             extraImage: _wood,
             key: "1",
-            name: "Wood Machine",
+            name: "Wood Warehouse",
             type: "processor",
             description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.wood)),
             energyCost: 10,
@@ -432,7 +447,7 @@ const factory = createLayer(id, () => {
             imageSrc: _shed,
             extraImage: _cloth,
             key: "2",
-            name: "Cloth Machine",
+            name: "Cloth Warehouse",
             type: "processor",
             description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.cloth)),
             energyCost: 10,
@@ -447,7 +462,7 @@ const factory = createLayer(id, () => {
             imageSrc: _shed,
             extraImage: _dye,
             key: "3",
-            name: "Dye Machine",
+            name: "Dye Warehouse",
             type: "processor",
             description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.dye)),
             energyCost: 10,
@@ -462,7 +477,7 @@ const factory = createLayer(id, () => {
             imageSrc: _shed,
             extraImage: _metal,
             key: "4",
-            name: "Metal Machine",
+            name: "Metal Warehouse",
             type: "processor",
             description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.metal)),
             energyCost: 10,
@@ -477,7 +492,7 @@ const factory = createLayer(id, () => {
             imageSrc: _shed,
             extraImage: _plastic,
             key: "5",
-            name: "Plastic Machine",
+            name: "Plastic Warehouse",
             type: "processor",
             description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.plastic)),
             energyCost: 10,
@@ -816,7 +831,11 @@ const factory = createLayer(id, () => {
             },
             outputs: {
                 console: {
-                    amount: computed(() => (upgrades[1][3].bought.value ? 3 : 1)),
+                    amount: computed(
+                        () =>
+                            (upgrades[1][3].bought.value ? 3 : 1) *
+                            (routing.metaMilestones[3].earned.value ? 6 : 1)
+                    ),
                     resource: noPersist(consoles)
                 }
             },
@@ -1238,6 +1257,7 @@ const factory = createLayer(id, () => {
             )),
             showAmount: false
         },
+        purchaseLimit: 12,
         style: "width: 200px",
         visibility: () => showIf(main.days[advancedDay - 1].opened.value)
     })) as GenericBuyable;
@@ -2074,6 +2094,24 @@ const factory = createLayer(id, () => {
         }
     }
 
+    function polyfill() {
+        for (
+            let x = Math.floor(-computedFactorySize.value / 2);
+            x < computedFactorySize.value / 2;
+            x++
+        ) {
+            for (
+                let y = Math.floor(-computedFactorySize.value / 2);
+                y < computedFactorySize.value / 2;
+                y++
+            ) {
+                const t = ["wood", "cloth", "dye", "metal", "plastic"][(((x + y) % 5) + 5) % 5];
+                if (components.value[x + "x" + y] == undefined) {
+                    addFactoryComp(x, y, { type: t });
+                }
+            }
+        }
+    }
     function clearFactory() {
         for (const key of Object.keys(compInternalData)) {
             const [x, y] = key.split("x").map(i => +i);
@@ -2526,6 +2564,7 @@ const factory = createLayer(id, () => {
         generalTabCollapsed,
         hotkeys,
         upgrades,
+        computedTickRate,
         display: jsx(() => (
             <>
                 {render(modifiersModal)}
