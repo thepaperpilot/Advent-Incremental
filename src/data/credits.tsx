@@ -126,8 +126,7 @@ const dayCredits: Credits[] = [
     },
     {
         name: "Routing",
-        creator: "thepaperpilot",
-        help: "ducdat0507"
+        creator: "thepaperpilot, ducdat0507"
     },
     {
         name: "Present Packing",
