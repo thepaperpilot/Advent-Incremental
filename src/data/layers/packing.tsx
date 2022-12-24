@@ -10,7 +10,7 @@ import { createMilestone, GenericMilestone } from "features/milestones/milestone
 import MainDisplayVue from "features/resources/MainDisplay.vue";
 import { createResource, trackBest, trackTotal, Resource } from "features/resources/resource";
 import { createLayer, BaseLayer } from "game/layers";
-import { createSequentialModifier } from "game/modifiers";
+import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
@@ -20,6 +20,10 @@ import metal from "./metal";
 import oil from "./oil";
 import { createCollapsibleMilestones } from "data/common"
 import { globalBus } from "game/events";
+import { createUpgrade } from "features/upgrades/upgrade";
+import { ElfBuyable } from "./elves";
+import management from "./management";
+import paper from "./paper";
 
 const id = "packing"
 const day = 24;
@@ -92,18 +96,65 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const remainingSize = computed(() => Decimal.sub(sledSpace, packedPresentsSize.value));
 
     const elfPackingSpeed = createSequentialModifier(() => [
-
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.pow(0.5, packingResets.value),
+            description: "Better Organization",
+            enabled: () => packingResets.value >= 1
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Jingle Level 1",
+            enabled: management.elfTraining.packingElfTraining.milestones[0].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.times(helpers.elf.amount.value, 0.1).plus(1),
+            description: "Jingle Level 2",
+            enabled: management.elfTraining.packingElfTraining.milestones[1].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => 1 + Object.values(packingMilestones).filter(milestone => milestone.earned).length,
+            description: "Jingle Level 3",
+            enabled: management.elfTraining.packingElfTraining.milestones[2].earned
+        }))
     ]);
     const computedElfPackingSpeed = computed(() => elfPackingSpeed.apply(1));
 
     const loaderPackingSpeed = createSequentialModifier(() => [
-
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.pow(0.5, packingResets.value),
+            description: "Better Organization",
+            enabled: () => packingResets.value >= 1
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "Jingle Level 1",
+            enabled: management.elfTraining.packingElfTraining.milestones[4].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.times(helpers.elf.amount.value, 0.1).plus(1),
+            description: "Jingle Level 2",
+            enabled: management.elfTraining.packingElfTraining.milestones[4].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => 1 + Object.values(packingMilestones).filter(milestone => milestone.earned).length,
+            description: "Jingle Level 3",
+            enabled: management.elfTraining.packingElfTraining.milestones[4].earned
+        }))
     ]);
     const computedLoaderPackingSpeed = computed(() => loaderPackingSpeed.apply(1000));
     const helpers = {
         elf: createBuyable(() => ({
             visibility: () => showIf(Decimal.gte(totalPresents.value, 10)),
-            cost() { return Decimal.pow(1.2, this.amount.value).times(10).floor() },
+            cost() {
+                let v = this.amount.value;
+                v = Decimal.pow(0.95, paper.books.packingBook.totalAmount.value).times(v);
+                return Decimal.pow(1.2, v).times(10).floor()
+            },
+            inverseCost(cost: DecimalSource) {
+                let amount = Decimal.div(cost, 10).log(1.2);
+                amount = amount.div(Decimal.pow(0.95, paper.books.packingBook.totalAmount.value));
+                return Decimal.isNaN(amount) ? Decimal.dZero : amount.floor().max(0);
+            },
             resource: totalPresentsResource,
             display: jsx(() => (
                 <>
@@ -121,12 +172,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         loader: createBuyable(() => ({
-            visibility: () => showIf(false),
-            metalCost: computed(() => Decimal.pow(1.5, helpers.loader.amount.value).times(1e40) ),
-            oilCost: computed(() => Decimal.pow(1.5, helpers.loader.amount.value).times(1e20) ),
+            visibility: () => showIf(upgrades.loaderUnlock.bought.value),
+            metalCost: computed(() => Decimal.pow(1.2, helpers.loader.amount.value).times(1e70) ),
+            oilCost: computed(() => Decimal.pow(1.2, helpers.loader.amount.value).times(1e25) ),
             canPurchase(this: GenericBuyable & {metalCost: ComputedRef<DecimalSource>, oilCost: ComputedRef<DecimalSource>}) {
                 return Decimal.gte(metal.metal.value, this.metalCost.value)
                     && Decimal.gte(oil.oil.value, this.oilCost.value)
+            },
+            inverseCost() {
+                let metalAmount = Decimal.div(metal.metal.value, 1e40).log(1.5);
+                let oilAmount = Decimal.div(oil.oil.value, 1e20).log(1.5);
+                if (Decimal.isNaN(metalAmount) || Decimal.isNaN(oilAmount)) return Decimal.dZero;
+                return Decimal.min(metalAmount, oilAmount).floor().max(0);
             },
             display: jsx(() => (
                 <>
@@ -140,12 +197,40 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         Cost: {displayCost(metal.metal, helpers.loader.metalCost.value, metal.metal.displayName)},
                         {displayCost(oil.oil, helpers.loader.oilCost.value, oil.oil.displayName)}</div>
                 </>
-            ))
+            )),
+            style: {
+                width: "200px"
+            }
         }))
     } as {
-        elf: GenericBuyable,
-        loader: GenericBuyable & {metalCost: ComputedRef<DecimalSource>, oilCost: ComputedRef<DecimalSource>}
+        elf: ElfBuyable,
+        loader: ElfBuyable & {metalCost: ComputedRef<DecimalSource>, oilCost: ComputedRef<DecimalSource>}
     };
+
+    const upgrades = {
+        packingElf: createUpgrade(() => ({
+            display: {
+                title: "An Elf's Elf",
+                description: "Hire an Elf to help you hire more Elves"
+            },
+            cost: 1000,
+            resource: totalPresentsResource,
+            style: {
+                width: "200px"
+            }
+        })),
+        loaderUnlock: createUpgrade(() => ({
+            display: {
+                title: "Heavy Machinery",
+                description: "Those construction vehicles you have from building the workshop should be useful for loading presents too"
+            },
+            cost: 100000,
+            resource: totalPresentsResource,
+            style: {
+                width: "200px"
+            }
+        }))
+    }
 
     const packingMilestones: Record<string, GenericMilestone> = {
         logBoost: createMilestone(() => ({
@@ -353,7 +438,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             gradient: "packing-bar",
             duration: "15s"
         },
-        textColor: "var(--feature-foreground)",
+        textColor: "var(--bought)",
     });
 
     globalBus.on("update", diff => {
@@ -378,7 +463,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.times(helpers.elf.amount.value, computedElfPackingSpeed.value),
             Decimal.times(helpers.loader.amount.value, computedLoaderPackingSpeed.value)
         ).times(diff).plus(packedPresents.value).min(8e9);
-    })
+    });
 
     return {
         name,
@@ -390,18 +475,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
         packingResets,
         packingProgress,
         helpers,
+        upgrades,
         packingMilestones,
         collapseMilestones,
         display: jsx(() => (
             <>
                 {render(trackerDisplay)}
                 <SpacerVue />
-                <MainDisplayVue resource={packedPresents} color={color} />
+                <MainDisplayVue resource={packedPresents} color={color}/>
                 <SpacerVue />
                 {render(resetPacking)}
                 {render(packPresent)}
                 <SpacerVue />
                 {renderRow(...Object.values(helpers))}
+                <SpacerVue />
+                {renderRow(...Object.values(upgrades))}
                 <SpacerVue />
                 {milestonesDisplay()}
             </>

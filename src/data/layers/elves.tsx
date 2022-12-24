@@ -39,6 +39,7 @@ import wrappingPaper from "./wrapping-paper";
 import dyes, { enumColor } from "./dyes";
 import ribbon from "./ribbon";
 import letters from "./letters";
+import packing from "./packing";
 
 export interface ElfBuyable extends GenericBuyable {
     /** The inverse function of the cost formula, used to calculate the maximum amount that can be bought by elves. */
@@ -455,6 +456,23 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: elvesMilestone2.earned
         }))
     ]);
+    const packingCooldown = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "6 Elves Trained",
+            enabled: elvesMilestone.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.times(paper.books.packingBook.totalAmount.value, 0.1).add(1),
+            description: "The Tetris Effect",
+            enabled: () => Decimal.gt(paper.books.packingBook.totalAmount.value, 0)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "10 Elves Trained",
+            enabled: elvesMilestone2.earned
+        }))
+    ]);
 
     const [generalTab, generalTabCollapsed] = createCollapsibleModifierSections(() => [
         {
@@ -590,6 +608,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
             base: 10,
             unit: "/s",
             visible: plastic.masteryEffectActive
+        },
+        {
+            title: "Jingle Auto-Buy Frequency",
+            modifier: packingCooldown,
+            base: 10,
+            unit: "/s",
+            visible: packing.upgrades.packingElf.bought
         }
     ]);
     const showModifiersModal = ref(false);
@@ -1012,6 +1037,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buyMax: () => management.elfTraining.plasticElfTraining.milestones[4].earned.value
     });
     const wrappingPaperElves = [dyeElf, plasticElf];
+
+    const packingElf = createElf({
+        name: "Jingle",
+        description: "Jingle will automatically hire more elves to help out with packing the sleigh.",
+        buyable: [packing.helpers.elf, packing.helpers.loader],
+        cooldownModifier: packingCooldown,
+        visibility: () => showIf(packing.upgrades.packingElf.bought.value),
+        buyMax: true,
+        onAutoPurchase(buyable, amount) {
+            if (buyable === packing.helpers.loader && !management.elfTraining.packingElfTraining.milestones[3].earned.value) {
+                buyable.amount.value = Decimal.sub(buyable.amount.value, amount);
+            }
+        }
+    });
     const elves = {
         cuttersElf,
         plantersElf,
@@ -1030,7 +1069,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         oilElf,
         metalElf,
         dyeElf,
-        plasticElf
+        plasticElf,
+        packingElf
     };
     const totalElves = computed(() => Object.values(elves).filter(elf => elf.bought.value).length);
 
@@ -1277,6 +1317,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 buyProgress: persistent<DecimalSource>(0),
                 amountOfTimesDone: persistent<number>(0),
                 bought: persistent<boolean>(false)
+            },
+            packingElf: {
+                buyProgress: persistent<DecimalSource>(0),
+                amountOftimesDone: persistent<number>(0),
+                bought: persistent<boolean>(false)
             }
         },
         milestones: [
@@ -1332,7 +1377,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         fireElves,
                         plasticElves,
                         managementElves,
-                        managementElves2.concat(wrappingPaperElves)
+                        managementElves2.concat(wrappingPaperElves),
+                        [packingElf]
                     )}
                 </div>
                 {milestonesDisplay()}

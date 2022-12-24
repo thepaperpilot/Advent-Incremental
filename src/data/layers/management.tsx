@@ -26,7 +26,6 @@ import boxes from "./boxes";
 import cloth from "./cloth";
 import coal from "./coal";
 import dyes from "./dyes";
-import elves from "./elves";
 import metal from "./metal";
 import oil from "./oil";
 import paper from "./paper";
@@ -37,6 +36,8 @@ import "./styles/management.css";
 import { Resource } from "features/resources/resource";
 import { isArray } from "@vue/shared";
 import { createTab } from "features/tabs/tab";
+import packing from "./packing";
+import elves from "./elves";
 
 const id = "management";
 const day = 12;
@@ -189,10 +190,14 @@ const layer = createLayer(id, () => {
                 "Cocoa",
                 "Twinkle",
                 "Carol",
-                "Tinsel"
+                "Tinsel",
+                "Jingle"
             ].indexOf(elf.name) + 1;
         if (elf.name == "Star" || elf.name == "Bell") {
             costMulti /= 3;
+        }
+        if (elf.name == "Jingle") {
+            costMulti *= 30;
         }
         const costBase = 4000 * costMulti;
         const expRequiredForNextLevel = computed(() => Decimal.pow(5, level.value).mul(costBase));
@@ -1139,6 +1144,57 @@ const layer = createLayer(id, () => {
             visibility: () => showIf(plasticElfMilestones[3].earned.value && main.day.value >= 16)
         }))
     ] as Array<GenericMilestone>;
+    const packingElfMilestones = [
+        createMilestone(() => ({
+            display: {
+                requirement: "Jingle Level 1",
+                effectDisplay: "Double elf packing speed"
+            },
+            shouldEarn: () => packingElfTraining.level.value >= 1
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Jingle Level 2",
+                effectDisplay: jsx(() => (
+                    <>
+                        Each elf assistant increases packing speed by 10%<br />
+                        Currently: +{formatWhole(Decimal.times(packing.helpers.elf.amount.value, 0.1).times(100))}%
+                    </>
+                ))  
+            },
+            shouldEarn: () => packingElfTraining.level.value >= 2,
+            visibility: () => showIf(packingElfMilestones[0].earned.value)
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Jingle Level 3",
+                effectDisplay: jsx(() => (
+                    <>
+                        Multiply packing speed by the number of completed packing milestones<br />
+                        Currently: {formatWhole(Object.values(packing.packingMilestones).filter(milestone => milestone.earned.value).length+1)}x
+                    </>
+                ))
+            },
+            shouldEarn: () => packingElfTraining.level.value >= 3,
+            visibility: () => showIf(packingElfMilestones[1].earned.value)
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Jingle Level 4",
+                effectDisplay: "Jingle will now also buy loaders"
+            },
+            shouldEarn: () => packingElfTraining.level.value >= 4,
+            visibility: () => showIf(packingElfMilestones[2].earned.value && main.day.value >= 16)
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Jingle Level 5",
+                effectDisplay: "Multipliers to elf packing speed also apply to loaders"
+            },
+            shouldEarn: () => packingElfTraining.level.value >= 5,
+            visibility: () => showIf(packingElfMilestones[3].earned.value && main.day.value >= 16)
+        }))
+    ] as Array<GenericMilestone>;
     // ------------------------------------------------------------------------------- Milestone display
 
     const currentShown = persistent<string>("Holly");
@@ -1219,8 +1275,10 @@ const layer = createLayer(id, () => {
     );
     const dyeElfTraining = createElfTraining(elves.elves.dyeElf, dyeElfMilestones);
     const plasticElfTraining = createElfTraining(elves.elves.plasticElf, plasticElfMilestones);
+    const packingElfTraining = createElfTraining(elves.elves.packingElf, packingElfMilestones);
     const row5Elves = [coalDrillElfTraining, heavyDrillElfTraining, oilElfTraining];
     const row6Elves = [metalElfTraining, dyeElfTraining, plasticElfTraining];
+    const row7Elves = [packingElfTraining]
     const elfTraining = {
         cutterElfTraining,
         planterElfTraining,
@@ -1239,7 +1297,8 @@ const layer = createLayer(id, () => {
         oilElfTraining,
         heavyDrillElfTraining,
         dyeElfTraining,
-        plasticElfTraining
+        plasticElfTraining,
+        packingElfTraining
     };
     const day12Elves = [
         cutterElfTraining,
@@ -1761,6 +1820,12 @@ const layer = createLayer(id, () => {
             modifier: plasticElfTraining.elfXPGain,
             base: 0.1,
             unit: " XP"
+        },
+        {
+            title: "Jingle XP Gain per Action",
+            modifier: packingElfTraining.elfXPGain,
+            base: 0.1,
+            unit: " XP"
         }
     ]);
     const showModifiersModal = ref(false);
@@ -2056,7 +2121,8 @@ const layer = createLayer(id, () => {
                             fireElfTraining,
                             plasticElvesTraining,
                             row5Elves,
-                            row6Elves
+                            row6Elves,
+                            row7Elves
                         )}
                         <Spacer />
                         {currentElfDisplay()}
