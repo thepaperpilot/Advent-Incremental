@@ -40,6 +40,7 @@ import workshop from "./workshop";
 import wrappingPaper from "./wrapping-paper";
 import toys from "./toys";
 import factory from "./factory";
+import reindeer from "./reindeer";
 const id = "trees";
 const day = 1;
 
@@ -557,6 +558,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Haul wood in trucks",
             enabled: factory.upgrades[0][2].bought
         })),
+        reindeer.reindeer.dasher.modifier,
         createExponentialModifier(() => ({
             exponent: 1.2,
             description: "100% Foundation Completed",

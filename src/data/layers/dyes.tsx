@@ -37,6 +37,7 @@ import paper from "./paper";
 import trees from "./trees";
 import toys from "./toys";
 import factory from "./factory";
+import reindeer from "./reindeer";
 
 interface Dye {
     name: string;
@@ -201,6 +202,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     enabled: boxes.row3Upgrades.dyeUpgrade.bought
                 }))
             );
+            modifiers.push(reindeer.reindeer.rudolph.modifier);
             return modifiers;
         }) as WithRequired<Modifier, "description" | "revert">;
         const computedToGenerate = computed(() => toGenerate.apply(0));

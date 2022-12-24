@@ -30,6 +30,7 @@ import {
 import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource, formatWhole } from "util/bignum";
 import { Direction, WithRequired } from "util/common";
+import { loadingSave } from "util/save";
 import { render } from "util/vue";
 import { computed, ref, unref, watchEffect } from "vue";
 import elves from "./elves";
@@ -142,6 +143,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         style: "width: 600px; min-height: unset"
     }));
+
+    watchEffect(() => {
+        if (
+            !loadingSave.value &&
+            Decimal.lt(computedMaxFoundation.value, foundationProgress.value)
+        ) {
+            foundationProgress.value = Decimal.min(0, computedMaxFoundation.value);
+        }
+    });
 
     const buildFoundationHK = createHotkey(() => ({
         key: "w",

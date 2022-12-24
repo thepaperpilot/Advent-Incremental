@@ -31,10 +31,12 @@ import metal from "./layers/metal";
 import oil from "./layers/oil";
 import paper from "./layers/paper";
 import plastic from "./layers/plastic";
+import reindeer from "./layers/reindeer";
 import ribbon from "./layers/ribbon";
 import toys from "./layers/toys";
 import trees from "./layers/trees";
 import workshop from "./layers/workshop";
+import sleigh from "./layers/sleigh";
 import wrappingPaper from "./layers/wrapping-paper";
 import boxesSymbol from "./symbols/cardboardBox.png";
 import clothSymbol from "./symbols/cloth.png";
@@ -48,11 +50,13 @@ import metalSymbol from "./symbols/metal.png";
 import oilSymbol from "./symbols/oil.png";
 import paperSymbol from "./symbols/paperStacks.png";
 import plasticSymbol from "./symbols/plastic.png";
+import presentsSymbol from "./symbols/presents.png";
+import reindeerSymbol from "./symbols/reindeer.png";
 import ribbonsSymbol from "./symbols/ribbons.png";
 import workshopSymbol from "./symbols/sws.png";
+import advFactorySymbol from "./symbols/teddyBear.png";
 import treeSymbol from "./symbols/tree.png";
 import toysSymbol from "./symbols/truck.png";
-import advFactorySymbol from "./symbols/teddyBear.png";
 import advManagementSymbol from "./symbols/workshopMansion.png";
 import wrappingPaperSymbol from "./symbols/wrappingPaper.png";
 import snowflakeSymbol from "./symbols/snowflake.svg";
@@ -585,27 +589,29 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 20,
             shouldNotify: false,
-            layer: null, // "presents"
-            symbol: wrappingPaperSymbol,
-            story: "",
-            completedStory: "",
+            layer: "factory",
+            symbol: presentsSymbol,
+            story: "Santa comes by again, and tells you that just toys may not be appealing enough. He tells you that you should probably wrap them in some wrapping paper so that it's more of a surprise. You try to argue that you've already done too much for him and deserve a day off, but Santa argues that it's for the benefit of everyone and that you'll get your vacation soon. Oh well, time to get back to the factory and expand it even more. Here we go again!",
+            completedStory:
+                "That was a lot of work, but it certainly felt worth actually using all those decorative supplies you'd previously made. One more sleepless night down, just a handful more to go. Good Job!",
             masteredStory: ""
         })),
         createDay(() => ({
             day: 21,
             shouldNotify: false,
-            layer: null, // "reindeer"
-            symbol: "",
-            story: "",
-            completedStory: "",
+            layer: "reindeer",
+            symbol: reindeerSymbol,
+            story: "Now that the toys are being taken care of, it's time to make sure everything is prepped for the big night. One immediate concern is the reindeer, who are going to have to be in tip-top shape. Fortunately, Santa has a recipe to a very strong vitamin-filled kibble that'll get them pumped in no time!",
+            completedStory:
+                "Alright, now that the reindeer have been given all their ste- vitamins, I mean, they should be prepared for Christmas. Good Job!",
             masteredStory: ""
         })),
         createDay(() => ({
             day: 22,
             shouldNotify: false,
-            layer: null, // "sleigh"
+            layer: "sleigh", // "sleigh"
             symbol: "",
-            story: "",
+            story: "default body",
             completedStory: "",
             masteredStory: ""
         })),
@@ -749,7 +755,9 @@ export const getInitialLayers = (
     wrappingPaper,
     ribbon,
     toys,
-    factory
+    factory,
+    reindeer,
+    sleigh
 ];
 
 /**

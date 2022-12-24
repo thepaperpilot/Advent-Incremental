@@ -37,6 +37,7 @@ import plastic from "./plastic";
 import workshop from "./workshop";
 import wrappingPaper from "./wrapping-paper";
 import toys from "./toys";
+import reindeer from "./reindeer";
 
 const id = "metal";
 const day = 7;
@@ -105,6 +106,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Twinkle Level 1",
             enabled: management.elfTraining.metalElfTraining.milestones[0].earned
         })),
+        reindeer.reindeer.comet.modifier,
         createExponentialModifier(() => ({
             exponent: 1.1,
             description: "Mary Level 2",
