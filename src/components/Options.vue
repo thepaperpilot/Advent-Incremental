@@ -98,7 +98,7 @@ const isPaused = computed({
 });
 
 const canAutoSave = computed(
-    () => (layers as any).main.days[(layers as any).main.day.value - 1].opened.value
+    () => (layers as any).main?.days[(layers as any).main?.day.value - 1].opened.value
 );
 
 const autosaveTitle = jsx(() => (

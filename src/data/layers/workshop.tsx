@@ -123,6 +123,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
         visibility: () => showIf(Decimal.lt(foundationProgress.value, computedMaxFoundation.value)),
         canClick: () => {
+            if (Decimal.gt(computedMaxFoundation.value, foundationProgress.value)){
+                foundationProgress.value = Decimal.min(0, computedMaxFoundation.value)
+            }
             if (Decimal.lt(trees.logs.value, foundationConversion.nextAt.value)) {
                 return false;
             }

@@ -339,6 +339,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 ) : null}
                 <MainDisplay resource={letters} color={color} />
                 {render(process)}
+                If your letters are stuck, try holding L
                 {Decimal.lt(totalLetters.value, 8e9) ? (
                     <div>
                         The more letters you process, the more you'll improve at processing letters.
