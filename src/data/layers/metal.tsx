@@ -38,6 +38,7 @@ import workshop from "./workshop";
 import wrappingPaper from "./wrapping-paper";
 import toys from "./toys";
 import reindeer from "./reindeer";
+import sleigh from "./sleigh";
 
 const id = "metal";
 const day = 7;
@@ -111,6 +112,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             exponent: 1.1,
             description: "Mary Level 2",
             enabled: management.elfTraining.heatedPlanterElfTraining.milestones[1].earned
+        })),
+        createExponentialModifier(() => ({
+            exponent: 1.2,
+            description: "100% Sleigh Fixed",
+            enabled: sleigh.milestones.milestone8.earned
         }))
     ]);
     const computedOrePurity = computed(() => orePurity.apply(0.1));
@@ -181,6 +187,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: wrappingPaper.boosts.jazzy1,
             description: "Jazzy Wrapping Paper",
             enabled: computed(() => Decimal.gt(wrappingPaper.boosts.jazzy1.value, 1))
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "30% Sleigh Fixed",
+            enabled: sleigh.milestones.milestone4.earned
         })),
         createAdditiveModifier(() => ({
             addend: () => Decimal.sub(lastOreGained.value, lastOreSmelted.value).max(0),
@@ -290,6 +301,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.add(dyes.dyes.blue.amount.value, 1).sqrt(),
             description: "1000 Letters Processed",
             enabled: letters.milestones.miningMilestone.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 2,
+            description: "30% Sleigh Fixed",
+            enabled: sleigh.milestones.milestone4.earned
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.add(toys.clothes.value, 1),

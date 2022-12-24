@@ -247,9 +247,9 @@ export function createLayerTreeNode<T extends LayerTreeNodeOptions>(
 /** An option object for a modifier display as a single section. **/
 export interface Section {
     /** The header for this modifier. **/
-    title: string;
+    title: Computable<string>;
     /** A subtitle for this modifier, e.g. to explain the context for the modifier. **/
-    subtitle?: string;
+    subtitle?: Computable<string>;
     /** The modifier to be displaying in this section. **/
     modifier: WithRequired<Modifier, "description">;
     /** The base value being modified. **/
@@ -276,6 +276,8 @@ export function createCollapsibleModifierSections(
               base: ProcessedComputable<DecimalSource | undefined>[];
               baseText: ProcessedComputable<CoercableComponent | undefined>[];
               visible: ProcessedComputable<boolean | undefined>[];
+              title: ProcessedComputable<string | undefined>[];
+              subtitle: ProcessedComputable<string | undefined>[];
           }
         | Record<string, never> = {};
     let calculated = false;
@@ -285,6 +287,8 @@ export function createCollapsibleModifierSections(
             processed.base = sections.map(s => convertComputable(s.base));
             processed.baseText = sections.map(s => convertComputable(s.baseText));
             processed.visible = sections.map(s => convertComputable(s.visible));
+            processed.title = sections.map(s => convertComputable(s.title));
+            processed.subtitle = sections.map(s => convertComputable(s.subtitle));
             calculated = true;
         }
         return sections;
@@ -307,8 +311,10 @@ export function createCollapsibleModifierSections(
                     >
                         ▼
                     </span>
-                    {s.title}
-                    {s.subtitle != null ? <span class="subtitle"> ({s.subtitle})</span> : null}
+                    {unref(processed.title[i])}
+                    {unref(processed.subtitle[i]) != null ? (
+                        <span class="subtitle"> ({unref(processed.subtitle[i])})</span>
+                    ) : null}
                 </h3>
             );
 

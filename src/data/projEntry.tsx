@@ -34,6 +34,7 @@ import paper from "./layers/paper";
 import plastic from "./layers/plastic";
 import reindeer from "./layers/reindeer";
 import ribbon from "./layers/ribbon";
+import routing from "./layers/routing";
 import toys from "./layers/toys";
 import trees from "./layers/trees";
 import workshop from "./layers/workshop";
@@ -64,6 +65,8 @@ import snowflakeSymbol from "./symbols/snowflake.svg";
 import presentSymbol from "./layers/factory-components/present.svg";
 import { createParticles } from "features/particles/particles";
 import { credits } from "./credits";
+import sleighSymbol from "./symbols/sleigh.png";
+import routingSymbol from "./symbols/gps.png";
 
 export interface Day extends VueFeature {
     day: number;
@@ -620,19 +623,21 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 22,
             shouldNotify: false,
-            layer: "sleigh", // "sleigh"
-            symbol: "",
-            story: "default body",
-            completedStory: "",
+            layer: "sleigh",
+            symbol: sleighSymbol,
+            story: "You realize you haven't noticed a very important object since you've started working here. Where's the sleigh? You bring it up to Santa and he immediately becomes visibly stressed, mentioning it's been in disrepair and he completely forgot! You promise you'll get it back in shape in no time!",
+            completedStory:
+                "Crisis averted! The sleigh has been returned to it's full splendor. Santa is incredibly appreciative. Good Job!",
             masteredStory: ""
         })),
         createDay(() => ({
             day: 23,
             shouldNotify: false,
-            layer: null, // "distribution route planning"
-            symbol: "",
-            story: "",
-            completedStory: "",
+            layer: "routing",
+            symbol: routingSymbol,
+            story: "You're almost ready for the big day! The next step is to find an optimal route to ensure you can get all the presents delivered before kids start waking up! This is like the travelling salesman problem on steroids. Good Luck!",
+            completedStory:
+                "Take that, math majors! Optimal route planned with time to spare. Good Job!",
             masteredStory: ""
         })),
         createDay(() => ({
@@ -796,7 +801,8 @@ export const getInitialLayers = (
     toys,
     factory,
     reindeer,
-    sleigh
+    sleigh,
+    routing
 ];
 
 /**

@@ -101,9 +101,6 @@ const toyGoal = 750;
 const advancedToyGoal = 1500;
 const presentsGoal = 8e9;
 
-// 20x20 block size
-// TODO: unhardcode stuff
-
 function roundDownTo(num: number, multiple: number) {
     return Math.floor((num + multiple / 2) / multiple) * multiple;
 }
@@ -508,8 +505,7 @@ const factory = createLayer(id, () => {
                 plank: {
                     amount: computed(() => (upgrades[0][0].bought.value ? 2 : 1))
                 }
-            },
-            visible: main.days[presentsDay - 1].opened
+            }
         } as FactoryComponentDeclaration,
         thread: {
             imageSrc: _threadMaker,
@@ -671,7 +667,8 @@ const factory = createLayer(id, () => {
                 box: {
                     amount: 2
                 }
-            }
+            },
+            visible: main.days[presentsDay - 1].opened
         } as FactoryComponentDeclaration,
         blocks: {
             imageSrc: _blockMaker,
@@ -1641,6 +1638,7 @@ const factory = createLayer(id, () => {
                 const compData = _compData as FactoryInternalProcessor;
                 // factory part
                 // PRODUCTION
+                data.ticksDone += factoryTicks;
                 if (data.ticksDone >= factoryData.tick) {
                     if (compData.canProduce.value) {
                         const cyclesDone = Math.floor(data.ticksDone / factoryData.tick);
@@ -1678,8 +1676,6 @@ const factory = createLayer(id, () => {
                         if (compData.lastProdTimes.length > 10) compData.lastProdTimes.shift();
                         compData.lastFactoryProd = now;
                     }
-                } else {
-                    data.ticksDone += factoryTicks;
                 }
                 // now look at each component direction and see if it accepts items coming in
                 // components are 1x1 so simple math for now
@@ -2247,12 +2243,12 @@ const factory = createLayer(id, () => {
                                 style={{
                                     color:
                                         (compInternalHovered.value as FactoryInternalProcessor)
-                                            .average.value! > 1
-                                            ? "purple"
+                                            .average.value! >= 0.995
+                                            ? "fuchsia"
                                             : (
                                                   compInternalHovered.value as FactoryInternalProcessor
                                               ).average.value! >= 0.9
-                                            ? "green"
+                                            ? "lime"
                                             : (
                                                   compInternalHovered.value as FactoryInternalProcessor
                                               ).average.value! >= 0.5
