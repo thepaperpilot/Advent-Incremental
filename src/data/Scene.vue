@@ -58,6 +58,12 @@
             class="scene-item"
             style="left: 72%; bottom: 8%; width: 40px; height: 40px"
         />
+        <img
+            v-if="day >= 22"
+            :src="routing"
+            class="scene-item"
+            style="left: 76%; bottom: 4%; width: 40px; height: 40px"
+        />
         <img v-if="day >= 8" :src="oil" class="scene-item" style="left: 80%; bottom: 6%" />
         <div
             v-if="day >= 4"
@@ -109,6 +115,7 @@ import advFactory from "./symbols/teddyBear.png";
 import presents from "./symbols/presents.png";
 import reindeer from "./symbols/reindeer.png";
 import sleigh from "./symbols/sleigh.png";
+import routing from "./symbols/gps.png";
 
 defineProps<{
     day: number;
