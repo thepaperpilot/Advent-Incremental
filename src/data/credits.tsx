@@ -31,18 +31,22 @@ const dayCredits: Credits[] = [
     {
         name: "Paper",
         creator: "thepaperpilot",
+        help: "Adsaf"
     },
     {
         name: "Boxes",
         creator: "thepaperpilot",
+        help: "ducdat0507",
     },
     {
         name: "Metal",
         creator: "Escapee",
+        help: "ducdat0507, thepaperpilot, yhvr",
     },
     {
         name: "Cloth",
         creator: "thepaperpilot",
+        
     },
     {
         name: "Oil",
@@ -100,6 +104,7 @@ const dayCredits: Credits[] = [
     {
         name: "Presents",
         creator: "incremental_gamer",
+        help: "ducdat0507",
         other: [
             "Art by emanresu"
         ],
@@ -136,7 +141,7 @@ const display = jsx(() => (
                         <h1 style={{ color: unref(layers[main.days[day].layer ?? ""]?.color ?? "white"), fontSize: fs || '30px'}}>Day {day+1} - {name}</h1>
                         <br /><br />
                         Created by {creator} <br />
-                        {help ? <>With help from {help}</> : undefined}<br />
+                        {help ? <>With help from {help}<br /></> : undefined}
                         {other ? other?.map((other) => <>{other}<br /></>) : undefined}
                         <br /><br />
                     </span>
