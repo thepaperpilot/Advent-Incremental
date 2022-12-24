@@ -77,7 +77,8 @@ import _truck from "./factory-components/truck.svg";
 import _truckMaker from "./factory-components/truckmaker.svg";
 import _wheel from "./factory-components/wheel.svg";
 import _wheelMaker from "./factory-components/wheelmaker.svg";
-import _present from "./factory-components/presentmaker.svg";
+import _present from "./factory-components/present.svg";
+import _presentMaker from "./factory-components/presentmaker.svg";
 import Factory from "./Factory.vue";
 import metal from "./metal";
 import oil from "./oil";
@@ -503,25 +504,6 @@ const factory = createLayer(id, () => {
             },
             visible: main.days[presentsDay - 1].opened
         } as FactoryComponentDeclaration,
-        boxMaker: {
-            imageSrc: _boxMaker,
-            key: "ctrl+8",
-            name: "Box Maker",
-            type: "processor",
-            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.boxMaker)),
-            energyCost: 3,
-            tick: 1,
-            inputs: {
-                plank: {
-                    amount: 2
-                }
-            },
-            outputs: {
-                box: {
-                    amount: 2
-                }
-            }
-        } as FactoryComponentDeclaration,
         thread: {
             imageSrc: _threadMaker,
             key: "shift+2",
@@ -664,6 +646,25 @@ const factory = createLayer(id, () => {
                 }
             },
             visible: main.days[advancedDay - 1].opened
+        } as FactoryComponentDeclaration,
+        boxMaker: {
+            imageSrc: _boxMaker,
+            key: "shift+9",
+            name: "Box Maker",
+            type: "processor",
+            description: computed(() => generateComponentDescription(FACTORY_COMPONENTS.boxMaker)),
+            energyCost: 3,
+            tick: 1,
+            inputs: {
+                plank: {
+                    amount: 2
+                }
+            },
+            outputs: {
+                box: {
+                    amount: 2
+                }
+            }
         } as FactoryComponentDeclaration,
         blocks: {
             imageSrc: _blockMaker,
@@ -818,7 +819,7 @@ const factory = createLayer(id, () => {
             visible: main.days[advancedDay - 1].opened
         } as FactoryComponentDeclaration,
         present: {
-            imageSrc: _present,
+            imageSrc: _presentMaker,
             type: "processor",
             // idk about this
             key: "ctrl+7",
@@ -832,7 +833,7 @@ const factory = createLayer(id, () => {
                     )} presents every tick.`
             ),
             tick: 1,
-            energyCost: 20,
+            energyCost: 50,
             inputs: {
                 dye: {
                     amount: 4
@@ -1276,7 +1277,7 @@ const factory = createLayer(id, () => {
         display: {
             title: "Carrying more stuff in boxes",
             description:
-                "Boxes seem really useful for carrying stuff. Why don't we use them to carry presents as well? Unlocks 2 new rebuyables (one of them is in the boxes layer)."
+                "Boxes seem really useful for carrying stuff. Why don't we use them to carry presents as well? Unlocks 2 new buyables (one of them is in the boxes layer)."
         },
         visibility: () => showIf(excitmentUpgrade.bought.value)
     }));
@@ -1288,13 +1289,14 @@ const factory = createLayer(id, () => {
                 .mul(Decimal.pow(2, carryBoxes.amount.value))
                 .mul(1000);
         },
+        style: "width: 400px",
         display: {
             title: "Carry boxes in... presents?",
             description:
                 "Presents are made out of boxes, so shouldn't they be able to hold boxes as well? Apparently it makes the boxes more durable. Each level multiplies boxes gain by 1.5.",
             effectDisplay: jsx(() => <>x{format(Decimal.pow(1.5, carryBoxes.amount.value))}</>)
         },
-        visbility: () => showIf(carryPresents.bought.value)
+        visibility: () => showIf(carryPresents.bought.value)
     })) as GenericBuyable;
     const catalysts = createUpgrade(() => ({
         resource: noPersist(presents),
@@ -1306,7 +1308,8 @@ const factory = createLayer(id, () => {
         },
         visibility: () => showIf(carryPresents.bought.value)
     }));
-    const factoryBuyables = { expandFactory, oilFuel, carryToys, carryBoxes };
+    const factoryBuyables = { expandFactory, oilFuel, carryToys };
+    const factoryBuyables2 = { carryBoxes };
     const upgrades = [
         [
             createUpgrade(() => ({
@@ -2291,7 +2294,10 @@ const factory = createLayer(id, () => {
                             />
                             {renderRow(...Object.values(elfBuyables))}
                             <Spacer />
-                            {renderRow(...Object.values(factoryBuyables))}
+                            {renderGrid(
+                                Object.values(factoryBuyables),
+                                Object.values(factoryBuyables2)
+                            )}
                             <Spacer />
                             <Spacer />
                             {renderGrid(...(upgrades as VueFeature[][]))}
@@ -2471,6 +2477,7 @@ const factory = createLayer(id, () => {
         presents,
         tabs,
         factoryBuyables,
+        factoryBuyables2,
         carryBoxes,
         generalTabCollapsed,
         hotkeys,
