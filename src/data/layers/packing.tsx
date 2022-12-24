@@ -18,7 +18,7 @@ import { render, renderRow } from "util/vue";
 import { computed, ComputedRef, ref, unref } from "vue";
 import metal from "./metal";
 import oil from "./oil";
-import { createCollapsibleMilestones } from "data/common"
+import { createCollapsibleMilestones } from "data/common";
 import { globalBus } from "game/events";
 import { createUpgrade } from "features/upgrades/upgrade";
 import { ElfBuyable } from "./elves";
@@ -26,7 +26,7 @@ import management from "./management";
 import paper from "./paper";
 import ModalVue from "components/Modal.vue";
 
-const id = "packing"
+const id = "packing";
 const day = 24;
 
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -36,21 +36,26 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const packedPresents = createResource<DecimalSource>(0, "packed presents");
     const bestPresents = trackBest(packedPresents);
     const totalPresents = trackTotal(packedPresents);
-    const totalPresentsResource = createResource<DecimalSource>(computed(() => totalPresents.value), "total packed presents");
+    const totalPresentsResource = createResource<DecimalSource>(
+        computed(() => totalPresents.value),
+        "total packed presents"
+    );
 
     const sledSpace = 64e6;
     const packingResets = persistent<number>(0);
 
     const resetPacking = createClickable(() => ({
         display: {
-            description: "Oh no! You've run out of space! You'll need to take all the presentts out and repack them"
+            description:
+                "Oh no! You've run out of space! You'll need to take all the presentts out and repack them"
         },
-        visibility: () => showIf(Decimal.lt(packedPresents.value, 8e9) && Decimal.lte(remainingSize.value, 0)),
+        visibility: () =>
+            showIf(Decimal.lt(packedPresents.value, 8e9) && Decimal.lte(remainingSize.value, 0)),
         onClick() {
             packedPresents.value = 0;
             packingResets.value++;
         }
-    }))
+    }));
 
     const packingProgress = persistent<DecimalSource>(0);
     const packingProgressBar = createBar(() => ({
@@ -58,17 +63,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
         width: 100,
         height: 10,
         fillStyle: {
-            animation: "15s packing-bar linear infinite",
+            animation: "15s packing-bar linear infinite"
         },
         progress: () => packingProgress.value
-    }))
+    }));
     const packPresent = createClickable(() => ({
         display: {
             description: jsx(() => (
                 <>
-                    <h3>
-                        Pack a present
-                    </h3><br />
+                    <h3>Pack a present</h3>
+                    <br />
                     {render(packingProgressBar)}
                 </>
             ))
@@ -85,16 +89,24 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
 
     const packingDensity = computed(() => {
-        switch(packingResets.value) {
-            default: return 0.6;
-            case 1: return 0.7;
-            case 2: return 0.85;
-            case 3: return 1;
+        switch (packingResets.value) {
+            default:
+                return 0.6;
+            case 1:
+                return 0.7;
+            case 2:
+                return 0.85;
+            case 3:
+                return 1;
         }
     });
 
-    const packedPresentsSize = computed(() => Decimal.times(packedPresents.value, 0.008).dividedBy(packingDensity.value));
-    const currentMaxPresents = computed(() => Decimal.times(sledSpace, packingDensity.value).div(0.008));
+    const packedPresentsSize = computed(() =>
+        Decimal.times(packedPresents.value, 0.008).dividedBy(packingDensity.value)
+    );
+    const currentMaxPresents = computed(() =>
+        Decimal.times(sledSpace, packingDensity.value).div(0.008)
+    );
     const remainingSize = computed(() => Decimal.sub(sledSpace, packedPresentsSize.value));
 
     const elfPackingSpeed = createSequentialModifier(() => [
@@ -114,14 +126,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: management.elfTraining.packingElfTraining.milestones[1].earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => 1 + Object.values(packingMilestones).filter(milestone => milestone.earned).length,
+            multiplier: () =>
+                1 + Object.values(packingMilestones).filter(milestone => milestone.earned).length,
             description: "Jingle Level 3",
             enabled: management.elfTraining.packingElfTraining.milestones[2].earned
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.log10(packedPresents.value).plus(1),
             description: "10,000 Presents Packed",
-            enabled: () => Decimal.gte(packedPresents.value,1e4)
+            enabled: () => Decimal.gte(packedPresents.value, 1e4)
         }))
     ]);
     const computedElfPackingSpeed = computed(() => elfPackingSpeed.apply(1));
@@ -143,7 +156,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: management.elfTraining.packingElfTraining.milestones[4].earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => 1 + Object.values(packingMilestones).filter(milestone => milestone.earned).length,
+            multiplier: () =>
+                1 + Object.values(packingMilestones).filter(milestone => milestone.earned).length,
             description: "Jingle Level 3",
             enabled: management.elfTraining.packingElfTraining.milestones[4].earned
         }))
@@ -155,7 +169,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost() {
                 let v = this.amount.value;
                 v = Decimal.pow(0.98, paper.books.packingBook.totalAmount.value).times(v);
-                return Decimal.pow(1.2, v).times(10).floor()
+                return Decimal.pow(1.2, v).times(10).floor();
             },
             inverseCost(cost: DecimalSource) {
                 let amount = Decimal.div(cost, 10).log(1.2);
@@ -165,13 +179,26 @@ const layer = createLayer(id, function (this: BaseLayer) {
             resource: totalPresentsResource,
             display: jsx(() => (
                 <>
-                    <div><h3>Hire an elf assistant</h3></div>
+                    <div>
+                        <h3>Hire an elf assistant</h3>
+                    </div>
                     Packs {format(computedElfPackingSpeed.value)} presents per second
-                    <div><br />
-                    Amount: {formatWhole(helpers.elf.amount.value)}</div>
-                    <div><br />
-                    Currently packing {format(Decimal.times(helpers.elf.amount.value, computedElfPackingSpeed.value))} presents per second</div>
-                    <div>Requires: {formatWhole(unref(helpers.elf.cost!))} {helpers.elf.resource!.displayName}</div>
+                    <div>
+                        <br />
+                        Amount: {formatWhole(helpers.elf.amount.value)}
+                    </div>
+                    <div>
+                        <br />
+                        Currently packing{" "}
+                        {format(
+                            Decimal.times(helpers.elf.amount.value, computedElfPackingSpeed.value)
+                        )}{" "}
+                        presents per second
+                    </div>
+                    <div>
+                        Requires: {formatWhole(unref(helpers.elf.cost!))}{" "}
+                        {helpers.elf.resource!.displayName}
+                    </div>
                 </>
             )),
             style: {
@@ -180,29 +207,60 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         loader: createBuyable(() => ({
             visibility: () => showIf(upgrades.loaderUnlock.bought.value),
-            metalCost: computed(() => Decimal.pow(1.2, helpers.loader.amount.value).times(1e70) ),
-            oilCost: computed(() => Decimal.pow(1.2, helpers.loader.amount.value).times(1e25) ),
-            canPurchase(this: GenericBuyable & {metalCost: ComputedRef<DecimalSource>, oilCost: ComputedRef<DecimalSource>}) {
-                return Decimal.gte(metal.metal.value, this.metalCost.value)
-                    && Decimal.gte(oil.oil.value, this.oilCost.value)
+            metalCost: computed(() => Decimal.pow(1.2, helpers.loader.amount.value).times(1e70)),
+            oilCost: computed(() => Decimal.pow(1.2, helpers.loader.amount.value).times(1e25)),
+            canPurchase(
+                this: GenericBuyable & {
+                    metalCost: ComputedRef<DecimalSource>;
+                    oilCost: ComputedRef<DecimalSource>;
+                }
+            ) {
+                return (
+                    Decimal.gte(metal.metal.value, this.metalCost.value) &&
+                    Decimal.gte(oil.oil.value, this.oilCost.value)
+                );
+            },
+            onPurchase() {
+                metal.metal.value = Decimal.sub(metal.metal.value, this.metalCost.value);
+                oil.oil.value = Decimal.sub(oil.oil.value, this.oilCost.value);
+                this.amount.value = Decimal.add(this.amount.value, 1);
             },
             inverseCost() {
-                let metalAmount = Decimal.div(metal.metal.value, 1e40).log(1.5);
-                let oilAmount = Decimal.div(oil.oil.value, 1e20).log(1.5);
+                const metalAmount = Decimal.div(metal.metal.value, 1e40).log(1.5);
+                const oilAmount = Decimal.div(oil.oil.value, 1e20).log(1.5);
                 if (Decimal.isNaN(metalAmount) || Decimal.isNaN(oilAmount)) return Decimal.dZero;
                 return Decimal.min(metalAmount, oilAmount).floor().max(0);
             },
             display: jsx(() => (
                 <>
-                    <div><h3>Build a loader</h3></div>
-                    Loads {format(computedLoaderPackingSpeed.value)} presents per second
-                    <div><br />
-                    Amount: {formatWhole(helpers.loader.amount.value)}</div>
-                    <div><br />
-                    Currently packing {format(Decimal.times(helpers.loader.amount.value, computedLoaderPackingSpeed.value))} persents per second</div>
                     <div>
-                        Cost: {displayCost(metal.metal, helpers.loader.metalCost.value, metal.metal.displayName)},
-                        {displayCost(oil.oil, helpers.loader.oilCost.value, oil.oil.displayName)}</div>
+                        <h3>Build a loader</h3>
+                    </div>
+                    Loads {format(computedLoaderPackingSpeed.value)} presents per second
+                    <div>
+                        <br />
+                        Amount: {formatWhole(helpers.loader.amount.value)}
+                    </div>
+                    <div>
+                        <br />
+                        Currently packing{" "}
+                        {format(
+                            Decimal.times(
+                                helpers.loader.amount.value,
+                                computedLoaderPackingSpeed.value
+                            )
+                        )}{" "}
+                        persents per second
+                    </div>
+                    <div>
+                        Cost:{" "}
+                        {displayCost(
+                            metal.metal,
+                            helpers.loader.metalCost.value,
+                            metal.metal.displayName
+                        )}
+                        ,{displayCost(oil.oil, helpers.loader.oilCost.value, oil.oil.displayName)}
+                    </div>
                 </>
             )),
             style: {
@@ -210,8 +268,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         }))
     } as {
-        elf: ElfBuyable,
-        loader: ElfBuyable & {metalCost: ComputedRef<DecimalSource>, oilCost: ComputedRef<DecimalSource>}
+        elf: ElfBuyable;
+        loader: ElfBuyable & {
+            metalCost: ComputedRef<DecimalSource>;
+            oilCost: ComputedRef<DecimalSource>;
+        };
     };
 
     const upgrades = {
@@ -230,7 +291,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         loaderUnlock: createUpgrade(() => ({
             display: {
                 title: "Heavy Machinery",
-                description: "Those construction vehicles you have from building the workshop should be useful for loading presents too"
+                description:
+                    "Those construction vehicles you have from building the workshop should be useful for loading presents too"
             },
             cost: 100000,
             resource: totalPresentsResource,
@@ -239,15 +301,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             visibility: () => showIf(Decimal.gte(packedPresents.value, 10000))
         }))
-    }
+    };
 
     const resetButton = createClickable(() => ({
-        display: jsx(() => (
-            <>
-                Oh no! You've run out of room for presents! You'll need to take 
-            </>
-        ))
-    }))
+        display: jsx(() => <>Oh no! You've run out of room for presents! You'll need to take</>)
+    }));
 
     const packingMilestones: Record<string, GenericMilestone> = {
         logBoost: createMilestone(() => ({
@@ -352,7 +410,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 977000000),
             visibility: () => showIf(packingMilestones.paperBoost.earned.value)
-        })),
+        }))
         // todo: something
     };
     const { collapseMilestones, display: milestonesDisplay } =
@@ -362,12 +420,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         {
             title: "Elf Packing Speed",
             modifier: elfPackingSpeed,
-            base: 1
+            base: 1,
+            unit: "/s"
         },
         {
             title: "Loader Packing Speed",
             modifier: loaderPackingSpeed,
-            base: 1000
+            base: 1000,
+            unit: "/s"
         }
     ]);
     const showModifiersModal = ref(false);
@@ -406,8 +466,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
         if (Decimal.gte(packingProgress.value, 1)) {
             packingProgress.value = 1;
-        }
-        else {
+        } else {
             packingProgress.value = Decimal.add(packingProgress.value, diff);
             if (packPresent.isHolding.value) {
                 packPresent.onClick();
@@ -420,7 +479,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         packedPresents.value = Decimal.add(
             Decimal.times(helpers.elf.amount.value, computedElfPackingSpeed.value),
             Decimal.times(helpers.loader.amount.value, computedLoaderPackingSpeed.value)
-        ).times(diff).plus(packedPresents.value).min(currentMaxPresents.value);
+        )
+            .times(diff)
+            .plus(packedPresents.value)
+            .min(currentMaxPresents.value);
     });
 
     return {
@@ -441,7 +503,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 {render(trackerDisplay)}
                 <SpacerVue />
-                <MainDisplayVue resource={packedPresents} color={color}/>
+                <MainDisplayVue resource={packedPresents} color={color} />
                 <p>You can pack {format(remainingSize.value)} more presents</p>
                 <SpacerVue />
                 {render(resetPacking)}
@@ -454,7 +516,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {milestonesDisplay()}
             </>
         )),
-        minimizedDisplay: jsx(() => (<div>{name} <span class="desc">{formatWhole(packedPresents.value)} {packedPresents.displayName}</span></div>))
+        minimizedDisplay: jsx(() => (
+            <div>
+                {name}{" "}
+                <span class="desc">
+                    {formatWhole(packedPresents.value)} {packedPresents.displayName}
+                </span>
+            </div>
+        ))
     };
 });
 
