@@ -105,7 +105,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
         return redundancies;
     });
-    const routesToSkip = ref<number[]>([]);
+    const routesToSkip = persistent<number[]>([]);
 
     const currentRoute: ComputedRef<number[] | undefined> = computed(
         () => currentRoutes.value[routeIndex.value]
