@@ -41,7 +41,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Reindeer";
     const color = "saddlebrown";
 
-    const feedGoal = 2.5e3;
+    const feedGoal = 1.5e3;
 
     const timeSinceFocus = persistent<number>(0);
 
@@ -84,6 +84,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (!currTargets.value[roll]) {
                 currTargets.value[roll] = true;
                 targetsSelected++;
+                if (upgrade8.bought.value) {
+                    selectedReindeer.onClick();
+                }
             }
         }
     }
@@ -327,7 +330,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const upgrade1 = createUpgrade(() => ({
         resource: trees.logs,
-        cost: 0,
+        cost: 1e97,
         style: {
             width: "160px"
         },
@@ -339,7 +342,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const upgrade2 = createUpgrade(() => ({
         resource: coal.coal,
-        cost: 0,
+        cost: 1e167,
         style: {
             width: "160px"
         },
@@ -351,7 +354,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const upgrade3 = createUpgrade(() => ({
         resource: paper.paper,
-        cost: 0,
+        cost: 1e117,
         style: {
             width: "160px"
         },
@@ -363,7 +366,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const upgrade4 = createUpgrade(() => ({
         resource: boxes.boxes,
-        cost: 0,
+        cost: 1e102,
         style: {
             width: "160px"
         },
@@ -375,7 +378,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const upgrade5 = createUpgrade(() => ({
         resource: metal.metal,
-        cost: 0,
+        cost: 1e67,
         style: {
             width: "160px"
         },
@@ -387,7 +390,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const upgrade6 = createUpgrade(() => ({
         resource: cloth.cloth,
-        cost: 0,
+        cost: 1e20,
         style: {
             width: "160px"
         },
@@ -399,7 +402,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const upgrade7 = createUpgrade(() => ({
         resource: oil.oil,
-        cost: 0,
+        cost: 4e25,
         style: {
             width: "160px"
         },
@@ -411,7 +414,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const upgrade8 = createUpgrade(() => ({
         resource: plastic.plastic,
-        cost: 0,
+        cost: 1e22,
         style: {
             width: "160px"
         },
@@ -422,7 +425,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const upgrade9 = createUpgrade(() => ({
         resource: dyes.dyes.white.amount,
-        cost: 0,
+        cost: 7.5e7,
         style: {
             width: "160px"
         },
