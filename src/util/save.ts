@@ -134,7 +134,8 @@ export async function loadSave(playerObj: Partial<PlayerData>): Promise<void> {
 setInterval(() => {
     if (
         player.autosave &&
-        (layers as any).main.days[(layers as any).main.day.value - 1].opened.value
+        ((layers as any).main.day.value >= 25 ||
+            (layers as any).main.days[(layers as any).main.day.value - 1].opened.value)
     ) {
         save();
     }
@@ -142,7 +143,8 @@ setInterval(() => {
 window.onbeforeunload = () => {
     if (
         player.autosave &&
-        ((layers as any).main.days[(layers as any).main.day.value - 1].opened.value ||
+        ((layers as any).main.day.value >= 25 ||
+            (layers as any).main.days[(layers as any).main.day.value - 1].opened.value ||
             import.meta.env.DEV)
     ) {
         save();
