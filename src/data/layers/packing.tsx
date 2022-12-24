@@ -103,9 +103,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
 
     const packedPresentsSize = computed(() =>
-        Decimal.div(packedPresents.value, packingDensity.value)
+        Decimal.times(packedPresents.value, 0.008).dividedBy(packingDensity.value)
     );
-    const currentMaxPresents = computed(() => Decimal.times(sledSpace, packingDensity.value));
+    const currentMaxPresents = computed(() =>
+        Decimal.times(sledSpace, packingDensity.value).div(0.008)
+    );
     const remainingSize = computed(() => Decimal.sub(sledSpace, packedPresentsSize.value));
 
     const elfPackingSpeed = createSequentialModifier(() => [
@@ -497,7 +499,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {render(trackerDisplay)}
                 <SpacerVue />
                 <MainDisplayVue resource={packedPresents} color={color} />
-                <p>You can pack {format(remainingSize.value)} more presents</p>
+                <p>
+                    The bag has {format(remainingSize.value)} m<sup>3</sup> empty room
+                </p>
                 <SpacerVue />
                 {render(resetPacking)}
                 {render(packPresent)}
