@@ -79,7 +79,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const currentRoutes = computed(() => {
         // Manually check milestone req here due to calling generateCity() before milestones get earned
-        if (Decimal.gte(citiesCompleted.value, 7)) {
+        if (Decimal.gte(citiesCompleted.value, 7) || currentCity.value.length >= 12) {
             return Decimal.factorial(currentCity.value.length).div(2).toNumber();
         }
         // Permutation code from https://stackoverflow.com/a/37580979
