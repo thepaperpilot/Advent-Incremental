@@ -667,7 +667,8 @@ const factory = createLayer(id, () => {
                 box: {
                     amount: 2
                 }
-            }
+            },
+            visible: main.days[presentsDay - 1].opened
         } as FactoryComponentDeclaration,
         blocks: {
             imageSrc: _blockMaker,
