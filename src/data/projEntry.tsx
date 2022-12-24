@@ -105,111 +105,95 @@ export const main = createLayer("main", function (this: BaseLayer) {
         style: "z-index: -1"
     }));
 
-    particles
-        .addEmitter({
-            lifetime: { min: 5, max: 5 },
-            pos: { x: 0, y: 0 },
-            frequency: 0.05,
-            behaviors: [
-                {
-                    type: "alpha",
-                    config: {
-                        alpha: {
-                            list: [
-                                {
-                                    value: 1,
-                                    time: 0
-                                },
-                                {
-                                    value: 1,
-                                    time: 1
-                                }
-                            ]
-                        }
-                    }
-                },
-                {
-                    type: "scale",
-                    config: {
-                        scale: {
-                            list: [
-                                {
-                                    value: 1,
-                                    time: 0
-                                },
-                                {
-                                    value: 1,
-                                    time: 1
-                                }
-                            ]
-                        }
-                    }
-                },
-                {
-                    type: "color",
-                    config: {
-                        color: {
-                            list: [
-                                {
-                                    value: "fb1010",
-                                    time: 0
-                                },
-                                {
-                                    value: "f5b830",
-                                    time: 1
-                                }
-                            ]
-                        }
-                    }
-                },
-                {
-                    type: "moveSpeed",
-                    config: {
-                        speed: {
-                            list: [
-                                {
-                                    value: 200,
-                                    time: 0
-                                },
-                                {
-                                    value: 100,
-                                    time: 1
-                                }
-                            ],
-                            isStepped: false
-                        }
-                    }
-                },
-                {
-                    type: "rotationStatic",
-                    config: {
-                        min: 70,
-                        max: 110
-                    }
-                },
-                {
-                    type: "spawnShape",
-                    config: {
-                        type: "rect",
-                        data: {
-                            x: 0,
-                            y: 0,
-                            width: 800,
-                            height: 10
-                        }
-                    }
-                },
-                {
-                    type: "textureSingle",
-                    config: {
-                        texture: snowflakeSymbol
+    const emitter = particles.addEmitter({
+        emit: false,
+        autoUpdate: true,
+        lifetime: { min: 5, max: 5 },
+        emitterLifetime: -1,
+        pos: { x: 0, y: 0 },
+        frequency: 0.05,
+        maxParticles: 1000,
+        behaviors: [
+            {
+                type: "alphaStatic",
+                config: {
+                    alpha: 1
+                }
+            },
+            {
+                type: "scaleStatic",
+                config: {
+                    min: 1,
+                    max: 1
+                }
+            },
+            {
+                type: "color",
+                config: {
+                    color: {
+                        list: [
+                            {
+                                value: "fb1010",
+                                time: 0
+                            },
+                            {
+                                value: "f5b830",
+                                time: 1
+                            }
+                        ]
                     }
                 }
-            ]
-        })
-        .then(e => {
-            e.autoUpdate = true;
-        });
+            },
+            {
+                type: "moveSpeed",
+                config: {
+                    speed: {
+                        list: [
+                            {
+                                value: 200,
+                                time: 0
+                            },
+                            {
+                                value: 100,
+                                time: 1
+                            }
+                        ],
+                        isStepped: false
+                    }
+                }
+            },
+            {
+                type: "rotationStatic",
+                config: {
+                    min: 70,
+                    max: 110
+                }
+            },
+            {
+                type: "spawnShape",
+                config: {
+                    type: "rect",
+                    data: {
+                        x: 0,
+                        y: 0,
+                        w: 800,
+                        h: 1
+                    }
+                }
+            },
+            {
+                type: "textureSingle",
+                config: {
+                    texture: snowflakeSymbol
+                }
+            }
+        ]
+    });
+
+    watchEffect(() => {
+        const shouldEmit = day.value === 25;
+        emitter.then(e => (e.emit = shouldEmit));
+    });
 
     const currentlyMastering = computed(() =>
         isMastery.value
@@ -764,11 +748,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
                         </button>
                     </>
                 ) : null}
-                {
-                    render(
-                        particles
-                    ) /*creditsOpen.value || day.value == 25 ? render(particles) : null*/
-                }
+                {render(particles)}
             </>
         ))
     };
