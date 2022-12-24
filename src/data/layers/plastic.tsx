@@ -37,6 +37,8 @@ import oil from "./oil";
 import paper from "./paper";
 import workshop from "./workshop";
 import toys from "./toys";
+import reindeer from "./reindeer";
+import sleigh from "./sleigh";
 
 const id = "plastic";
 const day = 10;
@@ -319,6 +321,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Oil Refinery",
             enabled: () => Decimal.gt(activeRefinery.value, 0)
         })),
+        createAdditiveModifier(() => ({
+            addend: () =>
+            management.elfTraining.oilElfTraining.milestones[3].earned.value
+                ? Decimal.times(Decimal.div(sleigh.sleighProgress.value.value,2).floor(), 200)
+                : Decimal.times(activeRefinery.value, 40),
+            description: "75% Sleigh Fixed",
+            enabled: sleigh.milestones.milestone7.earned
+        })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
             description: "Paper Elf Recruitment",
@@ -383,7 +393,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: () => dyes.boosts.white1.value,
             description: "White Dye Boost"
-        }))
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.div(sleigh.sleighProgress.value.value, 5).floor().mul(0.05).add(1),
+            description: "20% Sleigh Fixed",
+            enabled: sleigh.milestones.milestone3.earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 4,
+            description: "40% Sleigh Fixed",
+            enabled: sleigh.milestones.milestone5.earned
+        })),
+        reindeer.reindeer.blitzen.modifier
     ]);
     const computedPlasticGain = computed(() => plasticGain.apply(0));
 

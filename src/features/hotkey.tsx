@@ -89,6 +89,9 @@ document.onkeydown = function (e) {
     if (e.ctrlKey) {
         key = "ctrl+" + key;
     }
+    if (e.code.startsWith("Numpad") && `Numpad ${key}` in hotkeys) {
+        key = "Numpad " + key;
+    }
     const hotkey = hotkeys[key];
     if (hotkey && unref(hotkey.enabled)) {
         e.preventDefault();

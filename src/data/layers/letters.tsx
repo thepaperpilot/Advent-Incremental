@@ -76,10 +76,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.lt(processingProgress.value, computedProcessingCooldown.value)) {
                 return;
             }
-            const amount = Decimal.div(
-                processingProgress.value,
-                computedProcessingCooldown.value
-            ).floor();
+            const amount = Decimal.div(processingProgress.value, computedProcessingCooldown.value)
+                .floor()
+                .max(1);
             letters.value = Decimal.times(amount, computedLettersGain.value)
                 .add(letters.value)
                 .min(8e9);
@@ -339,7 +338,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 ) : null}
                 <MainDisplay resource={letters} color={color} />
                 {render(process)}
-                If your letters are stuck, try holding L
                 {Decimal.lt(totalLetters.value, 8e9) ? (
                     <div>
                         The more letters you process, the more you'll improve at processing letters.

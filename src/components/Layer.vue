@@ -2,7 +2,7 @@
     <div class="layer-container" :style="{ '--layer-color': unref(color) }">
         <button v-if="showGoBack" class="goBack" @click="goBack">❌</button>
 
-        <button class="layer-tab minimized" v-if="minimized" @click="setMinimized(false)">
+        <button class="layer-tab minimized" v-if="unref(minimized)" @click="setMinimized(false)">
             <component v-if="minimizedComponent" :is="minimizedComponent" />
             <div v-else>{{ unref(name) }}</div>
         </button>
@@ -34,10 +34,6 @@ export default defineComponent({
             type: Number,
             required: true
         },
-        tab: {
-            type: Function as PropType<() => HTMLElement | undefined>,
-            required: true
-        },
         display: {
             type: processedPropType<CoercableComponent>(Object, String, Function),
             required: true
@@ -45,10 +41,6 @@ export default defineComponent({
         minimizedDisplay: processedPropType<CoercableComponent>(Object, String, Function),
         minimized: {
             type: Object as PropType<Persistent<boolean>>,
-            required: true
-        },
-        minWidth: {
-            type: processedPropType<number | string>(Number, String),
             required: true
         },
         name: {
@@ -63,7 +55,7 @@ export default defineComponent({
         }
     },
     setup(props) {
-        const { display, index, minimized, minWidth, tab, minimizedDisplay, name } = toRefs(props);
+        const { display, index, minimized, minimizedDisplay } = toRefs(props);
 
         const component = computeComponent(display);
         const minimizedComponent = computeOptionalComponent(minimizedDisplay);
@@ -79,37 +71,8 @@ export default defineComponent({
             minimized.value = min;
         }
 
-        nextTick(() => updateTab(minimized.value, unref(minWidth.value)));
-        watch([name, minimized, wrapRef(minWidth)], ([name, minimized, minWidth]) => {
-            updateTab(minimized, minWidth);
-        });
-
         function updateNodes(nodes: Record<string, FeatureNode | undefined>) {
             props.nodes.value = nodes;
-        }
-
-        function updateTab(min: boolean, minWidth: number | string) {
-            minimized.value = min;
-            const width =
-                typeof minWidth === "number" || Number.isNaN(parseInt(minWidth))
-                    ? minWidth + "px"
-                    : minWidth;
-            const tabValue = tab.value();
-            if (tabValue != undefined) {
-                if (min) {
-                    tabValue.style.flexGrow = "0";
-                    tabValue.style.flexShrink = "0";
-                    tabValue.style.width = "60px";
-                    tabValue.style.minWidth = tabValue.style.flexBasis = "";
-                    tabValue.style.margin = "0";
-                } else {
-                    tabValue.style.flexGrow = "";
-                    tabValue.style.flexShrink = "";
-                    tabValue.style.width = "";
-                    tabValue.style.minWidth = tabValue.style.flexBasis = width;
-                    tabValue.style.margin = "";
-                }
-            }
         }
 
         return {
@@ -119,16 +82,13 @@ export default defineComponent({
             updateNodes,
             unref,
             goBack,
-            setMinimized,
-            minimized,
-            minWidth
+            setMinimized
         };
     }
 });
 </script>
 
 <style scoped>
-
 .layer-tab:not(.minimized) {
     padding-top: 20px;
     padding-bottom: 20px;

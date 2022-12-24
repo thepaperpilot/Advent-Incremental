@@ -43,6 +43,7 @@ import { WithRequired } from "util/common";
 import { ElfBuyable } from "./elves";
 import toys from "./toys";
 import factory from "./factory";
+import reindeer from "./reindeer";
 
 const id = "oil";
 const day = 9;
@@ -625,7 +626,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: "Increase drill power by +4% per Coal Drill owned.",
                 effectDisplay: jsx(() => <>x{format(row1UpgradeEffects[0].value)}</>)
             },
-            style: { color: colorText }
+            style() {
+                return this.bought.value ? "" : { color: colorText };
+            }
         })),
         createUpgrade(() => ({
             resource: metal.metal,
@@ -635,7 +638,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: "Increase drill power by +4% per Metal Drill owned.",
                 effectDisplay: jsx(() => <>x{format(row1UpgradeEffects[1].value)}</>)
             },
-            style: { color: colorText }
+            style() {
+                return this.bought.value ? "" : { color: colorText };
+            }
         })),
         createUpgrade(() => ({
             resource: coal.coal,
@@ -645,7 +650,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: "Increase drill power by +6% per OoM of coal owned.",
                 effectDisplay: jsx(() => <>x{format(row1UpgradeEffects[2].value)}</>)
             },
-            style: { color: colorText }
+            style() {
+                return this.bought.value ? "" : { color: colorText };
+            }
         })),
         createUpgrade(() => ({
             resource: metal.metal,
@@ -655,7 +662,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: "Increase drill power by +10% per OoM of metal ingot owned.",
                 effectDisplay: jsx(() => <>x{format(row1UpgradeEffects[3].value)}</>)
             },
-            style: { color: colorText }
+            style() {
+                return this.bought.value ? "" : { color: colorText };
+            }
         })),
         createUpgrade(() => ({
             resource: noPersist(oil),
@@ -667,7 +676,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     <>+{format(Decimal.mul(row1UpgradeEffects[4].value, 100))}%</>
                 ))
             },
-            style: { color: colorText }
+            style() {
+                return this.bought.value ? "" : { color: colorText };
+            }
         }))
     ];
     const row1UpgradeEffects: ComputedRef<DecimalSource>[] = [
@@ -706,7 +717,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 title: "Oil the Oil Pump",
                 description: "Double oil gain."
             },
-            style: { color: colorText }
+            style() {
+                return this.bought.value ? "" : { color: colorText };
+            }
         })),
         createUpgrade(() => ({
             resource: noPersist(oil),
@@ -716,7 +729,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description:
                     "Double ore mining speed and square the coal drill amount in its effect."
             },
-            style: { color: colorText }
+            style() {
+                return this.bought.value ? "" : { color: colorText };
+            }
         })),
         createUpgrade(() => ({
             resource: noPersist(oil),
@@ -725,7 +740,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 title: "Blaster Burner",
                 description: "The Oil Burner can now increase your auto smelting multi."
             },
-            style: { color: colorText }
+            style() {
+                return this.bought.value ? "" : { color: colorText };
+            }
         })),
         createUpgrade(() => ({
             resource: noPersist(oil),
@@ -734,7 +751,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 title: "Oil Integration",
                 description: "Reduce Oil Pump's coal consumption multipler from 5 to 4"
             },
-            style: { color: colorText }
+            style() {
+                return this.bought.value ? "" : { color: colorText };
+            }
         })),
         createUpgrade(() => ({
             resource: noPersist(oil),
@@ -748,7 +767,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     </>
                 ))
             },
-            style: { color: colorText }
+            style() {
+                return this.bought.value ? "" : { color: colorText };
+            }
         }))
     ];
     const row3Upgrades = [
@@ -761,7 +782,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             visibility: () =>
                 showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
-            style: { color: colorText }
+            style() {
+                return this.bought.value ? "" : { color: colorText };
+            }
         })),
         createUpgrade(() => ({
             resource: noPersist(oil),
@@ -772,7 +795,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             visibility: () =>
                 showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
-            style: { color: colorText }
+            style() {
+                return this.bought.value ? "" : { color: colorText };
+            }
         })),
         createUpgrade(() => ({
             resource: noPersist(oil),
@@ -788,7 +813,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             visibility: () =>
                 showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
-            style: { color: colorText }
+            style() {
+                return this.bought.value ? "" : { color: colorText };
+            }
         })),
         createUpgrade(() => ({
             resource: noPersist(oil),
@@ -799,7 +826,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             visibility: () =>
                 showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
-            style: { color: colorText }
+            style() {
+                return this.bought.value ? "" : { color: colorText };
+            }
         })),
         createUpgrade(() => ({
             resource: noPersist(oil),
@@ -810,7 +839,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             visibility: () =>
                 showIf(management.elfTraining.oilElfTraining.milestones[4].earned.value),
-            style: { color: colorText }
+            style() {
+                return this.bought.value ? "" : { color: colorText };
+            }
         }))
     ];
     const coalConsumption = createSequentialModifier(() => [
@@ -964,7 +995,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: 50,
             description: "350 toys",
             enabled: toys.milestones.milestone4.earned
-        }))
+        })),
+        reindeer.reindeer.donner.modifier
     ]) as WithRequired<Modifier, "description" | "revert">;
     const computedOilSpeed = computed(() => oilSpeed.apply(0));
 

@@ -6,12 +6,24 @@
             class="scene-item"
             style="left: 4%; bottom: 3%; width: 40px; height: 40px"
         />
-        <img v-if="day >= 0" :src="tree" class="scene-item" style="left: 10%; bottom: 10%" />
+        <img
+            v-if="day >= 0"
+            :src="tree"
+            class="scene-item"
+            style="left: 6%; bottom: 10%; width: 120px; height: 120px"
+        />
+        <img v-if="day >= 20" :src="reindeer" class="scene-item" style="left: 13%; bottom: 8%" />
         <img
             v-if="day >= 13"
             :src="letters"
             class="scene-item"
             style="left: 26%; bottom: 12%; width: 40px; height: 40px"
+        />
+        <img
+            v-if="day >= 21"
+            :src="sleigh"
+            class="scene-item"
+            style="left: 10%; bottom: 56%; transform: rotate(24deg); width: 100px; height: 100px"
         />
         <img
             v-if="day >= 12"
@@ -46,6 +58,12 @@
             class="scene-item"
             style="left: 72%; bottom: 8%; width: 40px; height: 40px"
         />
+        <img
+            v-if="day >= 22"
+            :src="routing"
+            class="scene-item"
+            style="left: 76%; bottom: 4%; width: 40px; height: 40px"
+        />
         <img v-if="day >= 8" :src="oil" class="scene-item" style="left: 80%; bottom: 6%" />
         <div
             v-if="day >= 4"
@@ -69,6 +87,7 @@
         <div v-if="day >= 4" class="scene-bubble left" style="left: 64%; bottom: 37%">
             <img v-if="day >= 17" :src="toys" class="scene-item" />
             <img v-if="day >= 18" :src="advFactory" class="scene-item" />
+            <img v-if="day >= 19" :src="presents" class="scene-item" />
         </div>
     </div>
 </template>
@@ -93,6 +112,10 @@ import ribbons from "./symbols/ribbons.png";
 import toys from "./symbols/truck.png";
 import factory from "./symbols/gears.png";
 import advFactory from "./symbols/teddyBear.png";
+import presents from "./symbols/presents.png";
+import reindeer from "./symbols/reindeer.png";
+import sleigh from "./symbols/sleigh.png";
+import routing from "./symbols/gps.png";
 
 defineProps<{
     day: number;

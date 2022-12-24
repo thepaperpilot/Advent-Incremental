@@ -151,8 +151,10 @@
     justify-content: space-evenly;
     align-items: flex-start;
     align-content: flex-start;
+    justify-content: flex-start;
     width: 148px;
     direction: ltr;
+    text-align: left;
 }
 
 .comp-list::after {
@@ -176,6 +178,11 @@
     pointer-events: all;
 }
 
+.comp-list .comp > img:first-child {
+    width: 50px;
+    height: 50px;
+}
+
 .comp-list .comp:nth-child(3)::after,
 .comp-list .comp:nth-child(4)::after {
     content: "";
@@ -192,7 +199,7 @@
 .comp-list .comp:nth-child(4)::after {
     left: -50px;
 }
-.comp-list .comp img.selected:not(.producedItem) {
+.comp-list .comp img.selected, .comp-list .comp img.selected + img {
     transform: translate(-5px, -5px);
     filter: drop-shadow(2px 2px 0 var(--foreground)) drop-shadow(5px 5px 5px #0007);
 }

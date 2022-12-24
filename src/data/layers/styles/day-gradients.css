@@ -95,3 +95,14 @@
         );
     }
 }
+
+@keyframes reindeer-bar {
+    from {
+        background: 0 0 / 28px 28px repeat
+            repeating-linear-gradient(-45deg, brown 0 10px, saddlebrown 10px 20px);
+    }
+    to {
+        background: 28px 0px / 28px 28px repeat
+            repeating-linear-gradient(-45deg, brown 0 10px, saddlebrown 10px 20px);
+    }
+}

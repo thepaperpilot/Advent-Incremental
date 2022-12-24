@@ -66,9 +66,8 @@ const useHeader = projInfo.useHeader;
 const loreBody = computeOptionalComponent(main.loreBody);
 
 function gatherLayerProps(layer: GenericLayer) {
-    const { display, minimized, minWidth, name, color, minimizable, nodes, minimizedDisplay } =
-        layer;
-    return { display, minimized, minWidth, name, color, minimizable, nodes, minimizedDisplay };
+    const { display, minimized, name, color, minimizable, nodes, minimizedDisplay } = layer;
+    return { display, minimized, name, color, minimizable, nodes, minimizedDisplay };
 }
 </script>
 
