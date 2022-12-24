@@ -514,8 +514,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
             shouldNotify: false,
             layer: "packing",
             symbol: "",
-            story: "",
-            completedStory: "",
+            story: "You're almost done! The last step is to load up the sleigh with all the presents and get ready to go! You're going to need to pack a lot of presents, so you'll need to make sure you pack them tightly enough. Good Luck!",
+            completedStory: "At last, you've crammed in all the presents Santa needs. Santa can take it from here. Good Job!",
             masteredStory: ""
         }))
     ];

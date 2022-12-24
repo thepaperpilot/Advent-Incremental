@@ -43,7 +43,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const resetPacking = createClickable(() => ({
         display: {
-            description: "Do it all again, but better"
+            description: "Oh no! You've run out of space! You'll need to take all the presentts out and repack them"
         },
         visibility: () => showIf(Decimal.lt(packedPresents.value, 8e9) && Decimal.lte(remainingSize.value, 0)),
         onClick() {
@@ -109,7 +109,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: management.elfTraining.packingElfTraining.milestones[0].earned
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.times(helpers.elf.amount.value, 0.1).plus(1),
+            multiplier: () => Decimal.times(helpers.elf.amount.value, 0.005).plus(1),
             description: "Jingle Level 2",
             enabled: management.elfTraining.packingElfTraining.milestones[1].earned
         })),
@@ -117,6 +117,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => 1 + Object.values(packingMilestones).filter(milestone => milestone.earned).length,
             description: "Jingle Level 3",
             enabled: management.elfTraining.packingElfTraining.milestones[2].earned
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.log10(packedPresents.value).plus(1),
+            description: "10,000 Presents Packed",
+            enabled: () => Decimal.gte(packedPresents.value,1e4)
         }))
     ]);
     const computedElfPackingSpeed = computed(() => elfPackingSpeed.apply(1));
@@ -149,12 +154,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility: () => showIf(Decimal.gte(totalPresents.value, 10)),
             cost() {
                 let v = this.amount.value;
-                v = Decimal.pow(0.95, paper.books.packingBook.totalAmount.value).times(v);
+                v = Decimal.pow(0.98, paper.books.packingBook.totalAmount.value).times(v);
                 return Decimal.pow(1.2, v).times(10).floor()
             },
             inverseCost(cost: DecimalSource) {
                 let amount = Decimal.div(cost, 10).log(1.2);
-                amount = amount.div(Decimal.pow(0.95, paper.books.packingBook.totalAmount.value));
+                amount = amount.div(Decimal.pow(0.98, paper.books.packingBook.totalAmount.value));
                 return Decimal.isNaN(amount) ? Decimal.dZero : amount.floor().max(0);
             },
             resource: totalPresentsResource,
@@ -219,10 +224,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             resource: totalPresentsResource,
             style: {
                 width: "200px"
-            }/*,
-            onPurchase () {
-                main.days[3].recentlyUpdated.value = true;
-            }*/
+            },
+            visibility: () => showIf(Decimal.gte(helpers.elf.amount.value, 10))
         })),
         loaderUnlock: createUpgrade(() => ({
             display: {
@@ -233,9 +236,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
             resource: totalPresentsResource,
             style: {
                 width: "200px"
-            }
+            },
+            visibility: () => showIf(Decimal.gte(packedPresents.value, 10000))
         }))
     }
+
+    const resetButton = createClickable(() => ({
+        display: jsx(() => (
+            <>
+                Oh no! You've run out of room for presents! You'll need to take 
+            </>
+        ))
+    }))
 
     const packingMilestones: Record<string, GenericMilestone> = {
         logBoost: createMilestone(() => ({
@@ -265,6 +277,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 requirement: `2,800 ${packedPresents.displayName}`,
                 effectDisplay: "Triple drill power"
+            },
+            shouldEarn: () => Decimal.gte(packedPresents.value, 2800),
+            visibility: () => showIf(packingMilestones.clothBoost.earned.value)
+        })),
+        packingBoost: createMilestone(() => ({
+            display: {
+                requirement: `10,000 ${packedPresents.displayName}`,
+                effectDisplay: "Multiply packing speed by log(presents)"
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 2800),
             visibility: () => showIf(packingMilestones.clothBoost.earned.value)
@@ -422,6 +442,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {render(trackerDisplay)}
                 <SpacerVue />
                 <MainDisplayVue resource={packedPresents} color={color}/>
+                <p>You can pack {format(remainingSize.value)} more presents</p>
                 <SpacerVue />
                 {render(resetPacking)}
                 {render(packPresent)}
