@@ -295,11 +295,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             house: {
                 shape: Shape.Circle,
                 fillColor: "var(--highlighted)",
-                outlineColor(node) {
-                    return currentRoute.value?.includes(node.state as number)
-                        ? "var(--accent1)"
-                        : "var(--outline)";
-                },
+                outlineColor: "var(--accent1)",
                 size: 20,
                 title(node) {
                     let letter = node.state as number;
@@ -366,24 +362,43 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 return links;
             }
             const citySize = currentCity.value.length;
+            let completedLegs = 0;
+            let progress = 0;
+            for (let i = 0; i < route.length - 1; i++) {
+                const weight = progress + currentCity.value[route[i]][route[i + 1]];
+                if (checkRouteProgress.value > weight) {
+                    completedLegs++;
+                    progress = weight;
+                } else {
+                    break;
+                }
+            }
+            const partialLeg =
+                (checkRouteProgress.value - progress) /
+                currentCity.value[route[completedLegs]][route[completedLegs + 1]];
             for (let i = 0; i < citySize; i++) {
                 for (let j = 0; j < citySize; j++) {
                     if (i !== j) {
-                        // Bloody O(n^2) performance Batman!
-                        let isActive = false;
-                        const endPoints = [route[0], route[route.length - 1]];
+                        let progress = 0;
+                        const iIndex = route.indexOf(i);
+                        const jIndex = route.indexOf(j);
                         if (
-                            (!endPoints.includes(i) || !endPoints.includes(j)) &&
-                            route.includes(i) &&
-                            route.includes(j)
+                            iIndex >= 0 &&
+                            jIndex >= 0 &&
+                            (route[iIndex + 1] === j || route[jIndex + 1] === i)
                         ) {
-                            isActive = true;
+                            if (jIndex < completedLegs || iIndex < completedLegs) {
+                                progress = 1;
+                            } else if (jIndex === completedLegs || iIndex === completedLegs) {
+                                progress = partialLeg;
+                            }
                         }
                         links.push({
+                            style: "transition-duration: 0s",
                             startNode: city.nodes.value[i],
                             endNode: city.nodes.value[j],
-                            stroke: isActive ? "red" : "white",
-                            "stroke-width": isActive ? 4 : 2,
+                            stroke: `rgb(${progress * 255}, 0, 0)`,
+                            "stroke-width": 2 * progress + 2,
                             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                             // @ts-ignore
                             weight: i < j ? null : currentCity.value[i][j]

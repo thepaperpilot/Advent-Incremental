@@ -12,7 +12,7 @@
         v-if="link.weight"
         :x="(startPosition.x + endPosition.x) / 2"
         :y="(startPosition.y + endPosition.y) / 2 + 4"
-        style="text-anchor: middle"
+        style="text-anchor: middle; fill: var(--foreground)"
         >{{ link.weight }}</text
     >
 </template>
