@@ -2243,12 +2243,12 @@ const factory = createLayer(id, () => {
                                 style={{
                                     color:
                                         (compInternalHovered.value as FactoryInternalProcessor)
-                                            .average.value! > 1
-                                            ? "purple"
+                                            .average.value! >= 0.995
+                                            ? "fuchsia"
                                             : (
                                                   compInternalHovered.value as FactoryInternalProcessor
                                               ).average.value! >= 0.9
-                                            ? "green"
+                                            ? "lime"
                                             : (
                                                   compInternalHovered.value as FactoryInternalProcessor
                                               ).average.value! >= 0.5
