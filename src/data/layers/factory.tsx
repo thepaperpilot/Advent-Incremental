@@ -912,6 +912,13 @@ const factory = createLayer(id, () => {
                 }
 
                 while (times > 0) {
+                    if (
+                        !Object.values(allToys).some(i =>
+                            Decimal.gte(i.value, computedToyMultiplier.value)
+                        )
+                    ) {
+                        return;
+                    }
                     while (Decimal.lt(value[toysIndex].value, computedToyMultiplier.value)) {
                         toysIndex = (toysIndex + 1) % value.length;
                     }
