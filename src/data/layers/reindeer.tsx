@@ -419,8 +419,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             width: "160px"
         },
         display: {
-            title: "Autoamted feeder",
-            description: "An automated feeder let's focused reindeer eat automatically"
+            title: "Automated feeder",
+            description: "An automated feeder lets focused reindeer eat automatically"
         }
     }));
     const upgrade9 = createUpgrade(() => ({
@@ -514,7 +514,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         direction: Direction.Right,
         width: 600,
         height: 25,
-        fillStyle: `backgroundColor: ${color}`,
+        fillStyle: `animation: 15s reindeer-bar linear infinite`,
         progress: () => (main.day.value === day ? Decimal.div(sumTimesFed.value, feedGoal) : 1),
         display: jsx(() =>
             main.day.value === day ? (
