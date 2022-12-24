@@ -464,9 +464,9 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 20,
             shouldNotify: false,
-            layer: null, // "presents"
+            layer: "factory", // "presents"
             symbol: wrappingPaperSymbol,
-            story: "",
+            story: "Santa comes by again, and tells you that just toys may not be appealing enough. He tells you that you should probably wrap them in some wrapping paper so that it's more of a surprise. You try to argue that you've already done too much for him and deserve a day off, but Santa argues that it's for the benefit of everyone and that you'll get your vacation soon. Oh well, time to get back to the factory and expand it even more. Here we go again!",
             completedStory: "",
             masteredStory: ""
         })),
