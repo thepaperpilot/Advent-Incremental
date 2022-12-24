@@ -554,7 +554,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Countries Completed"
         })),
         createAdditiveModifier(() => ({
-            addend: 1,
+            addend: -1,
             description: "5 Countries Completed",
             enabled: milestone5.earned
         }))
