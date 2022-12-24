@@ -7,6 +7,7 @@ import {
     jsx,
     Visibility
 } from "features/feature";
+import { createParticles } from "features/particles/particles";
 import { BaseLayer, createLayer, GenericLayer, layers } from "game/layers";
 import { isPersistent, Persistent, persistent } from "game/persistence";
 import type { PlayerData } from "game/player";
@@ -16,9 +17,9 @@ import { Computable, convertComputable, ProcessedComputable } from "util/compute
 import { createLazyProxy } from "util/proxies";
 import { save } from "util/save";
 import { render, renderRow, VueFeature } from "util/vue";
-import { Ref, watch, watchEffect } from "vue";
-import { computed, ref, unref } from "vue";
+import { computed, Ref, ref, unref, watchEffect } from "vue";
 import "./advent.css";
+import { credits } from "./credits";
 import Day from "./Day.vue";
 import boxes from "./layers/boxes";
 import cloth from "./layers/cloth";
@@ -26,19 +27,21 @@ import coal from "./layers/coal";
 import dyes from "./layers/dyes";
 import elves from "./layers/elves";
 import factory from "./layers/factory";
+import presentSymbol from "./layers/factory-components/present.svg";
 import letters from "./layers/letters";
 import management from "./layers/management";
 import metal from "./layers/metal";
 import oil from "./layers/oil";
+import packing from "./layers/packing";
 import paper from "./layers/paper";
 import plastic from "./layers/plastic";
 import reindeer from "./layers/reindeer";
 import ribbon from "./layers/ribbon";
 import routing from "./layers/routing";
+import sleigh from "./layers/sleigh";
 import toys from "./layers/toys";
 import trees from "./layers/trees";
 import workshop from "./layers/workshop";
-import sleigh from "./layers/sleigh";
 import wrappingPaper from "./layers/wrapping-paper";
 import boxesSymbol from "./symbols/cardboardBox.png";
 import clothSymbol from "./symbols/cloth.png";
@@ -47,6 +50,7 @@ import dyesSymbol from "./symbols/dyes.png";
 import elfSymbol from "./symbols/elf.png";
 import managementSymbol from "./symbols/elfManagement.png";
 import factorySymbol from "./symbols/gears.png";
+import routingSymbol from "./symbols/gps.png";
 import lettersSymbol from "./symbols/letterbox.png";
 import metalSymbol from "./symbols/metal.png";
 import oilSymbol from "./symbols/oil.png";
@@ -55,19 +59,15 @@ import plasticSymbol from "./symbols/plastic.png";
 import presentsSymbol from "./symbols/presents.png";
 import reindeerSymbol from "./symbols/reindeer.png";
 import ribbonsSymbol from "./symbols/ribbons.png";
+import packingSymbol from "./symbols/santasSack.png";
+import sleighSymbol from "./symbols/sleigh.png";
+import snowflakeSymbol from "./symbols/snowflake.svg";
 import workshopSymbol from "./symbols/sws.png";
 import advFactorySymbol from "./symbols/teddyBear.png";
 import treeSymbol from "./symbols/tree.png";
 import toysSymbol from "./symbols/truck.png";
 import advManagementSymbol from "./symbols/workshopMansion.png";
 import wrappingPaperSymbol from "./symbols/wrappingPaper.png";
-import packing from "./layers/packing";
-import snowflakeSymbol from "./symbols/snowflake.svg";
-import presentSymbol from "./layers/factory-components/present.svg";
-import { createParticles } from "features/particles/particles";
-import { credits } from "./credits";
-import sleighSymbol from "./symbols/sleigh.png";
-import routingSymbol from "./symbols/gps.png";
 
 export interface Day extends VueFeature {
     day: number;
@@ -612,9 +612,10 @@ export const main = createLayer("main", function (this: BaseLayer) {
             day: 24,
             shouldNotify: false,
             layer: "packing",
-            symbol: "",
+            symbol: packingSymbol,
             story: "You're almost done! The last step is to load up the sleigh with all the presents and get ready to go! You're going to need to pack a lot of presents, so you'll need to make sure you pack them tightly enough. Good Luck!",
-            completedStory: "At last, you've crammed in all the presents Santa needs. Santa can take it from here. Good Job!",
+            completedStory:
+                "At last, you've crammed in all the presents Santa needs. Santa can take it from here. Good Job!",
             masteredStory: ""
         })),
         createDay(() => ({
