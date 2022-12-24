@@ -998,7 +998,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             showIf(
                 management.elfTraining.fertilizerElfTraining.milestones[4].earned.value ||
                     letters.masteryEffectActive.value
-            )
+            ),
+        buyMax: metal.masteryEffectActive
     });
     const managementElves2 = [metalElf];
 

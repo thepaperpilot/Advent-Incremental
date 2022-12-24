@@ -2,7 +2,11 @@
     <div class="layer-container" :style="{ '--layer-color': unref(color) }">
         <button v-if="showGoBack" class="goBack" @click="goBack">❌</button>
 
-        <button class="layer-tab minimized" v-if="unref(minimized)" @click="setMinimized(false)">
+        <button
+            class="layer-tab minimized"
+            v-if="unref(minimized)"
+            @click="$emit('setMinimized', false)"
+        >
             <component v-if="minimizedComponent" :is="minimizedComponent" />
             <div v-else>{{ unref(name) }}</div>
         </button>
@@ -12,7 +16,9 @@
             </Context>
         </div>
 
-        <button v-if="unref(minimizable)" class="minimize" @click="setMinimized(true)">▼</button>
+        <button v-if="unref(minimizable)" class="minimize" @click="$emit('setMinimized', true)">
+            ▼
+        </button>
     </div>
 </template>
 
@@ -40,7 +46,7 @@ export default defineComponent({
         },
         minimizedDisplay: processedPropType<CoercableComponent>(Object, String, Function),
         minimized: {
-            type: Object as PropType<Persistent<boolean>>,
+            type: Object as PropType<Ref<boolean>>,
             required: true
         },
         name: {
@@ -54,6 +60,7 @@ export default defineComponent({
             required: true
         }
     },
+    emits: ["setMinimized"],
     setup(props) {
         const { display, index, minimized, minimizedDisplay } = toRefs(props);
 
@@ -67,10 +74,6 @@ export default defineComponent({
             player.tabs.splice(unref(props.index), 1);
         }
 
-        function setMinimized(min: boolean) {
-            minimized.value = min;
-        }
-
         function updateNodes(nodes: Record<string, FeatureNode | undefined>) {
             props.nodes.value = nodes;
         }
@@ -81,8 +84,7 @@ export default defineComponent({
             showGoBack,
             updateNodes,
             unref,
-            goBack,
-            setMinimized
+            goBack
         };
     }
 });

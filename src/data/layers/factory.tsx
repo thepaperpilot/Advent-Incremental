@@ -307,7 +307,7 @@ const factory = createLayer(id, () => {
                     )}
                 </div>
                 <div>
-                    {routing.metaMilestones[5].earned.value ? (
+                    {routing.metaMilestones[4].earned.value ? (
                         <Tooltip display="Polyfill" direction={Direction.Down}>
                             <button class="control-btn material-icons" onClick={polyfill}>
                                 format_color_fill
@@ -2380,8 +2380,14 @@ const factory = createLayer(id, () => {
                                 Object.values(factoryBuyables2)
                             )}
                             <Spacer />
+                            <div style="width: 600px">
+                                Every upgrade purchased below increases the price of the other
+                                upgrades
+                            </div>
                             <Spacer />
-                            {renderGrid(...(upgrades as VueFeature[][]))}
+                            {renderGrid(...upgrades.slice(0, 3))}
+                            <Spacer />
+                            {renderGrid(...upgrades.slice(3))}
                         </>
                     ))
                 })),
