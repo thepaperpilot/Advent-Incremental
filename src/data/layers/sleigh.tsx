@@ -3,20 +3,20 @@
  * @hidden
  */
 import Spacer from "components/layout/Spacer.vue";
-import { createCollapsibleMilestones} from "data/common";
+import { createCollapsibleMilestones } from "data/common";
 import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
 import { jsx, showIf } from "features/feature";
 import { createMilestone } from "features/milestones/milestone";
 import { BaseLayer, createLayer } from "game/layers";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
-import { Direction} from "util/common";
+import { Direction } from "util/common";
 import { render } from "util/vue";
 import { computed, watchEffect } from "vue";
 import management from "./management";
 import trees from "./trees";
 import metal from "./metal";
-import plastic from "./plastic"
+import plastic from "./plastic";
 import { createBuyable, GenericBuyable } from "features/buyable";
 import { Resource } from "features/resources/resource";
 import { isArray } from "@vue/shared";
@@ -39,9 +39,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             </span>
         );
     }
-    const sleighProgress = computed(() => sleigh.amount)
+    const sleighProgress = computed(() => sleigh.amount);
     const sleighCost = computed(() => {
-        let v = sleighProgress.value.value;
+        const v = sleighProgress.value.value;
         return {
             wood: Decimal.mul(1e97, Decimal.pow(1.2, v)),
             metal: Decimal.mul(1e67, Decimal.pow(1.1, v)),
@@ -157,7 +157,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         direction: Direction.Right,
         width: 600,
         height: 25,
-        fillStyle: `backgroundColor: ${colorDark}`,
+        fillStyle: `animation: 15s sleigh-bar linear infinite`,
         progress: () =>
             main.day.value === day || main.currentlyMastering.value?.name === name
                 ? Decimal.div(sleighProgress.value.value, 100)
@@ -174,7 +174,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     watchEffect(() => {
         if (main.day.value === day && Decimal.gte(sleighProgress.value.value, 100)) {
             main.completeDay();
-        } 
+        }
     });
 
     return {
@@ -213,12 +213,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
         minimizedDisplay: jsx(() => (
             <div>
-                {name}{" "}
-                <span class="desc">
-                    {formatWhole(sleighProgress.value.value)}% sleigh
-                </span>
+                {name} <span class="desc">{formatWhole(sleighProgress.value.value)}% sleigh</span>
             </div>
-        )),
+        ))
     };
 });
 

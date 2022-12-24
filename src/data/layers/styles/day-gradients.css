@@ -78,13 +78,26 @@
             );
     }
 }
+
 @keyframes reindeer-bar {
     from {
         background: 0 0 / 28px 28px repeat
             repeating-linear-gradient(-45deg, brown 0 10px, saddlebrown 10px 20px);
     }
     to {
-        background: 28px 0px / 28px 28px repeat
+        background: 114px 0px / 28px 28px repeat
             repeating-linear-gradient(-45deg, brown 0 10px, saddlebrown 10px 20px);
     }
 }
+
+@keyframes sleigh-bar {
+    from {
+        background: 0 0 / 28px 28px repeat
+            repeating-linear-gradient(-45deg, #D71830 0 10px, #A0A020 10px 20px);
+    }
+    to {
+        background: 114px 0px / 28px 28px repeat
+            repeating-linear-gradient(-45deg, #D71830 0 10px, #A0A020 10px 20px);
+    }
+}
+
