@@ -128,23 +128,6 @@ export const main = createLayer("main", function (this: BaseLayer) {
                 }
             },
             {
-                type: "color",
-                config: {
-                    color: {
-                        list: [
-                            {
-                                value: "fb1010",
-                                time: 0
-                            },
-                            {
-                                value: "f5b830",
-                                time: 1
-                            }
-                        ]
-                    }
-                }
-            },
-            {
                 type: "moveSpeed",
                 config: {
                     speed: {
