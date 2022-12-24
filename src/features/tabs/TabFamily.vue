@@ -156,7 +156,7 @@ export default defineComponent({
 }
 
 .tab-family-container > :nth-child(2) {
-    margin-top: 20px;
+    margin-top: 50px;
 }
 
 .modal-body > .tab-family-container > :nth-child(2) {
@@ -222,8 +222,8 @@ export default defineComponent({
 }
 
 .showGoBack
-    > .tab-family-container
-    > .tab-buttons-container:not(.floating):first-child
+    > .tab-family-container:first-child
+    > .tab-buttons-container:not(.floating)
     .tab-buttons {
     padding-left: 70px;
 }

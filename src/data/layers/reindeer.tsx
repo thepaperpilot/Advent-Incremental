@@ -74,6 +74,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const computedMaxCooldown = computed(() => 10);
 
     function focus() {
+        currCooldown.value = Decimal.fromValue(computedMaxCooldown.value).toNumber();
         let targetsSelected = 0;
         currTargets.value = {};
         timeSinceFocus.value = 0;
@@ -141,7 +142,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         canClick: () => Decimal.eq(currCooldown.value, 0),
         onClick() {
-            currCooldown.value = Decimal.fromValue(computedMaxCooldown.value).toNumber();
             focus();
         }
     }));
@@ -488,7 +488,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         let auto = false;
         if (upgrade7.bought.value) {
             timeSinceFocus.value += diff;
-            if (timeSinceFocus.value > 10) {
+            if (timeSinceFocus.value > 20) {
                 auto = true;
             }
         }

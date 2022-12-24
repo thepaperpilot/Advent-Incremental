@@ -4,7 +4,8 @@ import {
     Component,
     GatherProps,
     GenericComponent,
-    jsx
+    jsx,
+    Visibility
 } from "features/feature";
 import { BaseLayer, createLayer, GenericLayer, layers } from "game/layers";
 import { isPersistent, Persistent, persistent } from "game/persistence";
@@ -15,7 +16,7 @@ import { Computable, convertComputable, ProcessedComputable } from "util/compute
 import { createLazyProxy } from "util/proxies";
 import { save } from "util/save";
 import { render, renderRow, VueFeature } from "util/vue";
-import type { Ref } from "vue";
+import { Ref, watch, watchEffect } from "vue";
 import { computed, ref, unref } from "vue";
 import "./advent.css";
 import Day from "./Day.vue";
@@ -33,6 +34,7 @@ import paper from "./layers/paper";
 import plastic from "./layers/plastic";
 import reindeer from "./layers/reindeer";
 import ribbon from "./layers/ribbon";
+import routing from "./layers/routing";
 import toys from "./layers/toys";
 import trees from "./layers/trees";
 import workshop from "./layers/workshop";
@@ -60,9 +62,11 @@ import toysSymbol from "./symbols/truck.png";
 import advManagementSymbol from "./symbols/workshopMansion.png";
 import wrappingPaperSymbol from "./symbols/wrappingPaper.png";
 import snowflakeSymbol from "./symbols/snowflake.svg";
-import presentSymbol from "./layers/factory-components/present.svg"
+import presentSymbol from "./layers/factory-components/present.svg";
 import { createParticles } from "features/particles/particles";
 import { credits } from "./credits";
+import sleighSymbol from "./symbols/sleigh.png";
+import routingSymbol from "./symbols/gps.png";
 
 export interface Day extends VueFeature {
     day: number;
@@ -74,10 +78,13 @@ export interface Day extends VueFeature {
     opened: Persistent<boolean>;
     recentlyUpdated: Ref<boolean>; // Has the tab recieved an update since the player last opened it?
     shouldNotify: ProcessedComputable<boolean>;
+    visibility?: Visibility;
 }
 
 export const main = createLayer("main", function (this: BaseLayer) {
     const day = persistent<number>(1);
+    const hasWon = persistent<boolean>(false);
+
     const timeUntilNewDay = computed(
         () => (+new Date(new Date().getFullYear(), 11, day.value) - player.time) / 1000
     );
@@ -96,49 +103,32 @@ export const main = createLayer("main", function (this: BaseLayer) {
             this.boundingRect.value = boundingRect;
         },
         style: "z-index: -1"
-    }))
+    }));
 
-    particles.addEmitter({
-        lifetime: {min: 5, max: 5},
-        pos: {x: 0, y: 0},
+    const emitter = particles.addEmitter({
+        emit: false,
+        autoUpdate: true,
+        lifetime: { min: 5, max: 5 },
+        emitterLifetime: -1,
+        pos: { x: 0, y: 0 },
         frequency: 0.05,
+        maxParticles: 1000,
         behaviors: [
             {
-                type: 'alpha',
+                type: "alphaStatic",
                 config: {
-                    alpha: {
-                        list: [
-                            {
-                                value: 1,
-                                time: 0
-                            },
-                            {
-                                value: 1,
-                                time: 1
-                            }
-                        ],
-                    },
+                    alpha: 1
                 }
             },
             {
-                type: 'scale',
+                type: "scaleStatic",
                 config: {
-                    scale: {
-                        list: [
-                            {
-                                value: 1,
-                                time: 0
-                            },
-                            {
-                                value: 1,
-                                time: 1
-                            }
-                        ],
-                    },
+                    min: 1,
+                    max: 1
                 }
             },
             {
-                type: 'color',
+                type: "color",
                 config: {
                     color: {
                         list: [
@@ -150,12 +140,12 @@ export const main = createLayer("main", function (this: BaseLayer) {
                                 value: "f5b830",
                                 time: 1
                             }
-                        ],
-                    },
+                        ]
+                    }
                 }
             },
             {
-                type: 'moveSpeed',
+                type: "moveSpeed",
                 config: {
                     speed: {
                         list: [
@@ -169,39 +159,41 @@ export const main = createLayer("main", function (this: BaseLayer) {
                             }
                         ],
                         isStepped: false
-                    },
+                    }
                 }
             },
             {
-                type: 'rotationStatic',
+                type: "rotationStatic",
                 config: {
                     min: 70,
                     max: 110
                 }
             },
             {
-                type: 'spawnShape',
+                type: "spawnShape",
                 config: {
-                    type: 'rect',
+                    type: "rect",
                     data: {
                         x: 0,
                         y: 0,
-                        width: 800,
-                        height: 10
+                        w: 800,
+                        h: 1
                     }
                 }
             },
             {
-                type: 'textureSingle',
+                type: "textureSingle",
                 config: {
                     texture: snowflakeSymbol
                 }
             }
         ]
-    }).then(e => {
-        e.autoUpdate = true;
-    })
+    });
 
+    watchEffect(() => {
+        const shouldEmit = day.value === 25;
+        emitter.then(e => (e.emit = shouldEmit));
+    });
 
     const currentlyMastering = computed(() =>
         isMastery.value
@@ -285,6 +277,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
             story: string;
             completedStory: string;
             masteredStory: string;
+            visibility?: Visibility;
         }
     ): Day {
         const opened = persistent<boolean>(false);
@@ -314,7 +307,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
                         story,
                         completedStory,
                         masteredStory,
-                        recentlyUpdated
+                        recentlyUpdated,
+                        visibility
                     } = this;
 
                     const mastered: Ref<boolean> =
@@ -327,6 +321,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
                         recentlyUpdated,
                         shouldNotify,
                         mastered,
+                        visibility,
                         onOpenLore() {
                             const completed = main.day.value > day;
                             loreScene.value = completed ? day - 1 : -1;
@@ -370,7 +365,10 @@ export const main = createLayer("main", function (this: BaseLayer) {
                                 opened.value = true;
                                 setTimeout(() => {
                                     loreScene.value = -1;
-                                    loreTitle.value = day == 25 ? "The End!" : unref(layers[layer ?? "trees"]?.name ?? "");
+                                    loreTitle.value =
+                                        day == 25
+                                            ? "The End!"
+                                            : unref(layers[layer ?? "trees"]?.name ?? "");
                                     loreBody.value = story;
                                     if (player.autoPause) player.devSpeed = null;
                                     showLoreModal.value = true;
@@ -609,19 +607,21 @@ export const main = createLayer("main", function (this: BaseLayer) {
         createDay(() => ({
             day: 22,
             shouldNotify: false,
-            layer: "sleigh", // "sleigh"
-            symbol: "",
-            story: "default body",
-            completedStory: "",
+            layer: "sleigh",
+            symbol: sleighSymbol,
+            story: "You realize you haven't noticed a very important object since you've started working here. Where's the sleigh? You bring it up to Santa and he immediately becomes visibly stressed, mentioning it's been in disrepair and he completely forgot! You promise you'll get it back in shape in no time!",
+            completedStory:
+                "Crisis averted! The sleigh has been returned to it's full splendor. Santa is incredibly appreciative. Good Job!",
             masteredStory: ""
         })),
         createDay(() => ({
             day: 23,
             shouldNotify: false,
-            layer: null, // "distribution route planning"
-            symbol: "",
-            story: "",
-            completedStory: "",
+            layer: "routing",
+            symbol: routingSymbol,
+            story: "You're almost ready for the big day! The next step is to find an optimal route to ensure you can get all the presents delivered before kids start waking up! This is like the travelling salesman problem on steroids. Good Luck!",
+            completedStory:
+                "Take that, math majors! Optimal route planned with time to spare. Good Job!",
             masteredStory: ""
         })),
         createDay(() => ({
@@ -638,9 +638,10 @@ export const main = createLayer("main", function (this: BaseLayer) {
             shouldNotify: false,
             layer: null, // credits
             symbol: snowflakeSymbol,
-            story: `It's Christmas. Thanks to your efforts, Santa has delivered all the presents to people all over the world. That is, all but one... <br><br> <div style='text-align: center'><img class='present-clickable' onclick ='layers.main.showLoreModal.value = false; layers.main.creditsOpen.value = true' src='${presentSymbol}' /><br>Open your present</div>`,
+            story: `It's Christmas. Thanks to your efforts, Santa has delivered all the presents to people all over the world. That is, all but one... <br><br> <div style='text-align: center'><img class='present-clickable' onclick ='layers.main.showLoreModal.value = false; layers.main.creditsOpen.value = true' src='${presentSymbol}' /><br>Open your present</div><br/>`,
             completedStory: "",
-            masteredStory: ""
+            masteredStory: "",
+            visibility: Visibility.None
         }))
     ];
 
@@ -673,6 +674,16 @@ export const main = createLayer("main", function (this: BaseLayer) {
         }
     }
 
+    watchEffect(() => {
+        if (day.value === 25 && showLoreModal.value === false && !hasWon.value) {
+            loreScene.value = -1;
+            loreTitle.value = "Merry Christmas!";
+            loreBody.value = days[day.value - 1].story;
+            showLoreModal.value = true;
+            hasWon.value = true;
+        }
+    });
+
     return {
         name: "Calendar",
         days,
@@ -694,6 +705,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         masteredDays,
         creditsOpen,
         credits,
+        hasWon,
         display: jsx(() => (
             <>
                 {player.devSpeed === 0 ? <div>Game Paused</div> : null}
@@ -724,7 +736,19 @@ export const main = createLayer("main", function (this: BaseLayer) {
                         )
                         .map((days: Day[]) => renderRow(...days))}
                 </div>
-                {render(particles) /*creditsOpen.value || day.value == 25 ? render(particles) : null*/}
+                {hasWon.value ? (
+                    <>
+                        <Spacer />
+                        <button
+                            class="button"
+                            style="font-size: xx-large"
+                            onClick={() => (creditsOpen.value = true)}
+                        >
+                            Open Credits
+                        </button>
+                    </>
+                ) : null}
+                {render(particles)}
             </>
         ))
     };
@@ -757,7 +781,8 @@ export const getInitialLayers = (
     toys,
     factory,
     reindeer,
-    sleigh
+    sleigh,
+    routing
 ];
 
 /**

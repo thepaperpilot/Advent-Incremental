@@ -1,0 +1,20 @@
+.routes-list .checked {
+    color: var(--bought);
+}
+
+.routes-list .processing {
+    color: var(--layer-color);
+}
+
+.routes-list .redundant:not(.checked):not(.processing) {
+    opacity: 0.5;
+}
+
+.routes-list .skipped {
+    text-decoration: line-through;
+    text-decoration-thickness: 5px;
+}
+
+.routes-list > * {
+    flex: 1 1 33%;
+}
