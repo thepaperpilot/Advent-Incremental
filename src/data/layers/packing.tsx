@@ -47,7 +47,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const resetPacking = createClickable(() => ({
         display: {
             description:
-                "Oh no! You've run out of space! You'll need to take all the presentts out and repack them"
+                "Oh no! You've run out of space! You'll need to take all the presents out and repack them..."
         },
         visibility: () =>
             showIf(Decimal.lt(packedPresents.value, 8e9) && Decimal.lte(remainingSize.value, 0)),
@@ -279,7 +279,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         packingElf: createUpgrade(() => ({
             display: {
                 title: "An Elf's Elf",
-                description: "Hire an Elf to help you hire more Elves"
+                description: "Hire an Elf to help you hire more Elves."
             },
             cost: 1000,
             resource: totalPresentsResource,
@@ -292,7 +292,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: "Heavy Machinery",
                 description:
-                    "Those construction vehicles you have from building the workshop should be useful for loading presents too"
+                    "Those construction vehicles you have from building the workshop should be useful for loading presents too."
             },
             cost: 100000,
             resource: totalPresentsResource,
