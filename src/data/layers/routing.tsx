@@ -849,7 +849,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {render(modifiersModal)}
                 <Spacer />
                 <MainDisplay resource={citiesCompleted} color={color} />
-                {renderRow(getNewCity, boost, removeRedundantRoute)}
+                {renderRow(boost, removeRedundantRoute)}
                 {render(city)}
                 {render(checkRouteProgressBar)}
                 <Spacer />
