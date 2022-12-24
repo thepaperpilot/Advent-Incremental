@@ -2430,6 +2430,7 @@ const factory = createLayer(id, () => {
         width: 600,
         height: 25,
         fillStyle: `animation: 15s factory-bar linear infinite`,
+        textStyle: `color: var(--feature-foreground)`,
         progress: () =>
             main.day.value === day
                 ? Decimal.div(toys.clothes.value, toyGoal)

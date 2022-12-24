@@ -29,6 +29,7 @@ import {
 import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { WithRequired } from "util/common";
+import { Computable } from "util/computed";
 import { render, renderGrid, renderRow } from "util/vue";
 import { computed, ref, unref } from "vue";
 import boxes from "./boxes";
@@ -48,7 +49,7 @@ interface BetterFertilizerUpgOptions {
     canAfford: () => boolean;
     onPurchase: VoidFunction;
     display: JSXFunction;
-    style: StyleValue;
+    style: Computable<StyleValue>;
     visibility: () => Visibility;
 }
 interface UnlockKilnUpgOptions {
@@ -58,7 +59,7 @@ interface UnlockKilnUpgOptions {
         title: string;
         description: string;
     };
-    style: StyleValue;
+    style: Computable<StyleValue>;
     visibility: () => Visibility;
 }
 interface EfficientSmeltherUpgOptions {
@@ -68,7 +69,7 @@ interface EfficientSmeltherUpgOptions {
         title: string;
         description: string;
     };
-    style: StyleValue;
+    style: Computable<StyleValue>;
     visibility: () => Visibility;
 }
 
@@ -361,7 +362,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Warmer Cutters",
             description: "Cut down twice as many trees/s"
         },
-        style: { color: colorText }
+        style() {
+            return this.bought.value ? "" : { color: colorText };
+        }
     }));
     const warmerPlanters = createUpgrade(() => ({
         resource: noPersist(coal),
@@ -370,7 +373,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Warmer Planters",
             description: "Plant twice as many trees/s"
         },
-        style: { color: colorText }
+        style() {
+            return this.bought.value ? "" : { color: colorText };
+        }
     }));
     const basicFertilizer = createUpgrade(() => ({
         resource: noPersist(ash),
@@ -379,7 +384,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Ashy Soil",
             description: "Trees give 25% more logs"
         },
-        style: { color: colorText }
+        style() {
+            return this.bought.value ? "" : { color: colorText };
+        }
     }));
     const unlockBonfire = createUpgrade(() => ({
         resource: fireResource,
@@ -389,9 +396,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Put all those fires together into a larger blaze"
         },
         onPurchase() {
-            fireResource.value = Decimal.add(fireResource.value, this.cost);
+            fireResource.value = Decimal.add(fireResource.value, this.cost as number);
         },
-        style: { color: colorText }
+        style() {
+            return this.bought.value ? "" : { color: colorText };
+        }
     }));
     const row1upgrades = [warmerCutters, warmerPlanters, basicFertilizer, unlockBonfire];
 
@@ -402,7 +411,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Dedicated Cutter Heaters",
             description: "Double the bonus from Heated Cutters"
         },
-        style: { color: colorText },
+        style() {
+            return this.bought.value ? "" : { color: colorText };
+        },
         visibility: () => showIf(unlockBonfire.bought.value)
     }));
     const dedicatedPlanters = createUpgrade(() => ({
@@ -412,7 +423,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Dedicated Planter Heaters",
             description: "Double the bonus from Heated Planters"
         },
-        style: { color: colorText },
+        style() {
+            return this.bought.value ? "" : { color: colorText };
+        },
         visibility: () => showIf(unlockBonfire.bought.value)
     }));
     const betterFertilizer: Upgrade<BetterFertilizerUpgOptions> = createUpgrade(() => ({
@@ -435,7 +448,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {formatWhole(1e5)} {ash.displayName}
             </>
         )),
-        style: { color: colorText },
+        style() {
+            return this.bought.value ? "" : { color: colorText };
+        },
         visibility: () => showIf(unlockBonfire.bought.value)
     }));
 
@@ -446,7 +461,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Efficient Fires",
             description: "Move the fires underground to keep the coal from turning to ash"
         },
-        style: { color: colorText },
+        style() {
+            return this.bought.value ? "" : { color: colorText };
+        },
         visibility: () => showIf(unlockBonfire.bought.value)
     }));
     const row2upgrades = [dedicatedCutters, dedicatedPlanters, betterFertilizer, unlockKiln];
@@ -458,7 +475,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Efficient Crucibles",
             description: "Double auto smelting speed and triple metal gain from auto smelting"
         },
-        style: { color: colorText },
+        style() {
+            return this.bought.value ? "" : { color: colorText };
+        },
         visibility: () => showIf(oil.depthMilestones[4].earned.value)
     }));
     const arsonistAssistance = createUpgrade(() => ({
@@ -468,7 +487,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Arsonist Assistance",
             description: "Every elf at or above level 5 doubles ash gain"
         },
-        style: { color: colorText },
+        style() {
+            return this.bought.value ? "" : { color: colorText };
+        },
         visibility: () =>
             showIf(management.elfTraining.coalDrillElfTraining.milestones[3].earned.value)
     }));
@@ -479,7 +500,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Refined Coal",
             description: "Refineries boost coal gain"
         },
-        style: { color: colorText },
+        style() {
+            return this.bought.value ? "" : { color: colorText };
+        },
         visibility: () =>
             showIf(management.elfTraining.coalDrillElfTraining.milestones[3].earned.value)
     }));
@@ -490,7 +513,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Colored Fire",
             description: "Green dye also affects small fire synergy"
         },
-        style: { color: colorText },
+        style() {
+            return this.bought.value ? "" : { color: colorText };
+        },
         visibility: () =>
             showIf(management.elfTraining.coalDrillElfTraining.milestones[3].earned.value)
     }));
