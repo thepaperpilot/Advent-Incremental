@@ -847,6 +847,10 @@ const factory = createLayer(id, () => {
                     amount: 2
                 }
             },
+            catalysts: computed(() => {
+                if (!catalysts.bought.value) return [] as ResourceNames[];
+                return ["block", "clothes", "trucks", "bear", "shovelBucket", "console"];
+            }),
             canProduce: computed(() => {
                 return Object.values(allToys).some(i =>
                     Decimal.gte(i.value, computedToyMultiplier.value)
@@ -854,6 +858,9 @@ const factory = createLayer(id, () => {
             }),
             onProduce(times, stock) {
                 const value = Object.values(allToys);
+
+                // TODO: use catalysts to multiply present gain
+                // catalysts are essentally excess inputs
 
                 while (times > 0) {
                     while (Decimal.lt(value[toysIndex].value, computedToyMultiplier.value)) {
@@ -1017,9 +1024,13 @@ const factory = createLayer(id, () => {
         inputs?: Stock;
         /** amount it produces */
         outputs?: Stock;
+        catalysts?: ProcessedComputable<ResourceNames[]>;
 
         /** on produce, do something */
-        onProduce?: (times: number, stock: Stock | undefined) => void;
+        onProduce?: (
+            times: number,
+            stock: Partial<Record<ResourceNames, number>> | undefined
+        ) => void;
         /** can it produce? (in addtion to the stock check) */
         canProduce?: ComputedRef<boolean>;
     }
@@ -1266,12 +1277,14 @@ const factory = createLayer(id, () => {
             title: "Carrying more stuff in boxes",
             description:
                 "Boxes seem really useful for carrying stuff. Why don't we use them to carry presents as well? Unlocks 2 new rebuyables (one of them is in the boxes layer)."
-        }
+        },
+        visibility: () => showIf(excitmentUpgrade.bought.value)
     }));
     const carryBoxes = createBuyable(() => ({
         resource: noPersist(presents),
         cost() {
-            return Decimal.add(carryBoxes.amount.value, 1).pow(1.5)
+            return Decimal.add(carryBoxes.amount.value, 1)
+                .pow(1.5)
                 .mul(Decimal.pow(2, carryBoxes.amount.value))
                 .mul(1000);
         },
@@ -1280,8 +1293,19 @@ const factory = createLayer(id, () => {
             description:
                 "Presents are made out of boxes, so shouldn't they be able to hold boxes as well? Apparently it makes the boxes more durable. Each level multiplies boxes gain by 1.5.",
             effectDisplay: jsx(() => <>x{format(Decimal.pow(1.5, carryBoxes.amount.value))}</>)
-        }
+        },
+        visbility: () => showIf(carryPresents.bought.value)
     })) as GenericBuyable;
+    const catalysts = createUpgrade(() => ({
+        resource: noPersist(presents),
+        cost: 10000,
+        display: {
+            title: "Better Presents",
+            description:
+                "Instead of trying to make more presents, how about we make the ones we make better? Unlocks catalysts for the present maker."
+        },
+        visibility: () => showIf(carryPresents.bought.value)
+    }));
     const factoryBuyables = { expandFactory, oilFuel, carryToys, carryBoxes };
     const upgrades = [
         [
@@ -1399,7 +1423,8 @@ const factory = createLayer(id, () => {
                 visibility: () => showIf(main.days[advancedDay - 1].opened.value)
             }))
         ],
-        [betterFactory, betterLighting, excitmentUpgrade, carryPresents]
+        [betterFactory, betterLighting, excitmentUpgrade, carryPresents],
+        [catalysts]
     ];
 
     // pixi
@@ -1508,8 +1533,6 @@ const factory = createLayer(id, () => {
 
         const factoryTicks = Decimal.times(computedActualTickRate.value, diff).toNumber();
 
-        //debugger
-        // make them produce
         for (const id in components.value) {
             const [x, y] = id.split("x").map(p => +p);
             const _data = components.value[id];
@@ -1572,7 +1595,7 @@ const factory = createLayer(id, () => {
                 if (data.ticksDone >= factoryData.tick) {
                     if (compData.canProduce.value) {
                         const cyclesDone = Math.floor(data.ticksDone / factoryData.tick);
-                        factoryData.onProduce?.(cyclesDone, factoryData.inputs);
+                        factoryData.onProduce?.(cyclesDone, data.inputStock);
                         if (factoryData.inputs !== undefined) {
                             if (data.inputStock === undefined) data.inputStock = {};
                             for (const [key, val] of Object.entries(factoryData.inputs)) {
@@ -2095,7 +2118,7 @@ const factory = createLayer(id, () => {
     });
 
     function showStockAmount(
-        stocks: Partial<Record<ResourceNames, number>> | undefined,
+        stocks: Partial<Record<ResourceNames, number>> | undefined | Record<string, never>,
         stockData: Stock | undefined,
         title: string,
         showAmount = true
@@ -2154,7 +2177,10 @@ const factory = createLayer(id, () => {
                     <>
                         {showStockAmount(
                             (compHovered.value as FactoryComponentProcessor).inputStock,
-                            FACTORY_COMPONENTS[compHovered.value.type].inputs,
+                            {
+                                ...(FACTORY_COMPONENTS[compHovered.value.type].inputs ?? {}),
+                                ...(FACTORY_COMPONENTS[compHovered.value.type].catalysts ?? {})
+                            },
                             "Inputs:"
                         )}
                         {showStockAmount(
