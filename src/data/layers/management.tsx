@@ -149,7 +149,7 @@ const layer = createLayer(id, () => {
         createMultiplicativeModifier(() => ({
             multiplier: 2,
             description: "Star Level 4",
-            enabled: paperElfMilestones[3].earned.value
+            enabled: paperElfMilestones[3].earned
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
