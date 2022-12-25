@@ -739,6 +739,12 @@ export const main = createLayer("main", function (this: BaseLayer) {
     };
 });
 
+watchEffect(() => {
+    if (player.tabs.length === 1) {
+        main.minimized.value = false;
+    }
+});
+
 /**
  * Given a player save data object being loaded, return a list of layers that should currently be enabled.
  * If your project does not use dynamic layers, this should just return all layers.
