@@ -249,9 +249,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             );
         },
         onPurchase() {
-            metal.metal.value = Decimal.sub(metal.metal.value, this.metalCost.value);
-            oil.oil.value = Decimal.sub(oil.oil.value, this.oilCost.value);
-            this.amount.value = Decimal.add(this.amount.value, 1);
+            const metalCost = Decimal.pow(1.2, Decimal.sub(helpers.loader.amount.value, 1)).times(
+                1e70
+            );
+            const oilCost = Decimal.pow(1.2, Decimal.sub(helpers.loader.amount.value, 1)).times(
+                1e25
+            );
+            metal.metal.value = Decimal.sub(metal.metal.value, metalCost);
+            oil.oil.value = Decimal.sub(oil.oil.value, oilCost);
         },
         inverseCost() {
             const metalAmount = Decimal.div(metal.metal.value, 1e70).log(1.2);
