@@ -65,7 +65,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         visibility: () =>
             showIf(Decimal.lt(packedPresents.value, 8e9) && Decimal.lte(remainingSize.value, 0)),
-        onClick: packingReset.reset
+        onClick() {
+            if (unref(this.canClick)) {
+                packingReset.reset();
+            }
+        }
     }));
 
     const packingProgress = persistent<DecimalSource>(0);
