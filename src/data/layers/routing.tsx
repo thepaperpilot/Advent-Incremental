@@ -1002,6 +1002,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 citiesCompleted.value,
                 Decimal.times(computedMetaSolvingSpeed.value, diff)
             ).min(5000000);
+            if (Decimal.isNaN(citiesCompleted.value)) {
+                citiesCompleted.value = 50;
+            }
 
             if (metaMilestones[0].earned.value) {
                 management.classrooms.amount.value = Decimal.add(

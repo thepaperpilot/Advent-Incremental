@@ -1207,7 +1207,8 @@ const layer = createLayer(id, () => {
         createMilestone(() => ({
             display: {
                 requirement: "Jingle Level 5",
-                effectDisplay: "Multipliers to elf packing speed also apply to loaders"
+                effectDisplay:
+                    "Multipliers to elf packing speed also apply to loaders at reduced rate"
             },
             shouldEarn: () => packingElfTraining.level.value >= 5,
             visibility: () => showIf(packingElfMilestones[3].earned.value && main.day.value >= 16)
@@ -1395,6 +1396,11 @@ const layer = createLayer(id, () => {
             multiplier: 2,
             description: "Focus Upgrade 1",
             enabled: focusUpgrade1.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.pow(2, packing.packingResets.value),
+            description: `${format(6.4e9)} ${packing.packedPresents.displayName}`,
+            enabled: packing.packingMilestones.moreFocus.earned
         }))
     ]) as WithRequired<Modifier, "revert" | "description">;
     const maximumElvesModifier = createSequentialModifier(() => [
@@ -1493,10 +1499,20 @@ const layer = createLayer(id, () => {
         let x = 0;
         focusTargets.value = {};
         const newCount = Decimal.min(count, range);
+        if (packing.packingMilestones.focusSelected.earned.value) {
+            const elf = Object.values(elfTraining).find(
+                training => training.name === currentShown.value
+            );
+            const roll = elf?.name ?? "";
+            if (!focusTargets.value[roll] && unref(elf?.visibility) === Visibility.Visible) {
+                focusTargets.value[roll] = true;
+                x++;
+            }
+        }
         while (newCount.gt(x)) {
             const elf = Object.values(elfTraining)[Math.floor(Math.random() * range)];
             const roll = elf?.name ?? "";
-            if (!focusTargets.value[roll] && unref(elf.visibility) === Visibility.Visible) {
+            if (!focusTargets.value[roll] && unref(elf?.visibility) === Visibility.Visible) {
                 focusTargets.value[roll] = true;
                 x++;
             }

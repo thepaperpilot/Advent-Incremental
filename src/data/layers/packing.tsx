@@ -10,21 +10,28 @@ import { createMilestone, GenericMilestone } from "features/milestones/milestone
 import MainDisplayVue from "features/resources/MainDisplay.vue";
 import { createResource, trackBest, trackTotal, Resource } from "features/resources/resource";
 import { createLayer, BaseLayer } from "game/layers";
-import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
+import {
+    createAdditiveModifier,
+    createMultiplicativeModifier,
+    createSequentialModifier
+} from "game/modifiers";
 import { persistent } from "game/persistence";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
-import { render, renderRow } from "util/vue";
+import { render, renderGrid, renderRow } from "util/vue";
 import { computed, ComputedRef, ref, unref } from "vue";
 import metal from "./metal";
 import oil from "./oil";
 import { createCollapsibleMilestones } from "data/common";
 import { globalBus } from "game/events";
-import { createUpgrade } from "features/upgrades/upgrade";
+import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
 import elves, { ElfBuyable } from "./elves";
 import management from "./management";
 import paper from "./paper";
 import ModalVue from "components/Modal.vue";
+import ribbon from "./ribbon";
+import { createReset } from "features/reset";
+import ResourceVue from "features/resources/Resource.vue";
 
 const id = "packing";
 const day = 24;
@@ -44,17 +51,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const sledSpace = 64e6;
     const packingResets = persistent<number>(0);
 
+    const packingReset = createReset(() => ({
+        thingsToReset: [elf as any, loader as any, packedPresents],
+        onReset() {
+            packingResets.value++;
+        }
+    }));
+
     const resetPacking = createClickable(() => ({
         display: {
             description:
-                "Oh no! You've run out of space! You'll need to take all the presents out and repack them..."
+                "Oh no! You've run out of space! You'll need to take all the presents out and repack them more tightly..."
         },
         visibility: () =>
             showIf(Decimal.lt(packedPresents.value, 8e9) && Decimal.lte(remainingSize.value, 0)),
-        onClick() {
-            packedPresents.value = 0;
-            packingResets.value++;
-        }
+        onClick: packingReset.reset
     }));
 
     const packingProgress = persistent<DecimalSource>(0);
@@ -67,24 +78,37 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         progress: () => packingProgress.value
     }));
+    const manualAmount = computed(() =>
+        Decimal.add(
+            Decimal.times(computedElfPackingSpeed.value, elf.amount.value),
+            Decimal.times(computedLoaderPackingSpeed.value, loader.amount.value)
+        ).times(2)
+    );
     const packPresent = createClickable(() => ({
         display: {
             description: jsx(() => (
                 <>
-                    <h3>Pack a present</h3>
+                    {upgrades2.manual.bought.value ? (
+                        <h3>Pack {format(manualAmount.value)} presents</h3>
+                    ) : (
+                        <h3>Pack a present</h3>
+                    )}
                     <br />
                     {render(packingProgressBar)}
                 </>
             ))
         },
-        style: "min-height: 40px",
+        style: "min-height: 60px; width: 200px",
         visibility: () => showIf(Decimal.gt(remainingSize.value, 0)),
         canClick: () => Decimal.gte(packingProgress.value, 1),
         onClick() {
             if (Decimal.lt(packingProgress.value, 1)) {
                 return;
             }
-            packedPresents.value = Decimal.add(packedPresents.value, 1);
+            const amount = upgrades2.manual.bought.value ? manualAmount.value : 1;
+            packedPresents.value = Decimal.add(packedPresents.value, amount).min(
+                currentMaxPresents.value
+            );
             packingProgress.value = 0;
         }
     }));
@@ -136,30 +160,34 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: () => Decimal.log10(packedPresents.value).plus(1),
             description: "10,000 Presents Packed",
             enabled: () => Decimal.gte(packedPresents.value, 1e4)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.times(management.totalElfLevels.value, 0.05).add(1),
+            description: "Communal Assistance",
+            enabled: upgrades.elfLevel.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.pow(1.02, ribbon.ribbon.value),
+            description: "Spare Bows",
+            enabled: upgrades2.ribbons.bought
         }))
     ]);
     const computedElfPackingSpeed = computed(() => elfPackingSpeed.apply(1));
 
     const loaderPackingSpeed = createSequentialModifier(() => [
+        createAdditiveModifier(() => ({
+            addend: () => Decimal.times(elf.amount.value, 5),
+            description: "Loading Assistants",
+            enabled: upgrades2.assistantSynergy.bought
+        })),
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.pow(0.5, packingResets.value),
             description: "Better Organization",
             enabled: () => packingResets.value >= 1
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: 2,
-            description: "Jingle Level 1",
-            enabled: management.elfTraining.packingElfTraining.milestones[4].earned
-        })),
-        createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.times(helpers.elf.amount.value, 0.1).plus(1),
-            description: "Jingle Level 2",
-            enabled: management.elfTraining.packingElfTraining.milestones[4].earned
-        })),
-        createMultiplicativeModifier(() => ({
-            multiplier: () =>
-                1 + Object.values(packingMilestones).filter(milestone => milestone.earned).length,
-            description: "Jingle Level 3",
+            multiplier: () => Decimal.sqrt(elfPackingSpeed.apply(1)),
+            description: "Jingle Level 5",
             enabled: management.elfTraining.packingElfTraining.milestones[4].earned
         }))
     ]);
@@ -280,9 +308,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             style: {
                 width: "200px"
             },
-            visibility: () => showIf(Decimal.gte(helpers.elf.amount.value, 10)),
+            visibility() {
+                return showIf(Decimal.gte(packedPresents.value, 10) || this.bought.value);
+            },
             onPurchase() {
-                main.days[3].recentlyUpdated.value = true;
+                main.days[12].recentlyUpdated.value = true;
                 elves.elves.packingElf.bought.value = true;
             }
         })),
@@ -292,12 +322,74 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description:
                     "Those construction vehicles you have from building the workshop should be useful for loading presents too."
             },
-            cost: 100000,
+            cost: 1000000,
             resource: totalPresentsResource,
             style: {
                 width: "200px"
             },
-            visibility: () => showIf(Decimal.gte(packedPresents.value, 10000))
+            visibility() {
+                return showIf(Decimal.gte(totalPresents.value, 10000) || this.bought.value);
+            }
+        })),
+        elfLevel: createUpgrade(() => ({
+            display: {
+                title: "Communal Assistance",
+                description: "Each elf level increases elf packing speed by 5%"
+            },
+            cost: 100000000,
+            resource: totalPresentsResource,
+            style: {
+                width: "200px"
+            },
+            visibility() {
+                return showIf(Decimal.gte(totalPresents.value, 10000000) || this.bought.value);
+            }
+        }))
+    };
+    const upgrades2 = {
+        ribbons: createUpgrade(() => ({
+            display: {
+                title: "Spare Bows",
+                description: "Each ribbon multiplies elf packing speed by 1.02x"
+            },
+            cost: 2e9,
+            resource: totalPresentsResource,
+            style: {
+                width: "200px"
+            },
+            visibility() {
+                return showIf(Decimal.gte(totalPresents.value, 1e9) || this.bought.value);
+            }
+        })),
+        assistantSynergy: createUpgrade(() => ({
+            display: {
+                title: "Loading Assistants",
+                description:
+                    "Each elf assistant increases how much the loader can load per second by 5"
+            },
+            cost: 5e9,
+            resource: totalPresentsResource,
+            style: {
+                width: "200px"
+            },
+            visibility() {
+                return showIf(Decimal.gte(totalPresents.value, 4.8e9) || this.bought.value);
+            }
+        })),
+        manual: createUpgrade(() => ({
+            display: {
+                title: "DIY",
+                description:
+                    "Each present manually packed gives 2 seconds of automatic present packing production"
+            },
+            cost: 1e10,
+            resource: totalPresentsResource,
+            style: {
+                width: "200px"
+            },
+            visibility() {
+                return showIf(Decimal.gte(totalPresents.value, 5e9) || this.bought.value);
+            }
         }))
     };
 
@@ -404,8 +496,23 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldEarn: () => Decimal.gte(packedPresents.value, 977000000),
             visibility: () => showIf(packingMilestones.paperBoost.earned.value)
+        })),
+        focusSelected: createMilestone(() => ({
+            display: {
+                requirement: `${format(4.2e9)} ${packedPresents.displayName}`,
+                effectDisplay: "Focusing elves always chooses the selected elf"
+            },
+            shouldEarn: () => Decimal.gte(packedPresents.value, 4.2e9),
+            visibility: () => showIf(packingMilestones.primaryDyeBoost.earned.value)
+        })),
+        moreFocus: createMilestone(() => ({
+            display: {
+                requirement: `${format(6.4e9)} ${packedPresents.displayName}`,
+                effectDisplay: "Each packing reset doubles the max elf focus multiplier"
+            },
+            shouldEarn: () => Decimal.gte(packedPresents.value, 6.4e9),
+            visibility: () => showIf(packingMilestones.focusSelected.earned.value)
         }))
-        // todo: something
     };
     const { collapseMilestones, display: milestonesDisplay } =
         createCollapsibleMilestones(packingMilestones);
@@ -490,6 +597,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         packingProgress,
         helpers,
         upgrades,
+        upgrades2,
         packingMilestones,
         collapseMilestones,
         generalTabCollapsed,
@@ -498,17 +606,27 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 {render(trackerDisplay)}
                 <SpacerVue />
-                <MainDisplayVue resource={packedPresents} color={color} />
+                <MainDisplayVue resource={packedPresents} color={color} style="margin-bottom: 0" />
+                {packingResets.value === 0 ? null : (
+                    <div>
+                        <SpacerVue />
+                        You've restarted packing {formatWhole(packingResets.value)} times,
+                        <br />
+                        packing a total of{" "}
+                        <ResourceVue resource={totalPresentsResource} color={color} /> presents
+                    </div>
+                )}
+                <SpacerVue />
                 <p>
                     The bag has {format(remainingSize.value)} m<sup>3</sup> empty room
                 </p>
                 <SpacerVue />
                 {render(resetPacking)}
                 {render(packPresent)}
-                <SpacerVue />
+                {main.day.value === day - 1 ? <SpacerVue /> : null}
                 {renderRow(...Object.values(helpers))}
                 <SpacerVue />
-                {renderRow(...Object.values(upgrades))}
+                {renderGrid(Object.values(upgrades), Object.values(upgrades2))}
                 <SpacerVue />
                 {milestonesDisplay()}
             </>
