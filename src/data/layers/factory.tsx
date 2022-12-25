@@ -1502,7 +1502,7 @@ const factory = createLayer(id, () => {
 
     // pixi
     const upgradeAmount = computed(
-        () => upgrades.flat().filter(u => u.bought.value).length
+        () => upgrades.slice(0,3).flat().filter(u => u.bought.value).length
     ) as ComputedRef<number>;
     // load every sprite here so pixi doesn't complain about loading multiple times
     const assetsLoading = Promise.all([
