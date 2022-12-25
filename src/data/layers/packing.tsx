@@ -254,8 +254,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             this.amount.value = Decimal.add(this.amount.value, 1);
         },
         inverseCost() {
-            const metalAmount = Decimal.div(metal.metal.value, 1e40).log(1.5);
-            const oilAmount = Decimal.div(oil.oil.value, 1e20).log(1.5);
+            const metalAmount = Decimal.div(metal.metal.value, 1e70).log(1.2);
+            const oilAmount = Decimal.div(oil.oil.value, 1e25).log(1.2);
             if (Decimal.isNaN(metalAmount) || Decimal.isNaN(oilAmount)) return Decimal.dZero;
             return Decimal.min(metalAmount, oilAmount).floor().max(0);
         },
