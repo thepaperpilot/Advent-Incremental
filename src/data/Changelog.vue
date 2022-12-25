@@ -10,6 +10,11 @@
                 <ul>
                     <li class="fix">1.0.1 - Fixed mastery resets breaking the game state</li>
                     <li class="fix">1.0.1 - Fixed the wrong elves causing elf resets</li>
+                    <li class="fix">
+                        1.0.2 - Fixed factory upgrade grid cost increasing more than it should
+                    </li>
+                    <li class="fix">1.0.2 - Fixed white dye boost showing before unlocking</li>
+                    <li class="fix">1.0.2 - Hardcap packing resets to 3</li>
                 </ul>
             </details>
         </template>
