@@ -186,7 +186,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: () => packingResets.value >= 1
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.sqrt(elfPackingSpeed.apply(1)),
+            multiplier: () => Decimal.sqrt(computedElfPackingSpeed.value).max(1),
             description: "Jingle Level 5",
             enabled: management.elfTraining.packingElfTraining.milestones[4].earned
         }))
