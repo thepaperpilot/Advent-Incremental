@@ -394,7 +394,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () => dyes.boosts.white1.value,
-            description: "White Dye Boost"
+            description: "White Dye Boost",
+            enabled: () => Decimal.gt(dyes.dyes.white.amount.value, 0)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () =>
