@@ -22,6 +22,7 @@ import { main } from "../projEntry";
 import cloth from "./cloth";
 import dyes from "./dyes";
 import elves from "./elves";
+import packing from "./packing"
 
 const id = "ribbon";
 const day = 16;
@@ -38,7 +39,7 @@ const layer = createLayer(id, () => {
             [dyes.dyes.orange, dyes.dyes.green, dyes.dyes.purple].includes(currentDyeType.value)
                 ? 2e6
                 : 1e13
-        )
+        ).mul(packing.packingMilestones.ribbonBoost.earned.value ? 0.5 : 1)
     );
     const currentDyeType = computed(
         () =>

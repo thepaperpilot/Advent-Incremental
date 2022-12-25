@@ -26,6 +26,7 @@ import coal from "./coal";
 import dyes from "./dyes";
 import elves, { ElfBuyable } from "./elves";
 import management from "./management";
+import packing from "./packing";
 import plastic from "./plastic";
 import reindeer from "./reindeer";
 import ribbon from "./ribbon";
@@ -131,6 +132,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 if (["Peppermint", "Twinkle", "Cocoa", "Frosty"].includes(options.elfName)) {
                     cost = cost.mul(1e31);
                 }
+                if (["Jingle"].includes(options.elfName)) {
+                    cost = cost.mul(1e123);
+                }
                 if (management.elfTraining.paperElfTraining.milestones[0].earned.value) {
                     cost = Decimal.div(cost, sumBooks.value.max(1));
                 }
@@ -155,6 +159,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 let v = Decimal.div(x, 10);
                 if (["Peppermint", "Twinkle", "Cocoa", "Frosty"].includes(options.elfName)) {
                     v = v.div(1e31);
+                }
+                if (["Jingle"].includes(options.elfName)) {
+                    v = v.div(1e123);
                 }
                 v = v.log(scaling);
 
@@ -305,6 +312,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buyableName: "Plastic Buyables",
         visibility: () => showIf(plastic.masteryEffectActive.value)
     });
+    const packingBook = createBook({
+        name: "The Tetris Effect",
+        elfName: "Jingle",
+        buyableName: "Elf Assistants",
+        visibility: () => showIf(packing.upgrades.packingElf.bought.value)
+    })
     const books = {
         cuttersBook,
         plantersBook,
@@ -324,7 +337,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         metalBook,
         primaryDyeBook,
         secondaryDyeBook,
-        plasticBook
+        plasticBook,
+        packingBook
     };
     const sumBooks = computed(() =>
         Object.values(books).reduce((acc, curr) => acc.add(curr.amount.value), new Decimal(0))
@@ -425,6 +439,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Sunshine Wrapping Paper",
             enabled: () => Decimal.gte(wrappingPaper.boosts.sunshine1.value, 2)
         })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 10,
+            description: "199,000,000 Presents Packed",
+            enabled: packing.packingMilestones.paperBoost.earned
+        })),
         reindeer.reindeer.prancer.modifier
     ]) as WithRequired<Modifier, "description" | "revert">;
     const ashCost = createSequentialModifier(() => [
@@ -513,7 +532,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             metalBook: { amount: persistent<DecimalSource>(0) },
             primaryDyeBook: { amount: persistent<DecimalSource>(0) },
             secondaryDyeBook: { amount: persistent<DecimalSource>(0) },
-            plasticBook: { amount: persistent<DecimalSource>(0) }
+            plasticBook: { amount: persistent<DecimalSource>(0) },
+            packingBook: { amount: persistent<DecimalSource>(0) }
         },
         upgrades: {
             clothUpgrade: { bought: persistent<boolean>(false) },

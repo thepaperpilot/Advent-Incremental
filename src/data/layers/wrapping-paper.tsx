@@ -17,6 +17,7 @@ import { main } from "../projEntry";
 import { default as dyes, type enumColor } from "./dyes";
 import elves from "./elves";
 import toys from "./toys";
+import packing from "./packing"
 
 const id = "wrappingPaper";
 const day = 15;
@@ -259,21 +260,22 @@ const layer = createLayer(id, () => {
             ]
         })
     };
+    const packingBoost = computed(() => packing.packingMilestones.wrappingPaperBoost.earned.value ? 2 : 1)
     const boosts = {
         christmas1: computed(() =>
-            main.isMastery.value ? 1 : Decimal.add(wrappingPaper.christmas.buyable.amount.value, 1)
+            main.isMastery.value ? 1 : Decimal.add(wrappingPaper.christmas.buyable.amount.value, 1).mul(packingBoost.value)
         ), // Probably not the best way to do this, but it works
         rainbow1: computed(() =>
-            main.isMastery.value ? 1 : Decimal.pow(2, wrappingPaper.rainbow.buyable.amount.value)
+            main.isMastery.value ? 1 : Decimal.pow(2, wrappingPaper.rainbow.buyable.amount.value).mul(packingBoost.value)
         ),
         jazzy1: computed(() =>
-            main.isMastery.value ? 1 : Decimal.add(wrappingPaper.jazzy.buyable.amount.value, 1)
+            main.isMastery.value ? 1 : Decimal.add(wrappingPaper.jazzy.buyable.amount.value, 1).mul(packingBoost.value)
         ),
         sunshine1: computed(() =>
-            main.isMastery.value ? 1 : Decimal.add(wrappingPaper.sunshine.buyable.amount.value, 1)
+            main.isMastery.value ? 1 : Decimal.add(wrappingPaper.sunshine.buyable.amount.value, 1).mul(packingBoost.value)
         ),
         ocean1: computed(() =>
-            main.isMastery.value ? 1 : Decimal.pow(1.5, wrappingPaper.ocean.buyable.amount.value)
+            main.isMastery.value ? 1 : Decimal.pow(1.5, wrappingPaper.ocean.buyable.amount.value).mul(packingBoost.value)
         ),
         beach1: computed(() =>
             main.isMastery.value
@@ -281,6 +283,7 @@ const layer = createLayer(id, () => {
                 : Decimal.add(wrappingPaper.beach.buyable.amount.value, 1)
                       .log10()
                       .add(1)
+                      .mul(packingBoost.value)
                       .pow(toys.milestones.milestone3.earned.value ? 1.6 : 1)
         )
     };

@@ -1002,6 +1002,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 citiesCompleted.value,
                 Decimal.times(computedMetaSolvingSpeed.value, diff)
             ).min(5000000);
+            if (Decimal.isNaN(citiesCompleted.value)) {
+                citiesCompleted.value = 50;
+            }
 
             if (metaMilestones[0].earned.value) {
                 management.classrooms.amount.value = Decimal.add(
@@ -1149,7 +1152,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                             <>
                                 You've solved all cities on Earth!
                                 <br />
-                                <span style="text-decoration: line-through">
+                                <span style="text-decoration: line-through; font-size: smaller">
                                     (and proved the travelling salesman problem to be O(1))
                                 </span>
                             </>

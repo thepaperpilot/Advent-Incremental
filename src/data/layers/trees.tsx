@@ -43,6 +43,7 @@ import factory from "./factory";
 import reindeer from "./reindeer";
 import sleigh from "./sleigh";
 import routing from "./routing";
+import packing from "./packing";
 const id = "trees";
 const day = 1;
 
@@ -590,6 +591,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             exponent: 1.05,
             description: "Un-Processing",
             enabled: paper.upgrades2.treeUpgrade.bought
+        })),
+        createExponentialModifier(() => ({
+            exponent: 1.25,
+            description: "25 Presents Packed",
+            enabled: packing.packingMilestones.logBoost.earned
         }))
     ]);
 

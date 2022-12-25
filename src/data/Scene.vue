@@ -21,7 +21,7 @@
         />
         <img
             v-if="day >= 21"
-            :src="sleigh"
+            :src="day >= 23 ? packing : sleigh"
             class="scene-item"
             style="left: 10%; bottom: 56%; transform: rotate(24deg); width: 100px; height: 100px"
         />
@@ -116,6 +116,7 @@ import presents from "./symbols/presents.png";
 import reindeer from "./symbols/reindeer.png";
 import sleigh from "./symbols/sleigh.png";
 import routing from "./symbols/gps.png";
+import packing from "./symbols/sleighWSack.png";
 
 defineProps<{
     day: number;

@@ -26,7 +26,6 @@ import boxes from "./boxes";
 import cloth from "./cloth";
 import coal from "./coal";
 import dyes from "./dyes";
-import elves from "./elves";
 import metal from "./metal";
 import oil from "./oil";
 import paper from "./paper";
@@ -38,6 +37,8 @@ import { Resource } from "features/resources/resource";
 import { isArray } from "@vue/shared";
 import { createTab } from "features/tabs/tab";
 import routing from "./routing";
+import packing from "./packing";
+import elves from "./elves";
 
 const id = "management";
 const day = 12;
@@ -190,10 +191,14 @@ const layer = createLayer(id, () => {
                 "Cocoa",
                 "Twinkle",
                 "Carol",
-                "Tinsel"
+                "Tinsel",
+                "Jingle"
             ].indexOf(elf.name) + 1;
         if (elf.name == "Star" || elf.name == "Bell") {
             costMulti /= 3;
+        }
+        if (elf.name == "Jingle") {
+            costMulti *= 100000;
         }
         const costBase = 4000 * costMulti;
         const expRequiredForNextLevel = computed(() => Decimal.pow(5, level.value).mul(costBase));
@@ -1145,6 +1150,70 @@ const layer = createLayer(id, () => {
             visibility: () => showIf(plasticElfMilestones[3].earned.value && main.day.value >= 16)
         }))
     ] as Array<GenericMilestone>;
+    const packingElfMilestones = [
+        createMilestone(() => ({
+            display: {
+                requirement: "Jingle Level 1",
+                effectDisplay: "Double elf packing speed"
+            },
+            shouldEarn: () => packingElfTraining.level.value >= 1
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Jingle Level 2",
+                effectDisplay: jsx(() => (
+                    <>
+                        Each elf assistant increases packing speed by 10%
+                        <br />
+                        Currently: +
+                        {formatWhole(
+                            Decimal.times(packing.helpers.elf.amount.value, 0.1).times(100)
+                        )}
+                        %
+                    </>
+                ))
+            },
+            shouldEarn: () => packingElfTraining.level.value >= 2,
+            visibility: () => showIf(packingElfMilestones[0].earned.value)
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Jingle Level 3",
+                effectDisplay: jsx(() => (
+                    <>
+                        Multiply packing speed by the number of completed packing milestones
+                        <br />
+                        Currently:{" "}
+                        {formatWhole(
+                            Object.values(packing.packingMilestones).filter(
+                                milestone => milestone.earned.value
+                            ).length + 1
+                        )}
+                        x
+                    </>
+                ))
+            },
+            shouldEarn: () => packingElfTraining.level.value >= 3,
+            visibility: () => showIf(packingElfMilestones[1].earned.value)
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Jingle Level 4",
+                effectDisplay: "Jingle will now also buy loaders"
+            },
+            shouldEarn: () => packingElfTraining.level.value >= 4,
+            visibility: () => showIf(packingElfMilestones[2].earned.value && main.day.value >= 16)
+        })),
+        createMilestone(() => ({
+            display: {
+                requirement: "Jingle Level 5",
+                effectDisplay:
+                    "Multipliers to elf packing speed also apply to loaders at reduced rate"
+            },
+            shouldEarn: () => packingElfTraining.level.value >= 5,
+            visibility: () => showIf(packingElfMilestones[3].earned.value && main.day.value >= 16)
+        }))
+    ] as Array<GenericMilestone>;
     // ------------------------------------------------------------------------------- Milestone display
 
     const currentShown = persistent<string>("Holly");
@@ -1225,8 +1294,10 @@ const layer = createLayer(id, () => {
     );
     const dyeElfTraining = createElfTraining(elves.elves.dyeElf, dyeElfMilestones);
     const plasticElfTraining = createElfTraining(elves.elves.plasticElf, plasticElfMilestones);
+    const packingElfTraining = createElfTraining(elves.elves.packingElf, packingElfMilestones);
     const row5Elves = [coalDrillElfTraining, heavyDrillElfTraining, oilElfTraining];
     const row6Elves = [metalElfTraining, dyeElfTraining, plasticElfTraining];
+    const row7Elves = [packingElfTraining];
     const elfTraining = {
         cutterElfTraining,
         planterElfTraining,
@@ -1245,7 +1316,8 @@ const layer = createLayer(id, () => {
         oilElfTraining,
         heavyDrillElfTraining,
         dyeElfTraining,
-        plasticElfTraining
+        plasticElfTraining,
+        packingElfTraining
     };
     const day12Elves = [
         cutterElfTraining,
@@ -1324,6 +1396,11 @@ const layer = createLayer(id, () => {
             multiplier: 2,
             description: "Focus Upgrade 1",
             enabled: focusUpgrade1.bought
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.pow(2, packing.packingResets.value),
+            description: `${format(6.4e9)} ${packing.packedPresents.displayName}`,
+            enabled: packing.packingMilestones.moreFocus.earned
         }))
     ]) as WithRequired<Modifier, "revert" | "description">;
     const maximumElvesModifier = createSequentialModifier(() => [
@@ -1355,8 +1432,8 @@ const layer = createLayer(id, () => {
         direction: Direction.Right,
         width: 566,
         height: 50,
-        style: `border-radius: 4px 4px 0 0`,
-        borderStyle: `border-radius: 4px 4px 0 0`,
+        style: `border-radius: 0`,
+        borderStyle: `border-radius: 0`,
         fillStyle: () => ({
             background: focusTime.value > 0 ? color : "#7f7f00",
             animation: focusTime.value > 0 ? "1s focused-focus-bar linear infinite" : "",
@@ -1401,7 +1478,9 @@ const layer = createLayer(id, () => {
             ))
         },
         style: {
-            width: "300px"
+            width: "570px",
+            minHeight: "80px",
+            zIndex: 4
         },
         canClick: () => Decimal.eq(focusCooldown.value, 0),
         onClick() {
@@ -1420,10 +1499,20 @@ const layer = createLayer(id, () => {
         let x = 0;
         focusTargets.value = {};
         const newCount = Decimal.min(count, range);
+        if (packing.packingMilestones.focusSelected.earned.value) {
+            const elf = Object.values(elfTraining).find(
+                training => training.name === currentShown.value
+            );
+            const roll = elf?.name ?? "";
+            if (!focusTargets.value[roll] && unref(elf?.visibility) === Visibility.Visible) {
+                focusTargets.value[roll] = true;
+                x++;
+            }
+        }
         while (newCount.gt(x)) {
             const elf = Object.values(elfTraining)[Math.floor(Math.random() * range)];
             const roll = elf?.name ?? "";
-            if (!focusTargets.value[roll] && unref(elf.visibility) === Visibility.Visible) {
+            if (!focusTargets.value[roll] && unref(elf?.visibility) === Visibility.Visible) {
                 focusTargets.value[roll] = true;
                 x++;
             }
@@ -1770,6 +1859,12 @@ const layer = createLayer(id, () => {
             modifier: plasticElfTraining.elfXPGain,
             base: 0.1,
             unit: " XP"
+        },
+        {
+            title: "Jingle XP Gain per Action",
+            modifier: packingElfTraining.elfXPGain,
+            base: 0.1,
+            unit: " XP"
         }
     ]);
     const showModifiersModal = ref(false);
@@ -2055,17 +2150,18 @@ const layer = createLayer(id, () => {
                         Click on an elf to see their milestones.
                         <Spacer />
                         <Spacer />
-                        {render(focusButton)}
                         {renderGrid(upgrades, upgrades2)}
                         <Spacer />
                         {renderGrid(
+                            [focusButton],
                             [focusMeter],
                             treeElfTraining,
                             coalElfTraining,
                             fireElfTraining,
                             plasticElvesTraining,
                             row5Elves,
-                            row6Elves
+                            row6Elves,
+                            row7Elves
                         )}
                         <Spacer />
                         {currentElfDisplay()}

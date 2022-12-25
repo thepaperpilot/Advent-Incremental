@@ -141,9 +141,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             zIndex: 4
         },
         canClick: () => Decimal.eq(currCooldown.value, 0),
-        onClick() {
-            focus();
-        }
+        onClick: focus
     }));
 
     const cooldown = createSequentialModifier(() => [

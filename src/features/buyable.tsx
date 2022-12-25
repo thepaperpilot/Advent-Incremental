@@ -21,7 +21,7 @@ import type {
 import { processComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { coerceComponent, isCoercableComponent } from "util/vue";
-import type { Ref } from "vue";
+import { isReadonly, Ref } from "vue";
 import { computed, unref } from "vue";
 
 export const BuyableType = Symbol("Buyable");
@@ -155,14 +155,18 @@ export function createBuyable<T extends BuyableOptions>(
                     return;
                 }
                 const cost = unref(genericBuyable.cost);
-                if (genericBuyable.cost != null && genericBuyable.resource != null) {
+                if (
+                    genericBuyable.cost != null &&
+                    genericBuyable.resource != null &&
+                    !isReadonly(genericBuyable.resource)
+                ) {
                     genericBuyable.resource.value = Decimal.sub(
                         genericBuyable.resource.value,
                         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                         cost!
                     );
-                    genericBuyable.amount.value = Decimal.add(genericBuyable.amount.value, 1);
                 }
+                genericBuyable.amount.value = Decimal.add(genericBuyable.amount.value, 1);
                 genericBuyable.onPurchase?.(cost);
             };
         processComputable(buyable as T, "display");
