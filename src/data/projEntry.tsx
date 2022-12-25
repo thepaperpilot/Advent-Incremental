@@ -14,10 +14,10 @@ import type { PlayerData } from "game/player";
 import player from "game/player";
 import { format, formatTime } from "util/bignum";
 import { Computable, convertComputable, ProcessedComputable } from "util/computed";
-import { createLazyProxy } from "util/proxies";
+import { createLazyProxy, ProxyState } from "util/proxies";
 import { save } from "util/save";
 import { render, renderRow, VueFeature } from "util/vue";
-import { computed, Ref, ref, unref, watchEffect } from "vue";
+import { computed, isReadonly, isRef, Ref, ref, unref, watchEffect } from "vue";
 import "./advent.css";
 import { credits } from "./credits";
 import Day from "./Day.vue";
@@ -209,7 +209,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
             management,
             letters
         ]) {
-            swapMastery(layer.mastery, layer);
+            swapMastery(layer.mastery, layer[ProxyState]);
         }
 
         swappingMastery.value = false;
@@ -217,6 +217,10 @@ export const main = createLayer("main", function (this: BaseLayer) {
     function swapMastery(mastery: Record<string, any>, layer: Record<string, any>) {
         for (const key of Object.keys(mastery)) {
             if (isPersistent(mastery[key])) {
+                if (!isRef(layer[key]) || isReadonly(layer[key])) {
+                    console.error("Something went wrong swapping state", key, layer, mastery);
+                    continue;
+                }
                 [mastery[key].value, layer[key].value] = [layer[key].value, mastery[key].value];
             } else {
                 swapMastery(mastery[key], layer[key]);

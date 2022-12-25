@@ -21,7 +21,7 @@ export type ProxiedWithState<T> = NonNullable<T> extends Record<PropertyKey, any
 export function createLazyProxy<T extends object, S extends T>(
     objectFunc: (baseObject: S) => T & S,
     baseObject: S = {} as S
-): T {
+): T & { [ProxyState]: T } {
     const obj: S & Partial<T> = baseObject;
     let calculated = false;
     function calculateObj(): T {
@@ -66,5 +66,5 @@ export function createLazyProxy<T extends object, S extends T>(
             }
             return Object.getOwnPropertyDescriptor(target, key);
         }
-    }) as S & T;
+    }) as S & T & { [ProxyState]: T };
 }

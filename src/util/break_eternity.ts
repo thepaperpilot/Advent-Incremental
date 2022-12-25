@@ -217,7 +217,7 @@ export function formatGain(gain: DecimalSource) {
         [-1]: `${format(gain)}/s`,
         0: "",
         1: `+${format(gain)}/s`
-    }[Decimal.compare(gain, 0)];
+    }[Decimal.compare_tolerance(gain, 0, 0.001)];
 }
 
 export function formatList(list: string[]) {

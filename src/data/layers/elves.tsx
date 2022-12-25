@@ -1333,7 +1333,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             packingElf: {
                 buyProgress: persistent<DecimalSource>(0),
-                amountOftimesDone: persistent<number>(0),
+                amountOfTimesDone: persistent<number>(0),
                 bought: persistent<boolean>(false)
             }
         },
