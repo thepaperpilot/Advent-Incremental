@@ -768,7 +768,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 style: "width: 190px",
                 onPurchase() {
                     options.onPurchase?.();
-                    if (!elvesThatReset.includes(options.name)) {
+                    if (elvesThatReset.includes(options.name)) {
                         elfReset.reset();
                     }
                 }
