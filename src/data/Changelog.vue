@@ -7,6 +7,10 @@
             <details open>
                 <summary>v1.0 Initial Commit - <time>2022-12-24</time></summary>
                 The game is finished!
+                <ul>
+                    <li class="fix">1.0.1 - Fixed mastery resets breaking the game state</li>
+                    <li class="fix">1.0.1 - Fixed the wrong elves causing elf resets</li>
+                </ul>
             </details>
         </template>
     </Modal>
