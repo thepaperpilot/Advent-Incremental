@@ -1655,6 +1655,8 @@ const layer = createLayer(id, () => {
             );
         },
         onPurchase() {
+            // Lower amount first so costs are accurate, then re-add the purchase after
+            this.amount.value = Decimal.add(this.amount.value, -1);
             trees.logs.value = Decimal.sub(trees.logs.value, schoolCost.value.wood);
             coal.coal.value = Decimal.sub(coal.coal.value, schoolCost.value.coal);
             paper.paper.value = Decimal.sub(paper.paper.value, schoolCost.value.paper);
@@ -1718,6 +1720,8 @@ const layer = createLayer(id, () => {
             );
         },
         onPurchase() {
+            // Lower amount first so costs are accurate, then re-add the purchase after
+            this.amount.value = Decimal.add(this.amount.value, -1);
             trees.logs.value = Decimal.sub(trees.logs.value, classroomCost.value.wood);
             paper.paper.value = Decimal.sub(paper.paper.value, classroomCost.value.paper);
             boxes.boxes.value = Decimal.sub(boxes.boxes.value, classroomCost.value.boxes);

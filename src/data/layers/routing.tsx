@@ -654,6 +654,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 );
             },
             onPurchase() {
+                // Lower amount first so costs are accurate, then re-add the purchase after
+                this.amount.value = Decimal.add(this.amount.value, -1);
                 management.classrooms.amount.value = Decimal.sub(
                     management.classrooms.amount.value,
                     unref(metaBuyables.classroom.cost ?? 0)
@@ -684,9 +686,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     factory.computedTickRate.value,
                     unref(metaBuyables.tick.cost ?? 0)
                 );
-            },
-            onPurchase() {
-                this.amount.value = Decimal.add(this.amount.value, 1);
             },
             display: jsx(() => (
                 <>

@@ -361,6 +361,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     );
                 }),
                 onPurchase(cost?: DecimalSource) {
+                    buyable.amount.value = Decimal.add(buyable.amount.value, -1);
                     let buyMax = false;
                     switch (options.color) {
                         case "red":

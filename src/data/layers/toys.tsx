@@ -103,6 +103,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             );
         },
         onPurchase() {
+            // Lower amount first so costs are accurate, then re-add the purchase after
+            this.amount.value = Decimal.add(this.amount.value, -1);
             cloth.cloth.value = Decimal.sub(cloth.cloth.value, clothesCost.value.cloth);
             this.amount.value = Decimal.add(this.amount.value, 1);
             clothes.value = Decimal.add(clothes.value, 1);
@@ -135,6 +137,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             return woodenBlocksCost.value.wood.lte(trees.logs.value);
         },
         onPurchase() {
+            // Lower amount first so costs are accurate, then re-add the purchase after
+            this.amount.value = Decimal.add(this.amount.value, -1);
             trees.logs.value = Decimal.sub(trees.logs.value, woodenBlocksCost.value.wood);
             this.amount.value = Decimal.add(this.amount.value, 1);
             woodenBlocks.value = Decimal.add(woodenBlocks.value, 1);
@@ -194,6 +198,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             );
         },
         onPurchase() {
+            // Lower amount first so costs are accurate, then re-add the purchase after
+            this.amount.value = Decimal.add(this.amount.value, -1);
             metal.metal.value = Decimal.sub(metal.metal.value, trucksCost.value.metal);
             plastic.plastic.value = Decimal.sub(plastic.plastic.value, trucksCost.value.plastic);
             this.amount.value = Decimal.add(this.amount.value, 1);
@@ -291,7 +297,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const milestone8 = createMilestone(() => ({
         display: {
             requirement: "6000 toys",
-            effectDisplay: "Running out of energy? Let's increase the limit! Multiply energy capacity by 1.4"
+            effectDisplay:
+                "Running out of energy? Let's increase the limit! Multiply energy capacity by 1.4"
         },
         shouldEarn: () => Decimal.gte(toySum.value, 6000),
         visibility: () =>
