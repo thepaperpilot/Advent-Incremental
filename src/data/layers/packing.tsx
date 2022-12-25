@@ -54,7 +54,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const packingReset = createReset(() => ({
         thingsToReset: [elf as any, loader as any, packedPresents],
         onReset() {
-            packingResets.value++;
+            packingResets.value = Math.min(3, packingResets.value + 1);
         }
     }));
 
