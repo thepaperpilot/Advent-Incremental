@@ -49,6 +49,21 @@ export interface ElfBuyable extends GenericBuyable {
 const id = "elves";
 const day = 4;
 
+const elvesThatReset = [
+    "Holly",
+    "Ivy",
+    "Hope",
+    "Jack",
+    "Mary",
+    "Noel",
+    "Joy",
+    "Faith",
+    "Snowball",
+    "Star",
+    "Bell",
+    "Gingersnap"
+];
+
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Elves";
     const colorBright = "red";
@@ -730,16 +745,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     description: jsx(() => (
                         <>
                             {options.description}
-                            {upgrade.bought.value ||
-                            ["Peppermint", "Twinkle", "Cocoa", "Frosty"].includes(
-                                options.name
-                            ) ? null : (
+                            {upgrade.bought.value || elvesThatReset.includes(options.name) ? (
                                 <>
                                     {" "}
                                     Training this elf will require resetting all your progress from
                                     days 1-3.
                                 </>
-                            )}
+                            ) : null}
                             {upgrade.bought.value && options.hasToggle === true ? (
                                 <>
                                     <Toggle
@@ -756,11 +768,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 style: "width: 190px",
                 onPurchase() {
                     options.onPurchase?.();
-                    if (
-                        !["Peppermint", "Twinkle", "Cocoa", "Frosty", "Carol", "Jingle"].includes(
-                            options.name
-                        )
-                    ) {
+                    if (!elvesThatReset.includes(options.name)) {
                         elfReset.reset();
                     }
                 }
@@ -1041,13 +1049,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const packingElf = createElf({
         name: "Jingle",
-        description: "Jingle will automatically hire more elves to help out with packing the sleigh.",
+        description:
+            "Jingle will automatically hire more elves to help out with packing the sleigh.",
         buyable: [packing.helpers.elf, packing.helpers.loader],
         cooldownModifier: packingCooldown,
         visibility: () => showIf(packing.upgrades.packingElf.bought.value),
         buyMax: true,
         onAutoPurchase(buyable, amount) {
-            if (buyable === packing.helpers.loader && !management.elfTraining.packingElfTraining.milestones[3].earned.value) {
+            if (
+                buyable === packing.helpers.loader &&
+                !management.elfTraining.packingElfTraining.milestones[3].earned.value
+            ) {
                 buyable.amount.value = Decimal.sub(buyable.amount.value, amount);
             }
         }
