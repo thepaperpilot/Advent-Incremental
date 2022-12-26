@@ -93,7 +93,7 @@ export default defineComponent({
                 comp.value = coerceComponent(currDisplay);
                 return;
             }
-            const Title = coerceComponent(currDisplay.title || "", "h3");
+            const Title = coerceComponent(currDisplay.title ?? "", "h3");
             const Description = coerceComponent(currDisplay.description, "div");
             comp.value = coerceComponent(
                 jsx(() => (

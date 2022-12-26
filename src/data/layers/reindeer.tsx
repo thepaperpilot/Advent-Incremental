@@ -237,7 +237,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     if (!unref(clickable.canClick)) {
                         return;
                     }
-                    let amount = Decimal.div(progress.value, computedCooldown.value);
+                    let amount = Decimal.div(progress.value, computedCooldown.value).floor();
                     if (upgrade1.bought.value) {
                         amount = Decimal.times(amount, 2);
                     }
