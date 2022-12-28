@@ -1,11 +1,10 @@
-import { NonPersistent } from "game/persistence";
+import { NonPersistent, Persistent } from "game/persistence";
 import Decimal from "util/bignum";
 
 export const ProxyState = Symbol("ProxyState");
 export const ProxyPath = Symbol("ProxyPath");
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ProxiedWithState<T> = NonNullable<T> extends Record<PropertyKey, any>
+export type ProxiedWithState<T> = NonNullable<T> extends Record<PropertyKey, unknown>
     ? NonNullable<T> extends Decimal
         ? T
         : {
@@ -16,12 +15,24 @@ export type ProxiedWithState<T> = NonNullable<T> extends Record<PropertyKey, any
           }
     : T;
 
+export type Proxied<T> = NonNullable<T> extends Record<PropertyKey, unknown>
+    ? NonNullable<T> extends Persistent<infer S>
+        ? NonPersistent<S>
+        : NonNullable<T> extends Decimal
+        ? T
+        : {
+              [K in keyof T]: Proxied<T[K]>;
+          } & {
+              [ProxyState]: T;
+          }
+    : T;
+
 // Takes a function that returns an object and pretends to be that object
 // Note that the object is lazily calculated
 export function createLazyProxy<T extends object, S extends T>(
     objectFunc: (baseObject: S) => T & S,
     baseObject: S = {} as S
-): T & { [ProxyState]: T } {
+): T {
     const obj: S & Partial<T> = baseObject;
     let calculated = false;
     function calculateObj(): T {
@@ -66,5 +77,5 @@ export function createLazyProxy<T extends object, S extends T>(
             }
             return Object.getOwnPropertyDescriptor(target, key);
         }
-    }) as S & T & { [ProxyState]: T };
+    }) as S & Proxied<T>;
 }

@@ -20,7 +20,7 @@ import type {
     ProcessedComputable
 } from "util/computed";
 import { processComputable } from "util/computed";
-import { createLazyProxy, ProxyState } from "util/proxies";
+import { createLazyProxy } from "util/proxies";
 import { computed, InjectionKey, Ref } from "vue";
 import { ref, shallowReactive, unref } from "vue";
 
@@ -206,7 +206,7 @@ export const addingLayers: string[] = [];
 export function createLayer<T extends LayerOptions>(
     id: string,
     optionsFunc: OptionsFunc<T, BaseLayer>
-): Layer<T> & { [ProxyState]: Layer<T> } {
+): Layer<T> {
     return createLazyProxy(() => {
         const layer = {} as T & Partial<BaseLayer>;
         const emitter = (layer.emitter = createNanoEvents<LayerEvents>());

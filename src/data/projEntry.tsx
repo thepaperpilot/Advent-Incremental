@@ -10,7 +10,7 @@ import {
 import { createParticles } from "features/particles/particles";
 import { BaseLayer, createLayer, GenericLayer, layers } from "game/layers";
 import { isPersistent, Persistent, persistent } from "game/persistence";
-import type { PlayerData } from "game/player";
+import type { Player } from "game/player";
 import player from "game/player";
 import { format, formatTime } from "util/bignum";
 import { Computable, convertComputable, ProcessedComputable } from "util/computed";
@@ -755,7 +755,7 @@ watchEffect(() => {
  */
 export const getInitialLayers = (
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-    player: Partial<PlayerData>
+    player: Partial<Player>
 ): Array<GenericLayer> => [
     main,
     trees,
@@ -796,7 +796,7 @@ export const hasWon = computed(() => {
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export function fixOldSave(
     oldVersion: string | undefined,
-    player: Partial<PlayerData>
+    player: Partial<Player>
     // eslint-disable-next-line @typescript-eslint/no-empty-function
 ): void {
     if (oldVersion !== undefined && oldVersion < "0.6") {
