@@ -14,7 +14,7 @@ import type { Player } from "game/player";
 import player from "game/player";
 import { format, formatTime } from "util/bignum";
 import { Computable, convertComputable, ProcessedComputable } from "util/computed";
-import { createLazyProxy, ProxyState } from "util/proxies";
+import { createLazyProxy, Proxied, ProxyState } from "util/proxies";
 import { save } from "util/save";
 import { render, renderRow, VueFeature } from "util/vue";
 import { computed, isReadonly, isRef, Ref, ref, unref, watchEffect } from "vue";
@@ -209,7 +209,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
             management,
             letters
         ]) {
-            swapMastery(layer.mastery, layer[ProxyState]);
+            swapMastery(layer.mastery, (layer as unknown as Proxied<GenericLayer>)[ProxyState]);
         }
 
         swappingMastery.value = false;
@@ -275,7 +275,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
             const day = optionsFunc();
 
             const optionsShouldNotify = convertComputable(day.shouldNotify);
-            const shouldNotify = convertComputable(
+            const shouldNotify = computed(
                 () => unref(optionsShouldNotify) || unref(recentlyUpdated)
             );
 
