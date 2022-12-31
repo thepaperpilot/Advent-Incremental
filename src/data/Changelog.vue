@@ -15,6 +15,7 @@
                     </li>
                     <li class="fix">1.0.2 - Fixed white dye boost showing before unlocking</li>
                     <li class="fix">1.0.2 - Hardcap packing resets to 3</li>
+                    <li class="feature">1.0.3 - Added option to ignore date</li>
                 </ul>
             </details>
         </template>
