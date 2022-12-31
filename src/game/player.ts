@@ -6,6 +6,12 @@ import { reactive, unref } from "vue";
 import type { Ref } from "vue";
 import transientState from "./state";
 
+export enum IgnoreDateSettings {
+    AsIntended,
+    IgnoreMonth,
+    IgnoreDay
+}
+
 /** The player save data object. */
 export interface PlayerData {
     /** The ID of this save. */
@@ -37,6 +43,7 @@ export interface PlayerData {
 
     /** Should the game be paused when the player complete a day? */
     autoPause: boolean;
+    ignoreDate: IgnoreDateSettings;
 }
 
 /** The proxied player that is used to track NaN values. */
@@ -69,6 +76,7 @@ const state = reactive<PlayerData>({
     modID: "",
     modVersion: "",
     layers: {},
+    ignoreDate: IgnoreDateSettings.AsIntended,
 
     autoPause: true
 });

@@ -13,6 +13,8 @@
         </template>
         <template v-slot:body>
             <div v-if="isTab('behaviour')">
+                <Select :title="ignoreDateTitle" :options="ignoreDateOptions" v-model="ignoreDate" />
+                <Toggle v-if="projInfo.enablePausing" :title="isPausedTitle" v-model="isPaused" />
                 <div v-if="canAutoSave">
                     <Toggle :title="autosaveTitle" v-model="autosave" />
                     <FeedbackButton v-if="!autosave" class="button save-button" @click="save()">
@@ -22,7 +24,6 @@
                 <div style="text-align: center" v-else>
                     Auto-saving is disabled while between days
                 </div>
-                <Toggle v-if="projInfo.enablePausing" :title="isPausedTitle" v-model="isPaused" />
             </div>
             <div v-if="isTab('appearance')">
                 <Select :title="themeTitle" :options="themes" v-model="theme" />
@@ -41,7 +42,7 @@ import projInfo from "data/projInfo.json";
 import rawThemes from "data/themes";
 import { jsx } from "features/feature";
 import Tooltip from "features/tooltips/Tooltip.vue";
-import player from "game/player";
+import player, { IgnoreDateSettings } from "game/player";
 import settings, { settingFields } from "game/settings";
 import { camelToTitle } from "util/common";
 import { save } from "util/save";
@@ -80,13 +81,19 @@ const themes = Object.keys(rawThemes).map(theme => ({
     value: theme
 }));
 
+const ignoreDateOptions = [
+    { label: "Don't Ignore", value: IgnoreDateSettings.AsIntended },
+    { label: "Ignore Month", value: IgnoreDateSettings.IgnoreMonth },
+    { label: "Ignore Month and Day", value: IgnoreDateSettings.IgnoreDay }
+];
+
 const settingFieldsComponent = computed(() => {
     return coerceComponent(jsx(() => (<>{settingFields.map(render)}</>)));
 });
 
 const { showTPS, theme, usingLog, alignUnits } = toRefs(settings);
 
-const { autosave, autoPause } = toRefs(player);
+const { autosave, autoPause, ignoreDate } = toRefs(player);
 
 const isPaused = computed({
     get() {
@@ -105,6 +112,12 @@ const autosaveTitle = jsx(() => (
     <span class="option-title">
         Autosave<Tooltip display="Save-specific">*</Tooltip>
         <desc>Automatically save the game every second or when the game is closed.</desc>
+    </span>
+));
+const ignoreDateTitle = jsx(() => (
+    <span class="option-title">
+        Ignore Date<Tooltip display="Save-specific">*</Tooltip>
+        <desc>Allow playing the game not as an advent calendar</desc>
     </span>
 ));
 const isPausedTitle = jsx(() => (
