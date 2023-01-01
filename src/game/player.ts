@@ -1,6 +1,12 @@
 import type { Ref } from "vue";
 import { reactive, unref } from "vue";
 
+export enum IgnoreDateSettings {
+    AsIntended,
+    IgnoreMonth,
+    IgnoreDay
+}
+
 /** The player save data object. */
 export interface Player {
     /** The ID of this save. */
@@ -32,6 +38,7 @@ export interface Player {
 
     /** Should the game be paused when the player complete a day? */
     autoPause: boolean;
+    ignoreDate: IgnoreDateSettings;
 }
 
 /** A layer's save data. Automatically unwraps refs. */
@@ -61,6 +68,7 @@ const player = reactive<Player>({
     modID: "",
     modVersion: "",
     layers: {},
+    ignoreDate: IgnoreDateSettings.AsIntended,
 
     autoPause: true
 });

@@ -43,6 +43,26 @@
             </template>
         </Modal>
         <Modal
+            :modelValue="
+                player.ignoreDate === IgnoreDateSettings.AsIntended &&
+                new Date().getMonth() !== 11 &&
+                !main.dismissedIgnoreDateWarning.value
+            "
+            @update:model-value="value => (main.dismissedIgnoreDateWarning.value = !value)"
+        >
+            <template v-slot:header><h2>It's not December</h2></template>
+            <template v-slot:body>
+                <div>
+                    This game is intended to be played as an advent calendar, but it is currently
+                    not December. In order to allow players to still enjoy this game, there is a
+                    field in the options menu to ignore the month and/or day. You can also change
+                    that setting here:
+                </div>
+                <Spacer />
+                <Select title="Ignore Date" :options="ignoreDateOptions" v-model="ignoreDate" />
+            </template>
+        </Modal>
+        <Modal
             :modelValue="main.creditsOpen.value"
             @update:model-value="value => (main.creditsOpen.value = value)"
         >
@@ -51,10 +71,9 @@
             </template>
             <template v-slot:body>
                 <div>
-                    <component :is=convertComputable(main.credits) />
+                    <component :is="convertComputable(main.credits)" />
                 </div>
 
-                
                 <!--<div v-if="main.loreScene.value !== -1">
                     <Scene :day="main.loreScene.value" />
                     <br />
@@ -78,17 +97,20 @@
 import { main } from "data/projEntry";
 import projInfo from "data/projInfo.json";
 import Scene from "data/Scene.vue";
+import Select from "./fields/Select.vue";
 import type { GenericLayer } from "game/layers";
 import { layers } from "game/layers";
-import player from "game/player";
+import player, { IgnoreDateSettings } from "game/player";
 import { convertComputable } from "util/computed";
 import { computeOptionalComponent } from "util/vue";
 import { computed, toRef, unref } from "vue";
 import Layer from "./Layer.vue";
 import Modal from "./Modal.vue";
 import Nav from "./Nav.vue";
+import Spacer from "./layout/Spacer.vue";
 
 const tabs = toRef(player, "tabs");
+const ignoreDate = toRef(player, "ignoreDate");
 const layerKeys = computed(() => Object.keys(layers));
 const useHeader = projInfo.useHeader;
 
@@ -98,6 +120,12 @@ function gatherLayerProps(layer: GenericLayer) {
     const { display, minimized, name, color, minimizable, nodes, minimizedDisplay } = layer;
     return { display, minimized, name, color, minimizable, nodes, minimizedDisplay };
 }
+
+const ignoreDateOptions = [
+    { label: "Don't Ignore", value: IgnoreDateSettings.AsIntended },
+    { label: "Ignore Month", value: IgnoreDateSettings.IgnoreMonth },
+    { label: "Ignore Month and Day", value: IgnoreDateSettings.IgnoreDay }
+];
 </script>
 
 <style scoped>

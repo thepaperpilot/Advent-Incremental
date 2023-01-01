@@ -50,6 +50,7 @@ import Notif from "components/Notif.vue";
 import { Visibility } from "features/feature";
 import Tooltip from "features/tooltips/Tooltip.vue";
 import { layers } from "game/layers";
+import player, { IgnoreDateSettings } from "game/player";
 import Decimal from "util/bignum";
 import { formatTime } from "util/break_eternity";
 import { Direction } from "util/common";
@@ -80,8 +81,8 @@ const canOpen = computed(
     () =>
         props.layer != null &&
         Decimal.gte(main.day.value, props.day) &&
-        new Date().getMonth() === 11 &&
-        new Date().getDate() >= props.day
+        (new Date().getMonth() === 10 || player.ignoreDate !== IgnoreDateSettings.AsIntended) &&
+        (new Date().getDate() >= props.day || player.ignoreDate === IgnoreDateSettings.IgnoreDay)
 );
 
 const isMastering = main.isMastery;

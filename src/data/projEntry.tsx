@@ -10,6 +10,7 @@ import {
 import { createParticles } from "features/particles/particles";
 import { BaseLayer, createLayer, GenericLayer, layers } from "game/layers";
 import { isPersistent, Persistent, persistent } from "game/persistence";
+import { IgnoreDateSettings } from "game/player";
 import type { Player } from "game/player";
 import player from "game/player";
 import { format, formatTime } from "util/bignum";
@@ -86,14 +87,22 @@ export const main = createLayer("main", function (this: BaseLayer) {
     const day = persistent<number>(1);
     const hasWon = persistent<boolean>(false);
 
-    const timeUntilNewDay = computed(
-        () => (+new Date(new Date().getFullYear(), 11, day.value) - player.time) / 1000
-    );
+    const timeUntilNewDay = computed(() => {
+        if (player.ignoreDate === IgnoreDateSettings.IgnoreDay) {
+            return 0;
+        } else {
+            const month =
+                player.ignoreDate === IgnoreDateSettings.IgnoreMonth ? new Date().getMonth() : 11;
+            return (+new Date(new Date().getFullYear(), month, day.value) - player.time) / 1000;
+        }
+    });
 
     const showLoreModal = ref<boolean>(false);
     const loreScene = ref<number>(-1);
     const loreTitle = ref<string>("");
     const loreBody = ref<CoercableComponent | undefined>();
+
+    const dismissedIgnoreDateWarning = ref(false);
 
     const creditsOpen = ref<boolean>(false);
 
@@ -682,6 +691,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         loreScene,
         loreTitle,
         loreBody,
+        dismissedIgnoreDateWarning,
         particles,
         showLoreModal,
         completeDay,
