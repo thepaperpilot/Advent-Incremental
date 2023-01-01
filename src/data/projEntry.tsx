@@ -101,6 +101,8 @@ export const main = createLayer("main", function (this: BaseLayer) {
     const loreTitle = ref<string>("");
     const loreBody = ref<CoercableComponent | undefined>();
 
+    const dismissedIgnoreDateWarning = ref(false);
+
     const creditsOpen = ref<boolean>(false);
 
     // I don't understand how this works
@@ -688,6 +690,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
         loreScene,
         loreTitle,
         loreBody,
+        dismissedIgnoreDateWarning,
         particles,
         showLoreModal,
         completeDay,
