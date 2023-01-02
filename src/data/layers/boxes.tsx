@@ -37,6 +37,7 @@ import trees from "./trees";
 import workshop from "./workshop";
 import wrappingPaper from "./wrapping-paper";
 import packing from "./packing";
+import { createCostRequirement } from "game/requirements";
 
 export type BoxesBuyable = ElfBuyable & {
     resource: Resource;
@@ -68,8 +69,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             exponent: 1.1,
             description: "Bell Level 2",
             enabled: management.elfTraining.boxElfTraining.milestones[1].earned
-        })),
-        
+        }))
     ]) as WithRequired<Modifier, "description" | "revert">;
 
     const boxesConversion = createCumulativeConversion(() => ({
@@ -123,8 +123,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
             main.days[3].recentlyUpdated.value = true;
         },
-        resource: noPersist(boxes),
-        cost: 100
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(boxes),
+            cost: 100
+        }))
     }));
     const ashUpgrade = createUpgrade(() => ({
         display: {
@@ -137,8 +139,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
             main.days[3].recentlyUpdated.value = true;
         },
-        resource: noPersist(boxes),
-        cost: 1000
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(boxes),
+            cost: 1000
+        }))
     }));
     const coalUpgrade = createUpgrade(() => ({
         display: {
@@ -151,14 +155,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
             main.days[3].recentlyUpdated.value = true;
         },
-        resource: noPersist(boxes),
-        cost: 4000
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(boxes),
+            cost: 4000
+        }))
     }));
     const upgrades = { logsUpgrade, ashUpgrade, coalUpgrade };
 
     const oreUpgrade = createUpgrade(() => ({
-        resource: noPersist(boxes),
-        cost: 1e8,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(boxes),
+            cost: 1e8
+        })),
         visibility: () => showIf(plastic.upgrades.boxTools.bought.value),
         display: {
             title: "Carry ore in boxes",
@@ -166,8 +174,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const metalUpgrade = createUpgrade(() => ({
-        resource: noPersist(boxes),
-        cost: 1e9,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(boxes),
+            cost: 1e9
+        })),
         visibility: () => showIf(plastic.upgrades.boxTools.bought.value),
         display: {
             title: "Carry metal in boxes",
@@ -175,8 +185,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const plasticUpgrade = createUpgrade(() => ({
-        resource: noPersist(boxes),
-        cost: 1e10,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(boxes),
+            cost: 1e10
+        })),
         visibility: () => showIf(plastic.upgrades.boxTools.bought.value),
         display: {
             title: "Carry plastic in boxes",
@@ -185,8 +197,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const row2Upgrades = { oreUpgrade, metalUpgrade, plasticUpgrade };
     const clothUpgrade = createUpgrade(() => ({
-        resource: noPersist(boxes),
-        cost: 1e28,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(boxes),
+            cost: 1e28
+        })),
         visibility: () => showIf(management.elfTraining.boxElfTraining.milestones[4].earned.value),
         display: {
             title: "Carry cloth in boxes",
@@ -194,8 +208,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     })) as GenericUpgrade;
     const dyeUpgrade = createUpgrade(() => ({
-        resource: noPersist(boxes),
-        cost: 1e29,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(boxes),
+            cost: 1e29
+        })),
         visibility: () => showIf(management.elfTraining.boxElfTraining.milestones[4].earned.value),
         display: {
             title: "Carry dye in boxes",
@@ -203,8 +219,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     })) as GenericUpgrade;
     const xpUpgrade = createUpgrade(() => ({
-        resource: noPersist(boxes),
-        cost: 1e30,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(boxes),
+            cost: 1e30
+        })),
         visibility: () => showIf(management.elfTraining.boxElfTraining.milestones[4].earned.value),
         display: {
             title: "Carry experience in boxes???",
@@ -233,19 +251,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
             )),
             showAmount: false
         },
-        resource: noPersist(boxes),
-        cost() {
-            let v = this.amount.value;
-            v = Decimal.pow(0.95, paper.books.boxBook.totalAmount.value).times(v);
-            let scaling = 3;
-            if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
-                scaling--;
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(boxes),
+            cost() {
+                let v = logBoxesBuyable.amount.value;
+                v = Decimal.pow(0.95, paper.books.boxBook.totalAmount.value).times(v);
+                let scaling = 3;
+                if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
+                    scaling--;
+                }
+                return Decimal.pow(scaling, v)
+                    .times(100)
+                    .div(dyes.boosts.orange2.value)
+                    .div(wrappingPaper.boosts.ocean1.value);
             }
-            return Decimal.pow(scaling, v)
-                .times(100)
-                .div(dyes.boosts.orange2.value)
-                .div(wrappingPaper.boosts.ocean1.value);
-        },
+        })),
         inverseCost(x: DecimalSource) {
             let scaling = 3;
             if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
@@ -301,16 +321,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
             )),
             showAmount: false
         },
-        resource: noPersist(boxes),
-        cost() {
-            let v = this.amount.value;
-            v = Decimal.pow(0.95, paper.books.boxBook.totalAmount.value).times(v);
-            let scaling = 5;
-            if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
-                scaling--;
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(boxes),
+            cost() {
+                let v = ashBoxesBuyable.amount.value;
+                v = Decimal.pow(0.95, paper.books.boxBook.totalAmount.value).times(v);
+                let scaling = 5;
+                if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
+                    scaling--;
+                }
+                return Decimal.pow(scaling, v).times(1000).div(dyes.boosts.orange2.value);
             }
-            return Decimal.pow(scaling, v).times(1000).div(dyes.boosts.orange2.value);
-        },
+        })),
         inverseCost(x: DecimalSource) {
             let scaling = 5;
             if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
@@ -363,16 +385,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
             )),
             showAmount: false
         },
-        resource: noPersist(boxes),
-        cost() {
-            let v = this.amount.value;
-            v = Decimal.pow(0.95, paper.books.boxBook.totalAmount.value).times(v);
-            let scaling = 7;
-            if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
-                scaling--;
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(boxes),
+            cost() {
+                let v = coalBoxesBuyable.amount.value;
+                v = Decimal.pow(0.95, paper.books.boxBook.totalAmount.value).times(v);
+                let scaling = 7;
+                if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
+                    scaling--;
+                }
+                return Decimal.pow(scaling, v).times(1000).div(dyes.boosts.orange2.value);
             }
-            return Decimal.pow(scaling, v).times(1000).div(dyes.boosts.orange2.value);
-        },
+        })),
         inverseCost(x: DecimalSource) {
             let scaling = 7;
             if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
@@ -426,19 +450,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
             )),
             showAmount: false
         },
-        resource: noPersist(boxes),
-        cost() {
-            let v = this.amount.value;
-            v = Decimal.pow(0.95, paper.books.boxBook.totalAmount.value).times(v);
-            let scaling = 10;
-            if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
-                scaling--;
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(boxes),
+            cost() {
+                let v = oreBoxesBuyable.amount.value;
+                v = Decimal.pow(0.95, paper.books.boxBook.totalAmount.value).times(v);
+                let scaling = 10;
+                if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
+                    scaling--;
+                }
+                return Decimal.pow(scaling, v)
+                    .times(1e25)
+                    .div(dyes.boosts.orange2.value)
+                    .div(wrappingPaper.boosts.ocean1.value);
             }
-            return Decimal.pow(scaling, v)
-                .times(1e25)
-                .div(dyes.boosts.orange2.value)
-                .div(wrappingPaper.boosts.ocean1.value);
-        },
+        })),
         inverseCost(x: DecimalSource) {
             let scaling = 10;
             if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
@@ -494,16 +520,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
             )),
             showAmount: false
         },
-        resource: noPersist(boxes),
-        cost() {
-            let v = this.amount.value;
-            v = Decimal.pow(0.95, paper.books.boxBook.totalAmount.value).times(v);
-            let scaling = 15;
-            if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
-                scaling--;
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(boxes),
+            cost() {
+                let v = metalBoxesBuyable.amount.value;
+                v = Decimal.pow(0.95, paper.books.boxBook.totalAmount.value).times(v);
+                let scaling = 15;
+                if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
+                    scaling--;
+                }
+                return Decimal.pow(scaling, v).times(1e28).div(dyes.boosts.orange2.value);
             }
-            return Decimal.pow(scaling, v).times(1e28).div(dyes.boosts.orange2.value);
-        },
+        })),
         inverseCost(x: DecimalSource) {
             let scaling = 15;
             if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
@@ -556,16 +584,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
             )),
             showAmount: false
         },
-        resource: noPersist(boxes),
-        cost() {
-            let v = this.amount.value;
-            v = Decimal.pow(0.95, paper.books.boxBook.totalAmount.value).times(v);
-            let scaling = 20;
-            if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
-                scaling--;
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(boxes),
+            cost() {
+                let v = plasticBoxesBuyable.amount.value;
+                v = Decimal.pow(0.95, paper.books.boxBook.totalAmount.value).times(v);
+                let scaling = 20;
+                if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
+                    scaling--;
+                }
+                return Decimal.pow(scaling, v).times(1e31).div(dyes.boosts.orange2.value);
             }
-            return Decimal.pow(scaling, v).times(1e31).div(dyes.boosts.orange2.value);
-        },
+        })),
         inverseCost(x: DecimalSource) {
             let scaling = 20;
             if (management.elfTraining.boxElfTraining.milestones[2].earned.value) {
@@ -613,10 +643,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             )),
             showAmount: false
         },
-        resource: noPersist(boxes),
-        cost() {
-            return Decimal.pow(2, presentBuyable.amount.value).mul(1e87);
-        },
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(boxes),
+            cost() {
+                return Decimal.pow(2, presentBuyable.amount.value).mul(1e87);
+            }
+        })),
         inverseCost(x: DecimalSource) {
             const amt = Decimal.div(x, 1e87).log2();
             return Decimal.isNaN(amt) ? Decimal.dZero : amt.floor().max(0);

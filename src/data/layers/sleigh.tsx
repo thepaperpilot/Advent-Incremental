@@ -2,24 +2,25 @@
  * @module
  * @hidden
  */
+import { isArray } from "@vue/shared";
 import Spacer from "components/layout/Spacer.vue";
 import { createCollapsibleMilestones } from "data/common";
 import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
+import { createBuyable, GenericBuyable } from "features/buyable";
 import { jsx, showIf } from "features/feature";
 import { createMilestone } from "features/milestones/milestone";
+import { Resource } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
+import { createCostRequirement } from "game/requirements";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render } from "util/vue";
 import { computed, watchEffect } from "vue";
 import management from "./management";
-import trees from "./trees";
 import metal from "./metal";
 import plastic from "./plastic";
-import { createBuyable, GenericBuyable } from "features/buyable";
-import { Resource } from "features/resources/resource";
-import { isArray } from "@vue/shared";
+import trees from "./trees";
 
 const id = "sleigh";
 const day = 22;
@@ -40,36 +41,27 @@ const layer = createLayer(id, function (this: BaseLayer) {
         );
     }
     const sleighProgress = computed(() => sleigh.amount);
-    const sleighCost = computed(() => {
-        const v = sleighProgress.value.value;
-        return {
-            wood: Decimal.mul(1e97, Decimal.pow(1.2, v)),
-            metal: Decimal.mul(1e67, Decimal.pow(1.1, v)),
-            plastic: Decimal.mul(1e22, Decimal.pow(1.05, v))
-        };
-    });
     const sleigh = createBuyable(() => ({
-        display: jsx(() => (
-            <>
-                <b style="font-size: x-large">Fix 1% of the sleigh</b>
-                <br />
-                <br />
-                <span style="font-size: large">
-                    Requires: {displayCost(trees.logs, sleighCost.value.wood, "logs")},
-                    {displayCost(metal.metal, sleighCost.value.metal, "metal")},
-                    {displayCost(plastic.plastic, sleighCost.value.plastic, "plastic")}
-                </span>
-            </>
-        )),
-        canPurchase(): boolean {
-            return (
-                sleighCost.value.wood.lte(trees.logs.value) &&
-                sleighCost.value.metal.lte(metal.metal.value) &&
-                sleighCost.value.plastic.lte(plastic.plastic.value)
-            );
-        },
-        onPurchase() {
-            this.amount.value = Decimal.add(this.amount.value, 1);
+        requirements: [
+            createCostRequirement(() => ({
+                resource: trees.logs,
+                cost: () => Decimal.mul(1e97, Decimal.pow(1.2, sleighProgress.value.value)),
+                requiresPay: false
+            })),
+            createCostRequirement(() => ({
+                resource: metal.metal,
+                cost: () => Decimal.mul(1e67, Decimal.pow(1.1, sleighProgress.value.value)),
+                requiresPay: false
+            })),
+            createCostRequirement(() => ({
+                resource: plastic.plastic,
+                cost: () => Decimal.mul(1e22, Decimal.pow(1.05, sleighProgress.value.value)),
+                requiresPay: false
+            }))
+        ],
+        display: {
+            description: "<b style='font-size: x-large'>Fix 1% of the sleigh</b>",
+            showAmount: false
         },
         visibility: () => showIf(Decimal.lt(sleighProgress.value.value, 100)),
         style: "width: 600px"

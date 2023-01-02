@@ -33,12 +33,12 @@ import plastic from "./plastic";
 import trees from "./trees";
 
 import "./styles/management.css";
-import { Resource } from "features/resources/resource";
+import { createResource, Resource } from "features/resources/resource";
 import { isArray } from "@vue/shared";
-import { createTab } from "features/tabs/tab";
 import routing from "./routing";
 import packing from "./packing";
 import elves from "./elves";
+import { createCostRequirement } from "game/requirements";
 
 const id = "management";
 const day = 12;
@@ -103,8 +103,10 @@ const layer = createLayer(id, () => {
             description:
                 "The Elves probably need to be taught if they're to do better. Maybe you'll build a school so you can teach them?"
         },
-        resource: trees.logs,
-        cost: 1e21,
+        requirements: createCostRequirement(() => ({
+            resource: trees.logs,
+            cost: 1e21
+        })),
         visibility: () => showIf(!main.isMastery.value)
     }));
 
@@ -115,9 +117,11 @@ const layer = createLayer(id, () => {
                 "Yay, you have a school. Too bad it has pretty much nothing in it. Maybe you could add some classrooms to make it less boring and more enticing to the Elves?"
         },
         visibility: () => showIf(teaching.bought.value),
-        resource: boxes.boxes,
         style: "width: 150px",
-        cost: 1e13
+        requirements: createCostRequirement(() => ({
+            resource: boxes.boxes,
+            cost: 1e13
+        }))
     }));
     const advancedUpgrade = createUpgrade(() => ({
         display: {
@@ -131,9 +135,11 @@ const layer = createLayer(id, () => {
                     main.day.value >= advancedDay &&
                     main.days[advancedDay - 1].opened.value
             ),
-        resource: boxes.boxes,
         style: "width: 150px",
-        cost: 1e25
+        requirements: createCostRequirement(() => ({
+            resource: boxes.boxes,
+            cost: 1e25
+        }))
     }));
     const globalXPModifier = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
@@ -1523,24 +1529,30 @@ const layer = createLayer(id, () => {
             title: "Focus Booster",
             description: "Multiplies the maximum experience multiplier from focus by 2"
         },
-        resource: trees.logs,
-        cost: 1e25
+        requirements: createCostRequirement(() => ({
+            resource: trees.logs,
+            cost: 1e25
+        }))
     }));
     const focusUpgrade2 = createUpgrade(() => ({
         display: {
             title: "Focus Buffer",
             description: "Increase elves affected by focus by 1"
         },
-        resource: trees.logs,
-        cost: 1e28
+        requirements: createCostRequirement(() => ({
+            resource: trees.logs,
+            cost: 1e28
+        }))
     }));
     const focusUpgrade3 = createUpgrade(() => ({
         display: {
             title: "Focus Upgrader",
             description: "Focus can now be rerolled every 10 seconds"
         },
-        resource: trees.logs,
-        cost: 1e31
+        requirements: createCostRequirement(() => ({
+            resource: trees.logs,
+            cost: 1e31
+        }))
     }));
     const upgrades = [focusUpgrade1, focusUpgrade2, focusUpgrade3];
     const focusUpgrade4 = createUpgrade(() => ({
@@ -1549,122 +1561,116 @@ const layer = createLayer(id, () => {
             description:
                 "The bar moves slower when it's closer to the right and faster when it's closer to the left"
         },
-        resource: trees.logs,
         visibility: () => showIf(elfTraining.clothElfTraining.milestones[4].earned.value),
-        cost: 1e34
+        requirements: createCostRequirement(() => ({
+            resource: trees.logs,
+            cost: 1e34
+        }))
     }));
     const focusUpgrade5 = createUpgrade(() => ({
         display: {
             title: "Focus Focuser",
             description: "The bar moves 2x slower"
         },
-        resource: trees.logs,
         visibility: () => showIf(elfTraining.clothElfTraining.milestones[4].earned.value),
-        cost: 1e35
+        requirements: createCostRequirement(() => ({
+            resource: trees.logs,
+            cost: 1e35
+        }))
     }));
     const focusUpgrade6 = createUpgrade(() => ({
         display: {
             title: "Focus Doubler",
             description: "Focus applies to an additional elf."
         },
-        resource: trees.logs,
         visibility: () => showIf(elfTraining.clothElfTraining.milestones[4].earned.value),
-        cost: 1e36
+        requirements: createCostRequirement(() => ({
+            resource: trees.logs,
+            cost: 1e36
+        }))
     }));
     const upgrades2 = [focusUpgrade4, focusUpgrade5, focusUpgrade6];
     // ------------------------------------------------------------------------------- Schools
 
-    const schoolCost = computed(() => {
-        const schoolFactor = Decimal.pow(10, schools.amount.value);
-        const nerfedSchoolFactor = Decimal.pow(4, schools.amount.value);
-        let woodFactor = Decimal.pow(2e4, Decimal.pow(schools.amount.value, 0.75));
-        if (Decimal.gte(schools.amount.value, 4)) {
-            woodFactor = woodFactor.div(1e3);
-        }
-        const coalFactor = Decimal.pow(2000, schools.amount.value);
-        return {
-            wood: woodFactor.mul(1e21),
-            coal: coalFactor.mul(1e32),
-            paper: coalFactor.mul(1e18),
-            boxes: woodFactor.mul(1e13),
-            metalIngots: nerfedSchoolFactor.mul(1e12),
-            cloth: schoolFactor.mul(1e4),
-            plastic: nerfedSchoolFactor.mul(1e6),
-            dye: Decimal.add(schools.amount.value, 1).mul(10000)
-        };
-    });
-
-    function displayCost(
-        res: Resource<DecimalSource> | Resource<DecimalSource>[],
-        cost: DecimalSource,
-        label: string
-    ) {
-        const affordable = (isArray(res) ? res : [res]).every(res => Decimal.gte(res.value, cost));
-        return (
-            <span class={affordable ? "" : "unaffordable"}>
-                {format(cost)} {label}
-            </span>
-        );
-    }
-
     const schools = createBuyable(() => ({
-        display: jsx(() => (
-            <>
-                <h3>Build a School</h3>
-                <div>
-                    You gotta start somewhere, right? Each school increases the maximum level for
-                    elves by 1, maximum of {main.days[advancedDay - 1].opened.value ? 5 : 3}{" "}
-                    schools.
-                </div>
-                <div>
-                    You have {formatWhole(schools.amount.value)} schools, which are currently
-                    letting elves learn up to level {formatWhole(schools.amount.value)}.
-                </div>
-                {Decimal.lt(schools.amount.value, unref(schools.purchaseLimit)) ? (
+        requirements: [
+            createCostRequirement(() => ({
+                resource: trees.logs,
+                cost() {
+                    let woodFactor = Decimal.pow(2e4, Decimal.pow(schools.amount.value, 0.75));
+                    if (Decimal.gte(schools.amount.value, 4)) {
+                        woodFactor = woodFactor.div(1e3);
+                    }
+                    return woodFactor.mul(1e21);
+                }
+            })),
+            createCostRequirement(() => ({
+                resource: coal.coal,
+                cost() {
+                    const coalFactor = Decimal.pow(2000, schools.amount.value);
+                    return coalFactor.mul(1e32);
+                }
+            })),
+            createCostRequirement(() => ({
+                resource: paper.paper,
+                cost() {
+                    const coalFactor = Decimal.pow(2000, schools.amount.value);
+                    return coalFactor.mul(1e18);
+                }
+            })),
+            createCostRequirement(() => ({
+                resource: boxes.boxes,
+                cost() {
+                    let woodFactor = Decimal.pow(2e4, Decimal.pow(schools.amount.value, 0.75));
+                    if (Decimal.gte(schools.amount.value, 4)) {
+                        woodFactor = woodFactor.div(1e3);
+                    }
+                    return woodFactor.mul(1e13);
+                }
+            })),
+            createCostRequirement(() => ({
+                resource: metal.metal,
+                cost() {
+                    const nerfedSchoolFactor = Decimal.pow(4, schools.amount.value);
+                    return nerfedSchoolFactor.mul(1e12);
+                }
+            })),
+            createCostRequirement(() => ({
+                resource: cloth.cloth,
+                cost() {
+                    const schoolFactor = Decimal.pow(10, schools.amount.value);
+                    return schoolFactor.mul(1e4);
+                }
+            })),
+            createCostRequirement(() => ({
+                resource: plastic.plastic,
+                cost() {
+                    const nerfedSchoolFactor = Decimal.pow(4, schools.amount.value);
+                    return nerfedSchoolFactor.mul(1e6);
+                }
+            })),
+            createCostRequirement(() => ({
+                resource: dyes.primaryDyes,
+                cost() {
+                    return Decimal.add(schools.amount.value, 1).mul(10000);
+                }
+            }))
+        ],
+        display: {
+            title: "Build a School",
+            description: jsx(() => (
+                <>
                     <div>
-                        Costs {displayCost(trees.logs, schoolCost.value.wood, "logs")},{" "}
-                        {displayCost(coal.coal, schoolCost.value.coal, "coal")},{" "}
-                        {displayCost(paper.paper, schoolCost.value.paper, "paper")},{" "}
-                        {displayCost(boxes.boxes, schoolCost.value.boxes, "boxes")},{" "}
-                        {displayCost(metal.metal, schoolCost.value.metalIngots, "metal ingots")},{" "}
-                        {displayCost(cloth.cloth, schoolCost.value.cloth, "cloth")},{" "}
-                        {displayCost(plastic.plastic, schoolCost.value.plastic, "plastic")}, and
-                        requires{" "}
-                        {displayCost(
-                            [dyes.dyes.red.amount, dyes.dyes.yellow.amount, dyes.dyes.blue.amount],
-                            schoolCost.value.dye,
-                            "red, yellow, and blue dye"
-                        )}
+                        You gotta start somewhere, right? Each school increases the maximum level
+                        for elves by 1, maximum of {main.days[advancedDay - 1].opened.value ? 5 : 3}{" "}
+                        schools.
                     </div>
-                ) : null}
-            </>
-        )),
-        canPurchase(): boolean {
-            return (
-                schoolCost.value.wood.lte(trees.logs.value) &&
-                schoolCost.value.coal.lte(coal.coal.value) &&
-                schoolCost.value.paper.lte(paper.paper.value) &&
-                schoolCost.value.boxes.lte(boxes.boxes.value) &&
-                schoolCost.value.metalIngots.lte(metal.metal.value) &&
-                schoolCost.value.cloth.lte(cloth.cloth.value) &&
-                schoolCost.value.plastic.lte(plastic.plastic.value) &&
-                schoolCost.value.dye.lte(dyes.dyes.blue.amount.value) &&
-                schoolCost.value.dye.lte(dyes.dyes.red.amount.value) &&
-                schoolCost.value.dye.lte(dyes.dyes.yellow.amount.value) &&
-                Decimal.lt(schools.amount.value, unref(schools.purchaseLimit))
-            );
-        },
-        onPurchase() {
-            // Lower amount first so costs are accurate, then re-add the purchase after
-            this.amount.value = Decimal.add(this.amount.value, -1);
-            trees.logs.value = Decimal.sub(trees.logs.value, schoolCost.value.wood);
-            coal.coal.value = Decimal.sub(coal.coal.value, schoolCost.value.coal);
-            paper.paper.value = Decimal.sub(paper.paper.value, schoolCost.value.paper);
-            boxes.boxes.value = Decimal.sub(boxes.boxes.value, schoolCost.value.boxes);
-            metal.metal.value = Decimal.sub(metal.metal.value, schoolCost.value.metalIngots);
-            cloth.cloth.value = Decimal.sub(cloth.cloth.value, schoolCost.value.cloth);
-            plastic.plastic.value = Decimal.sub(plastic.plastic.value, schoolCost.value.plastic);
-            this.amount.value = Decimal.add(this.amount.value, 1);
+                    <div>
+                        You have {formatWhole(schools.amount.value)} schools, which are currently
+                        letting elves learn up to level {formatWhole(schools.amount.value)}.
+                    </div>
+                </>
+            ))
         },
         purchaseLimit() {
             if (main.days[advancedDay - 1].opened.value) return 5;
@@ -1674,17 +1680,11 @@ const layer = createLayer(id, () => {
         style: "width: 600px"
     })) as GenericBuyable;
 
-    const classroomCost = computed(() => {
+    const classroomFactor = computed(() => {
         let v = classrooms.amount.value;
         if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
         if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
-        const classroomFactor = Decimal.add(v, 1).pow(1.5);
-        return {
-            wood: classroomFactor.mul(1e21),
-            paper: classroomFactor.mul(1e18),
-            boxes: classroomFactor.mul(1e13),
-            metalIngots: classroomFactor.mul(1e12)
-        };
+        return Decimal.add(v, 1).pow(1.5);
     });
 
     const classroomEffect = computed(() => {
@@ -1692,45 +1692,42 @@ const layer = createLayer(id, () => {
     });
 
     const classrooms = createBuyable(() => ({
-        display: jsx(() => (
-            <>
-                <h3>Build a Classroom</h3>
-                <div>
-                    Hopefully it makes the school a bit less boring. Multiplies elves' XP gain by{" "}
-                    (Classrooms + 1)<sup>0.9</sup>.
-                </div>
-                <div>
-                    You have {formatWhole(classrooms.amount.value)} classrooms, which are currently
-                    multiplying elves' XP gain by {format(classroomEffect.value)}
-                </div>
-                <div>
-                    Costs {displayCost(trees.logs, classroomCost.value.wood, "logs")},
-                    {displayCost(paper.paper, classroomCost.value.paper, "paper")},{" "}
-                    {displayCost(boxes.boxes, classroomCost.value.boxes, "boxes")},{" "}
-                    {displayCost(metal.metal, classroomCost.value.metalIngots, "metal ingots")}
-                </div>
-            </>
-        )),
-        canPurchase(): boolean {
-            return (
-                classroomCost.value.wood.lte(trees.logs.value) &&
-                classroomCost.value.paper.lte(paper.paper.value) &&
-                classroomCost.value.boxes.lte(boxes.boxes.value) &&
-                classroomCost.value.metalIngots.lte(metal.metal.value)
-            );
-        },
-        onPurchase() {
-            // Lower amount first so costs are accurate, then re-add the purchase after
-            this.amount.value = Decimal.add(this.amount.value, -1);
-            trees.logs.value = Decimal.sub(trees.logs.value, classroomCost.value.wood);
-            paper.paper.value = Decimal.sub(paper.paper.value, classroomCost.value.paper);
-            boxes.boxes.value = Decimal.sub(boxes.boxes.value, classroomCost.value.boxes);
-            metal.metal.value = Decimal.sub(metal.metal.value, classroomCost.value.metalIngots);
-            this.amount.value = Decimal.add(this.amount.value, 1);
+        requirements: [
+            createCostRequirement(() => ({
+                resource: trees.logs,
+                cost: () => classroomFactor.value.mul(1e21)
+            })),
+            createCostRequirement(() => ({
+                resource: paper.paper,
+                cost: () => classroomFactor.value.mul(1e18)
+            })),
+            createCostRequirement(() => ({
+                resource: boxes.boxes,
+                cost: () => classroomFactor.value.mul(1e13)
+            })),
+            createCostRequirement(() => ({
+                resource: metal.metal,
+                cost: () => classroomFactor.value.mul(1e12)
+            }))
+        ],
+        display: {
+            title: "Build a Classroom",
+            description: jsx(() => (
+                <>
+                    <div>
+                        Hopefully it makes the school a bit less boring. Multiplies elves' XP gain
+                        by (Classrooms + 1)<sup>0.9</sup>.
+                    </div>
+                    <div>
+                        You have {formatWhole(classrooms.amount.value)} classrooms, which are
+                        currently multiplying elves' XP gain by {format(classroomEffect.value)}
+                    </div>
+                </>
+            ))
         },
         visibility: computed(() => showIf(classroomUpgrade.bought.value)),
         style: "width: 600px"
-    }));
+    })) as GenericBuyable;
 
     // ------------------------------------------------------------------------------- Modifiers
 

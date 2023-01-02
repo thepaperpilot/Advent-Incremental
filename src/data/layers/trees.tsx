@@ -44,6 +44,7 @@ import reindeer from "./reindeer";
 import sleigh from "./sleigh";
 import routing from "./routing";
 import packing from "./packing";
+import { createCostRequirement } from "game/requirements";
 const id = "trees";
 const day = 1;
 
@@ -114,40 +115,50 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const computedTotalTrees = computed(() => totalTrees.apply(10));
 
     const manualCutUpgrade1 = createUpgrade(() => ({
-        resource: noPersist(logs),
-        cost: 10,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(logs),
+            cost: 10
+        })),
         display: {
             title: "Wooden Fingers",
             description: "Cut down an additional tree per click"
         }
     }));
     const manualPlantUpgrade1 = createUpgrade(() => ({
-        resource: noPersist(logs),
-        cost: 10,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(logs),
+            cost: 10
+        })),
         display: {
             title: "Leafy Fingers",
             description: "Plant an additional tree per click"
         }
     }));
     const autoCutUpgrade1 = createUpgrade(() => ({
-        resource: noPersist(logs),
-        cost: 25,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(logs),
+            cost: 25
+        })),
         display: {
             title: "Automated Knives",
             description: "Cut down a tree every second"
         }
     }));
     const autoPlantUpgrade1 = createUpgrade(() => ({
-        resource: noPersist(logs),
-        cost: 25,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(logs),
+            cost: 25
+        })),
         display: {
             title: "Automated Spade",
             description: "Plant a tree every second"
         }
     }));
     const researchUpgrade1 = createUpgrade(() => ({
-        resource: noPersist(logs),
-        cost: 40,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(logs),
+            cost: 40
+        })),
         display: {
             title: "Research I",
             description: "Trees give 25% more logs, and unlock more upgrades"
@@ -162,8 +173,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
     ];
 
     const manualCutUpgrade2 = createUpgrade(() => ({
-        resource: noPersist(logs),
-        cost: 50,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(logs),
+            cost: 50
+        })),
         visibility: () => showIf(researchUpgrade1.bought.value),
         display: {
             title: "Sharper Fingers",
@@ -171,8 +184,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const manualPlantUpgrade2 = createUpgrade(() => ({
-        resource: noPersist(logs),
-        cost: 50,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(logs),
+            cost: 50
+        })),
         visibility: () => showIf(researchUpgrade1.bought.value),
         display: {
             title: "Greener Fingers",
@@ -180,8 +195,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const manualCutUpgrade3 = createUpgrade(() => ({
-        resource: noPersist(logs),
-        cost: 150,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(logs),
+            cost: 150
+        })),
         visibility: () => showIf(researchUpgrade1.bought.value),
         display: {
             title: "Smart Knives",
@@ -190,8 +207,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const manualPlantUpgrade3 = createUpgrade(() => ({
-        resource: noPersist(logs),
-        cost: 150,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(logs),
+            cost: 150
+        })),
         visibility: () => showIf(researchUpgrade1.bought.value),
         display: {
             title: "Smart Spades",
@@ -200,8 +219,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const researchUpgrade2 = createUpgrade(() => ({
-        resource: noPersist(logs),
-        cost: 300,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(logs),
+            cost: 300
+        })),
         visibility: () => showIf(researchUpgrade1.bought.value),
         display: {
             title: "Research II",
@@ -217,16 +238,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
     ];
 
     const autoCuttingBuyable1 = createBuyable(() => ({
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(logs),
+            cost() {
+                let v = autoCuttingBuyable1.amount.value;
+                if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
+                if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
+                if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
+                if (Decimal.gte(v, 2e30)) v = Decimal.pow(v, 10).div(Decimal.pow(2e30, 9));
+                v = Decimal.pow(0.95, paper.books.cuttersBook.totalAmount.value).times(v);
+                return Decimal.times(100, v).add(200);
+            }
+        })),
         resource: noPersist(logs),
-        cost() {
-            let v = this.amount.value;
-            if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
-            if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
-            if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
-            if (Decimal.gte(v, 2e30)) v = Decimal.pow(v, 10).div(Decimal.pow(2e30, 9));
-            v = Decimal.pow(0.95, paper.books.cuttersBook.totalAmount.value).times(v);
-            return Decimal.times(100, v).add(200);
-        },
         inverseCost(x: DecimalSource) {
             let v = Decimal.sub(x, 200).div(100);
             v = v.div(Decimal.pow(0.95, paper.books.cuttersBook.totalAmount.value));
@@ -241,22 +265,25 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Each cutter cuts down 1 tree/s"
         },
         visibility: () => showIf(researchUpgrade2.bought.value)
-    })) as ElfBuyable & { display: { title: string }; resource: Resource };
+    })) as ElfBuyable;
     const autoPlantingBuyable1 = createBuyable(() => ({
-        resource: noPersist(logs),
-        cost() {
-            let v = this.amount.value;
-            if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
-            if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
-            if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
-            if (Decimal.gte(v, 2e30)) v = Decimal.pow(v, 10).div(Decimal.pow(2e30, 9));
-            v = Decimal.pow(0.95, paper.books.plantersBook.totalAmount.value).times(v);
-            let cost = Decimal.times(100, v).add(200);
-            if (management.elfTraining.planterElfTraining.milestones[3].earned.value) {
-                cost = Decimal.div(cost, 10);
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(logs),
+            cost() {
+                let v = autoPlantingBuyable1.amount.value;
+                if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
+                if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
+                if (Decimal.gte(v, 2e6)) v = Decimal.pow(v, 2).div(2e6);
+                if (Decimal.gte(v, 2e30)) v = Decimal.pow(v, 10).div(Decimal.pow(2e30, 9));
+                v = Decimal.pow(0.95, paper.books.plantersBook.totalAmount.value).times(v);
+                let cost = Decimal.times(100, v).add(200);
+                if (management.elfTraining.planterElfTraining.milestones[3].earned.value) {
+                    cost = Decimal.div(cost, 10);
+                }
+                return cost;
             }
-            return cost;
-        },
+        })),
+        resource: noPersist(logs),
         inverseCost(x: DecimalSource) {
             if (management.elfTraining.planterElfTraining.milestones[3].earned.value) {
                 x = Decimal.mul(x, 10);
@@ -274,17 +301,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Each planter plants 0.5 trees/s"
         },
         visibility: () => showIf(researchUpgrade2.bought.value)
-    })) as ElfBuyable & { display: { title: string }; resource: Resource };
+    })) as ElfBuyable;
     const expandingForestBuyable = createBuyable(() => ({
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(logs),
+            cost() {
+                let v = expandingForestBuyable.amount.value;
+                if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
+                if (Decimal.gte(v, 1e5)) v = Decimal.pow(v, 2).div(1e5);
+                if (Decimal.gte(v, 1e15)) v = Decimal.pow(v, 10).div(1e135);
+                v = Decimal.pow(0.95, paper.books.expandersBook.totalAmount.value).times(v);
+                return Decimal.pow(Decimal.add(v, 1), 1.5).times(500);
+            }
+        })),
         resource: noPersist(logs),
-        cost() {
-            let v = this.amount.value;
-            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
-            if (Decimal.gte(v, 1e5)) v = Decimal.pow(v, 2).div(1e5);
-            if (Decimal.gte(v, 1e15)) v = Decimal.pow(v, 10).div(1e135);
-            v = Decimal.pow(0.95, paper.books.expandersBook.totalAmount.value).times(v);
-            return Decimal.pow(Decimal.add(v, 1), 1.5).times(500);
-        },
         inverseCost(x: DecimalSource) {
             let v = Decimal.div(x, 500).root(1.5).sub(1);
             v = v.div(Decimal.pow(0.95, paper.books.expandersBook.totalAmount.value));
@@ -298,7 +328,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Add 10 trees to the forest"
         },
         visibility: () => showIf(researchUpgrade2.bought.value)
-    })) as ElfBuyable & { display: { title: string }; resource: Resource };
+    })) as ElfBuyable;
     const row1Buyables = [autoCuttingBuyable1, autoPlantingBuyable1, expandingForestBuyable];
 
     const manualCuttingAmount = createSequentialModifier(() => [

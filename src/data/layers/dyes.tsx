@@ -40,6 +40,11 @@ import factory from "./factory";
 import reindeer from "./reindeer";
 import routing from "./routing";
 import packing from "./packing";
+import {
+    createBooleanRequirement,
+    createCostRequirement,
+    requirementsMet
+} from "game/requirements";
 
 interface Dye {
     name: string;
@@ -80,19 +85,24 @@ const layer = createLayer(id, function (this: BaseLayer) {
         () => mastered.value || main.currentlyMastering.value?.name === name
     );
 
+    const primaryDyes = createResource(
+        computed(() =>
+            Decimal.min(dyes.red.amount.value, dyes.yellow.amount.value).min(dyes.blue.amount.value)
+        ),
+        "red, yellow, and blue dye"
+    );
+
     function createDye(
         options: {
             name: string;
             color: string;
             shadowColor?: string;
             key: string;
-            costs: Computable<
-                {
-                    base: Ref<DecimalSource> | DecimalSource;
-                    root?: Ref<DecimalSource> | DecimalSource;
-                    res: Resource<DecimalSource>;
-                }[]
-            >;
+            costs: () => {
+                base: Ref<DecimalSource> | DecimalSource;
+                root?: Ref<DecimalSource> | DecimalSource;
+                res: Resource<DecimalSource>;
+            }[];
             listedBoosts: {
                 visible: Ref<boolean> | boolean;
                 desc: Ref<string>;
@@ -250,81 +260,61 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
 
         const buyable: ElfBuyable = createBuyable(() => {
-            const costs = convertComputable(options.costs);
+            const costs = options.costs();
             return {
                 ...options,
                 style: () => ({
-                    backgroundColor: unref(buyable.canPurchase) ? color : "#545454",
+                    backgroundColor: requirementsMet(buyable.requirements) ? color : "#545454",
                     minWidth: "200px"
                 }),
-                display: jsx(() => {
-                    return (
-                        <span>
-                            <h3>
-                                {options.name} Chambers <HotkeyVue hotkey={hotkey} />
-                            </h3>
-                            <br />
+                display: {
+                    title: jsx(() => (
+                        <h3>
+                            {options.name} Chambers <HotkeyVue hotkey={hotkey} />
+                        </h3>
+                    )),
+                    description: jsx(() => (
+                        <>
                             Create {format(computedToGenerate.value)} {options.name}
                             {options.dyesToReset.length > 0
                                 ? ", but reset " +
                                   options.dyesToReset.map(dye => dye.name).join(", ")
                                 : ""}
                             .
-                            <br />
-                            <br />
-                            <span class="white-space: pre-wrap">
-                                Currently:{" "}
-                                {options.listedBoosts
-                                    .filter(b => unref(b.visible))
-                                    .map(b => render(jsx(() => <div>{unref(b.desc)}</div>)))}
-                            </span>
-                            <br />
-                            <div>
-                                Cost:{" "}
-                                {unref(costs).map(c =>
-                                    render(
-                                        jsx(() => (
-                                            <div
-                                                class={
-                                                    Decimal.lt(
-                                                        c.res.value,
-                                                        unref(
-                                                            Decimal.pow(
-                                                                unref(buyable.cost) ?? Decimal.dInf,
-                                                                unref(c.root ?? 1)
-                                                            ).times(unref(c.base))
-                                                        )
-                                                    )
-                                                        ? "unaffordable"
-                                                        : ""
-                                                }
-                                            >
-                                                {format(
-                                                    unref(
-                                                        Decimal.pow(
-                                                            unref(buyable.cost) ?? Decimal.dInf,
-                                                            unref(c.root ?? 1)
-                                                        ).times(unref(c.base))
-                                                    )
-                                                )}{" "}
-                                                {c.res.displayName}
-                                                <br />
-                                            </div>
-                                        ))
-                                    )
-                                )}
-                            </div>
+                        </>
+                    )),
+                    effectDisplay: jsx(() => (
+                        <span class="white-space: pre-wrap">
+                            Currently:{" "}
+                            {options.listedBoosts
+                                .filter(b => unref(b.visible))
+                                .map(b => render(jsx(() => <div>{unref(b.desc)}</div>)))}
                         </span>
-                    );
-                }),
-                cost() {
-                    let v = buyable.amount.value;
-                    if (Decimal.gte(v, 25)) v = Decimal.pow(v, 2).div(20); // intentional price jump #2
-                    if (Decimal.gte(v, 10)) v = Decimal.pow(v, 2).div(5); // intentional price jump
-                    if (Decimal.gte(v, 3125)) v = Decimal.pow(v, 2).div(3125);
-                    v = Decimal.mul(v, Decimal.pow(0.95, dyeBook.totalAmount.value));
-                    return Decimal.div(v, 10).plus(1);
+                    ))
                 },
+                // Doesn't actually get used due to custom inverseCost function
+                resource: amount,
+                requirements: [
+                    ...costs.map(c =>
+                        createCostRequirement(() => ({
+                            resource: createResource(
+                                computed(() =>
+                                    Decimal.div(c.res.value, unref(c.base)).root(unref(c.root ?? 1))
+                                ),
+                                c.res.displayName
+                            ),
+                            cost() {
+                                let v = buyable.amount.value;
+                                if (Decimal.gte(v, 25)) v = Decimal.pow(v, 2).div(20); // intentional price jump #2
+                                if (Decimal.gte(v, 10)) v = Decimal.pow(v, 2).div(5); // intentional price jump
+                                if (Decimal.gte(v, 3125)) v = Decimal.pow(v, 2).div(3125);
+                                v = Decimal.mul(v, Decimal.pow(0.95, dyeBook.totalAmount.value));
+                                return Decimal.div(v, 10).plus(1);
+                            }
+                        }))
+                    ),
+                    createBooleanRequirement(() => !main.isMastery.value)
+                ],
                 inverseCostPre(x: DecimalSource) {
                     let v = Decimal.sub(x, 1).mul(10);
                     v = v.div(Decimal.pow(0.95, dyeBook.totalAmount.value));
@@ -346,21 +336,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         Decimal.dInf
                     );
                 },
-                canPurchase: computed((cost?: DecimalSource) => {
-                    if (unref(buyable.visibility) != Visibility.Visible) {
-                        return false;
-                    }
-                    if (main.isMastery.value && !masteryEffectActive.value) {
-                        return false;
-                    }
-                    const trueCost = cost ?? unref(buyable.cost) ?? Decimal.dInf;
-                    return unref(costs).every(c =>
-                        Decimal.div(c.res.value, unref(c.base))
-                            .root(unref(c.root ?? 1))
-                            .gte(trueCost)
-                    );
-                }),
-                onPurchase(cost?: DecimalSource) {
+                onPurchase() {
                     buyable.amount.value = Decimal.add(buyable.amount.value, -1);
                     let buyMax = false;
                     switch (options.color) {
@@ -828,8 +804,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     </>
                 ))
             },
-            cost: 1000,
-            resource: dyes.blue.amount,
+            requirements: createCostRequirement(() => ({
+                cost: 1000,
+                resource: dyes.blue.amount
+            })),
             onPurchase() {
                 dyes.blue.buyable.amount.value = 0;
             }
@@ -849,8 +827,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     </>
                 ))
             },
-            cost: 1500,
-            resource: dyes.red.amount,
+            requirements: createCostRequirement(() => ({
+                cost: 1500,
+                resource: dyes.red.amount
+            })),
             onPurchase() {
                 dyes.red.buyable.amount.value = 0;
             }
@@ -866,8 +846,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 title: "Wetter Dyes",
                 description: "Double Red, Yellow, and Blue Dye gain."
             },
-            cost: 2000,
-            resource: dyes.yellow.amount
+            requirements: createCostRequirement(() => ({
+                cost: 2000,
+                resource: dyes.yellow.amount
+            }))
         })),
         yellowDyeUpg2: createUpgrade(() => ({
             visibility: () => showIf(upgrades.yellowDyeUpg.bought.value),
@@ -875,8 +857,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 title: "Golden Wash",
                 description: "Halve the Oil cost of Red, Yellow, and Blue Dyes."
             },
-            cost: 5000,
-            resource: dyes.yellow.amount,
+            requirements: createCostRequirement(() => ({
+                cost: 5000,
+                resource: dyes.yellow.amount
+            })),
             onPurchase() {
                 dyes.yellow.buyable.amount.value = 0;
             }
@@ -891,8 +875,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     </>
                 ))
             },
-            cost: 6000,
-            resource: dyes.red.amount,
+            requirements: createCostRequirement(() => ({
+                cost: 6000,
+                resource: dyes.red.amount
+            })),
             onPurchase() {
                 dyes.red.buyable.amount.value = 0;
             }
@@ -903,8 +889,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 title: "Hydrophobia",
                 description: "Raise Red Dye's effect ^1.5."
             },
-            cost: 7500,
-            resource: dyes.blue.amount,
+            requirements: createCostRequirement(() => ({
+                cost: 7500,
+                resource: dyes.blue.amount
+            })),
             onPurchase() {
                 dyes.blue.buyable.amount.value = 0;
             }
@@ -921,8 +909,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description:
                     "Orange, Green, and Purple Dyes' first effect is raised ^1.2, and Green Dye's second effect is squared."
             },
-            cost: "5e30",
-            resource: coal.coal
+            requirements: createCostRequirement(() => ({
+                cost: "5e30",
+                resource: coal.coal
+            }))
         }))
     };
 
@@ -1006,6 +996,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         dyeSum,
         boosts,
         totalDyeSum,
+        primaryDyes,
         secondaryDyeSum,
         minWidth: 700,
         generalTabCollapsed,

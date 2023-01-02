@@ -5,19 +5,19 @@ import { createClickable } from "features/clickables/clickable";
 import { jsx, JSXFunction, showIf } from "features/feature";
 import { createMilestone } from "features/milestones/milestone";
 import MainDisplay from "features/resources/MainDisplay.vue";
-import { createResource, Resource } from "features/resources/resource";
+import { createResource } from "features/resources/resource";
 import { createLayer, layers } from "game/layers";
 import player from "game/player";
+import { createCostRequirement, displayRequirements, requirementsMet } from "game/requirements";
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
-import { Computable } from "util/computed";
 import { render, renderRow } from "util/vue";
 import { computed, Ref, unref, watchEffect } from "vue";
 import { main } from "../projEntry";
 import { default as dyes, type enumColor } from "./dyes";
 import elves from "./elves";
-import toys from "./toys";
 import packing from "./packing";
+import toys from "./toys";
 
 const id = "wrappingPaper";
 const day = 15;
@@ -55,66 +55,40 @@ const layer = createLayer(id, () => {
     const color = "gold";
 
     const createWrappingPaper = (options: WrappingPaperOptions & Partial<BuyableOptions>) => {
-        const getCost: Computable<
-            {
-                resource: Resource;
-                cost: DecimalSource;
-            }[]
-        > = computed(() => {
-            const dyeCosts = [];
-            for (const [color, ratio] of Object.entries(options.ratio)) {
-                dyeCosts.push({
-                    resource: dyes.dyes[color as enumColor].amount,
-                    cost: Decimal.mul(ratio.base, Decimal.pow(ratio.exponent, buyable.amount.value))
-                });
-            }
-            return dyeCosts;
-        });
         const buyable: GenericBuyable = createBuyable(() => {
             return {
+                requirements: (Object.entries(options.ratio) as [enumColor, Scaling][]).map(
+                    ([color, ratio]) => {
+                        return createCostRequirement(() => ({
+                            resource: dyes.dyes[color as enumColor].amount,
+                            cost: () =>
+                                Decimal.mul(
+                                    ratio.base,
+                                    Decimal.pow(ratio.exponent, buyable.amount.value)
+                                ),
+                            requiresPay: false
+                        }));
+                    }
+                ),
                 style: () => ({
-                    background: unref(buyable.canPurchase) ? options.background : "#545454",
+                    background: requirementsMet(buyable.requirements)
+                        ? options.background
+                        : "#545454",
                     minWidth: "200px",
                     boxShadow:
                         "0 3px 0 #00000022 inset, 3px 0 0 #00000022 inset, 0 0 3px #00000022 inset, 0 0 0 3px #00000022 inset",
                     border: "none"
                 }),
-                display: jsx(() => {
-                    return (
-                        <span>
-                            <h3>{options.name}</h3>
-                            <br />
-                            Create {options.name}.
-                            <br />
-                            Requirement:{" "}
-                            {getCost.value.map(({ resource, cost }) => {
-                                return render(
-                                    jsx(() => (
-                                        <div
-                                            class={
-                                                Decimal.lt(resource.value, cost)
-                                                    ? "unaffordable"
-                                                    : ""
-                                            }
-                                        >
-                                            {format(cost)} {resource.displayName} <br />
-                                        </div>
-                                    ))
-                                );
-                            })}
-                            <br />
-                            Currently:{" "}
+                display: {
+                    title: options.name,
+                    description: `Create ${options.name}`,
+                    effectDisplay: jsx(() => (
+                        <>
                             {options.listedBoosts.map(({ desc }) => {
                                 return render(jsx(() => <div>{unref(desc)}</div>));
                             })}
-                        </span>
-                    );
-                }),
-                canPurchase() {
-                    for (const { resource, cost } of getCost.value) {
-                        if (Decimal.lt(resource.value, cost)) return false;
-                    }
-                    return true;
+                        </>
+                    ))
                 }
             };
         });

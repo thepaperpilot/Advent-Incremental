@@ -20,6 +20,7 @@ import {
     createSequentialModifier
 } from "game/modifiers";
 import { persistent } from "game/persistence";
+import { createCostRequirement } from "game/requirements";
 import Decimal, { DecimalSource, format, formatTime, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render, renderGrid } from "util/vue";
@@ -327,8 +328,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
     );
 
     const upgrade1 = createUpgrade(() => ({
-        resource: trees.logs,
-        cost: 1e97,
+        requirements: createCostRequirement(() => ({
+            resource: trees.logs,
+            cost: 1e97
+        })),
         style: {
             width: "160px"
         },
@@ -339,8 +342,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const upgrade2 = createUpgrade(() => ({
-        resource: coal.coal,
-        cost: 1e167,
+        requirements: createCostRequirement(() => ({
+            resource: coal.coal,
+            cost: 1e167
+        })),
         style: {
             width: "160px"
         },
@@ -351,8 +356,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const upgrade3 = createUpgrade(() => ({
-        resource: paper.paper,
-        cost: 1e117,
+        requirements: createCostRequirement(() => ({
+            resource: paper.paper,
+            cost: 1e117
+        })),
         style: {
             width: "160px"
         },
@@ -363,8 +370,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const upgrade4 = createUpgrade(() => ({
-        resource: boxes.boxes,
-        cost: 1e102,
+        requirements: createCostRequirement(() => ({
+            resource: boxes.boxes,
+            cost: 1e102
+        })),
         style: {
             width: "160px"
         },
@@ -375,8 +384,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const upgrade5 = createUpgrade(() => ({
-        resource: metal.metal,
-        cost: 1e67,
+        requirements: createCostRequirement(() => ({
+            resource: metal.metal,
+            cost: 1e67
+        })),
         style: {
             width: "160px"
         },
@@ -387,8 +398,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const upgrade6 = createUpgrade(() => ({
-        resource: cloth.cloth,
-        cost: 1e20,
+        requirements: createCostRequirement(() => ({
+            resource: cloth.cloth,
+            cost: 1e20
+        })),
         style: {
             width: "160px"
         },
@@ -399,8 +412,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const upgrade7 = createUpgrade(() => ({
-        resource: oil.oil,
-        cost: 4e25,
+        requirements: createCostRequirement(() => ({
+            resource: oil.oil,
+            cost: 4e25
+        })),
         style: {
             width: "160px"
         },
@@ -411,8 +426,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const upgrade8 = createUpgrade(() => ({
-        resource: plastic.plastic,
-        cost: 1e22,
+        requirements: createCostRequirement(() => ({
+            resource: plastic.plastic,
+            cost: 1e22
+        })),
         style: {
             width: "160px"
         },
@@ -422,8 +439,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const upgrade9 = createUpgrade(() => ({
-        resource: dyes.dyes.white.amount,
-        cost: 7.5e7,
+        requirements: createCostRequirement(() => ({
+            resource: dyes.dyes.white.amount,
+            cost: 7.5e7,
+            pay() {
+                dyes.dyes.white.buyable.amount.value = 0;
+            }
+        })),
         style: {
             width: "160px"
         },

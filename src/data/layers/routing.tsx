@@ -33,6 +33,7 @@ import management from "./management";
 import metal from "./metal";
 import "./styles/routing.css";
 import Fraction from "components/math/Fraction.vue";
+import { createCostRequirement } from "game/requirements";
 
 const alpha = [
     "A",
@@ -600,102 +601,81 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     // ---------------------------------------------------- Meta stuff
 
+    const metalCost = computed(() => {
+        const amount = Decimal.mul(metaBuyables.metal.amount.value, 1.05);
+        return Decimal.pow(5, amount).mul(1e83).div(Decimal.max(citiesCompleted.value, 1));
+    });
+    const consolesCost = computed(() => {
+        const amount = Decimal.mul(metaBuyables.console.amount.value, 1.15);
+        return Decimal.pow(1.2, amount).mul(1e11).div(Decimal.max(citiesCompleted.value, 1));
+    });
     const metaBuyables = {
         metal: createBuyable(() => ({
             resName: "Metal",
-            resource: metal.metal,
-            cost() {
-                const amount = Decimal.mul(this.amount.value, 1.05);
-                return Decimal.pow(5, amount).mul(1e83).div(Decimal.max(citiesCompleted.value, 1));
+            requirements: createCostRequirement(() => ({
+                resource: metal.metal,
+                cost: metalCost
+            })),
+            display: {
+                description: "Upgrade computer",
+                effectDisplay: jsx(() => (
+                    <>+{formatWhole(Decimal.mul(metaBuyables.metal.amount.value, 10))}%</>
+                ))
             },
-            display: jsx(() => (
-                <>
-                    Upgrade computer
-                    <br />
-                    for {formatWhole(unref(metaBuyables.metal.cost ?? 0))} metal
-                    <br />
-                    Currently +{formatWhole(Decimal.mul(metaBuyables.metal.amount.value, 10))}%
-                </>
-            )),
             style: "width: 150px; min-height: 60px"
         })),
         console: createBuyable(() => ({
             resName: "Game Console",
-            resource: factory.consoles,
-            cost() {
-                const amount = Decimal.mul(this.amount.value, 1.15);
-                return Decimal.pow(1.2, amount)
-                    .mul(1e11)
-                    .div(Decimal.max(citiesCompleted.value, 1));
+            requirements: createCostRequirement(() => ({
+                resource: factory.consoles,
+                cost: consolesCost
+            })),
+            display: {
+                description: "Upgrade computer",
+                effectDisplay: jsx(() => (
+                    <>+{formatWhole(Decimal.mul(metaBuyables.console.amount.value, 10))}%</>
+                ))
             },
-            display: jsx(() => (
-                <>
-                    Upgrade computer
-                    <br />
-                    for {formatWhole(unref(metaBuyables.console.cost ?? 0))} game consoles
-                    <br />
-                    Currently +{formatWhole(Decimal.mul(metaBuyables.console.amount.value, 10))}%
-                </>
-            )),
             style: "width: 150px; min-height: 60px"
         })),
         classroom: createBuyable(() => ({
             resName: "Classroom",
-            cost() {
-                const amount = Decimal.mul(this.amount.value, 1.25);
-                return Decimal.pow(1.2, amount)
-                    .mul(1e6)
-                    .div(Decimal.max(citiesCompleted.value, 1).pow(0.5));
+            requirements: createCostRequirement(() => ({
+                resource: createResource(management.classrooms.amount, "classrooms"),
+
+                cost() {
+                    const amount = Decimal.mul(metaBuyables.classroom.amount.value, 1.25);
+                    return Decimal.pow(1.2, amount)
+                        .mul(1e6)
+                        .div(Decimal.max(citiesCompleted.value, 1).pow(0.5));
+                }
+            })),
+            display: {
+                description: "Upgrade computer",
+                effectDisplay: jsx(() => (
+                    <>+{formatWhole(Decimal.mul(metaBuyables.classroom.amount.value, 10))}%</>
+                ))
             },
-            canPurchase() {
-                return Decimal.gte(
-                    management.classrooms.amount.value,
-                    unref(metaBuyables.classroom.cost ?? 0)
-                );
-            },
-            onPurchase() {
-                // Lower amount first so costs are accurate, then re-add the purchase after
-                this.amount.value = Decimal.add(this.amount.value, -1);
-                management.classrooms.amount.value = Decimal.sub(
-                    management.classrooms.amount.value,
-                    unref(metaBuyables.classroom.cost ?? 0)
-                );
-                this.amount.value = Decimal.add(this.amount.value, 1);
-            },
-            display: jsx(() => (
-                <>
-                    Upgrade computer
-                    <br />
-                    for {formatWhole(unref(metaBuyables.classroom.cost ?? 0))} classrooms
-                    <br />
-                    Currently +{formatWhole(Decimal.mul(metaBuyables.classroom.amount.value, 10))}%
-                </>
-            )),
             style: "width: 150px; min-height: 60px"
         })),
         tick: createBuyable(() => ({
             resName: "Factory Tick Rate",
-            cost() {
-                const amount = Decimal.mul(this.amount.value, 1.15);
-                return Decimal.pow(1.5, amount)
-                    .mul(5e6)
-                    .div(Decimal.max(citiesCompleted.value, 1).pow(0.5));
+            requirements: createCostRequirement(() => ({
+                resource: createResource(factory.computedTickRate, "factory tick rate"),
+                cost() {
+                    const amount = Decimal.mul(metaBuyables.tick.amount.value, 1.15);
+                    return Decimal.pow(1.5, amount)
+                        .mul(5e6)
+                        .div(Decimal.max(citiesCompleted.value, 1).pow(0.5));
+                },
+                requiresPay: false
+            })),
+            display: {
+                description: "Upgrade computer",
+                effectDisplay: jsx(() => (
+                    <>+{formatWhole(Decimal.mul(metaBuyables.tick.amount.value, 10))}%</>
+                ))
             },
-            canPurchase() {
-                return Decimal.gte(
-                    factory.computedTickRate.value,
-                    unref(metaBuyables.tick.cost ?? 0)
-                );
-            },
-            display: jsx(() => (
-                <>
-                    Upgrade computer
-                    <br />
-                    for {formatWhole(unref(metaBuyables.tick.cost ?? 0))} factory tick rate
-                    <br />
-                    Currently +{formatWhole(Decimal.mul(metaBuyables.tick.amount.value, 10))}%
-                </>
-            )),
             style: "width: 150px; min-height: 60px"
         }))
     } as Record<string, GenericBuyable & { resName: string }>;

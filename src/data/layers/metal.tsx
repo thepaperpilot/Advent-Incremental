@@ -42,6 +42,7 @@ import sleigh from "./sleigh";
 import factory from "./factory";
 import routing from "./routing";
 import packing from "./packing";
+import { createCostRequirement } from "game/requirements";
 
 const id = "metal";
 const day = 7;
@@ -412,8 +413,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const computedNetOreGain = computed(() => netOreGain.apply(0));
 
     const simplePickaxe = createUpgrade(() => ({
-        resource: noPersist(metal),
-        cost: 0.1,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(metal),
+            cost: 0.1
+        })),
         display: {
             title: "A Simple Pickaxe",
             description:
@@ -421,8 +424,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const doublePickaxe = createUpgrade(() => ({
-        resource: noPersist(metal),
-        cost: 0.1,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(metal),
+            cost: 0.1
+        })),
         display: {
             title: "Double Pickaxe",
             description:
@@ -431,8 +436,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () => showIf(doublePickaxe.bought.value)
     })) as GenericUpgrade;
     const crucible = createUpgrade(() => ({
-        resource: noPersist(metal),
-        cost: 1,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(metal),
+            cost: 1
+        })),
         display: {
             title: "Crucible",
             description:
@@ -445,8 +452,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             )
     })) as GenericUpgrade;
     const coalDrill = createUpgrade(() => ({
-        resource: noPersist(metal),
-        cost: 0,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(metal),
+            cost: 0
+        })),
         display: {
             title: "Coal Drilling",
             description:
@@ -469,24 +478,26 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     })) as GenericUpgrade;
     const industrialFurnace = createUpgrade(() => ({
-        canAfford() {
-            return Decimal.gte(metal.value, 50) && Decimal.gte(coal.coal.value, 1e11);
-        },
-        onPurchase() {
-            metal.value = Decimal.sub(metal.value, 50);
-            coal.coal.value = Decimal.sub(coal.coal.value, 1e11);
-        },
+        requirements: [
+            createCostRequirement(() => ({
+                resource: noPersist(metal),
+                cost: 50
+            })),
+            createCostRequirement(() => ({
+                resource: coal.coal,
+                cost: 1e11
+            }))
+        ],
         display: {
             title: "Industrial Furnace",
-            description: `Moving smelting out of the open air and into a dedicated furnace should make efficiency even better. Double metal gained per ore
-            <br/>
-            <br/>
-            Cost: 50 ${metal.displayName}<br/>${format(1e11)} ${coal.coal.displayName}`
+            description: `Moving smelting out of the open air and into a dedicated furnace should make efficiency even better. Double metal gained per ore`
         }
     }));
     const efficientDrill = createUpgrade(() => ({
-        resource: noPersist(metal),
-        cost: 100000,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(metal),
+            cost: 100000
+        })),
         display: {
             title: "Efficient Drills",
             description: `Use metal and a bunch of R&D to make drilling stuff faster. Double coal and ore mining speed.`
@@ -495,19 +506,22 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
 
     const oreDrill = createBuyable(() => ({
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(metal),
+            cost() {
+                let v = new Decimal(oreDrill.amount.value);
+                v = Decimal.pow(0.95, paper.books.metalBook.totalAmount.value).times(v);
+                let cost = Decimal.pow(1.15, v).times(10);
+                if (management.elfTraining.metalElfTraining.milestones[4].earned.value) {
+                    cost = Decimal.div(cost, Decimal.add(oil.depth.value, 1).sqrt());
+                }
+                if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
+                    cost = Decimal.div(cost, 10);
+                }
+                return cost;
+            }
+        })),
         resource: noPersist(metal),
-        cost() {
-            let v = new Decimal(this.amount.value);
-            v = Decimal.pow(0.95, paper.books.metalBook.totalAmount.value).times(v);
-            let cost = Decimal.pow(1.15, v).times(10);
-            if (management.elfTraining.metalElfTraining.milestones[4].earned.value) {
-                cost = Decimal.div(cost, Decimal.add(oil.depth.value, 1).sqrt());
-            }
-            if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
-                cost = Decimal.div(cost, 10);
-            }
-            return cost;
-        },
         inverseCost(x: DecimalSource) {
             if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
                 x = Decimal.mul(x, 10);
@@ -537,21 +551,24 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         .gte(10)
             ),
         style: { width: "200px" }
-    })) as ElfBuyable & { resource: Resource };
+    })) as ElfBuyable;
     const industrialCrucible = createBuyable(() => ({
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(metal),
+            cost() {
+                let v = new Decimal(industrialCrucible.amount.value);
+                v = Decimal.pow(0.95, paper.books.metalBook.totalAmount.value).times(v);
+                let cost = Decimal.pow(1.15, Decimal.times(v, 10)).times(10);
+                if (management.elfTraining.metalElfTraining.milestones[4].earned.value) {
+                    cost = Decimal.div(cost, Decimal.add(oil.depth.value, 1).sqrt());
+                }
+                if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
+                    cost = Decimal.div(cost, 10);
+                }
+                return cost;
+            }
+        })),
         resource: noPersist(metal),
-        cost() {
-            let v = new Decimal(this.amount.value);
-            v = Decimal.pow(0.95, paper.books.metalBook.totalAmount.value).times(v);
-            let cost = Decimal.pow(1.15, Decimal.times(v, 10)).times(10);
-            if (management.elfTraining.metalElfTraining.milestones[4].earned.value) {
-                cost = Decimal.div(cost, Decimal.add(oil.depth.value, 1).sqrt());
-            }
-            if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
-                cost = Decimal.div(cost, 10);
-            }
-            return cost;
-        },
         inverseCost(x: DecimalSource) {
             if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
                 x = Decimal.mul(x, 10);
@@ -580,22 +597,25 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     Decimal.gte(bestOre.value, 50)
             ),
         style: { width: "200px" }
-    })) as ElfBuyable & { resource: Resource };
+    })) as ElfBuyable;
     const autoSmeltEnabled = persistent<boolean>(true);
     const hotterForge = createBuyable(() => ({
+        requirements: createCostRequirement(() => ({
+            resource: coal.coal,
+            cost() {
+                let v = new Decimal(hotterForge.amount.value);
+                v = Decimal.pow(0.95, paper.books.metalBook.totalAmount.value).times(v);
+                let cost = Decimal.pow(10, v).times(1e12);
+                if (management.elfTraining.metalElfTraining.milestones[4].earned.value) {
+                    cost = Decimal.div(cost, Decimal.add(oil.depth.value, 1).sqrt());
+                }
+                if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
+                    cost = Decimal.div(cost, 10);
+                }
+                return cost;
+            }
+        })),
         resource: coal.coal,
-        cost() {
-            let v = new Decimal(this.amount.value);
-            v = Decimal.pow(0.95, paper.books.metalBook.totalAmount.value).times(v);
-            let cost = Decimal.pow(10, v).times(1e12);
-            if (management.elfTraining.metalElfTraining.milestones[4].earned.value) {
-                cost = Decimal.div(cost, Decimal.add(oil.depth.value, 1).sqrt());
-            }
-            if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
-                cost = Decimal.div(cost, 10);
-            }
-            return cost;
-        },
         inverseCost(x: DecimalSource) {
             if (management.elfTraining.metalElfTraining.milestones[3].earned.value) {
                 x = Decimal.mul(x, 10);
@@ -621,7 +641,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () =>
             showIf(Decimal.gte(hotterForge.amount.value, 1) || industrialFurnace.bought.value),
         style: { width: "200px" }
-    })) as ElfBuyable & { resource: Resource };
+    })) as ElfBuyable;
     const hotterForgeEffect = computed(() => Decimal.times(hotterForge.amount.value, 0.25));
 
     globalBus.on("update", diff => {

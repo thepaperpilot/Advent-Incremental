@@ -45,7 +45,8 @@ import toys from "./toys";
 import factory from "./factory";
 import reindeer from "./reindeer";
 import routing from "./routing";
-import packing from "./packing"
+import packing from "./packing";
+import { createCostRequirement } from "game/requirements";
 
 const id = "oil";
 const day = 9;
@@ -107,43 +108,48 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const heavyPower = computed(() =>
         Decimal.times(Decimal.pow(activeHeavy.value, heavy2Power.value), 1)
     );
+    const heavyCost = computed(() => {
+        let v = new Decimal(buildHeavy.amount.value);
+        if (Decimal.gte(v, 100)) v = Decimal.pow(v, 4).div(100 ** 3);
+        v = Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value).times(v);
+        return Decimal.pow(1.3, v).times(2.5e4);
+    });
     const buildHeavy = createBuyable(() => ({
+        requirements: createCostRequirement(() => ({
+            resource: metal.metal,
+            cost: heavyCost
+        })),
         resource: metal.metal,
-        cost() {
-            let v = new Decimal(this.amount.value);
-            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 4).div(100 ** 3);
-            v = Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value).times(v);
-            return Decimal.pow(1.3, v).times(2.5e4);
-        },
         inverseCost(x: DecimalSource) {
             let v = Decimal.div(x, 2.5e4).log(1.3);
             v = v.div(Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value));
             if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100 ** 3).root(4);
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
-        display: jsx(() => (
-            <>
-                <h3>Heavy Drill</h3>
-                <br />
-                A large drill specialized at deep mining.
-                <br />
-                Consumes 1e14*(Heavy Drills amount)
-                <sup>
-                    {management.elfTraining.coalDrillElfTraining.milestones[0].earned.value
-                        ? 2.5
-                        : 2}
-                </sup>{" "}
-                coal/sec for (Heavy Drills amount) drill power.
-                <br />
-                <br />
-                Currently:
-                <br />-{format(heavyCoal.value)} coal/sec
-                <br />+{format(heavyPower.value)} drill power
-                <br />
-                <br />
-                Cost: {formatWhole(unref(buildHeavy.cost!))} {buildHeavy.resource!.displayName}
-            </>
-        )),
+        display: {
+            title: "Heavy Drill",
+            description: jsx(() => (
+                <>
+                    <div>A large drill specialized at deep mining.</div>
+                    <br />
+                    <div>
+                        Consumes 1e14*(Heavy Drills amount)
+                        <sup>
+                            {management.elfTraining.coalDrillElfTraining.milestones[0].earned.value
+                                ? 2.5
+                                : 2}
+                        </sup>{" "}
+                        coal/sec for (Heavy Drills amount) drill power.
+                    </div>
+                </>
+            )),
+            effectDisplay: jsx(() => (
+                <>
+                    <br />-{format(heavyCoal.value)} coal/sec
+                    <br />+{format(heavyPower.value)} drill power
+                </>
+            ))
+        },
         onPurchase() {
             activeHeavy.value = Decimal.add(activeHeavy.value, 1);
         },
@@ -153,7 +159,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             flexGrow: 1
         },
         visibility: () => showIf(!main.isMastery.value || masteryEffectActive.value)
-    })) as ElfBuyable & { resource: Resource };
+    })) as ElfBuyable;
     const {
         min: minHeavy,
         max: maxHeavy,
@@ -173,46 +179,49 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
         return power;
     });
+    const heavy2Cost = computed(() => {
+        let v = new Decimal(buildHeavy2.amount.value);
+        if (Decimal.gte(v, 50)) v = Decimal.pow(v, 4).div(50 ** 3);
+        v = Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value).times(v);
+        return Decimal.pow(2, v).times(1e5);
+    });
     const buildHeavy2 = createBuyable(() => ({
+        requirements: createCostRequirement(() => ({
+            resource: metal.metal,
+            cost: heavy2Cost
+        })),
         resource: metal.metal,
-        cost() {
-            let v = new Decimal(this.amount.value);
-            if (Decimal.gte(v, 50)) v = Decimal.pow(v, 4).div(50 ** 3);
-            v = Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value).times(v);
-            return Decimal.pow(2, v).times(1e5);
-        },
         inverseCost(x: DecimalSource) {
             let v = Decimal.div(x, 1e5).log(2);
             v = v.div(Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value));
             if (Decimal.gte(v, 50)) v = Decimal.mul(v, 50 ** 3).root(4);
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
-        display: jsx(() => (
-            <>
-                <h3>Heavy Drill Drill</h3>
-                <br />
-                Attach extra drills to Heavy Drills to make them faster
-                <br />
-                Raise amount of effective Heavy Drills by ^
-                {management.elfTraining.heavyDrillElfTraining.milestones[3].earned.value ? (
-                    <>
-                        log<sub>2.5</sub>
-                    </>
-                ) : (
-                    <>ln</>
-                )}
-                (Heavy Drill Drill amount + e).
-                <br />
-                (also affects coal consumption).
-                <br />
-                <br />
-                Currently:
-                <br />^{format(heavy2Power.value)} Heavy Drill amount
-                <br />
-                <br />
-                Cost: {formatWhole(unref(buildHeavy2.cost!))} {buildHeavy2.resource!.displayName}
-            </>
-        )),
+        display: {
+            title: "Heavy Drill Drill",
+            description: jsx(() => (
+                <div>
+                    Attach extra drills to Heavy Drills to make them faster
+                    <br />
+                    Raise amount of effective Heavy Drills by ^
+                    {management.elfTraining.heavyDrillElfTraining.milestones[3].earned.value ? (
+                        <>
+                            log<sub>2.5</sub>
+                        </>
+                    ) : (
+                        <>ln</>
+                    )}
+                    (Heavy Drill Drill amount + e).
+                    <br />
+                    (also affects coal consumption).
+                </div>
+            )),
+            effectDisplay: jsx(() => (
+                <>
+                    <br />^{format(heavy2Power.value)} Heavy Drill amount
+                </>
+            ))
+        },
         onPurchase() {
             activeHeavy2.value = Decimal.add(activeHeavy2.value, 1);
         },
@@ -221,7 +230,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             width: "160px",
             flexGrow: 1
         }
-    })) as ElfBuyable & { resource: Resource };
+    })) as ElfBuyable;
     const {
         min: minHeavy2,
         max: maxHeavy2,
@@ -238,39 +247,41 @@ const layer = createLayer(id, function (this: BaseLayer) {
     );
     const extractorCoal = computed(() => Decimal.pow(2, activeExtractor.value));
     const extractorOre = computed(() => Decimal.pow(1.2, activeExtractor.value));
+    const extractorCost = computed(() => {
+        let v = new Decimal(buildExtractor.amount.value);
+        if (Decimal.gte(v, 10)) v = Decimal.pow(v, 4).div(10 ** 3);
+        v = Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value).times(v);
+        return Decimal.pow(8, v).times(2e5);
+    });
     const buildExtractor = createBuyable(() => ({
+        requirements: createCostRequirement(() => ({
+            resource: metal.metal,
+            cost: extractorCost
+        })),
         resource: metal.metal,
-        cost() {
-            let v = new Decimal(this.amount.value);
-            if (Decimal.gte(v, 10)) v = Decimal.pow(v, 4).div(10 ** 3);
-            v = Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value).times(v);
-            return Decimal.pow(8, v).times(2e5);
-        },
         inverseCost(x: DecimalSource) {
             let v = Decimal.div(x, 2e5).log(8);
             v = v.div(Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value));
             if (Decimal.gte(v, 10)) v = Decimal.mul(v, 10 ** 3).root(4);
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
-        display: jsx(() => (
-            <>
-                <h3>Heavy Extractor</h3>
-                <br />
-                Attach extractors to the drill to mine coal and ore, but with a price.
-                <br />
-                Divides drill power by 3 to multiply coal gain by 2 and ore gain by 1.2.
-                <br />
-                <br />
-                Currently:
-                <br />×{formatSmall(extractorPower.value)} drill power
-                <br />×{format(extractorCoal.value)} coal/sec
-                <br />×{format(extractorOre.value)} ore/sec
-                <br />
-                <br />
-                Cost: {formatWhole(unref(buildExtractor.cost!))}{" "}
-                {buildExtractor.resource!.displayName}
-            </>
-        )),
+        display: {
+            title: "Heavy Extractor",
+            description: jsx(() => (
+                <div>
+                    Attach extractors to the drill to mine coal and ore, but with a price.
+                    <br />
+                    Divides drill power by 3 to multiply coal gain by 2 and ore gain by 1.2.
+                </div>
+            )),
+            effectDisplay: jsx(() => (
+                <>
+                    <br />×{formatSmall(extractorPower.value)} drill power
+                    <br />×{format(extractorCoal.value)} coal/sec
+                    <br />×{format(extractorOre.value)} ore/sec
+                </>
+            ))
+        },
         onPurchase() {
             activeExtractor.value = Decimal.add(activeExtractor.value, 1);
         },
@@ -279,7 +290,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             width: "160px",
             flexGrow: 1
         }
-    })) as ElfBuyable & { resource: Resource };
+    })) as ElfBuyable;
     const {
         min: minExtractor,
         max: maxExtractor,
@@ -310,21 +321,25 @@ const layer = createLayer(id, function (this: BaseLayer) {
             )
             .div(1e5)
     );
+    const pumpCost = computed(() => {
+        let v = new Decimal(buildPump.amount.value);
+        if (Decimal.gte(v, 10)) v = Decimal.pow(v, 4).div(10 ** 3);
+        v = Decimal.pow(0.95, paper.books.oilBook.totalAmount.value).times(v);
+        let price = Decimal.pow(16, v).times(2e6);
+        if (row2Upgrades[4].bought.value) {
+            price = price.div(Decimal.add(totalOil.value, 1).root(6));
+        }
+        if (management.elfTraining.heavyDrillElfTraining.milestones[1].earned.value) {
+            price = price.div(10);
+        }
+        return price;
+    });
     const buildPump = createBuyable(() => ({
+        requirements: createCostRequirement(() => ({
+            resource: metal.metal,
+            cost: pumpCost
+        })),
         resource: metal.metal,
-        cost() {
-            let v = new Decimal(this.amount.value);
-            if (Decimal.gte(v, 10)) v = Decimal.pow(v, 4).div(10 ** 3);
-            v = Decimal.pow(0.95, paper.books.oilBook.totalAmount.value).times(v);
-            let price = Decimal.pow(16, v).times(2e6);
-            if (row2Upgrades[4].bought.value) {
-                price = price.div(Decimal.add(totalOil.value, 1).root(6));
-            }
-            if (management.elfTraining.heavyDrillElfTraining.milestones[1].earned.value) {
-                price = price.div(10);
-            }
-            return price;
-        },
         inverseCost(x: DecimalSource) {
             if (management.elfTraining.heavyDrillElfTraining.milestones[1].earned.value) {
                 x = Decimal.mul(x, 10);
@@ -337,24 +352,23 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 10)) v = Decimal.mul(v, 10 ** 3).root(4);
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
-        display: jsx(() => (
-            <>
-                <h3>Oil Pump</h3>
-                <br />
-                Pump that oil from the ground.
-                <br />
-                Gain oil based on the number of Heavy buildings active and well depth, but coal
-                usage is multiplied by {row2Upgrades[3].bought.value ? 4 : 5}×.
-                <br />
-                <br />
-                Currently:
-                <br />×{format(pumpCoal.value)} coal usage
-                <br />+{format(pumpOil.value)} oil/sec
-                <br />
-                <br />
-                Cost: {formatWhole(unref(buildPump.cost!))} {buildPump.resource!.displayName}
-            </>
-        )),
+        display: {
+            title: "Oil Pump",
+            description: jsx(() => (
+                <div>
+                    Pump that oil from the ground.
+                    <br />
+                    Gain oil based on the number of Heavy buildings active and well depth, but coal
+                    usage is multiplied by {row2Upgrades[3].bought.value ? 4 : 5}×.
+                </div>
+            )),
+            effectDisplay: jsx(() => (
+                <>
+                    <br />×{format(pumpCoal.value)} coal usage
+                    <br />+{format(pumpOil.value)} oil/sec
+                </>
+            ))
+        },
         onPurchase() {
             activePump.value = Decimal.add(activePump.value, 1);
         },
@@ -363,7 +377,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             width: "160px",
             flexGrow: 1
         }
-    })) as ElfBuyable & { resource: Resource };
+    })) as ElfBuyable;
     const {
         max: maxPump,
         min: minPump,
@@ -387,45 +401,48 @@ const layer = createLayer(id, function (this: BaseLayer) {
     );
     const burnerCoal = computed(() => Decimal.pow(effectiveBurners.value, 3).mul(1e19));
     const burnerMetal = computed(() => Decimal.add(effectiveBurners.value, 1));
+    const burnerCost = computed(() => {
+        let v = new Decimal(buildBurner.amount.value);
+        if (Decimal.gte(v, 100)) v = Decimal.pow(v, 4).div(100 ** 3);
+        v = Decimal.pow(0.95, paper.books.oilBook.totalAmount.value).times(v);
+        return Decimal.pow(2, v).times(50);
+    });
     const buildBurner = createBuyable(() => ({
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(oil),
+            cost: burnerCost
+        })),
         resource: noPersist(oil),
-        cost() {
-            let v = new Decimal(this.amount.value);
-            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 4).div(100 ** 3);
-            v = Decimal.pow(0.95, paper.books.oilBook.totalAmount.value).times(v);
-            return Decimal.pow(2, v).times(50);
-        },
         inverseCost(x: DecimalSource) {
             let v = Decimal.div(x, 50).log(2);
             v = v.div(Decimal.pow(0.95, paper.books.oilBook.totalAmount.value));
             if (Decimal.gte(v, 100)) v = Decimal.mul(v, 100 ** 3).root(4);
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
-        display: jsx(() => (
-            <>
-                <h3>Oil Burner</h3>
-                <br />
-                Burn oil as fuel.
-                <br />
-                (Oil Burner Amount)<sup>2</sup> unit of oil can give 1e19*(Oil Burner Amount)
-                <sup>3</sup> units of coal.
-                <br />
-                <br />
-                Currently:
-                <br />-{format(burnerOil.value)} oil/sec
-                <br />-{format(burnerCoal.value)} coal consumption
-                {row2Upgrades[2].bought.value ? (
-                    <>
-                        <br />×{format(burnerMetal.value)} to auto smelting multi
-                    </>
-                ) : (
-                    ""
-                )}
-                <br />
-                <br />
-                Cost: {formatWhole(unref(buildBurner.cost!))} {buildBurner.resource!.displayName}
-            </>
-        )),
+        display: {
+            title: "Oil Burner",
+            description: jsx(() => (
+                <div>
+                    Burn oil as fuel.
+                    <br />
+                    (Oil Burner Amount)<sup>2</sup> unit of oil can give 1e19*(Oil Burner Amount)
+                    <sup>3</sup> units of coal.
+                </div>
+            )),
+            effectDisplay: jsx(() => (
+                <>
+                    <br />-{format(burnerOil.value)} oil/sec
+                    <br />-{format(burnerCoal.value)} coal consumption
+                    {row2Upgrades[2].bought.value ? (
+                        <>
+                            <br />×{format(burnerMetal.value)} to auto smelting multi
+                        </>
+                    ) : (
+                        ""
+                    )}
+                </>
+            ))
+        },
         onPurchase() {
             activeBurner.value = Decimal.add(activeBurner.value, 1);
         },
@@ -434,7 +451,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             width: "160px",
             flexGrow: 1
         }
-    })) as ElfBuyable & { resource: Resource };
+    })) as ElfBuyable;
     const {
         max: maxBurner,
         min: minBurner,
@@ -450,19 +467,22 @@ const layer = createLayer(id, function (this: BaseLayer) {
         masteryEffectActive.value ? 0 : Decimal.pow(activeSmelter.value, 2).mul(100)
     );
     const smelterMetal = computed(() => Decimal.add(activeSmelter.value, 1));
+    const smelterCost = computed(() => {
+        let v = new Decimal(buildSmelter.amount.value);
+        if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
+        if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
+        if (Decimal.gte(v, 1e4)) v = Decimal.pow(v, 2).div(1e4);
+        v = Decimal.pow(0.95, paper.books.oilBook.totalAmount.value).times(v);
+        let price = Decimal.pow(10, v).times(1e7);
+        if (row2Upgrades[4].bought.value) price = price.div(Decimal.add(totalOil.value, 1).root(6));
+        return price;
+    });
     const buildSmelter = createBuyable(() => ({
+        requirements: createCostRequirement(() => ({
+            resource: metal.metal,
+            cost: smelterCost
+        })),
         resource: metal.metal,
-        cost() {
-            let v = new Decimal(this.amount.value);
-            if (Decimal.gte(v, 50)) v = Decimal.pow(v, 2).div(50);
-            if (Decimal.gte(v, 200)) v = Decimal.pow(v, 2).div(200);
-            if (Decimal.gte(v, 1e4)) v = Decimal.pow(v, 2).div(1e4);
-            v = Decimal.pow(0.95, paper.books.oilBook.totalAmount.value).times(v);
-            let price = Decimal.pow(10, v).times(1e7);
-            if (row2Upgrades[4].bought.value)
-                price = price.div(Decimal.add(totalOil.value, 1).root(6));
-            return price;
-        },
         inverseCost(x: DecimalSource) {
             if (row2Upgrades[4].bought.value) {
                 x = Decimal.mul(x, Decimal.add(totalOil.value, 1).root(6));
@@ -474,23 +494,22 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.gte(v, 50)) v = Decimal.mul(v, 50).root(2);
             return Decimal.isNaN(v) ? Decimal.dZero : v.floor().max(0);
         },
-        display: jsx(() => (
-            <>
-                <h3>Oil Smelter</h3>
-                <br />
-                Use oil as a crucible fuel.
-                <br />
-                Burn 100*(Oil Smelter amount)<sup>2</sup> oil to smelt +100% faster.
-                <br />
-                <br />
-                Currently:
-                <br />-{format(smelterOil.value)} oil/sec
-                <br />×{format(smelterMetal.value)} smelting speed
-                <br />
-                <br />
-                Cost: {formatWhole(unref(buildSmelter.cost!))} {buildSmelter.resource!.displayName}
-            </>
-        )),
+        display: {
+            title: "Oil Smelter",
+            description: jsx(() => (
+                <div>
+                    Use oil as a crucible fuel.
+                    <br />
+                    Burn 100*(Oil Smelter amount)<sup>2</sup> oil to smelt +100% faster.
+                </div>
+            )),
+            effectDisplay: jsx(() => (
+                <>
+                    <br />-{format(smelterOil.value)} oil/sec
+                    <br />×{format(smelterMetal.value)} smelting speed
+                </>
+            ))
+        },
         onPurchase() {
             activeSmelter.value = Decimal.add(activeSmelter.value, 1);
         },
@@ -499,7 +518,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             width: "160px",
             flexGrow: 1
         }
-    })) as ElfBuyable & { resource: Resource };
+    })) as ElfBuyable;
 
     const {
         max: maxSmelter,
@@ -621,8 +640,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const row1Upgrades: GenericUpgrade[] = [
         createUpgrade(() => ({
-            resource: coal.coal,
-            cost: 1e18,
+            requirements: createCostRequirement(() => ({
+                resource: coal.coal,
+                cost: 1e18
+            })),
             display: {
                 title: "Coal Drill Synergy",
                 description: "Increase drill power by +4% per Coal Drill owned.",
@@ -633,8 +654,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         createUpgrade(() => ({
-            resource: metal.metal,
-            cost: 150000,
+            requirements: createCostRequirement(() => ({
+                resource: metal.metal,
+                cost: 150000
+            })),
             display: {
                 title: "Metal Drill Synergy",
                 description: "Increase drill power by +4% per Metal Drill owned.",
@@ -645,8 +668,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         createUpgrade(() => ({
-            resource: coal.coal,
-            cost: 1e20,
+            requirements: createCostRequirement(() => ({
+                resource: coal.coal,
+                cost: 1e20
+            })),
             display: {
                 title: "Coal Drill Upgrade",
                 description: "Increase drill power by +6% per OoM of coal owned.",
@@ -657,8 +682,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         createUpgrade(() => ({
-            resource: metal.metal,
-            cost: 1500000,
+            requirements: createCostRequirement(() => ({
+                resource: metal.metal,
+                cost: 1500000
+            })),
             display: {
                 title: "Metal Drill Upgrade",
                 description: "Increase drill power by +10% per OoM of metal ingot owned.",
@@ -669,8 +696,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         createUpgrade(() => ({
-            resource: noPersist(oil),
-            cost: 100,
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(oil),
+                cost: 100
+            })),
             display: {
                 title: "Drill Oil",
                 description: "Increase previous upgrades' effect by +0.1% per Heavy Drill owned.",
@@ -713,8 +742,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const row2Upgrades = [
         createUpgrade(() => ({
-            resource: noPersist(oil),
-            cost: 100,
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(oil),
+                cost: 100
+            })),
             display: {
                 title: "Oil the Oil Pump",
                 description: "Double oil gain."
@@ -724,8 +755,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         createUpgrade(() => ({
-            resource: noPersist(oil),
-            cost: 500,
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(oil),
+                cost: 500
+            })),
             display: {
                 title: "Oil the Metal Drills",
                 description:
@@ -736,8 +769,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         createUpgrade(() => ({
-            resource: noPersist(oil),
-            cost: 1500,
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(oil),
+                cost: 1500
+            })),
             display: {
                 title: "Blaster Burner",
                 description: "The Oil Burner can now increase your auto smelting multi."
@@ -747,8 +782,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         createUpgrade(() => ({
-            resource: noPersist(oil),
-            cost: 25000,
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(oil),
+                cost: 25000
+            })),
             display: {
                 title: "Oil Integration",
                 description: "Reduce Oil Pump's coal consumption multipler from 5 to 4"
@@ -758,8 +795,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         createUpgrade(() => ({
-            resource: noPersist(oil),
-            cost: 50000,
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(oil),
+                cost: 50000
+            })),
             display: {
                 title: "Be One with the Oil",
                 description: jsx(() => (
@@ -776,8 +815,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
     ];
     const row3Upgrades = [
         createUpgrade(() => ({
-            resource: noPersist(oil),
-            cost: 1e13,
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(oil),
+                cost: 1e13
+            })),
             display: {
                 title: "Dye Synergy I",
                 description: "Red dye boosts yellow dye gain by (log(x)^0.75)"
@@ -789,8 +830,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         createUpgrade(() => ({
-            resource: noPersist(oil),
-            cost: 1e14,
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(oil),
+                cost: 1e14
+            })),
             display: {
                 title: "Orange-colored boxes",
                 description: "Orange dye's 2nd effect is raised to the 2.5"
@@ -802,8 +845,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         createUpgrade(() => ({
-            resource: noPersist(oil),
-            cost: 1e15,
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(oil),
+                cost: 1e15
+            })),
             display: {
                 title: "Colorful Plastic",
                 description: jsx(() => (
@@ -820,8 +865,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         createUpgrade(() => ({
-            resource: noPersist(oil),
-            cost: 1e16,
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(oil),
+                cost: 1e16
+            })),
             display: {
                 title: "Dye Synergy II",
                 description: "Blue dye boosts red dye gain by log(x)"
@@ -833,8 +880,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         createUpgrade(() => ({
-            resource: noPersist(oil),
-            cost: 1e17,
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(oil),
+                cost: 1e17
+            })),
             display: {
                 title: "The Ultimate Metal Dye",
                 description: "Sum of primary dyes boosts auto smelt speed"

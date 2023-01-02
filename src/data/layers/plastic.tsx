@@ -41,6 +41,7 @@ import reindeer from "./reindeer";
 import sleigh from "./sleigh";
 import factory from "./factory";
 import routing from "./routing";
+import { createCostRequirement } from "game/requirements";
 
 const id = "plastic";
 const day = 10;
@@ -77,34 +78,37 @@ const layer = createLayer(id, function (this: BaseLayer) {
                   management.elfTraining.oilElfTraining.milestones[3].earned.value ? 5 : 1
               )
     ) as ComputedRef<DecimalSource>;
+    const refineryCost = computed(() => {
+        const v = new Decimal(buildRefinery.amount.value);
+        let cost = Decimal.pow(1.2, v).times(1e7);
+        if (management.elfTraining.fertilizerElfTraining.milestones[3].earned.value) {
+            cost = Decimal.sub(cost, Decimal.pow(plastic.value, 2)).max(0);
+        }
+        return cost;
+    });
     const buildRefinery = createBuyable(() => ({
+        requirements: createCostRequirement(() => ({
+            resource: metal.metal,
+            cost: refineryCost
+        })),
         resource: metal.metal,
-        cost() {
-            const v = new Decimal(this.amount.value);
-            let cost = Decimal.pow(1.2, v).times(1e7);
-            if (management.elfTraining.fertilizerElfTraining.milestones[3].earned.value) {
-                cost = Decimal.sub(cost, Decimal.pow(plastic.value, 2)).max(0);
-            }
-            return cost;
+        display: {
+            title: "Refinery",
+            description: jsx(() => (
+                <div>
+                    Refines oil into plastic pellets
+                    <br />
+                    Consumes 100 oil/s to create 1 plastic/s
+                </div>
+            )),
+            effectDisplay: jsx(() => (
+                <>
+                    <br />-{format(oilCost.value)} oil/sec
+                    <br />+{format(activeRefinery.value)} plastic/sec
+                </>
+            )),
+            showAmount: false
         },
-        display: jsx(() => (
-            <>
-                <h3>Refinery</h3>
-                <br />
-                Refines oil into plastic pellets
-                <br />
-                Consumes 100 oil/s to create 1 plastic/s
-                <br />
-                <br />
-                Currently:
-                <br />-{format(oilCost.value)} oil/sec
-                <br />+{format(activeRefinery.value)} plastic/sec
-                <br />
-                <br />
-                Cost: {formatWhole(unref(buildRefinery.cost!))}{" "}
-                {buildRefinery.resource!.displayName}
-            </>
-        )),
         onPurchase() {
             activeRefinery.value = Decimal.add(activeRefinery.value, 1);
         },
@@ -136,8 +140,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )
     );
     const paperTools = createUpgrade(() => ({
-        resource: noPersist(plastic),
-        cost: upgradeCost,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(plastic),
+            cost: upgradeCost
+        })),
         display: () => ({
             title: "Plastic Scissors",
             description: "Unlock paper upgrades",
@@ -145,8 +151,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })
     })) as GenericUpgrade;
     const boxTools = createUpgrade(() => ({
-        resource: noPersist(plastic),
-        cost: upgradeCost,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(plastic),
+            cost: upgradeCost
+        })),
         display: () => ({
             title: "Plastic Level",
             description: "Unlock box upgrades",
@@ -154,8 +162,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })
     })) as GenericUpgrade;
     const clothTools = createUpgrade(() => ({
-        resource: noPersist(plastic),
-        cost: upgradeCost,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(plastic),
+            cost: upgradeCost
+        })),
         display: () => ({
             title: "Plastic Cane",
             description: "Unlock cloth upgrades",
@@ -165,8 +175,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const upgrades = { paperTools, boxTools, clothTools };
 
     const paperElf = createUpgrade(() => ({
-        resource: noPersist(plastic),
-        cost: upgradeCost,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(plastic),
+            cost: upgradeCost
+        })),
         visibility: () => showIf(paperTools.bought.value),
         display: () => ({
             title: "Paper Elf Recruitment",
@@ -180,8 +192,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     })) as GenericUpgrade;
     const boxElf = createUpgrade(() => ({
-        resource: noPersist(plastic),
-        cost: upgradeCost,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(plastic),
+            cost: upgradeCost
+        })),
         visibility: () => showIf(boxTools.bought.value),
         display: () => ({
             title: "Box Elf Recruitment",
@@ -195,8 +209,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     })) as GenericUpgrade;
     const clothElf = createUpgrade(() => ({
-        resource: noPersist(plastic),
-        cost: upgradeCost,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(plastic),
+            cost: upgradeCost
+        })),
         visibility: () => showIf(clothTools.bought.value),
         display: () => ({
             title: "Cloth Elf Recruitment",
@@ -212,12 +228,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const elfUpgrades = { paperElf, boxElf, clothElf };
 
     const passivePaper = createBuyable(() => ({
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(plastic),
+            cost() {
+                let v = passivePaper.amount.value;
+                v = Decimal.pow(0.95, paper.books.plasticBook.totalAmount.value).times(v);
+                return Decimal.pow(1.3, v).times(100).div(dyes.boosts.blue2.value);
+            }
+        })),
         resource: noPersist(plastic),
-        cost() {
-            let v = passivePaper.amount.value;
-            v = Decimal.pow(0.95, paper.books.plasticBook.totalAmount.value).times(v);
-            return Decimal.pow(1.3, v).times(100).div(dyes.boosts.blue2.value);
-        },
         inverseCost(x: DecimalSource) {
             let v = Decimal.times(x, dyes.boosts.blue2.value).div(100).log(1.3);
             v = v.div(Decimal.pow(0.95, paper.books.plasticBook.totalAmount.value));
@@ -245,12 +264,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )
     })) as BoxesBuyable;
     const passiveBoxes = createBuyable(() => ({
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(plastic),
+            cost() {
+                let v = passiveBoxes.amount.value;
+                v = Decimal.pow(0.95, paper.books.plasticBook.totalAmount.value).times(v);
+                return Decimal.pow(1.3, v).times(100).div(dyes.boosts.blue2.value);
+            }
+        })),
         resource: noPersist(plastic),
-        cost() {
-            let v = passiveBoxes.amount.value;
-            v = Decimal.pow(0.95, paper.books.plasticBook.totalAmount.value).times(v);
-            return Decimal.pow(1.3, v).times(100).div(dyes.boosts.blue2.value);
-        },
         inverseCost(x: DecimalSource) {
             let v = Decimal.times(x, dyes.boosts.blue2.value).div(100).log(1.3);
             v = v.div(Decimal.pow(0.95, paper.books.plasticBook.totalAmount.value));
@@ -278,12 +300,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )
     })) as BoxesBuyable;
     const clothGains = createBuyable(() => ({
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(plastic),
+            cost() {
+                let v = clothGains.amount.value;
+                v = Decimal.pow(0.95, paper.books.plasticBook.totalAmount.value).times(v);
+                return Decimal.pow(1.3, v).times(100).div(dyes.boosts.blue2.value);
+            }
+        })),
         resource: noPersist(plastic),
-        cost() {
-            let v = clothGains.amount.value;
-            v = Decimal.pow(0.95, paper.books.plasticBook.totalAmount.value).times(v);
-            return Decimal.pow(1.3, v).times(100).div(dyes.boosts.blue2.value);
-        },
         inverseCost(x: DecimalSource) {
             let v = Decimal.times(x, dyes.boosts.blue2.value).div(100).log(1.3);
             v = v.div(Decimal.pow(0.95, paper.books.plasticBook.totalAmount.value));

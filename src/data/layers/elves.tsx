@@ -20,7 +20,7 @@ import { globalBus } from "game/events";
 import { BaseLayer, createLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier, Modifier } from "game/modifiers";
 import { persistent } from "game/persistence";
-import Decimal, { DecimalSource, formatWhole } from "util/bignum";
+import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { Computable, convertComputable } from "util/computed";
 import { render, renderGrid } from "util/vue";
@@ -40,10 +40,12 @@ import dyes, { enumColor } from "./dyes";
 import ribbon from "./ribbon";
 import letters from "./letters";
 import packing from "./packing";
+import { createBooleanRequirement, createCostRequirement } from "game/requirements";
 
 export interface ElfBuyable extends GenericBuyable {
     /** The inverse function of the cost formula, used to calculate the maximum amount that can be bought by elves. */
     inverseCost: (x?: DecimalSource) => DecimalSource;
+    resource: Resource;
 }
 
 const id = "elves";
@@ -730,20 +732,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 toggle,
                 buyProgress,
                 update,
-                resource: coal.coal,
-                cost: trainingCost,
+                requirements: [
+                    createCostRequirement(() => ({
+                        resource: coal.coal,
+                        cost: trainingCost
+                    })),
+                    createBooleanRequirement(() => !main.isMastery.value)
+                ],
                 computedAutoBuyCooldown,
                 amountOfTimesDone,
                 name: options.name,
-                canAfford() {
-                    return (
-                        Decimal.gte(coal.coal.value, unref(trainingCost)) && !main.isMastery.value
-                    );
-                },
                 display: () => ({
                     title: options.name,
                     description: jsx(() => (
-                        <>
+                        <div>
                             {options.description}
                             {upgrade.bought.value || elvesThatReset.includes(options.name) ? (
                                 <>
@@ -761,9 +763,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                                     />
                                 </>
                             ) : null}
-                        </>
-                    )),
-                    showCost: !upgrade.bought.value
+                        </div>
+                    ))
                 }),
                 style: "width: 190px",
                 onPurchase() {
@@ -864,7 +865,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         hasToggle: true,
         toggleDesc: "Activate auto-purchased bonfires",
         onAutoPurchase(buyable, amount) {
-            const spent = Decimal.mul(unref(buyable.cost ?? 0), amount);
+            const spent = Decimal.mul(
+                Decimal.pow(0.95, paper.books.bonfireBook.totalAmount.value).times(10),
+                amount
+            );
             coal.activeFires.value = Decimal.sub(coal.activeFires.value, spent).max(0);
             coal.buildFire.amount.value = Decimal.sub(coal.buildFire.amount.value, spent).max(0);
             if (bonfireElf.toggle.value) {
@@ -1022,7 +1026,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         description:
             "Carol will automatically purchase all primary dyes you can afford, without actually spending any resources.",
         buyable: Object.values(dyes.dyes).map(dye => dye.buyable),
-        cooldownModifier: dyeCooldown, // Note: Buy max will be unlocked at this point
+        cooldownModifier: dyeCooldown,
         visibility: () =>
             showIf(wrappingPaper.unlockDyeElfMilestone.earned.value && !main.isMastery.value),
         buyMax: () => management.elfTraining.dyeElfTraining.milestones[2].earned.value,

@@ -32,6 +32,7 @@ import ModalVue from "components/Modal.vue";
 import ribbon from "./ribbon";
 import { createReset } from "features/reset";
 import ResourceVue from "features/resources/Resource.vue";
+import { createCostRequirement } from "game/requirements";
 
 const id = "packing";
 const day = 24;
@@ -198,105 +199,67 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const computedLoaderPackingSpeed = computed(() => loaderPackingSpeed.apply(1000));
     const elf = createBuyable(() => ({
         visibility: () => showIf(Decimal.gte(totalPresents.value, 10)),
-        cost() {
-            let v = this.amount.value;
-            v = Decimal.pow(0.98, paper.books.packingBook.totalAmount.value).times(v);
-            return Decimal.pow(1.2, v).times(10).floor();
-        },
+        requirements: createCostRequirement(() => ({
+            resource: totalPresentsResource,
+            cost() {
+                let v = elf.amount.value;
+                v = Decimal.pow(0.98, paper.books.packingBook.totalAmount.value).times(v);
+                return Decimal.pow(1.2, v).times(10).floor();
+            },
+            requiresPay: false
+        })),
+        resource: totalPresentsResource,
         inverseCost(cost: DecimalSource) {
             let amount = Decimal.div(cost, 10).log(1.2);
             amount = amount.div(Decimal.pow(0.98, paper.books.packingBook.totalAmount.value));
             return Decimal.isNaN(amount) ? Decimal.dZero : amount.floor().max(0);
         },
-        resource: totalPresentsResource,
-        display: jsx(() => (
-            <>
-                <div>
-                    <h3>Hire an elf assistant</h3>
-                </div>
-                Packs {format(computedElfPackingSpeed.value)} presents per second
-                <div>
-                    <br />
-                    Amount: {formatWhole(helpers.elf.amount.value)}
-                </div>
-                <div>
-                    <br />
-                    Currently packing{" "}
-                    {format(
-                        Decimal.times(helpers.elf.amount.value, computedElfPackingSpeed.value)
-                    )}{" "}
-                    presents per second
-                </div>
-                <div>
-                    Requires: {formatWhole(unref(helpers.elf.cost!))}{" "}
-                    {helpers.elf.resource!.displayName}
-                </div>
-            </>
-        )),
+        display: {
+            title: "Hire an elf assistant",
+            description: jsx(() => <>Packs {format(computedElfPackingSpeed.value)} presents/s</>),
+            effectDisplay: jsx(() => (
+                <>
+                    {format(Decimal.times(helpers.elf.amount.value, computedElfPackingSpeed.value))}{" "}
+                    presents/s
+                </>
+            ))
+        },
         style: {
             width: "200px"
         }
     })) as ElfBuyable;
     const loader = createBuyable(() => ({
         visibility: () => showIf(upgrades.loaderUnlock.bought.value),
-        metalCost: computed(() => Decimal.pow(1.2, helpers.loader.amount.value).times(1e70)),
-        oilCost: computed(() => Decimal.pow(1.2, helpers.loader.amount.value).times(1e25)),
-        canPurchase(
-            this: GenericBuyable & {
-                metalCost: ComputedRef<DecimalSource>;
-                oilCost: ComputedRef<DecimalSource>;
-            }
-        ) {
-            return (
-                Decimal.gte(metal.metal.value, this.metalCost.value) &&
-                Decimal.gte(oil.oil.value, this.oilCost.value)
-            );
-        },
-        onPurchase() {
-            const metalCost = Decimal.pow(1.2, Decimal.sub(helpers.loader.amount.value, 1)).times(
-                1e70
-            );
-            const oilCost = Decimal.pow(1.2, Decimal.sub(helpers.loader.amount.value, 1)).times(
-                1e25
-            );
-            metal.metal.value = Decimal.sub(metal.metal.value, metalCost);
-            oil.oil.value = Decimal.sub(oil.oil.value, oilCost);
-        },
+        requirements: [
+            createCostRequirement(() => ({
+                resource: metal.metal,
+                cost: () => Decimal.pow(1.2, helpers.loader.amount.value).times(1e70)
+            })),
+            createCostRequirement(() => ({
+                resource: oil.oil,
+                cost: () => Decimal.pow(1.2, helpers.loader.amount.value).times(1e25)
+            }))
+        ],
         inverseCost() {
             const metalAmount = Decimal.div(metal.metal.value, 1e70).log(1.2);
             const oilAmount = Decimal.div(oil.oil.value, 1e25).log(1.2);
             if (Decimal.isNaN(metalAmount) || Decimal.isNaN(oilAmount)) return Decimal.dZero;
             return Decimal.min(metalAmount, oilAmount).floor().max(0);
         },
-        display: jsx(() => (
-            <>
-                <div>
-                    <h3>Build a loader</h3>
-                </div>
-                Loads {format(computedLoaderPackingSpeed.value)} presents per second
-                <div>
-                    <br />
-                    Amount: {formatWhole(helpers.loader.amount.value)}
-                </div>
-                <div>
-                    <br />
-                    Currently packing{" "}
+        display: {
+            title: "Build a loader",
+            description: jsx(() => (
+                <>Loads {format(computedLoaderPackingSpeed.value)} presents/s</>
+            )),
+            effectDisplay: jsx(() => (
+                <>
                     {format(
                         Decimal.times(helpers.loader.amount.value, computedLoaderPackingSpeed.value)
                     )}{" "}
-                    persents per second
-                </div>
-                <div>
-                    Cost:{" "}
-                    {displayCost(
-                        metal.metal,
-                        helpers.loader.metalCost.value,
-                        metal.metal.displayName
-                    )}
-                    ,{displayCost(oil.oil, helpers.loader.oilCost.value, oil.oil.displayName)}
-                </div>
-            </>
-        )),
+                    persents/s
+                </>
+            ))
+        },
         style: {
             width: "200px"
         }
@@ -312,8 +275,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 title: "An Elf's Elf",
                 description: "Train an Elf to help you hire more Elves."
             },
-            cost: 1000,
-            resource: totalPresentsResource,
+            requirements: createCostRequirement(() => ({
+                cost: 1000,
+                resource: totalPresentsResource,
+                requiresPay: false
+            })),
             style: {
                 width: "200px"
             },
@@ -331,8 +297,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description:
                     "Those construction vehicles you have from building the workshop should be useful for loading presents too."
             },
-            cost: 1000000,
-            resource: totalPresentsResource,
+            requirements: createCostRequirement(() => ({
+                cost: 1000000,
+                resource: totalPresentsResource,
+                requiresPay: false
+            })),
             style: {
                 width: "200px"
             },
@@ -345,8 +314,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 title: "Communal Assistance",
                 description: "Each elf level increases elf packing speed by 5%"
             },
-            cost: 100000000,
-            resource: totalPresentsResource,
+            requirements: createCostRequirement(() => ({
+                cost: 100000000,
+                resource: totalPresentsResource,
+                requiresPay: false
+            })),
             style: {
                 width: "200px"
             },
@@ -361,8 +333,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 title: "Spare Bows",
                 description: "Each ribbon multiplies elf packing speed by 1.02x"
             },
-            cost: 2e9,
-            resource: totalPresentsResource,
+            requirements: createCostRequirement(() => ({
+                cost: 2e9,
+                resource: totalPresentsResource,
+                requiresPay: false
+            })),
             style: {
                 width: "200px"
             },
@@ -376,8 +351,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description:
                     "Each elf assistant increases how much the loader can load per second by 5"
             },
-            cost: 5e9,
-            resource: totalPresentsResource,
+            requirements: createCostRequirement(() => ({
+                cost: 5e9,
+                resource: totalPresentsResource,
+                requiresPay: false
+            })),
             style: {
                 width: "200px"
             },
@@ -391,8 +369,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description:
                     "Each present manually packed gives 2 seconds of automatic present packing production"
             },
-            cost: 1e10,
-            resource: totalPresentsResource,
+            requirements: createCostRequirement(() => ({
+                cost: 1e10,
+                resource: totalPresentsResource,
+                requiresPay: false
+            })),
             style: {
                 width: "200px"
             },

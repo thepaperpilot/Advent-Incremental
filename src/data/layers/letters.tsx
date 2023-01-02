@@ -30,6 +30,7 @@ import { globalBus } from "game/events";
 import { main } from "data/projEntry";
 import { createHotkey } from "features/hotkey";
 import HotkeyVue from "components/Hotkey.vue";
+import { createCostRequirement } from "game/requirements";
 
 const id = "letters";
 const day = 14;
@@ -104,10 +105,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <>{format(Decimal.div(metalBuyable.amount.value, 2).add(1))}x</>
             ))
         },
-        resource: metal.metal,
-        cost() {
-            return Decimal.pow(10, metalBuyable.amount.value).times(1e21);
-        },
+        requirements: createCostRequirement(() => ({
+            resource: metal.metal,
+            cost() {
+                return Decimal.pow(10, metalBuyable.amount.value).times(1e21);
+            }
+        })),
         visibility: () => showIf(!main.isMastery.value || masteryEffectActive.value)
     })) as GenericBuyable;
     const plasticBuyable = createBuyable(() => ({
@@ -119,10 +122,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <>{format(Decimal.div(plasticBuyable.amount.value, 2).add(1))}x</>
             ))
         },
-        resource: plastic.plastic,
-        cost() {
-            return Decimal.pow(1.5, plasticBuyable.amount.value).times(1e9);
-        },
+        requirements: createCostRequirement(() => ({
+            resource: plastic.plastic,
+            cost() {
+                return Decimal.pow(1.5, plasticBuyable.amount.value).times(1e9);
+            }
+        })),
         visibility: () => showIf(!main.isMastery.value || masteryEffectActive.value)
     })) as GenericBuyable;
     const paperBuyable = createBuyable(() => ({
@@ -133,10 +138,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <>{format(Decimal.div(paperBuyable.amount.value, 2).add(1))}x</>
             ))
         },
-        resource: paper.paper,
-        cost() {
-            return Decimal.pow(3, paperBuyable.amount.value).times(1e38);
-        },
+        requirements: createCostRequirement(() => ({
+            resource: paper.paper,
+            cost() {
+                return Decimal.pow(3, paperBuyable.amount.value).times(1e38);
+            }
+        })),
         visibility: () => showIf(!main.isMastery.value || masteryEffectActive.value)
     })) as GenericBuyable;
     const buyables = { metalBuyable, plasticBuyable, paperBuyable };

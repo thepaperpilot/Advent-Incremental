@@ -42,7 +42,8 @@ import reindeer from "./reindeer";
 import routing from "./routing";
 import trees from "./trees";
 import workshop from "./workshop";
-import packing from "./packing"
+import packing from "./packing";
+import { createCostRequirement } from "game/requirements";
 
 const id = "cloth";
 const day = 8;
@@ -240,13 +241,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
 
     const buildPens = createBuyable(() => ({
+        requirements: createCostRequirement(() => ({
+            resource: trees.logs,
+            cost() {
+                let v = buildPens.amount.value;
+                if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
+                v = Decimal.pow(0.95, paper.books.clothBook.totalAmount.value).times(v);
+                return Decimal.pow(1.5, v).times(1e14);
+            }
+        })),
         resource: trees.logs,
-        cost() {
-            let v = this.amount.value;
-            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
-            v = Decimal.pow(0.95, paper.books.clothBook.totalAmount.value).times(v);
-            return Decimal.pow(1.5, v).times(1e14);
-        },
         inverseCost(x: DecimalSource) {
             let v = Decimal.div(x, 1e14).log(1.5);
             v = v.div(Decimal.pow(0.95, paper.books.clothBook.totalAmount.value));
@@ -257,16 +261,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Build more pens",
             description: "Breed +1 sheep at once"
         }
-    })) as ElfBuyable & { resource: Resource };
+    })) as ElfBuyable;
 
     const betterShears = createBuyable(() => ({
+        requirements: createCostRequirement(() => ({
+            resource: metal.metal,
+            cost() {
+                let v = betterShears.amount.value;
+                if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
+                v = Decimal.pow(0.95, paper.books.clothBook.totalAmount.value).times(v);
+                return Decimal.pow(1.4, v).times(10000);
+            }
+        })),
         resource: metal.metal,
-        cost() {
-            let v = this.amount.value;
-            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
-            v = Decimal.pow(0.95, paper.books.clothBook.totalAmount.value).times(v);
-            return Decimal.pow(1.4, v).times(10000);
-        },
         inverseCost(x: DecimalSource) {
             let v = Decimal.div(x, 10000).log(1.4);
             v = v.div(Decimal.pow(0.95, paper.books.clothBook.totalAmount.value));
@@ -277,16 +284,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Make stronger shears",
             description: "Shear +1 sheep at once"
         }
-    })) as ElfBuyable & { resource: Resource };
+    })) as ElfBuyable;
 
     const fasterSpinning = createBuyable(() => ({
+        requirements: createCostRequirement(() => ({
+            resource: paper.paper,
+            cost() {
+                let v = fasterSpinning.amount.value;
+                if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
+                v = Decimal.pow(0.95, paper.books.clothBook.totalAmount.value).times(v);
+                return Decimal.pow(1.3, v).times(1000000);
+            }
+        })),
         resource: paper.paper,
-        cost() {
-            let v = this.amount.value;
-            if (Decimal.gte(v, 100)) v = Decimal.pow(v, 2).div(100);
-            v = Decimal.pow(0.95, paper.books.clothBook.totalAmount.value).times(v);
-            return Decimal.pow(1.3, v).times(1000000);
-        },
         inverseCost(x: DecimalSource) {
             let v = Decimal.div(x, 1000000).log(1.3);
             v = v.div(Decimal.pow(0.95, paper.books.clothBook.totalAmount.value));
@@ -297,19 +307,23 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Learn how to spin",
             description: "Spin +1 wool at once"
         }
-    })) as ElfBuyable & { resource: Resource };
+    })) as ElfBuyable;
 
     const treesUpgrade1 = createUpgrade(() => ({
-        resource: noPersist(cloth),
-        cost: 100,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(cloth),
+            cost: 100
+        })),
         display: {
             title: "Lumberjack Boots",
             description: "Quadruple log gain"
         }
     }));
     const treesUpgrade2 = createUpgrade(() => ({
-        resource: noPersist(wool),
-        cost: 150,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(wool),
+            cost: 150
+        })),
         visibility: () => showIf(treesUpgrade1.bought.value),
         display: {
             title: "Lumberjack Jeans",
@@ -317,8 +331,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const treesUpgrade3 = createUpgrade(() => ({
-        resource: noPersist(sheep),
-        cost: 200,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(sheep),
+            cost: 200
+        })),
         visibility: () => showIf(treesUpgrade2.bought.value),
         display: {
             title: "Lumberjack Plaid",
@@ -326,8 +342,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const treesUpgrade4 = createUpgrade(() => ({
-        resource: noPersist(cloth),
-        cost: 1e3,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(cloth),
+            cost: 1e3
+        })),
         visibility: () => showIf(plastic.upgrades.clothTools.bought.value),
         display: {
             title: "Felt-Gripped Axe",
@@ -337,16 +355,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const treesUpgrades = { treesUpgrade4, treesUpgrade3, treesUpgrade2, treesUpgrade1 };
 
     const metalUpgrade1 = createUpgrade(() => ({
-        resource: noPersist(cloth),
-        cost: 150,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(cloth),
+            cost: 150
+        })),
         display: {
             title: "Mining boots",
             description: "Quadruple ash gain"
         }
     }));
     const metalUpgrade2 = createUpgrade(() => ({
-        resource: noPersist(wool),
-        cost: 225,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(wool),
+            cost: 225
+        })),
         visibility: () => showIf(metalUpgrade1.bought.value),
         display: {
             title: "Mining overalls",
@@ -354,8 +376,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const metalUpgrade3 = createUpgrade(() => ({
-        resource: noPersist(sheep),
-        cost: 300,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(sheep),
+            cost: 300
+        })),
         visibility: () => showIf(metalUpgrade2.bought.value),
         display: {
             title: "Mining helmet",
@@ -363,8 +387,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const metalUpgrade4 = createUpgrade(() => ({
-        resource: noPersist(cloth),
-        cost: 2e3,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(cloth),
+            cost: 2e3
+        })),
         visibility: () => showIf(plastic.upgrades.clothTools.bought.value),
         display: {
             title: "Felt-Gripped Pick",
@@ -374,16 +400,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const metalUpgrades = { metalUpgrade4, metalUpgrade3, metalUpgrade2, metalUpgrade1 };
 
     const paperUpgrade1 = createUpgrade(() => ({
-        resource: noPersist(cloth),
-        cost: 200,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(cloth),
+            cost: 200
+        })),
         display: {
             title: "Scholar's shoes",
             description: "Double paper gain"
         }
     }));
     const paperUpgrade2 = createUpgrade(() => ({
-        resource: noPersist(wool),
-        cost: 200,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(wool),
+            cost: 200
+        })),
         visibility: () => showIf(paperUpgrade1.bought.value),
         display: {
             title: "Scholar's slacks",
@@ -391,8 +421,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const paperUpgrade3 = createUpgrade(() => ({
-        resource: noPersist(sheep),
-        cost: 400,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(sheep),
+            cost: 400
+        })),
         visibility: () => showIf(paperUpgrade2.bought.value),
         display: {
             title: "Scholar's jacket",
@@ -400,8 +432,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const paperUpgrade4 = createUpgrade(() => ({
-        resource: noPersist(cloth),
-        cost: 4e3,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(cloth),
+            cost: 4e3
+        })),
         visibility: () => showIf(plastic.upgrades.clothTools.bought.value),
         display: {
             title: "Felt Elbow Pads",

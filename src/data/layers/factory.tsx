@@ -91,6 +91,7 @@ import trees from "./trees";
 import workshop from "./workshop";
 import ribbon from "./ribbon";
 import routing from "./routing";
+import { createCostRequirement } from "game/requirements";
 
 const id = "factory";
 
@@ -1153,86 +1154,98 @@ const factory = createLayer(id, () => {
     const computedCostCheapeners = computed(() => costCheapener.apply(1));
 
     const clothesBuyable = createBuyable(() => ({
-        resource: toys.clothes,
-        cost() {
-            return Decimal.pow(2, Decimal.add(this.amount.value, 5)).div(
-                computedCostCheapeners.value
-            );
-        },
+        requirements: createCostRequirement(() => ({
+            resource: toys.clothes,
+            cost() {
+                return Decimal.pow(2, Decimal.add(clothesBuyable.amount.value, 5)).div(
+                    computedCostCheapeners.value
+                );
+            }
+        })),
         display: {
             title: "Train elves to make clothes",
             description: "Use your finished toys to train an elf on factory work"
         },
         style: "width: 110px"
-    }));
+    })) as GenericBuyable;
     const blocksBuyable = createBuyable(() => ({
-        resource: toys.woodenBlocks,
-        cost() {
-            return Decimal.pow(2, Decimal.add(this.amount.value, 5)).div(
-                computedCostCheapeners.value
-            );
-        },
+        requirements: createCostRequirement(() => ({
+            resource: toys.woodenBlocks,
+            cost() {
+                return Decimal.pow(2, Decimal.add(blocksBuyable.amount.value, 5)).div(
+                    computedCostCheapeners.value
+                );
+            }
+        })),
         display: {
             title: "Train elves to make wooden blocks",
             description: "Use your finished toys to train an elf on factory work"
         },
         style: "width: 110px"
-    }));
+    })) as GenericBuyable;
     const trucksBuyable = createBuyable(() => ({
-        resource: toys.trucks,
-        cost() {
-            return Decimal.pow(2, Decimal.add(this.amount.value, 5)).div(
-                computedCostCheapeners.value
-            );
-        },
+        requirements: createCostRequirement(() => ({
+            resource: toys.trucks,
+            cost() {
+                return Decimal.pow(2, Decimal.add(trucksBuyable.amount.value, 5)).div(
+                    computedCostCheapeners.value
+                );
+            }
+        })),
         display: {
             title: "Train elves to make toy trucks",
             description: "Use your finished toys to train an elf on factory work"
         },
         style: "width: 110px"
-    }));
+    })) as GenericBuyable;
     const bearsBuyable = createBuyable(() => ({
-        resource: noPersist(bears),
-        cost() {
-            return Decimal.pow(2, Decimal.add(this.amount.value, 5)).div(
-                computedCostCheapeners.value
-            );
-        },
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(bears),
+            cost() {
+                return Decimal.pow(2, Decimal.add(bearsBuyable.amount.value, 5)).div(
+                    computedCostCheapeners.value
+                );
+            }
+        })),
         display: {
             title: "Train elves to make bears",
             description: "Use your finished toys to train an elf on factory work"
         },
         style: "width: 110px",
         visible: () => showIf(main.days[advancedDay - 1].opened.value)
-    }));
+    })) as GenericBuyable;
     const bucketBuyable = createBuyable(() => ({
-        resource: noPersist(bucketAndShovels),
-        cost() {
-            return Decimal.pow(2, Decimal.add(this.amount.value, 5)).div(
-                computedCostCheapeners.value
-            );
-        },
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(bucketAndShovels),
+            cost() {
+                return Decimal.pow(2, Decimal.add(bucketBuyable.amount.value, 5)).div(
+                    computedCostCheapeners.value
+                );
+            }
+        })),
         display: {
             title: "Train elves to make shovel and pails",
             description: "Use your finished toys to train an elf on factory work"
         },
         style: "width: 110px",
         visible: () => showIf(main.days[advancedDay - 1].opened.value)
-    }));
+    })) as GenericBuyable;
     const consolesBuyable = createBuyable(() => ({
-        resource: noPersist(consoles),
-        cost() {
-            return Decimal.pow(2, Decimal.add(this.amount.value, 5)).div(
-                computedCostCheapeners.value
-            );
-        },
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(consoles),
+            cost() {
+                return Decimal.pow(2, Decimal.add(consolesBuyable.amount.value, 5)).div(
+                    computedCostCheapeners.value
+                );
+            }
+        })),
         display: {
             title: "Train elves to make consoles",
             description: "Use your finished toys to train an elf on factory work"
         },
         style: "width: 110px",
         visible: () => showIf(main.days[advancedDay - 1].opened.value)
-    }));
+    })) as GenericBuyable;
     const elfBuyables = {
         clothesBuyable,
         blocksBuyable,
@@ -1251,10 +1264,12 @@ const factory = createLayer(id, () => {
     const elvesEffect = computed(() => Decimal.pow(1.05, trainedElves.value));
 
     const expandFactory = createBuyable(() => ({
-        resource: trees.logs,
-        cost() {
-            return Decimal.pow(1e4, this.amount.value).times(1e72);
-        },
+        requirements: createCostRequirement(() => ({
+            resource: trees.logs,
+            cost() {
+                return Decimal.pow(1e4, expandFactory.amount.value).times(1e72);
+            }
+        })),
         display: {
             title: "Expand Factory",
             description:
@@ -1269,10 +1284,12 @@ const factory = createLayer(id, () => {
         visibility: () => showIf(main.days[advancedDay - 1].opened.value)
     })) as GenericBuyable;
     const oilFuel = createBuyable(() => ({
-        resource: oil.oil,
-        cost() {
-            return Decimal.pow(10, this.amount.value).times(1e23);
-        },
+        requirements: createCostRequirement(() => ({
+            resource: oil.oil,
+            cost() {
+                return Decimal.pow(10, oilFuel.amount.value).times(1e23);
+            }
+        })),
         display: {
             title: "Oil Fuel",
             description: "Use some surplus oil to generate more electricity",
@@ -1283,10 +1300,12 @@ const factory = createLayer(id, () => {
         visibility: () => showIf(main.days[advancedDay - 1].opened.value)
     })) as GenericBuyable;
     const carryToys = createBuyable(() => ({
-        resource: boxes.boxes,
-        cost() {
-            return Decimal.pow(100, this.amount.value).times(1e80);
-        },
+        requirements: createCostRequirement(() => ({
+            resource: boxes.boxes,
+            cost() {
+                return Decimal.pow(100, carryToys.amount.value).times(1e80);
+            }
+        })),
         display: {
             title: "Carry toys in boxes",
             description: "Use some surplus boxes to speed up the whole factory",
@@ -1300,8 +1319,10 @@ const factory = createLayer(id, () => {
     })) as GenericBuyable;
 
     const betterFactory = createUpgrade(() => ({
-        resource: noPersist(presents),
-        cost: 100,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(presents),
+            cost: 100
+        })),
         display: {
             title: "Factory eXPerience",
             description: "Factory size is increased by 5."
@@ -1309,8 +1330,10 @@ const factory = createLayer(id, () => {
         visibility: () => showIf(main.days[presentsDay - 1].opened.value)
     }));
     const betterLighting = createUpgrade(() => ({
-        resource: noPersist(presents),
-        cost: 300,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(presents),
+            cost: 300
+        })),
         display: {
             title: "Burn some logs",
             description: "More energy needed? Let's burn some logs! Logs boosts maximum energy.",
@@ -1321,8 +1344,10 @@ const factory = createLayer(id, () => {
         visibility: () => showIf(betterFactory.bought.value)
     }));
     const excitmentUpgrade = createUpgrade(() => ({
-        resource: noPersist(presents),
-        cost: 1000,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(presents),
+            cost: 1000
+        })),
         display: {
             title: "Faster Elf Training",
             description:
@@ -1332,8 +1357,10 @@ const factory = createLayer(id, () => {
         visibility: () => showIf(betterLighting.bought.value)
     }));
     const carryPresents = createUpgrade(() => ({
-        resource: noPersist(presents),
-        cost: 5000,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(presents),
+            cost: 5000
+        })),
         display: {
             title: "Carrying more stuff in boxes",
             description:
@@ -1342,13 +1369,15 @@ const factory = createLayer(id, () => {
         visibility: () => showIf(excitmentUpgrade.bought.value)
     }));
     const carryBoxes = createBuyable(() => ({
-        resource: noPersist(presents),
-        cost() {
-            return Decimal.add(carryBoxes.amount.value, 1)
-                .pow(1.5)
-                .mul(Decimal.pow(2, carryBoxes.amount.value))
-                .mul(1000);
-        },
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(presents),
+            cost() {
+                return Decimal.add(carryBoxes.amount.value, 1)
+                    .pow(1.5)
+                    .mul(Decimal.pow(2, carryBoxes.amount.value))
+                    .mul(1000);
+            }
+        })),
         style: "width: 400px",
         display: {
             title: "Carry boxes in... presents?",
@@ -1359,8 +1388,10 @@ const factory = createLayer(id, () => {
         visibility: () => showIf(carryPresents.bought.value)
     })) as GenericBuyable;
     const catalysts = createUpgrade(() => ({
-        resource: noPersist(presents),
-        cost: 10000,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(presents),
+            cost: 10000
+        })),
         display: {
             title: "Better Presents",
             description:
@@ -1369,8 +1400,10 @@ const factory = createLayer(id, () => {
         visibility: () => showIf(carryPresents.bought.value)
     }));
     const bowUpgrade = createUpgrade(() => ({
-        resource: noPersist(presents),
-        cost: 1e7,
+        requirements: createCostRequirement(() => ({
+            resource: noPersist(presents),
+            cost: 1e7
+        })),
         display: {
             title: "With a bow",
             description:
@@ -1383,8 +1416,10 @@ const factory = createLayer(id, () => {
     const upgrades = [
         [
             createUpgrade(() => ({
-                resource: trees.logs,
-                cost: () => Decimal.pow(5, upgradeAmount.value).mul(1e75),
+                requirements: createCostRequirement(() => ({
+                    resource: trees.logs,
+                    cost: () => Decimal.pow(5, upgradeAmount.value).mul(1e75)
+                })),
                 display: {
                     title: "Sawmill Efficiency",
                     description:
@@ -1393,8 +1428,10 @@ const factory = createLayer(id, () => {
                 visibility: () => showIf(main.days[advancedDay - 1].opened.value)
             })),
             createUpgrade(() => ({
-                resource: paper.paper,
-                cost: () => Decimal.pow(5, upgradeAmount.value).mul(1e90),
+                requirements: createCostRequirement(() => ({
+                    resource: paper.paper,
+                    cost: () => Decimal.pow(5, upgradeAmount.value).mul(1e90)
+                })),
                 display: {
                     title: "News Ticker",
                     description: "Paper boosts tick speed"
@@ -1402,8 +1439,10 @@ const factory = createLayer(id, () => {
                 visibility: () => showIf(main.days[advancedDay - 1].opened.value)
             })),
             createUpgrade(() => ({
-                resource: toys.trucks,
-                cost: () => Decimal.pow(1.2, upgradeAmount.value).mul(1000),
+                requirements: createCostRequirement(() => ({
+                    resource: toys.trucks,
+                    cost: () => Decimal.pow(1.2, upgradeAmount.value).mul(1000)
+                })),
                 display: {
                     title: "Haul wood in trucks",
                     description: "Trucks multiply wood gain"
@@ -1411,8 +1450,10 @@ const factory = createLayer(id, () => {
                 visibility: () => showIf(main.days[advancedDay - 1].opened.value)
             })),
             createUpgrade(() => ({
-                resource: metal.metal,
-                cost: () => Decimal.pow(3, upgradeAmount.value).mul(1e53),
+                requirements: createCostRequirement(() => ({
+                    resource: metal.metal,
+                    cost: () => Decimal.pow(3, upgradeAmount.value).mul(1e53)
+                })),
                 display: {
                     title: "Diamond-tipped drills",
                     description: "Drill power ^1.2"
@@ -1422,8 +1463,10 @@ const factory = createLayer(id, () => {
         ],
         [
             createUpgrade(() => ({
-                resource: toys.woodenBlocks,
-                cost: () => Decimal.pow(1.2, upgradeAmount.value).mul(2000),
+                requirements: createCostRequirement(() => ({
+                    resource: toys.woodenBlocks,
+                    cost: () => Decimal.pow(1.2, upgradeAmount.value).mul(2000)
+                })),
                 display: {
                     title: "Larger wood pieces",
                     description: "Wooden block producers produce 3x as much"
@@ -1431,8 +1474,10 @@ const factory = createLayer(id, () => {
                 visibility: () => showIf(main.days[advancedDay - 1].opened.value)
             })),
             createUpgrade(() => ({
-                resource: dyes.dyes.red.amount,
-                cost: () => Decimal.pow(1.5, upgradeAmount.value).mul(4e16),
+                requirements: createCostRequirement(() => ({
+                    resource: dyes.dyes.red.amount,
+                    cost: () => Decimal.pow(1.5, upgradeAmount.value).mul(4e16)
+                })),
                 display: {
                     title: "Colorful clothes",
                     description: "Dye producers produce 4x as much"
@@ -1440,8 +1485,10 @@ const factory = createLayer(id, () => {
                 visibility: () => showIf(main.days[advancedDay - 1].opened.value)
             })),
             createUpgrade(() => ({
-                resource: plastic.plastic,
-                cost: () => Decimal.pow(2, upgradeAmount.value).mul(1e17),
+                requirements: createCostRequirement(() => ({
+                    resource: plastic.plastic,
+                    cost: () => Decimal.pow(2, upgradeAmount.value).mul(1e17)
+                })),
                 display: {
                     title: "Improved plastic producers",
                     description: "Plastic producers produce 4x as much"
@@ -1449,8 +1496,10 @@ const factory = createLayer(id, () => {
                 visibility: () => showIf(main.days[advancedDay - 1].opened.value)
             })),
             createUpgrade(() => ({
-                resource: oil.oil,
-                cost: () => Decimal.pow(1.5, upgradeAmount.value).mul(1e22),
+                requirements: createCostRequirement(() => ({
+                    resource: oil.oil,
+                    cost: () => Decimal.pow(1.5, upgradeAmount.value).mul(1e22)
+                })),
                 display: {
                     title: "Capitalism",
                     description: "Console production is tripled"
@@ -1460,8 +1509,10 @@ const factory = createLayer(id, () => {
         ],
         [
             createUpgrade(() => ({
-                resource: coal.coal,
-                cost: () => Decimal.pow(5, upgradeAmount.value).mul(1e130),
+                requirements: createCostRequirement(() => ({
+                    resource: coal.coal,
+                    cost: () => Decimal.pow(5, upgradeAmount.value).mul(1e130)
+                })),
                 display: {
                     title: "Brighter work rooms",
                     description: "Unused electricity makes ticks faster"
@@ -1469,8 +1520,10 @@ const factory = createLayer(id, () => {
                 visibility: () => showIf(main.days[advancedDay - 1].opened.value)
             })),
             createUpgrade(() => ({
-                resource: dyes.dyes.blue.amount,
-                cost: () => Decimal.pow(1.4, upgradeAmount.value).mul(1e15),
+                requirements: createCostRequirement(() => ({
+                    resource: dyes.dyes.blue.amount,
+                    cost: () => Decimal.pow(1.4, upgradeAmount.value).mul(1e15)
+                })),
                 display: {
                     title: "Colorful teddy bears",
                     description: "Teddy bears produce 2x as much"
@@ -1478,8 +1531,10 @@ const factory = createLayer(id, () => {
                 visibility: () => showIf(main.days[advancedDay - 1].opened.value)
             })),
             createUpgrade(() => ({
-                resource: dyes.dyes.black.amount,
-                cost: () => Decimal.pow(1.5, upgradeAmount.value).mul(1e6),
+                requirements: createCostRequirement(() => ({
+                    resource: dyes.dyes.black.amount,
+                    cost: () => Decimal.pow(1.5, upgradeAmount.value).mul(1e6)
+                })),
                 display: {
                     title: "New Colors",
                     description: "Unlock white dye"
@@ -1487,8 +1542,10 @@ const factory = createLayer(id, () => {
                 visibility: () => showIf(main.days[advancedDay - 1].opened.value)
             })),
             createUpgrade(() => ({
-                resource: boxes.boxes,
-                cost: () => Decimal.pow(3, upgradeAmount.value).mul(1e80),
+                requirements: createCostRequirement(() => ({
+                    resource: boxes.boxes,
+                    cost: () => Decimal.pow(3, upgradeAmount.value).mul(1e80)
+                })),
                 display: {
                     title: "Carry ticks in boxes",
                     description: "Tick speed x1.5"
@@ -1502,7 +1559,11 @@ const factory = createLayer(id, () => {
 
     // pixi
     const upgradeAmount = computed(
-        () => upgrades.slice(0,3).flat().filter(u => u.bought.value).length
+        () =>
+            upgrades
+                .slice(0, 3)
+                .flat()
+                .filter(u => u.bought.value).length
     ) as ComputedRef<number>;
     // load every sprite here so pixi doesn't complain about loading multiple times
     const assetsLoading = Promise.all([
