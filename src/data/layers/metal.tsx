@@ -3,7 +3,7 @@ import Spacer from "components/layout/Spacer.vue";
 import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
 import { createBar } from "features/bars/bar";
-import { createBuyable } from "features/buyable";
+import { createRepeatable } from "features/repeatable";
 import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
 import MainDisplay from "features/resources/MainDisplay.vue";
@@ -505,7 +505,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         visibility: () => showIf(oil.depthMilestones[4].earned.value)
     }));
 
-    const oreDrill = createBuyable(() => ({
+    const oreDrill = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: noPersist(metal),
             cost() {
@@ -552,7 +552,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             ),
         style: { width: "200px" }
     })) as ElfBuyable;
-    const industrialCrucible = createBuyable(() => ({
+    const industrialCrucible = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: noPersist(metal),
             cost() {
@@ -599,7 +599,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: { width: "200px" }
     })) as ElfBuyable;
     const autoSmeltEnabled = persistent<boolean>(true);
-    const hotterForge = createBuyable(() => ({
+    const hotterForge = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: coal.coal,
             cost() {

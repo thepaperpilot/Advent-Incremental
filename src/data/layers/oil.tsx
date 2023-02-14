@@ -18,7 +18,7 @@ import Decimal, { DecimalSource } from "lib/break_eternity";
 import { render, renderGrid, renderRow } from "util/vue";
 import { computed, ComputedRef, ref, unref } from "vue";
 import { noPersist, persistent } from "game/persistence";
-import { createBuyable, GenericBuyable } from "features/buyable";
+import { createRepeatable, GenericRepeatable } from "features/repeatable";
 import { format, formatWhole } from "util/break_eternity";
 import metal from "./metal";
 import {
@@ -114,7 +114,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         v = Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value).times(v);
         return Decimal.pow(1.3, v).times(2.5e4);
     });
-    const buildHeavy = createBuyable(() => ({
+    const buildHeavy = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: metal.metal,
             cost: heavyCost
@@ -185,7 +185,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         v = Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value).times(v);
         return Decimal.pow(2, v).times(1e5);
     });
-    const buildHeavy2 = createBuyable(() => ({
+    const buildHeavy2 = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: metal.metal,
             cost: heavy2Cost
@@ -253,7 +253,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         v = Decimal.pow(0.95, paper.books.heavyDrillBook.totalAmount.value).times(v);
         return Decimal.pow(8, v).times(2e5);
     });
-    const buildExtractor = createBuyable(() => ({
+    const buildExtractor = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: metal.metal,
             cost: extractorCost
@@ -334,7 +334,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
         return price;
     });
-    const buildPump = createBuyable(() => ({
+    const buildPump = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: metal.metal,
             cost: pumpCost
@@ -407,7 +407,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         v = Decimal.pow(0.95, paper.books.oilBook.totalAmount.value).times(v);
         return Decimal.pow(2, v).times(50);
     });
-    const buildBurner = createBuyable(() => ({
+    const buildBurner = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: noPersist(oil),
             cost: burnerCost
@@ -477,7 +477,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         if (row2Upgrades[4].bought.value) price = price.div(Decimal.add(totalOil.value, 1).root(6));
         return price;
     });
-    const buildSmelter = createBuyable(() => ({
+    const buildSmelter = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: metal.metal,
             cost: smelterCost

@@ -6,7 +6,7 @@ import Spacer from "components/layout/Spacer.vue";
 import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
 import { main } from "data/projEntry";
-import { createBuyable } from "features/buyable";
+import { createRepeatable } from "features/repeatable";
 import { createClickable } from "features/clickables/clickable";
 import { createCumulativeConversion, createPolynomialScaling } from "features/conversion";
 import { jsx, showIf } from "features/feature";
@@ -230,7 +230,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     })) as GenericUpgrade;
     const row3Upgrades = { clothUpgrade, dyeUpgrade, xpUpgrade };
-    const logBoxesBuyable = createBuyable(() => ({
+    const logBoxesBuyable = createRepeatable(() => ({
         display: {
             title: "Carry more logs",
             description: jsx(() => (
@@ -300,7 +300,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.add(logBoxesBuyable.amount.value, logBoxesBuyable.freeLevels.value)
         )
     })) as BoxesBuyable;
-    const ashBoxesBuyable = createBuyable(() => ({
+    const ashBoxesBuyable = createRepeatable(() => ({
         display: {
             title: "Carry more ash",
             description: jsx(() => (
@@ -364,7 +364,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.add(ashBoxesBuyable.amount.value, ashBoxesBuyable.freeLevels.value)
         )
     })) as BoxesBuyable;
-    const coalBoxesBuyable = createBuyable(() => ({
+    const coalBoxesBuyable = createRepeatable(() => ({
         display: {
             title: "Carry more coal",
             description: jsx(() => (
@@ -429,7 +429,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )
     })) as BoxesBuyable;
     const buyables = { logBoxesBuyable, ashBoxesBuyable, coalBoxesBuyable };
-    const oreBoxesBuyable = createBuyable(() => ({
+    const oreBoxesBuyable = createRepeatable(() => ({
         display: {
             title: "Carry more ore",
             description: jsx(() => (
@@ -499,7 +499,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.add(oreBoxesBuyable.amount.value, oreBoxesBuyable.freeLevels.value)
         )
     })) as BoxesBuyable;
-    const metalBoxesBuyable = createBuyable(() => ({
+    const metalBoxesBuyable = createRepeatable(() => ({
         display: {
             title: "Carry more metal",
             description: jsx(() => (
@@ -563,7 +563,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.add(metalBoxesBuyable.amount.value, metalBoxesBuyable.freeLevels.value)
         )
     })) as BoxesBuyable;
-    const plasticBoxesBuyable = createBuyable(() => ({
+    const plasticBoxesBuyable = createRepeatable(() => ({
         display: {
             title: "Carry more plastic",
             description: jsx(() => (
@@ -627,7 +627,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.add(plasticBoxesBuyable.amount.value, plasticBoxesBuyable.freeLevels.value)
         )
     })) as BoxesBuyable;
-    const presentBuyable = createBuyable(() => ({
+    const presentBuyable = createRepeatable(() => ({
         display: {
             title: "Carry presents in boxes",
             description: jsx(() => (

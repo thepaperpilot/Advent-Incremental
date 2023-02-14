@@ -1,7 +1,7 @@
 import Collapsible from "components/layout/Collapsible.vue";
 import "data/layers/styles/day-gradients.css";
 import { createBar } from "features/bars/bar";
-import { GenericBuyable } from "features/buyable";
+import { GenericRepeatable } from "features/repeatable";
 import type { Clickable, ClickableOptions, GenericClickable } from "features/clickables/clickable";
 import { createClickable } from "features/clickables/clickable";
 import type { GenericConversion } from "features/conversion";
@@ -534,7 +534,7 @@ export function setUpDailyProgressTracker(options: {
 export function changeActiveBuyables(options: {
     style?: StyleValue;
     active: Persistent<DecimalSource>;
-    buyable: GenericBuyable;
+    buyable: GenericRepeatable;
 }) {
     const style = options.style ?? { minHeight: "20px", width: "40px", color: "var(--foreground)" };
     const min = createClickable(() => ({

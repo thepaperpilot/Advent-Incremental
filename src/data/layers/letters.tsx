@@ -20,7 +20,7 @@ import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import { Direction } from "util/common";
 import { render, renderRow } from "util/vue";
 import { computed, ref } from "vue";
-import { createBuyable, GenericBuyable } from "features/buyable";
+import { createRepeatable, GenericRepeatable } from "features/repeatable";
 import metal from "./metal";
 import plastic from "./plastic";
 import paper from "./paper";
@@ -96,7 +96,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         enabled: noPersist(main.days[day - 1].opened)
     }));
 
-    const metalBuyable = createBuyable(() => ({
+    const metalBuyable = createRepeatable(() => ({
         display: {
             title: "Sorting Machine",
             description:
@@ -112,8 +112,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         visibility: () => showIf(!main.isMastery.value || masteryEffectActive.value)
-    })) as GenericBuyable;
-    const plasticBuyable = createBuyable(() => ({
+    })) as GenericRepeatable;
+    const plasticBuyable = createRepeatable(() => ({
         display: {
             title: "Plastic Bins",
             description:
@@ -129,8 +129,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         visibility: () => showIf(!main.isMastery.value || masteryEffectActive.value)
-    })) as GenericBuyable;
-    const paperBuyable = createBuyable(() => ({
+    })) as GenericRepeatable;
+    const paperBuyable = createRepeatable(() => ({
         display: {
             title: "Printed Labels",
             description: "Use printed labels to improve how many letters you can process at once",
@@ -145,7 +145,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         visibility: () => showIf(!main.isMastery.value || masteryEffectActive.value)
-    })) as GenericBuyable;
+    })) as GenericRepeatable;
     const buyables = { metalBuyable, plasticBuyable, paperBuyable };
 
     const autoSmeltingMilestone = createMilestone(() => ({

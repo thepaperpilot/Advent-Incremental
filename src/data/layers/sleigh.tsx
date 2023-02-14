@@ -7,7 +7,7 @@ import Spacer from "components/layout/Spacer.vue";
 import { createCollapsibleMilestones } from "data/common";
 import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
-import { createBuyable, GenericBuyable } from "features/buyable";
+import { createRepeatable, GenericRepeatable } from "features/repeatable";
 import { jsx, showIf } from "features/feature";
 import { createMilestone } from "features/milestones/milestone";
 import { Resource } from "features/resources/resource";
@@ -41,7 +41,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         );
     }
     const sleighProgress = computed(() => sleigh.amount);
-    const sleigh = createBuyable(() => ({
+    const sleigh = createRepeatable(() => ({
         requirements: [
             createCostRequirement(() => ({
                 resource: trees.logs,
@@ -65,7 +65,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         visibility: () => showIf(Decimal.lt(sleighProgress.value.value, 100)),
         style: "width: 600px"
-    })) as GenericBuyable;
+    })) as GenericRepeatable;
 
     const shouldShowPopups = computed(() => true);
     const milestone1 = createMilestone(() => ({

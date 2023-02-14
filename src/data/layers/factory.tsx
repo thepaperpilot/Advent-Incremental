@@ -10,7 +10,7 @@ import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections } from "data/common";
 import { main } from "data/projEntry";
 import { createBar, GenericBar } from "features/bars/bar";
-import { createBuyable, GenericBuyable } from "features/buyable";
+import { createRepeatable, GenericRepeatable } from "features/repeatable";
 import { jsx, showIf } from "features/feature";
 import { createHotkey, GenericHotkey } from "features/hotkey";
 import MainDisplay from "features/resources/MainDisplay.vue";
@@ -1153,7 +1153,7 @@ const factory = createLayer(id, () => {
     ]);
     const computedCostCheapeners = computed(() => costCheapener.apply(1));
 
-    const clothesBuyable = createBuyable(() => ({
+    const clothesBuyable = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: toys.clothes,
             cost() {
@@ -1167,8 +1167,8 @@ const factory = createLayer(id, () => {
             description: "Use your finished toys to train an elf on factory work"
         },
         style: "width: 110px"
-    })) as GenericBuyable;
-    const blocksBuyable = createBuyable(() => ({
+    })) as GenericRepeatable;
+    const blocksBuyable = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: toys.woodenBlocks,
             cost() {
@@ -1182,8 +1182,8 @@ const factory = createLayer(id, () => {
             description: "Use your finished toys to train an elf on factory work"
         },
         style: "width: 110px"
-    })) as GenericBuyable;
-    const trucksBuyable = createBuyable(() => ({
+    })) as GenericRepeatable;
+    const trucksBuyable = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: toys.trucks,
             cost() {
@@ -1197,8 +1197,8 @@ const factory = createLayer(id, () => {
             description: "Use your finished toys to train an elf on factory work"
         },
         style: "width: 110px"
-    })) as GenericBuyable;
-    const bearsBuyable = createBuyable(() => ({
+    })) as GenericRepeatable;
+    const bearsBuyable = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: noPersist(bears),
             cost() {
@@ -1213,8 +1213,8 @@ const factory = createLayer(id, () => {
         },
         style: "width: 110px",
         visible: () => showIf(main.days[advancedDay - 1].opened.value)
-    })) as GenericBuyable;
-    const bucketBuyable = createBuyable(() => ({
+    })) as GenericRepeatable;
+    const bucketBuyable = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: noPersist(bucketAndShovels),
             cost() {
@@ -1229,8 +1229,8 @@ const factory = createLayer(id, () => {
         },
         style: "width: 110px",
         visible: () => showIf(main.days[advancedDay - 1].opened.value)
-    })) as GenericBuyable;
-    const consolesBuyable = createBuyable(() => ({
+    })) as GenericRepeatable;
+    const consolesBuyable = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: noPersist(consoles),
             cost() {
@@ -1245,7 +1245,7 @@ const factory = createLayer(id, () => {
         },
         style: "width: 110px",
         visible: () => showIf(main.days[advancedDay - 1].opened.value)
-    })) as GenericBuyable;
+    })) as GenericRepeatable;
     const elfBuyables = {
         clothesBuyable,
         blocksBuyable,
@@ -1263,7 +1263,7 @@ const factory = createLayer(id, () => {
     const trainedElves = createResource<DecimalSource>(sumElves, "trained elves");
     const elvesEffect = computed(() => Decimal.pow(1.05, trainedElves.value));
 
-    const expandFactory = createBuyable(() => ({
+    const expandFactory = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: trees.logs,
             cost() {
@@ -1282,8 +1282,8 @@ const factory = createLayer(id, () => {
         purchaseLimit: 12,
         style: "width: 200px",
         visibility: () => showIf(main.days[advancedDay - 1].opened.value)
-    })) as GenericBuyable;
-    const oilFuel = createBuyable(() => ({
+    })) as GenericRepeatable;
+    const oilFuel = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: oil.oil,
             cost() {
@@ -1298,8 +1298,8 @@ const factory = createLayer(id, () => {
         },
         style: "width: 200px",
         visibility: () => showIf(main.days[advancedDay - 1].opened.value)
-    })) as GenericBuyable;
-    const carryToys = createBuyable(() => ({
+    })) as GenericRepeatable;
+    const carryToys = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: boxes.boxes,
             cost() {
@@ -1316,7 +1316,7 @@ const factory = createLayer(id, () => {
         },
         style: "width: 200px",
         visibility: () => showIf(main.days[advancedDay - 1].opened.value)
-    })) as GenericBuyable;
+    })) as GenericRepeatable;
 
     const betterFactory = createUpgrade(() => ({
         requirements: createCostRequirement(() => ({
@@ -1368,7 +1368,7 @@ const factory = createLayer(id, () => {
         },
         visibility: () => showIf(excitmentUpgrade.bought.value)
     }));
-    const carryBoxes = createBuyable(() => ({
+    const carryBoxes = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: noPersist(presents),
             cost() {
@@ -1386,7 +1386,7 @@ const factory = createLayer(id, () => {
             effectDisplay: jsx(() => <>x{format(Decimal.pow(1.5, carryBoxes.amount.value))}</>)
         },
         visibility: () => showIf(carryPresents.bought.value)
-    })) as GenericBuyable;
+    })) as GenericRepeatable;
     const catalysts = createUpgrade(() => ({
         requirements: createCostRequirement(() => ({
             resource: noPersist(presents),

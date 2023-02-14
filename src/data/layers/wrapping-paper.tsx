@@ -1,6 +1,6 @@
 import Spacer from "components/layout/Spacer.vue";
 import { createBar, GenericBar } from "features/bars/bar";
-import { BuyableOptions, createBuyable, GenericBuyable } from "features/buyable";
+import { RepeatableOptions, createRepeatable, GenericRepeatable } from "features/repeatable";
 import { createClickable } from "features/clickables/clickable";
 import { jsx, JSXFunction, showIf } from "features/feature";
 import { createMilestone } from "features/milestones/milestone";
@@ -29,7 +29,7 @@ const baseSecondaryRatio = 1.2;
 
 interface WrappingPaper {
     name: string;
-    buyable: GenericBuyable;
+    buyable: GenericRepeatable;
     display: JSXFunction;
 }
 
@@ -54,8 +54,8 @@ const layer = createLayer(id, () => {
     const name = "Wrapping Paper";
     const color = "gold";
 
-    const createWrappingPaper = (options: WrappingPaperOptions & Partial<BuyableOptions>) => {
-        const buyable: GenericBuyable = createBuyable(() => {
+    const createWrappingPaper = (options: WrappingPaperOptions & Partial<RepeatableOptions>) => {
+        const buyable: GenericRepeatable = createRepeatable(() => {
             return {
                 requirements: (Object.entries(options.ratio) as [enumColor, Scaling][]).map(
                     ([color, ratio]) => {

@@ -8,7 +8,7 @@ import { createCollapsibleMilestones, createCollapsibleModifierSections } from "
 import { main } from "data/projEntry";
 import { createBar, GenericBar } from "features/bars/bar";
 import { BoardNode, BoardNodeLink, createBoard, Shape } from "features/boards/board";
-import { createBuyable, GenericBuyable } from "features/buyable";
+import { createRepeatable, GenericRepeatable } from "features/repeatable";
 import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
 import { createMilestone, GenericMilestone } from "features/milestones/milestone";
@@ -610,7 +610,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         return Decimal.pow(1.2, amount).mul(1e11).div(Decimal.max(citiesCompleted.value, 1));
     });
     const metaBuyables = {
-        metal: createBuyable(() => ({
+        metal: createRepeatable(() => ({
             resName: "Metal",
             requirements: createCostRequirement(() => ({
                 resource: metal.metal,
@@ -624,7 +624,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             style: "width: 150px; min-height: 60px"
         })),
-        console: createBuyable(() => ({
+        console: createRepeatable(() => ({
             resName: "Game Console",
             requirements: createCostRequirement(() => ({
                 resource: factory.consoles,
@@ -638,7 +638,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             style: "width: 150px; min-height: 60px"
         })),
-        classroom: createBuyable(() => ({
+        classroom: createRepeatable(() => ({
             resName: "Classroom",
             requirements: createCostRequirement(() => ({
                 resource: createResource(management.classrooms.amount, "classrooms"),
@@ -658,7 +658,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             style: "width: 150px; min-height: 60px"
         })),
-        tick: createBuyable(() => ({
+        tick: createRepeatable(() => ({
             resName: "Factory Tick Rate",
             requirements: createCostRequirement(() => ({
                 resource: createResource(factory.computedTickRate, "factory tick rate"),
@@ -678,7 +678,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             style: "width: 150px; min-height: 60px"
         }))
-    } as Record<string, GenericBuyable & { resName: string }>;
+    } as Record<string, GenericRepeatable & { resName: string }>;
 
     const metaMilestones = {
         0: createMilestone(() => ({

@@ -12,7 +12,7 @@ import {
     setUpDailyProgressTracker
 } from "data/common";
 import { main } from "data/projEntry";
-import { createBuyable } from "features/buyable";
+import { createRepeatable } from "features/repeatable";
 import { jsx, showIf } from "features/feature";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource, Resource } from "features/resources/resource";
@@ -75,7 +75,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         v = Decimal.pow(0.95, paper.books.smallFireBook.totalAmount.value).times(v);
         return v.pow(masteryEffectActive.value ? 1.1 : 1.5).times(1e4);
     });
-    const buildFire = createBuyable(() => ({
+    const buildFire = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: trees.logs,
             cost: fireCost
@@ -141,7 +141,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
         return gain;
     });
-    const buildBonfire = createBuyable(() => ({
+    const buildBonfire = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: fireResource,
             cost() {
@@ -215,7 +215,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             1e7
         );
     });
-    const buildKiln = createBuyable(() => ({
+    const buildKiln = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: trees.logs,
             cost: kilnCost
@@ -288,7 +288,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
         return cost;
     });
-    const buildDrill = createBuyable(() => ({
+    const buildDrill = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: metal.metal,
             cost: drillCost
@@ -521,7 +521,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const row3upgrades = [efficientSmelther, arsonistAssistance, refinedCoal, coloredFire];
 
-    const heatedCutters = createBuyable(() => ({
+    const heatedCutters = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: noPersist(coal),
             cost() {
@@ -559,7 +559,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: { color: colorText },
         visibility: () => showIf(warmerCutters.bought.value)
     })) as ElfBuyable & { display: { title: string }; resource: Resource };
-    const heatedPlanters = createBuyable(() => ({
+    const heatedPlanters = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: noPersist(coal),
             cost() {
@@ -599,7 +599,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: { color: colorText },
         visibility: () => showIf(warmerPlanters.bought.value)
     })) as ElfBuyable & { display: { title: string }; resource: Resource };
-    const moreFertilizer = createBuyable(() => ({
+    const moreFertilizer = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: noPersist(ash),
             cost() {

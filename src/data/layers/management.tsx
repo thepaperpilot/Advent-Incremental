@@ -4,7 +4,7 @@ import Modal from "components/Modal.vue";
 import { createCollapsibleMilestones, createCollapsibleModifierSections } from "data/common";
 import { main } from "data/projEntry";
 import { createBar, GenericBar } from "features/bars/bar";
-import { createBuyable, GenericBuyable } from "features/buyable";
+import { createRepeatable, GenericRepeatable } from "features/repeatable";
 import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf, Visibility } from "features/feature";
 import { createMilestone, GenericMilestone } from "features/milestones/milestone";
@@ -1592,7 +1592,7 @@ const layer = createLayer(id, () => {
     const upgrades2 = [focusUpgrade4, focusUpgrade5, focusUpgrade6];
     // ------------------------------------------------------------------------------- Schools
 
-    const schools = createBuyable(() => ({
+    const schools = createRepeatable(() => ({
         requirements: [
             createCostRequirement(() => ({
                 resource: trees.logs,
@@ -1678,7 +1678,7 @@ const layer = createLayer(id, () => {
         },
         visibility: computed(() => showIf(teaching.bought.value)),
         style: "width: 600px"
-    })) as GenericBuyable;
+    })) as GenericRepeatable;
 
     const classroomFactor = computed(() => {
         let v = classrooms.amount.value;
@@ -1691,7 +1691,7 @@ const layer = createLayer(id, () => {
         return Decimal.add(classrooms.amount.value, 1).pow(0.9);
     });
 
-    const classrooms = createBuyable(() => ({
+    const classrooms = createRepeatable(() => ({
         requirements: [
             createCostRequirement(() => ({
                 resource: trees.logs,
@@ -1727,7 +1727,7 @@ const layer = createLayer(id, () => {
         },
         visibility: computed(() => showIf(classroomUpgrade.bought.value)),
         style: "width: 600px"
-    })) as GenericBuyable;
+    })) as GenericRepeatable;
 
     // ------------------------------------------------------------------------------- Modifiers
 

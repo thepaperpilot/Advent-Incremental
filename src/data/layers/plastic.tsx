@@ -12,7 +12,7 @@ import {
     setUpDailyProgressTracker
 } from "data/common";
 import { main } from "data/projEntry";
-import { createBuyable, GenericBuyable } from "features/buyable";
+import { createRepeatable, GenericRepeatable } from "features/repeatable";
 import { jsx, showIf } from "features/feature";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource, Resource } from "features/resources/resource";
@@ -86,7 +86,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
         return cost;
     });
-    const buildRefinery = createBuyable(() => ({
+    const buildRefinery = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: metal.metal,
             cost: refineryCost
@@ -116,7 +116,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             width: "300px"
         },
         visibility: () => showIf(!main.isMastery.value || masteryEffectActive.value)
-    })) as GenericBuyable & { resource: Resource };
+    })) as GenericRepeatable & { resource: Resource };
     const {
         min: minRefinery,
         max: maxRefinery,
@@ -227,7 +227,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     })) as GenericUpgrade;
     const elfUpgrades = { paperElf, boxElf, clothElf };
 
-    const passivePaper = createBuyable(() => ({
+    const passivePaper = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: noPersist(plastic),
             cost() {
@@ -263,7 +263,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.add(passivePaper.amount.value, passivePaper.freeLevels.value)
         )
     })) as BoxesBuyable;
-    const passiveBoxes = createBuyable(() => ({
+    const passiveBoxes = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: noPersist(plastic),
             cost() {
@@ -299,7 +299,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             Decimal.add(passiveBoxes.amount.value, passiveBoxes.freeLevels.value)
         )
     })) as BoxesBuyable;
-    const clothGains = createBuyable(() => ({
+    const clothGains = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: noPersist(plastic),
             cost() {

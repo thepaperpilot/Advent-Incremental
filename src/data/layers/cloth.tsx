@@ -9,7 +9,7 @@ import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
 import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
-import { createBuyable } from "features/buyable";
+import { createRepeatable } from "features/repeatable";
 import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
 import { createHotkey } from "features/hotkey";
@@ -240,7 +240,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         enabled: noPersist(main.days[day - 1].opened)
     }));
 
-    const buildPens = createBuyable(() => ({
+    const buildPens = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: trees.logs,
             cost() {
@@ -263,7 +263,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     })) as ElfBuyable;
 
-    const betterShears = createBuyable(() => ({
+    const betterShears = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: metal.metal,
             cost() {
@@ -286,7 +286,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     })) as ElfBuyable;
 
-    const fasterSpinning = createBuyable(() => ({
+    const fasterSpinning = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: paper.paper,
             cost() {

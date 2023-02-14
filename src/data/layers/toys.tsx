@@ -10,7 +10,7 @@ import {
     setUpDailyProgressTracker
 } from "data/common";
 import { main } from "data/projEntry";
-import { createBuyable, GenericBuyable } from "features/buyable";
+import { createRepeatable, GenericRepeatable } from "features/repeatable";
 import { jsx, showIf } from "features/feature";
 import { createMilestone, GenericMilestone } from "features/milestones/milestone";
 import MainDisplay from "features/resources/MainDisplay.vue";
@@ -47,7 +47,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         "toys"
     );
 
-    const clothesBuyable = createBuyable(() => ({
+    const clothesBuyable = createRepeatable(() => ({
         requirements: [
             createCostRequirement(() => ({
                 resource: cloth.cloth,
@@ -87,8 +87,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         onPurchase() {
             clothes.value = Decimal.add(clothes.value, 1);
         }
-    })) as GenericBuyable;
-    const woodenBlocksBuyable = createBuyable(() => ({
+    })) as GenericRepeatable;
+    const woodenBlocksBuyable = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: trees.logs,
             cost() {
@@ -113,8 +113,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         onPurchase() {
             woodenBlocks.value = Decimal.add(woodenBlocks.value, 1);
         }
-    })) as GenericBuyable;
-    const trucksBuyable = createBuyable(() => ({
+    })) as GenericRepeatable;
+    const trucksBuyable = createRepeatable(() => ({
         requirements: [
             createCostRequirement(() => ({
                 resource: metal.metal,
@@ -153,7 +153,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         onPurchase() {
             trucks.value = Decimal.add(trucks.value, 1);
         }
-    })) as GenericBuyable;
+    })) as GenericRepeatable;
     const buyables = [clothesBuyable, woodenBlocksBuyable, trucksBuyable];
     const trucksUpgrade1 = createUpgrade(() => ({
         requirements: createCostRequirement(() => ({

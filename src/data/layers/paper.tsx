@@ -6,7 +6,7 @@ import Spacer from "components/layout/Spacer.vue";
 import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
 import { main } from "data/projEntry";
-import { BuyableOptions, createBuyable } from "features/buyable";
+import { RepeatableOptions, createRepeatable } from "features/repeatable";
 import { createClickable } from "features/clickables/clickable";
 import { createCumulativeConversion, createPolynomialScaling } from "features/conversion";
 import { jsx, showIf } from "features/feature";
@@ -100,9 +100,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
 
     function createBook(
-        options: { name: string; elfName: string; buyableName: string } & Partial<BuyableOptions>
+        options: { name: string; elfName: string; buyableName: string } & Partial<RepeatableOptions>
     ) {
-        const buyable = createBuyable(() => ({
+        const buyable = createRepeatable(() => ({
             ...options,
             display: {
                 title: options.name,

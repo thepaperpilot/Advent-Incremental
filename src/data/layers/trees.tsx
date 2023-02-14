@@ -8,7 +8,7 @@ import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
 import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
-import { createBuyable } from "features/buyable";
+import { createRepeatable } from "features/repeatable";
 import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
 import { createHotkey } from "features/hotkey";
@@ -237,7 +237,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         researchUpgrade2
     ];
 
-    const autoCuttingBuyable1 = createBuyable(() => ({
+    const autoCuttingBuyable1 = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: noPersist(logs),
             cost() {
@@ -266,7 +266,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         visibility: () => showIf(researchUpgrade2.bought.value)
     })) as ElfBuyable;
-    const autoPlantingBuyable1 = createBuyable(() => ({
+    const autoPlantingBuyable1 = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: noPersist(logs),
             cost() {
@@ -302,7 +302,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         },
         visibility: () => showIf(researchUpgrade2.bought.value)
     })) as ElfBuyable;
-    const expandingForestBuyable = createBuyable(() => ({
+    const expandingForestBuyable = createRepeatable(() => ({
         requirements: createCostRequirement(() => ({
             resource: noPersist(logs),
             cost() {

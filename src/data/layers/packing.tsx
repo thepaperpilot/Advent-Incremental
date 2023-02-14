@@ -3,7 +3,7 @@ import SpacerVue from "components/layout/Spacer.vue";
 import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
 import { main } from "data/projEntry";
 import { createBar } from "features/bars/bar";
-import { createBuyable, GenericBuyable } from "features/buyable";
+import { createRepeatable, GenericRepeatable } from "features/repeatable";
 import { createClickable } from "features/clickables/clickable";
 import { jsx, showIf } from "features/feature";
 import { createMilestone, GenericMilestone } from "features/milestones/milestone";
@@ -197,7 +197,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     ]);
     const computedLoaderPackingSpeed = computed(() => loaderPackingSpeed.apply(1000));
-    const elf = createBuyable(() => ({
+    const elf = createRepeatable(() => ({
         visibility: () => showIf(Decimal.gte(totalPresents.value, 10)),
         requirements: createCostRequirement(() => ({
             resource: totalPresentsResource,
@@ -228,7 +228,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             width: "200px"
         }
     })) as ElfBuyable;
-    const loader = createBuyable(() => ({
+    const loader = createRepeatable(() => ({
         visibility: () => showIf(upgrades.loaderUnlock.bought.value),
         requirements: [
             createCostRequirement(() => ({

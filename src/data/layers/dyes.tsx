@@ -7,7 +7,7 @@ import Spacer from "components/layout/Spacer.vue";
 import Sqrt from "components/math/Sqrt.vue";
 import Modal from "components/Modal.vue";
 import { createCollapsibleModifierSections, setUpDailyProgressTracker } from "data/common";
-import { BuyableOptions, createBuyable } from "features/buyable";
+import { RepeatableOptions, createRepeatable } from "features/repeatable";
 import { jsx, JSXFunction, showIf, Visibility } from "features/feature";
 import { createHotkey, GenericHotkey } from "features/hotkey";
 import MainDisplay from "features/resources/MainDisplay.vue";
@@ -111,7 +111,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 name: string;
                 reset: VoidFunction;
             }[];
-        } & Partial<BuyableOptions>
+        } & Partial<RepeatableOptions>
     ): Dye {
         const amount = createResource(
             computed(() =>
@@ -259,7 +259,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 break;
         }
 
-        const buyable: ElfBuyable = createBuyable(() => {
+        const buyable: ElfBuyable = createRepeatable(() => {
             const costs = options.costs();
             return {
                 ...options,

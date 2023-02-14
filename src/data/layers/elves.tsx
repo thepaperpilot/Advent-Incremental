@@ -9,7 +9,7 @@ import Modal from "components/Modal.vue";
 import { createCollapsibleMilestones, createCollapsibleModifierSections } from "data/common";
 import { main } from "data/projEntry";
 import { createBar, GenericBar } from "features/bars/bar";
-import { GenericBuyable } from "features/buyable";
+import { GenericRepeatable } from "features/repeatable";
 import { ClickableOptions } from "features/clickables/clickable";
 import { jsx, showIf, Visibility } from "features/feature";
 import { createMilestone } from "features/milestones/milestone";
@@ -42,7 +42,7 @@ import letters from "./letters";
 import packing from "./packing";
 import { createBooleanRequirement, createCostRequirement } from "game/requirements";
 
-export interface ElfBuyable extends GenericBuyable {
+export interface ElfBuyable extends GenericRepeatable {
     /** The inverse function of the cost formula, used to calculate the maximum amount that can be bought by elves. */
     inverseCost: (x?: DecimalSource) => DecimalSource;
     resource: Resource;
