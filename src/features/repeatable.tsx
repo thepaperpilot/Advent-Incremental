@@ -50,7 +50,7 @@ export interface RepeatableOptions {
     style?: Computable<StyleValue>;
     mark?: Computable<boolean | string>;
     small?: Computable<boolean>;
-    buyMax?: Computable<boolean>;
+    maximize?: Computable<boolean>;
     display?: Computable<RepeatableDisplay>;
     onPurchase?: VoidFunction;
 }
@@ -77,7 +77,7 @@ export type Repeatable<T extends RepeatableOptions> = Replace<
         style: GetComputableType<T["style"]>;
         mark: GetComputableType<T["mark"]>;
         small: GetComputableType<T["small"]>;
-        buyMax: GetComputableType<T["buyMax"]>;
+        maximize: GetComputableType<T["maximize"]>;
         display: Ref<CoercableComponent>;
     }
 >;
@@ -154,7 +154,7 @@ export function createRepeatable<T extends RepeatableOptions>(
                 }
                 payRequirements(
                     repeatable.requirements,
-                    unref(genericRepeatable.buyMax)
+                    unref(genericRepeatable.maximize)
                         ? maxRequirementsMet(genericRepeatable.requirements)
                         : 1
                 );
@@ -208,7 +208,7 @@ export function createRepeatable<T extends RepeatableOptions>(
                                 <br />
                                 {displayRequirements(
                                     genericRepeatable.requirements,
-                                    unref(genericRepeatable.buyMax)
+                                    unref(genericRepeatable.maximize)
                                         ? maxRequirementsMet(genericRepeatable.requirements)
                                         : 1
                                 )}
@@ -227,7 +227,7 @@ export function createRepeatable<T extends RepeatableOptions>(
         processComputable(repeatable as T, "style");
         processComputable(repeatable as T, "mark");
         processComputable(repeatable as T, "small");
-        processComputable(repeatable as T, "buyMax");
+        processComputable(repeatable as T, "maximize");
 
         repeatable[GatherProps] = function (this: GenericRepeatable) {
             const { display, visibility, style, classes, onClick, canClick, small, mark, id } =
