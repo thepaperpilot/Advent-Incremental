@@ -83,7 +83,7 @@ export type ResetButton<T extends ResetButtonOptions> = Replace<
         display: GetComputableTypeWithDefault<T["display"], Ref<JSX.Element>>;
         canClick: GetComputableTypeWithDefault<T["canClick"], Ref<boolean>>;
         minimumGain: GetComputableTypeWithDefault<T["minimumGain"], 1>;
-        onClick: VoidFunction;
+        onClick: (event?: MouseEvent | TouchEvent) => void;
     }
 >;
 
@@ -163,7 +163,7 @@ export function createResetButton<T extends ClickableOptions & ResetButtonOption
         }
 
         const onClick = resetButton.onClick;
-        resetButton.onClick = function () {
+        resetButton.onClick = function (event?: MouseEvent | TouchEvent) {
             if (unref(resetButton.canClick) === false) {
                 return;
             }
@@ -172,7 +172,7 @@ export function createResetButton<T extends ClickableOptions & ResetButtonOption
             if (resetButton.resetTime) {
                 resetButton.resetTime.value = resetButton.resetTime[DefaultValue];
             }
-            onClick?.();
+            onClick?.(event);
         };
 
         return resetButton;
