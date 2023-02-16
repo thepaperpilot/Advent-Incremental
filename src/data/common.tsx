@@ -33,9 +33,10 @@ import type {
 } from "util/computed";
 import { convertComputable, processComputable } from "util/computed";
 import { getFirstFeature, render, renderColJSX, renderJSX, VueFeature } from "util/vue";
-import { computed, Ref, unref, watchEffect } from "vue";
+import { computed, ComputedRef, Ref, unref, watchEffect } from "vue";
 import "./common.css";
 import { main } from "./projEntry";
+import Formula, { GenericFormula } from "game/formulas";
 
 /** An object that configures a {@link ResetButton} */
 export interface ResetButtonOptions extends ClickableOptions {
@@ -454,6 +455,41 @@ export function estimateTime(
             return "Never";
         }
         return formatTime(Decimal.sub(currTarget, resource.value).div(currRate));
+    });
+}
+
+export function createFormulaPreview(
+    formula: GenericFormula,
+    showPreview: Computable<boolean>,
+    previewAmount: Computable<DecimalSource> = 1
+): ComputedRef<CoercableComponent> {
+    const processedShowPreview = convertComputable(showPreview);
+    const processedPreviewAmount = convertComputable(previewAmount);
+    if (!formula.hasVariable()) {
+        throw "Cannot create formula preview if the formula does not have a variable";
+    }
+    return computed(() => {
+        if (unref(processedShowPreview)) {
+            const curr = formatSmall(formula.evaluate());
+            const preview = formatSmall(
+                formula.evaluate(
+                    Decimal.add(
+                        unref(formula.innermostVariable ?? 0),
+                        unref(processedPreviewAmount)
+                    )
+                )
+            );
+            return jsx(() => (
+                <>
+                    <b>
+                        <i>
+                            {curr}→{preview}
+                        </i>
+                    </b>
+                </>
+            ));
+        }
+        return formatSmall(formula.evaluate());
     });
 }
 
