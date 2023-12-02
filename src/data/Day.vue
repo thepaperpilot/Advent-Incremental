@@ -81,7 +81,7 @@ const canOpen = computed(
     () =>
         props.layer != null &&
         Decimal.gte(main.day.value, props.day) &&
-        (new Date().getMonth() === 10 || player.ignoreDate !== IgnoreDateSettings.AsIntended) &&
+        (new Date().getMonth() === 11 || player.ignoreDate !== IgnoreDateSettings.AsIntended) &&
         (new Date().getDate() >= props.day || player.ignoreDate === IgnoreDateSettings.IgnoreDay)
 );
 
