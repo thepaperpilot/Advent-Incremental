@@ -284,7 +284,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     {format(
                         Decimal.times(helpers.loader.amount.value, computedLoaderPackingSpeed.value)
                     )}{" "}
-                    persents per second
+                    presents per second
                 </div>
                 <div>
                     Cost:{" "}
