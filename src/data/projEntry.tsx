@@ -409,7 +409,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
             completedStory:
                 "Santa looks at all the coal you've gathered and tells you you've done well! He says you should take the rest of the day off so you're refreshed for tomorrow's work. Good Job!",
             masteredStory:
-                "It's another typical day, attempting to redo your work again, but this time for coal. While doing this tedious task, an elf comes up to you. It gives you a improved blueprint on how to make small fires. You try it, and you realize that it's a lot more efficent than your old buildings designs. You thank the elf, and resume your work. Great Job!"
+                "It's another typical day, attempting to redo your work again, but this time for coal. While doing this tedious task, an elf comes up to you. It gives you an improved blueprint on how to make small fires. You try it, and you realize that it's a lot more efficent than your old buildings designs. You thank the elf, and resume your work. Great Job!"
         })),
         createDay(() => ({
             day: 4,
